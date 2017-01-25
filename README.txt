@@ -26,13 +26,14 @@
 ############################
 # downloading CALAND from github #
 
-#	1) Navigate to the main page of the repository
-#	2) Under repository name, click Clone or download
-#	3) In the Clone with HTTPs section, click the clipboard icon to copy the clone URL for the repository
-#	4) Open Terminal (MAC and Linux), or Git Bash (Windows)
-#	5) Change the current working directory to the location where you want the cloned directory to be made
-#	6) Type “git clone” (no quotes) and then paste the URL you copied in Step 3
-#	7) Press Enter. Your local clone will be created
+#	1) Sign up for a free github account on github.com
+#	2) Navigate to the main page of the caland repository (put URL here)
+#	3) Under repository name, click Clone or download
+#	4) In the Clone with HTTPs section, click the clipboard icon to copy the clone URL for the repository
+#	5) Open Terminal (MAC and Linux), or Git Bash (Windows)
+#	6) Change the current working directory to the location where you want the cloned directory to be made
+#	7) Type “git clone” (no quotes) and then paste the URL you copied in Step 3
+#	8) Press Enter. Your local clone will be created
 
 # Once you have a local copy on your machine, open and source the R scripts in R (to load the functions), make sure that the working directory in R is caland/, run CALAND for at least two scenarios using CALAND(), and make some plots using plot_caland() and plot_scen_types()
 # Read the details and use the examples below to run the functions successfully
