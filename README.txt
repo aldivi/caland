@@ -91,9 +91,9 @@
 
 # example:
 # historical baseline:
-CALAND <- function(scen_file=“ca_carbon_scen_hist_all_manage_frst2xmort_fire.xlsx”, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE)
+CALAND(scen_file=“ca_carbon_scen_hist_all_manage_frst2xmort_fire.xlsx”, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE)
 # high land conversion protection and baseline management:
-CALAND <- function(scen_file=“ca_carbon_scen_growth2_histmanage_frst2xmort_fire.xlsx”, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE)
+CALAND(scen_file=“ca_carbon_scen_growth2_histmanage_frst2xmort_fire.xlsx”, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE)
 
 #############################
 # plot_caland #
@@ -129,7 +129,7 @@ CALAND <- function(scen_file=“ca_carbon_scen_growth2_histmanage_frst2xmort_fir
 
 # example:
 # plot the high protection/baseline management in reference to the historical baseline
-# plot_caland <- function(scen_fnames = c(“ca_carbon_scen_hist_all_manage_frst2xmort_fire_output_mean.xlsx”, “ca_carbon_scen_growth2_histmanage_frst2xmort_fire_output_mean.xlsx”), scen_lnames = c(“Baseline”, “HighProtect_BaseManage”), scen_snames = c(“BASE”, “HPBM”), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Agriculture", "Developed_all", "Seagrass”, “All_land”), figdir = "figures")
+plot_caland(scen_fnames = c(“ca_carbon_scen_hist_all_manage_frst2xmort_fire_output_mean.xlsx”, “ca_carbon_scen_growth2_histmanage_frst2xmort_fire_output_mean.xlsx”), scen_lnames = c(“Baseline”, “HighProtect_BaseManage”), scen_snames = c(“BASE”, “HPBM”), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Agriculture", "Developed_all", "Seagrass”, “All_land”), figdir = "figures")
 
 #############################
 # plot_scen_types #
@@ -153,4 +153,4 @@ CALAND <- function(scen_file=“ca_carbon_scen_growth2_histmanage_frst2xmort_fir
 
 # example:
 # plot the total organic c stock for the individual land types in one figure, for the high protection/baseline manage scenario
-# plot_scen_types <- function(scen_lname = “HighProtect_BaseManage”, "All_orgC_stock", "MMTC", lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Agriculture", "Developed_all", "Seagrass"), figdir = "figures")
+plot_scen_types(scen_lname = “HighProtect_BaseManage”, "All_orgC_stock", "MMTC", lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Agriculture", "Developed_all", "Seagrass"), figdir = "figures")
