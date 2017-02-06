@@ -606,8 +606,8 @@ for (year in start_year:(end_year-1)) {
 	above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label]
 	vegc_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Forest"]
 	added_vegc_flux_vals = vegc_flux_vals * (leaffrac + barkfrac + branchfrac) / stemfrac 
-	deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label] * stemfrac
-	above2dldead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label] * (1.0 - stemfrac)
+	deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * above_vals * stemfrac
+	above2dldead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * above_vals * (1.0 - stemfrac)
 	#deadc2vegc_ratios = deadc_flux_vals / vegc_flux_vals
 	#above2dldead_flux_vals = deadc2vegc_ratios * added_vegc_flux_vals
 	all_c_flux[all_c_flux$Land_Type == "Forest",egnames[1]] = vegc_flux_vals + added_vegc_flux_vals - deadc_flux_vals - above2dldead_flux_vals
