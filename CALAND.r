@@ -116,6 +116,12 @@ if (value_col != 7) {
 	}
 }
 
+# 100 yr global warming potential of CO2, CH4, and black C (BC)
+gwp_CO2 <- 1
+gwp_CH4 <- 25
+gwp_BC <- 680
+
+
 # add accounting to partition C fluxes to atmopshere into: CO2, CH4, Black C:
     
 # Add to Wildfire & to Management prescribed burn
