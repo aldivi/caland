@@ -121,6 +121,60 @@ gwp_CO2 <- 1
 gwp_CH4 <- 25
 gwp_BC <- 680
 
+####### assign burned fraction of fractions of to-atmosphere fluxes #######
+
+# wildfire
+wildfire_frac <- 1
+
+# management
+  # urban prescribed burn
+urban_presc_burn <- 1
+  # urban dead removal
+urban_dead_rem <- 0
+  # forest (or any) clearcut and above-main removed to energy
+clrcut_energy <- 1
+  # forest partial_cut and above-main removed to energy
+parcut_energy <- 1
+  # forest fuel_reduction and above-main removed to energy
+fuelred_energy <- 1
+  # do lit search regarding slash burning in logging and thinning practices to get fractions below:
+  # forest clearcut and above-main removed to atmos
+clrcut_above_burn <- 0.25
+  # forest partial_cut and above-main removed to atmos
+parcut_above_burn <- 0.25
+  # forest fuel_reduction and above-main removed to atmos
+fuelred_above_burn <- 0.25
+  # forest clearcut and understory to atmos
+clrcut_under_burn <- 0.25
+  # forest partial_cut and understory to atmos
+parcut_under_burn <- 0.25
+  # forest fuel_reduction and understory to atmos
+fuelred_under_burn <- 0.25
+  # forest clearcut and understory to atmos
+clrcut_down_burn <- 0.25
+  # forest partial_cut and understory to atmos
+parcut_down_burn <- 0.25
+  # forest fuel_reduction and understory to atmos
+fuelred_down_burn <- 0.25
+  # forest clearcut and litter to atmos
+clrcut_down_burn <- 0.25
+# forest partial_cut and litter to atmos
+parcut_down_burn <- 0.25
+# forest fuel_reduction and litter to atmos
+fuelred_down_burn <- 0.25
+
+# conversion to ag or urban
+  # forest (or any land type) above-main removed to energy
+conv_rem_energy <- 1
+  # forest (or any land type) above-main removed to atmos
+conv_rem_atmos <- 0.25
+  # forest (or any land type) above-main understory to atmos
+conv_under_atmos <- 0.25
+  # forest (or any land type) down dead to atmos
+conv_down_atmos <- 0.25
+  # forest (or any land type) litter to atmos
+conv_litter_atmos <- 0.25
+ 
 
 # add accounting to partition C fluxes to atmopshere into: CO2, CH4, Black C:
     
