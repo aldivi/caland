@@ -123,8 +123,8 @@ gwp_CH4 <- 25
 gwp_BC <- 680
 
 # assign fraction of soil c accumulation that is CO2-C and CH4-C
-marsh_CO2_C_frac <- 1.14
-marsh_CH4_C_frac <- -0.14
+marsh_CO2_C_frac <- -1.14
+marsh_CH4_C_frac <- 0.14
 
 ####### assign burned fraction of fractions of to-atmosphere fluxes #######
 
@@ -1978,32 +1978,29 @@ if(WRITE_OUT_FILE) {
   for (i in 4:ncol(Eco_AnnGain_C_stock)) {
     # calc fresh march CO2-C
     Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
-    Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac #change to multiply later
+    Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
     # get the other land types with negative Eco C fluxes
     Other_neg_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] < 0, ]
-    # get the other land types with positive Eco C fluxes (net soil C sequestration)
+    # get the other land types with positive Eco C fluxes (net soil C sequestration), and set CO2-C to 0
     Other_pos_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] >= 0, ]
     Other_pos_Ann_Eco_C[,i] <- 0
   }
   Eco_CO2C <- list(Other_neg_Ann_Eco_C, Other_pos_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
   Eco_CO2C <- do.call(rbind, Eco_CO2C)
-  fresh_marsh_CO2C <- Fresh_marsh_Ann_Eco_C
   
   # repeat for CH4-C
   for (i in 4:ncol(Eco_AnnGain_C_stock)) {
-    if (Eco_AnnGain_C_stock$Land_Type == "Fresh_marsh") {
-    FreshMarsh_AnnGain_C_stock[[i]] <- Eco_AnnGain_C_stock[[i]] * marsh_CH4_C_frac
-    # for NOT fresh marsh, if the Eco_AnnGain is negative, keep it  
-    } else  { 
-      if (Eco_AnnGain_C_stock[[i]] < 0) {
-      Other1_Eco_AnnGain_C_stock[[i]] <- Eco_AnnGain_C_stock[[i]]
-      } else {
-      # otherwise assign it 0  
-        Eco_AnnGain_C_stock[[i]] <- 0
-        }
-    }
-    }
-  rbind(FreshMarsh_AnnGain_C_stock, Other1_Eco_AnnGain_C_stock, Eco_AnnGain_C_stock)
+  # calc fresh march CO2-C
+  Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
+  Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CH4_C_frac 
+  # get the other land types with negative Eco C fluxes
+  Other_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
+  # get the other land types and set CH4-C to 0
+  Other_Ann_Eco_C[,i] <- 0
+  }
+  Eco_CH4C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
+  Eco_CH4C <- do.call(rbind, Eco_CH4C)
+  
   
 	# write the workbook
 	saveWorkbook(out_wrkbk)
