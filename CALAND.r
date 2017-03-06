@@ -1967,20 +1967,19 @@ if(WRITE_OUT_FILE) {
   createSheet(out_wrkbk, name = "CO2-non-burned")
   clearSheet(out_wrkbk, sheet = "CO2-non-burned")
   
+  
   # get dataframe for the C values for fresh marsh to calculate CO2 & CH4 emissions
   Eco_AnnGain_C_stock <- out_atmos_df_list[[1]]
   
   # go through each year column 
-  
-  # out_density_df_list[[i]][, "Change_Mg_ha"] = out_density_df_list[[i]][,end_density_label] - out_density_df_list[[i]][,start_density_label]
-  ## subset current year's live ABOVE-MAIN C DENISTY [MgC/ha] for forests
-  # above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label]
   for (i in 4:ncol(Eco_AnnGain_C_stock)) {
     # calc fresh march CO2-C
     Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
     Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
-    # get the other land types with negative Eco C fluxes
+    # get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
     Other_neg_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] < 0, ]
+    # change sign of CO2-C emissions to positive
+    Other_neg_Ann_Eco_C[,i] <- abs(Other_neg_Ann_Eco_C[,i])
     # get the other land types with positive Eco C fluxes (net soil C sequestration), and set CO2-C to 0
     Other_pos_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] >= 0, ]
     Other_pos_Ann_Eco_C[,i] <- 0
