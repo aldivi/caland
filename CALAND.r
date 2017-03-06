@@ -1978,7 +1978,7 @@ if(WRITE_OUT_FILE) {
   for (i in 4:ncol(Eco_AnnGain_C_stock)) {
     # calc fresh march CO2-C
     Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
-    Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] + marsh_CO2_C_frac #change to multiply later
+    Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac #change to multiply later
     # get the other land types with negative Eco C fluxes
     Other_neg_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] < 0, ]
     # get the other land types with positive Eco C fluxes (net soil C sequestration)
@@ -1989,14 +1989,10 @@ if(WRITE_OUT_FILE) {
   Eco_CO2C <- do.call(rbind, Eco_CO2C)
   fresh_marsh_CO2C <- Fresh_marsh_Ann_Eco_C
   
-  
-  
-  
-  
-  
+  # repeat for CH4-C
   for (i in 4:ncol(Eco_AnnGain_C_stock)) {
     if (Eco_AnnGain_C_stock$Land_Type == "Fresh_marsh") {
-    FreshMarsh_AnnGain_C_stock[[i]] <- Eco_AnnGain_C_stock[[i]] + marsh_CO2_C_frac
+    FreshMarsh_AnnGain_C_stock[[i]] <- Eco_AnnGain_C_stock[[i]] * marsh_CH4_C_frac
     # for NOT fresh marsh, if the Eco_AnnGain is negative, keep it  
     } else  { 
       if (Eco_AnnGain_C_stock[[i]] < 0) {
