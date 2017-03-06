@@ -1043,8 +1043,9 @@ for (year in start_year:(end_year-1)) {
 	man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Litter2Atmos_c + 
 	                                                            man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2Atmos_c + 
 	                                                            man_adjust_df$Removed2Atmos_c + man_adjust_df$Below2Atmos_c)
+	
 	# energy - this is assume to go to the atmosphere immediately
-	  # calc C loss to atmosphere [Mg C] ("Land2Energy_c_stock_man") via energy generation (CO2 + CH4) (assume to go to the atmosphere 
+	  # calc C loss to atmosphere [Mg C] ("Land2Energy_c_stock_man") via energy generation (CO2 + CH4 + BC) (assume to go to the atmosphere 
 	      # immediately) = -(total area [ha]) * (above-ground C removed for energy [MgC/ha])
 	agg_names = c(agg_names, paste0("Land2Energy_c_stock_man"))
 	man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Energy_c
@@ -1053,6 +1054,9 @@ for (year in start_year:(end_year-1)) {
 	agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
 	man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Wood_c
 	
+	agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
+	man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Litter2Atmos_c + man_adjust_df$DownDead2Atmos_c + 
+	                                                            man_adjust_df$Understory2Atmos_c + man_adjust_df$Removed2Atmos_c)
 	# now aggregate to land type by summing the management options
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos, energy (atmos), and wood
