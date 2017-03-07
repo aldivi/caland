@@ -1451,13 +1451,19 @@ for (year in start_year:(end_year-1)) {
 	# assume that these entries do not need aggregation with other similar management activities within land type id
 	#  in other words, there is only one area-changing management per land type id and each is dealt with uniquely
 	
+	# create dataframe for conversion adjustments: merge the annual net coversion area changes with the total area dataframe
 	conv_adjust_df = merge(tot_area_df, conv_area_df, by = c("Land_Type_ID", "Land_Type", "Ownership"))
+	# sort
 	conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Land_Type_ID),]
+	# duplicate column for annual net area conversions ("base_area_change") and call it "area_change"
 	conv_adjust_df$area_change = conv_adjust_df$base_area_change
 	# put the total area in the new area column for now
 	# so that it can be adjusted as necessary by ownership below
 	conv_adjust_df$new_area = conv_adjust_df$tot_area
 	
+	############################################################################################################
+	#########  FIRST, ADJUST BASELINE AREA CHANGE FOR RESTORATION, AFFORESTATION & LIMITED GROWTH ##############
+	############################################################################################################
 	man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | 
 	                              man_adjust_df$Management == "Growth",1:7]
 	man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Land_Type_ID", "Land_Type", "Ownership", "Manage_ID", "Management"))
@@ -1619,7 +1625,10 @@ for (year in start_year:(end_year-1)) {
 			# first find which columns are empty
 			zinds = which(apply(conv_own[,conv_col_names],2,sum) == 0)
 			conv_own[,conv_col_names][,zinds] = -conv_own2[,conv_col_names][,zinds]
-
+			
+			############################# calc 'FROM' land type losses due to conversion to ag and developed ############################# 
+			# if ag or developed is shrinking, then there is no conversion flux 
+			# (ag and urban losses don't use conversion fractions, but gains are dictated by the input conversion fractions)
 			# calc from land type losses due to conversion to ag and developed
 			# if there is an ag or urban loss, then there is no conversion flux
 			# assume that these losses are immediate
@@ -1977,12 +1986,15 @@ for (year in start_year:(end_year-1)) {
 	
 	# set this years actual fire area - output by the lt breakdown
 	if(year == start_year){
+	  # add 3rd data frame with these introductory columns
 		out_area_df_list[[3]] = fire_adjust_df[,c("Land_Type_ID", "Fire_ID", "Land_Type", "Ownership", "Intensity")]
 	}
+	# add column for current (initial) burn area determined earlier for how it's distributed
 	out_area_df_list[[3]][,cur_area_label] = fire_adjust_df$fire_burn_area
 	
 	# add up the total org c pool density
 	out_density_df_list[[1]][, next_density_label] = 0
+	# loop through all c dens pools and add to new column
 	for (i in 3:num_out_density_sheets) {
 		out_density_df_list[[1]][, next_density_label] = out_density_df_list[[1]][, next_density_label] + 
 		  out_density_df_list[[i]][, next_density_label]
