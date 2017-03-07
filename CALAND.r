@@ -1356,25 +1356,37 @@ for (year in start_year:(end_year-1)) {
 	                                                                   fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$StandDead2Atmos_c + 
 	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Below2Atmos_c + 
 	                                                                   fire_adjust_df$Above2Atmos_c)
-	# Partition the Land2Atmos_c_stock into total burned (CO2+CH4+BC) and total non-burned C emissions (CO2) (i.e., Soil c and root c 
-	# are assumed to not burn, but rather have an immediate release of CO2 following the fire. Update if contrary evidence is found)
+	# Partition the Land2Atmos_c_stock into total burned (CO2+CH4+BC) and total non-burned C emissions (CO2). Currently soil c and root c 
+	# are assumed not to burn, and decay is captured in ongoing soil accum rates. (i.e. input values for wildfire effects fractions on 
+	# root and soil c to atmosphere are currently 0. Update if contrary evidence is found)
 	# first, calculate burned c emissions from wildfire
 	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_BurnedC_stock"))
 	fire_adjust_df[,fire_agg_names[9]] = -fire_adjust_df$tot_area * (fire_adjust_df$Litter2Atmos_c + fire_adjust_df$DownDead2Atmos_c + 
 	                                                                   fire_adjust_df$StandDead2Atmos_c + 
 	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Above2Atmos_c)
 	# second, calculate non-burned c emissions from wildfire
+	# currently this is 0 as there's no lost root or soil c.
 	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_NonBurnedC_stock"))
 	fire_adjust_df[,fire_agg_names[10]] = fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]]
 	
+	############################################################################################################
+	######### sixth, aggregate changes in each C density pool within each landtype-ownership class ############# 
+	############################################################################################################
 	# now aggregate to land type by summing the fire intensities
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos
+	
+	# first, create table that has a row for each land type ID, and a column for each of the fire-caused C density change [MgC/ha], 
+	# and corresponding C transfer to atmosphere [Mg C]  
 	fire_agg_cols = array(dim=c(length(fire_adjust_df$Land_Type_ID),length(fire_agg_names)))
+	# second, populate the table by applying loop to each row's land type ID 
 	for (i in 1:length(fire_agg_names)) {
+	  # fill columns with corresponding fire-caused C DENSITY CHANNGES from the fire_adjust_df
 		fire_agg_cols[,i] = fire_adjust_df[,fire_agg_names[i]]
 	}
+	# third, aggregate the C DENSITY CHANGES by summing within each land type-ownership combination and assign to fire_adjust_agg 
 	fire_adjust_agg = aggregate(fire_agg_cols ~ Land_Type_ID + Land_Type + Ownership, data=fire_adjust_df, FUN=sum)
+	# fourth, label the columns of the aggregated table 
 	fire_agg_names2 = paste0(fire_agg_names,"_fire_agg")
 	names(fire_adjust_agg)[c(4:ncol(fire_adjust_agg))] = fire_agg_names2
 	# merge these values to the unman area table to apply the adjustments to each land type
@@ -1388,22 +1400,38 @@ for (year in start_year:(end_year-1)) {
 	# carbon cannot go below zero
 	sum_change = 0
 	sum_neg_fire = 0
+	# for above-main C density through soil organic C density dataframes, do:
 	for (i in 3:num_out_density_sheets) {
-		sum_change = sum_change + sum(all_c_flux[, fire_agg_names2[i-2]] * all_c_flux$tot_area)
-		out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, fire_agg_names2[i-2]]
-		# first calc the carbon not subtracted because it sends density negative
+	  # subset each of the columns representing aggregated fire-caused C density changes and the C emissions 
+	  # multiply by total area
+	  # sum them all 
+	  # this gives a single value for state-wide cumulative fire C changes [Mg C/y] -- used to make sure sure nothing is negative
+	  sum_change = sum_change + sum(all_c_flux[, fire_agg_names2[i-2]] * all_c_flux$tot_area)
+		
+	  ############################################################################################################
+	  ################################### Lastly, UPDATE NEXT YEAR'S C DENSITIES #################################
+	  ############################################################################################################
+	  
+	  # add the corresponding fire-caused C density change to last year's C density
+	  out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, fire_agg_names2[i-2]]
+	  # calc the total state-wide cumulative C not subtracted because it sends density negative (used as check to make sure it's minimal)
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
 		cat("neginds for out_density_df_list fire" , i, "are", neginds, "\n")
 		sum_neg_fire = sum_neg_fire + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
 		                                    out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+		# replace any negative updated C densities with 0
 		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
 		                                                          out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
 	} # end loop over out densities for updating due to fire
 	cat("fire carbon to atmosphere is ", sum_change, "\n")
 	cat("fire negative carbon cleared is ", sum_neg_fire, "\n")
 
-	####
-	####
+	############################################################################################################
+	############################################################################################################
+	###################################  Apply LAND CONVERSIONS to C pools  ####################################
+	############################################################################################################
+	############################################################################################################
+	
 	# apply land conversion to the carbon pools (current year area and updated carbon)
 	# as the changes are net, the land type area gains will be distributed proportionally among the land type area losses
 	# the "to" land type columns are in land type id order and do not include seagrass because it is just an expansion
