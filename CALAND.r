@@ -1306,39 +1306,67 @@ for (year in start_year:(end_year-1)) {
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
+	############################################################################################################
+	################ fourth, consolidate the changes in C densities within each C density pool #################
+	############################################################################################################
 	# now consolidate the c density transfers to the pools
 	# convert these to gains for consistency: all terrestrial gains are positive, losses are negative
 	# store the names for aggregation below
 	fire_agg_names = NULL
 	# above
+	  # add a column called "Above_main_C_den_gain": above-main C density = -(above to atmos C) -(above to standing dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[3], "_gain"))
 	fire_adjust_df[,fire_agg_names[1]] = -fire_adjust_df$Above2Atmos_c - fire_adjust_df$Above2StandDead_c
 	# below
+	  # add a column called "Below_main_C_den_gain": root C density = -(root to atmos C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[4], "_gain"))
 	fire_adjust_df[,fire_agg_names[2]] = -fire_adjust_df$Below2Atmos_c
 	# understory
+	  # add a column called "Understory_C_den_gain": understory C density = -(understory to atmos C) -(understory to down dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[5], "_gain"))
 	fire_adjust_df[,fire_agg_names[3]] = -fire_adjust_df$Understory2Atmos_c - fire_adjust_df$Understory2DownDead_c
 	# standing dead
+	  # add a column called "StandDead_C_den_gain": standing dead C density = -(standing dead to atmos C) + (above-main to standing dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[6], "_gain"))
 	fire_adjust_df[,fire_agg_names[4]] = -fire_adjust_df$StandDead2Atmos_c + fire_adjust_df$Above2StandDead_c
 	# down dead
+	  # add a column called "DownDead_C_den_gain": down dead C density = -(down dead to atmos C) + (understory to down dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[7], "_gain"))
 	fire_adjust_df[,fire_agg_names[5]] = -fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$Understory2DownDead_c
 	# litter
+	  # add a column called "Litter_C_den_gain": litter C density = -(litter to atmos C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[8], "_gain"))
 	fire_adjust_df[,fire_agg_names[6]] = -fire_adjust_df$Litter2Atmos_c
 	# soil
+	  # add a column called "Soil_orgC_den_gain": soil C density = -(soil to atmos C) 
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[9], "_gain"))
 	fire_adjust_df[,fire_agg_names[7]] = -fire_adjust_df$Soil2Atmos_c
+	
+	############################################################################################################
+	################################## fifth, calc total C loss to atmosphere #################################  
+	############################################################################################################
+	
 	# to get the carbon must multiply these by the tot_area
 	# atmos
+	  # calc fire C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_man") = -(total area [ha]) * (soil emissons [MgC/ha] + 
+	    # litter emissons [Mg/ha] + down dead emissons [Mg/ha] + standing dead emissions [Mg/ha] + understory emissons [Mg/ha] + 
+	    # root emissions [Mg/ha] + above-main emissions [Mg/ha])
 	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_c_stock"))
 	fire_adjust_df[,fire_agg_names[8]] = -fire_adjust_df$tot_area * (fire_adjust_df$Soil2Atmos_c + fire_adjust_df$Litter2Atmos_c + 
 	                                                                   fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$StandDead2Atmos_c + 
 	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Below2Atmos_c + 
 	                                                                   fire_adjust_df$Above2Atmos_c)
-
+	# Partition the Land2Atmos_c_stock into total burned (CO2+CH4+BC) and total non-burned C emissions (CO2) (i.e., Soil c and root c 
+	# are assumed to not burn, but rather have an immediate release of CO2 following the fire. Update if contrary evidence is found)
+	# first, calculate burned c emissions from wildfire
+	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_BurnedC_stock"))
+	fire_adjust_df[,fire_agg_names[9]] = -fire_adjust_df$tot_area * (fire_adjust_df$Litter2Atmos_c + fire_adjust_df$DownDead2Atmos_c + 
+	                                                                   fire_adjust_df$StandDead2Atmos_c + 
+	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Above2Atmos_c)
+	# second, calculate non-burned c emissions from wildfire
+	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_NonBurnedC_stock"))
+	fire_adjust_df[,fire_agg_names[10]] = fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]]
+	
 	# now aggregate to land type by summing the fire intensities
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos
