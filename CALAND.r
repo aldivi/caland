@@ -995,6 +995,11 @@ for (year in start_year:(end_year-1)) {
 	
 	# loop over the non-accum manage frac columns to calculate the transfer carbon density for each frac column
 	# the transfer carbon density is based on tot_area so that it can be aggregated and subtracted directly from the current density
+	
+	############################################################################################################
+	#################### Do management C transfers [MgC/y] for forest & developed areas ########################
+	############################################################################################################
+	
 	for (i in 1:num_manfrac_cols){
 		# the removed values are calculated first, so this will work
 		# if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns
@@ -1071,7 +1076,10 @@ for (year in start_year:(end_year-1)) {
 	man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Wood_c
 	
 	
-	
+	# Before partioning the Land2Atmos_c_stock_man into total burned and total non-burned C emissions, partition the 
+	# individual above-ground pools within it.
+	# Soil c and root c are assumed to not burn, so 100% of 2Atmos c from these pools will be CO2.
+	  # First, calculate burned litter c using default fractions  of 2Atmos pools set in beginning
 	man_adjust_df[,"Burned_litter_c"] = 0
 	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_litter_burn * 
 	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Clearcut"]
@@ -1081,8 +1089,8 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_litter_burn * 
 	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-	
-	  man_adjust_df[,"Burned_downdead_c"] = 0
+	  # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
+	man_adjust_df[,"Burned_downdead_c"] = 0
 	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
 	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
@@ -1091,8 +1099,8 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_down_burn * 
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-	  
-	  man_adjust_df[,"Burned_under_c"] = 0
+	  # Third, calculate burned understory c using default fractions of 2Atmos pools set in beginning
+	man_adjust_df[,"Burned_under_c"] = 0
 	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Clearcut"]
 	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_under_burn * 
@@ -1101,9 +1109,9 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-	  
+	  # Forth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
 	  # doesn't include removed 2 energy
-	  man_adjust_df[,"Burned_mainremoved_c"] = 0
+  man_adjust_df[,"Burned_mainremoved_c"] = 0
 	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_mainremoved_burn * 
 	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Clearcut"]
 	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_mainremoved_burn * 
@@ -1124,11 +1132,18 @@ for (year in start_year:(end_year-1)) {
 	# now aggregate to land type by summing the management options
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos, energy (atmos), and wood
+	
+	# first, create table that has a row for each land type ID, and a column for each of the management-caused C density changes [MgC/ha], 
+	# and corresponding net cumulative C transfers [Mg C] to atmosphere (via decomp, burning, or energy (also burning)) or to wood 
 	agg_cols = array(dim=c(length(man_adjust_df$Land_Type_ID),length(agg_names)))
+	# second, populate the table by applying loop to each row's land type ID  
 	for (i in 1:length(agg_names)) {
-		agg_cols[,i] = man_adjust_df[,agg_names[i]]
+	  # fill columns with corresponding management-caused C transfers from the man_adjust_df
+	  agg_cols[,i] = man_adjust_df[,agg_names[i]]
 	}
+	# third, aggregate the C transfers by summing within each land type and ownership combination and assign to man_adjust_agg df
 	man_adjust_agg = aggregate(agg_cols ~ Land_Type_ID + Land_Type + Ownership, data=man_adjust_df, FUN=sum)
+	# fourth, label the columns of the aggregated table 
 	agg_names2 = paste0(agg_names,"_agg")
 	names(man_adjust_agg)[c(4:ncol(man_adjust_agg))] = agg_names2
 	# merge these values to the unman area table to apply the adjustments to each land type
@@ -1142,7 +1157,12 @@ for (year in start_year:(end_year-1)) {
 	# carbon cannot go below zero
 	sum_change = 0
 	sum_neg_man = 0
+	# for above-main C density through soil organic C density dataframes, do:
 	for (i in 3:num_out_density_sheets) {
+	  # subset each of the columns represneting aggregated management-caused C density gains and the C stock transfers (i.e. C emissions and wood), 
+	  # multiply by total area, and
+	  # sum them all 
+	  # this gives a single value for state-wide cumulative management C changes [Mg C/y] -- used to make sure sure nothing is negative
 		sum_change = sum_change + sum(all_c_flux[, agg_names2[i-2]] * all_c_flux$tot_area)
 		out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, agg_names2[i-2]]
 		# first calc the carbon not subtracted because it sends density negative
