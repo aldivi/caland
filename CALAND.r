@@ -1109,7 +1109,7 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-	  # Forth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
+	  # Fourth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
 	  # doesn't include removed 2 energy
   man_adjust_df[,"Burned_mainremoved_c"] = 0
 	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_mainremoved_burn * 
@@ -1203,61 +1203,104 @@ for (year in start_year:(end_year-1)) {
 	  out_wood_df_list[[6]][,next_wood_label]
 	out_wood_df_list[[8]][,next_wood_label] = out_wood_df_list[[8]][,cur_wood_label] + out_wood_df_list[[10]][,cur_wood_label]
 	
-	####
-	####
+	############################################################################################################
+	############################################################################################################
+	#########################################  Apply FIRE to C pools  ##########################################
+	############################################################################################################
+	############################################################################################################
+	
 	# apply fire to the carbon pools (current year area and updated carbon)
 	# distribute fire to forest, woodland, savanna, shrubland, and grassland, proportionally within the ownerships
 	# assume that burn area is not reflected in the baseline land type change numbers
 	#  (which isn't necessarily the case)
 	cat("Starting fire c transfers\n")
 	
-	# calculate this years fire area based on the targets
+	############################################################################################################
+	########################## first, calculate this year's FIRE AREA based on the targets #####################
+	############################################################################################################
+	
 	# if the year is past the final target year than use the final target year
+	
+	# indices of prior or current target years
 	linds = which(fire_targetyears <= year)
+	# indices of upcoming or current target years
 	hinds = which(fire_targetyears >= year)
+	# set latest (or current) target year
 	prev_targetyear = max(fire_targetyears[linds])
+	# set next (or current) target year
 	next_targetyear = min(fire_targetyears[hinds])
+	# index of previous target year
 	pind = which(fire_targetyears == prev_targetyear)
+	# index of next target year
 	nind = which(fire_targetyears == next_targetyear)
+	# column header of previous target year
 	pcol = fire_targetyear_labels[pind]
+	# column header of next target year
 	ncol = fire_targetyear_labels[nind]
 	
+	# assign the fire target areas to fire_area_df
 	fire_area_df = fire_target_df[,c(1:5)]
+	# if current year is a target year or past all target years, 
 	if (prev_targetyear == next_targetyear | length(hinds) == 0) {
+	  # then create column for previous year target area and set to previous (or current) year's target area 
 		fire_area_df[,pcol] = fire_target_df[,pcol]
+		# else add a column with previous year target area
 	} else {
 		fire_area_df = fire_target_df[,c(1:5,pcol)]
+		# update the column with the linear interpolation of the areas between target years
 		fire_area_df[,pcol] = fire_target_df[,pcol] + (year - prev_targetyear) * (fire_target_df[,ncol] - fire_target_df[,pcol]) / 
 		  (next_targetyear - prev_targetyear)
 	}
-
+	############################################################################################################
+	################## second, proportionally distribute ownership fire areas to each landtype #################
+	############################################################################################################
+	
+	# assign assigned FIRE TARGET AREA BY OWNERSHIP [ha] to "fire_own_area" 
 	names(fire_area_df)[names(fire_area_df) == pcol] = "fire_own_area"
+	# merge the fire effects dataframe with the fire target areas and assign to fire_adjust_df
 	fire_adjust_df = merge(fire_area_df, fire_df, by = c("Fire_ID", "Intensity"), all.x = TRUE)
 	fire_adjust_df$Land_Type_ID = NULL
 	fire_adjust_df$Land_Type = NULL
+	# merge with the tot_area_df by ownership class
 	fire_adjust_df = merge(tot_area_df, fire_adjust_df, by = c("Ownership"), all.x = TRUE)
+	# trim dataframe to only include forest, woodland, savanna, grassland, shrubland
 	fire_adjust_df = fire_adjust_df[fire_adjust_df$Land_Type == "Forest" | fire_adjust_df$Land_Type == "Woodland" | 
 	                                  fire_adjust_df$Land_Type == "Savanna" | fire_adjust_df$Land_Type == "Grassland" | 
 	                                  fire_adjust_df$Land_Type == "Shrubland",]
+	# create new dataframe for OWNERSHIP AREA [ha]: AGGREGATE total AREAS by OWNERSHIP, omitting duplicates
 	avail_own_area = aggregate(tot_area ~ Ownership, data = unique(fire_adjust_df[,c(1:4)]), sum)
+	# rename OWNERSHIP AREA [ha]: "avail_own_area"
 	names(avail_own_area)[2] = "avail_own_area"
+	# merge FIRE C TRANSFER EFFECTS (fractions) dataframe with the ownership areas dataframe
 	fire_adjust_df = merge(avail_own_area, fire_adjust_df, by = c("Ownership"), all.y = TRUE)
+	# if assigned FIRE TARGET AREA BY OWNERSHIP [ha] > TOTAL AREA OF OWNERSHIP [ha], set target area equal to the total ownership area
 	fire_adjust_df$fire_own_area <- replace(fire_adjust_df$fire_own_area, fire_adjust_df$fire_own_area > fire_adjust_df$avail_own_area, 
 	                                        fire_adjust_df$avail_own_area)
+	# create column for BURNED AREA [ha] for each landtype-ownership combination and proportinally distribute burned areas 
+	  # BURNED AREA [ha] = (FIRE TARGET AREA BY OWNERSHIP [ha]) * (landtype area / ownership area)
 	fire_adjust_df$fire_burn_area = fire_adjust_df$fire_own_area * fire_adjust_df$tot_area / fire_adjust_df$avail_own_area
 	
+	############################################################################################################
+	################# third, calc changes in C densities for each of the fire effects within the ###############
+	#########################  fire areas withn each landtypes-ownership cmbination ############################
+	############################################################################################################ 
 	# loop over the fire frac columns to calculate the transfer carbon density for each frac column
 	# the transfer carbon density is based on tot_area so that it can be aggregated and subtracted directly from the current density
 	for (i in 1:num_firefrac_cols){
+	  # if the column names of C densities MgC/ha are not in the fire_adjust df (basically saying stop when done)
 		if (!out_density_sheets[fire_density_inds[i]] %in% colnames(fire_adjust_df)) {
-			fire_adjust_df = merge(fire_adjust_df, 
+		  # then merge the C density pool corresponding to the source of all the fire C transfer fractions 
+		  fire_adjust_df = merge(fire_adjust_df, 
 			                       out_density_df_list[[fire_density_inds[i]]][,c("Land_Type_ID", "Land_Type", "Ownership", next_density_label)], 
 			                       by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
-			names(fire_adjust_df)[names(fire_adjust_df) == next_density_label] = out_density_sheets[fire_density_inds[i]]
+		  # and assign the name of the C density pool to the column
+		  names(fire_adjust_df)[names(fire_adjust_df) == next_density_label] = out_density_sheets[fire_density_inds[i]]
 		}
+	  # lastly, fill in each of the fire C transfer = C density [Mg/ha] * fraction of effected C pool *  landtype-ownership fire area/ total area
 		fire_adjust_df[,firec_trans_names[i]] = fire_adjust_df[,out_density_sheets[fire_density_inds[i]]] * fire_adjust_df[,fire_frac_names[i]] * 
 		  fire_adjust_df$fire_burn_area / fire_adjust_df$tot_area
 	} # end for loop over the fire transfer fractions for calcuting the transfer carbon
+	# clean up fire output
 	fire_adjust_df = fire_adjust_df[order(fire_adjust_df$Land_Type_ID),]
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
