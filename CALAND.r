@@ -155,18 +155,18 @@ clrcut_under_burn <- 0.25
 parcut_under_burn <- 0.25
   # forest fuel_reduction and understory to atmos
 fuelred_under_burn <- 0.25
-  # forest clearcut and understory to atmos
+  # forest clearcut and down dead to atmos
 clrcut_down_burn <- 0.25
-  # forest partial_cut and understory to atmos
+  # forest partial_cut and down dead to atmos
 parcut_down_burn <- 0.25
-  # forest fuel_reduction and understory to atmos
+  # forest fuel_reduction and down dead to atmos
 fuelred_down_burn <- 0.25
   # forest clearcut and litter to atmos
-clrcut_down_burn <- 0.25
+clrcut_litter_burn <- 0.25
 # forest partial_cut and litter to atmos
-parcut_down_burn <- 0.25
+parcut_litter_burn <- 0.25
 # forest fuel_reduction and litter to atmos
-fuelred_down_burn <- 0.25
+fuelred_litter_burn <- 0.25
 
 # conversion to ag or urban
   # forest (or any land type) above-main removed to energy
@@ -1055,8 +1055,16 @@ for (year in start_year:(end_year-1)) {
 	man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Wood_c
 	
 	agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
+	# create man_adjust_df$Litter2Atmos_c_burned
+	
+	man_adjust_df$Litter2Atmos_burned_c <- if (man_adjust_df$Management == "Clearcut") {
+	 
+	}
+	
+	  
 	man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Litter2Atmos_c + man_adjust_df$DownDead2Atmos_c + 
 	                                                            man_adjust_df$Understory2Atmos_c + man_adjust_df$Removed2Atmos_c)
+	
 	# now aggregate to land type by summing the management options
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos, energy (atmos), and wood
