@@ -149,24 +149,32 @@ clrcut_above_burn <- 0.25
 parcut_above_burn <- 0.25
   # forest fuel_reduction and above-main removed to atmos
 fuelred_above_burn <- 0.25
+  # forest Prescribed_burn and above-main removed to atmos
+prescrburn_above_burn <- 1
   # forest clearcut and understory to atmos
 clrcut_under_burn <- 0.25
   # forest partial_cut and understory to atmos
 parcut_under_burn <- 0.25
   # forest fuel_reduction and understory to atmos
 fuelred_under_burn <- 0.25
+  # forest Prescribed_burn and understory to atmos
+prescrburn_under_burn <- 1
   # forest clearcut and down dead to atmos
 clrcut_down_burn <- 0.25
   # forest partial_cut and down dead to atmos
 parcut_down_burn <- 0.25
   # forest fuel_reduction and down dead to atmos
 fuelred_down_burn <- 0.25
+  # forest Prescribed_burn and down dead to atmos
+prescrburn_down_burn <- 1
   # forest clearcut and litter to atmos
 clrcut_litter_burn <- 0.25
-# forest partial_cut and litter to atmos
+  # forest partial_cut and litter to atmos
 parcut_litter_burn <- 0.25
-# forest fuel_reduction and litter to atmos
+  # forest fuel_reduction and litter to atmos
 fuelred_litter_burn <- 0.25
+  # forest Prescribed_burn and litter to atmos
+prescrburn_litter_burn <- 1
 
 # conversion to ag or urban
   # forest (or any land type) above-main removed to energy
@@ -1057,10 +1065,31 @@ for (year in start_year:(end_year-1)) {
 	agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
 	# create man_adjust_df$Litter2Atmos_c_burned
 	
-	man_adjust_df$Litter2Atmos_burned_c <- if (man_adjust_df$Management == "Clearcut") {
-	 
-	}
+	man_adjust_df[,"Burned_litter_c"] = 0
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_litter_burn * 
+	    -1 * man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_litter_burn * 
+	    -1 * man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_litter_burn * 
+	    -1 * man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Fuel_reduction"] <- prescrburn_litter_burn * 
+	    -1 * man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	
+	  man_adjust_df[,"Burned_downdead_c"] = 0
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
+	    -1 * man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
+	    -1 * man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_down_burn * 
+	    -1 * man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+	  
+	  man_adjust_df[,"Burned_under_c"] = 0
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
+	    -1 * man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_under_burn * 
+	    -1 * man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_under_burn * 
+	    -1 * man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  
 	man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Litter2Atmos_c + man_adjust_df$DownDead2Atmos_c + 
 	                                                            man_adjust_df$Understory2Atmos_c + man_adjust_df$Removed2Atmos_c)
