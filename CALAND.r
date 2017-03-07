@@ -1164,12 +1164,17 @@ for (year in start_year:(end_year-1)) {
 	  # sum them all 
 	  # this gives a single value for state-wide cumulative management C changes [Mg C/y] -- used to make sure sure nothing is negative
 		sum_change = sum_change + sum(all_c_flux[, agg_names2[i-2]] * all_c_flux$tot_area)
+		
+		#################################################### UPDATE NEXT YEAR'S C DENSITIES ####################################################
+		# add corresponding management C density change to the value that is there (previous year's C density)
 		out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, agg_names2[i-2]]
-		# first calc the carbon not subtracted because it sends density negative
+		# calc the total state-wide cumulative C not subtracted because it sends density negative -- used as check to make sure this is minimal
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
 		cat("neginds for out_density_df_list manage" , i, "are", neginds, "\n")
 		sum_neg_man = sum_neg_man + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
 		                                  out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+		
+		# replace any negative updated C densities with 0
 		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
 		                                                          out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
 	} # end loop over out densities for updating due to veg management
@@ -1177,6 +1182,8 @@ for (year in start_year:(end_year-1)) {
 	cat("manage carbon to wood is ", sum(man_adjust_agg$Land2Wood_c_stock_man), "\n")
 	cat("manage carbon to atmos is ", sum(man_adjust_agg$Land2Atmos_c_stock_man), "\n")
 	cat("manage carbon to energy is ", sum(man_adjust_agg$Land2Energy_c_stock_man), "\n")
+	cat("manage burned carbon to atmos is ", sum(man_adjust_agg$Land2Atmos_burnedC_stock_man), "\n")
+	cat("manage non-burned carbon to atmos is ", sum(man_adjust_agg$Land2Atmos_nonburnedC_stock_man), "\n")
 	cat("manage negative carbon cleared is ", sum_neg_man, "\n")
 
 	# update the managed wood tables
