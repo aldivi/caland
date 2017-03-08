@@ -2153,9 +2153,9 @@ Eco_AnnGain_C_stock <- out_atmos_df_list[[8]]
 # go through each year column 
 Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
 # get the other land types with positive Eco C fluxes (net soil C sequestration)
-Other_neg_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] < 0, ]
+Other_neg_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]] < 0, ]
 # get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
-Other_pos_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] >= 0, ]
+Other_pos_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]] >= 0, ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
   # calc fresh march CO2-C
   Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
@@ -2219,9 +2219,8 @@ Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Type_ID),]
 
 
 
-
-out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
-out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
+#out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
+#out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 
 # Partition all the appropriate burned (incl energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
 CO2C_burn_frac <- 0.9891
@@ -2317,8 +2316,11 @@ for (i in 4:ncol(LCC_AnnBurnedC)) {
 
 # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain.
 # Cumulative CO2-C. Choice of ncol(Manage_AnnBurnedC) is arbitrary -  just need the total number of columns.
-for (i in 4:ncol(Manage_AnnBurnedC)) 
-# All_CO2C_Cum[,i] <- sum(Eco_CO2C[,i],)
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+All_CO2C_Cum[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list["Manage_Atmos_CumGain_NonBurnedC_stock"][,i] + 
+  out_atmos_df_list["Fire_Atmos_CumGain_NonBurnedC_stock"][,i] + out_atmos_df_list["LCC_Atmos_AnnGain_NonEnergyC_stock"][,i]
+}
+
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
