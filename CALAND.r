@@ -2325,10 +2325,10 @@ for (i in 4:ncol(Total_CumCO2C)) {
   Total_CumCO2C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_CumCO2C)) {
-Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] +
-  out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC_stock"]][,i] + 
-  out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] +
-  Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + LCC_Burn_CumCO2C[,i]
+Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
+  out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC_stock"]][,i] + 
+  out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
+  LCC_Burn_CumCO2C[,i]
 }
 
 
