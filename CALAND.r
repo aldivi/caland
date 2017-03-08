@@ -2319,7 +2319,9 @@ for (i in 4:ncol(LCC_AnnBurnedC)) {
 }
 
 # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain.
-# First, do cumulative CO2-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
+  
+  ### cumulative ###
+# first, do cumulative CO2-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
 Total_CumCO2C <- Manage_Burn_CumCO2C
 for (i in 4:ncol(Total_CumCO2C)) {
   Total_CumCO2C[,i] <- 0
@@ -2346,6 +2348,41 @@ for (i in 4:ncol(Total_CumBCC)) {
 for (i in 4:ncol(Manage_Burn_CumBCC)) {
   Total_CumBCC[,i] <- Manage_Burn_CumBCC[,i] + Wildfire_Burn_CumBCC[,i] + LCC_Burn_CumBCC[,i]
 }
+
+  ### annual ###
+# first, do annual CO2-C. Choice of ncol(Manage_Burn_AnnCO2C) is arbitrary -  just need the total number of columns.
+Total_AnnCO2C <- Manage_Burn_AnnCO2C
+for (i in 4:ncol(Total_AnnCO2C)) {
+  Total_AnnCO2C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_AnnCO2C)) {
+  Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
+    out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC_stock"]][,i] + 
+    out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_Burn_AnnCO2C[,i] + 
+    LCC_Burn_AnnCO2C[,i]
+}
+# Second, do annual CH4-C. Choice of ncol(Manage_Burn_AnnCH4C) is arbitrary -  just need the total number of columns.
+Total_AnnCH4C <- Manage_Burn_AnnCH4C
+for (i in 4:ncol(Total_AnnCH4C)) {
+  Total_AnnCH4C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_AnnCH4C)) {
+  Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Burn_AnnCH4C[,i] + Wildfire_Burn_AnnCH4C[,i] + LCC_Burn_AnnCH4C[,i]
+}
+# Third, do annual BC-C. Choice of ncol(Manage_Burn_AnnBCC) is arbitrary -  just need the total number of columns.
+Total_AnnBCC <- Manage_Burn_AnnBCC
+for (i in 4:ncol(Total_AnnBCC)) {
+  Total_AnnBCC[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_AnnBCC)) {
+  Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_Burn_AnnBCC[,i] + LCC_Burn_AnnBCC[,i]
+}
+
+
+# individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
+# if desired
+
+# first, convert total cumulative CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
 
 
 
