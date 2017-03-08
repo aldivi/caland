@@ -2187,9 +2187,9 @@ Eco_CumCH4C = Eco_CumCH4C[order(Eco_CumCH4C$Land_Type_ID),]
 # go through each year column 
 Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type == "Fresh_marsh", ]
 # get the other land types with positive Eco C fluxes (net soil C sequestration)
-Other_neg_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[8]][i] < 0, ]
+Other_neg_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[8]] < 0, ]
 # get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
-Other_pos_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[8]][i] >= 0, ]
+Other_pos_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[8]] >= 0, ]
 for (i in 4:ncol(Eco_AnnGain_C_stock)) {
   # calc fresh march CO2-C
   Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
