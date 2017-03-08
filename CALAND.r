@@ -233,7 +233,11 @@ num_out_stock_sheets = length(out_stock_sheets)
 out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", 
                      "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", 
                      "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", 
-                     "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock")
+                     "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
+                     "Manage_Atmos_CumGain_BurnedC_stock", "Manage_Atmos_CumGain_NonBurnedC_stock", "Fire_Atmos_CumGain_BurnedC_stock",
+                     "Fire_Atmos_CumGain_NonBurnedC_stock", "LCC_Atmos_CumGain_EnergyC_stock", "LCC_Atmos_CumGain_NonEnergyC_stock",
+                     "Manage_Atmos_AnnGain_BurnedC_stock", "Manage_Atmos_AnnGain_NonBurnedC_stock", "Fire_Atmos_AnnGain_BurnedC_stock",
+                     "Fire_Atmos_AnnGain_NonBurnedC_stock", "LCC_Atmos_AnnGain_EnergyC_stock", "LCC_Atmos_AnnGain_NonEnergyC_stock")
 num_out_atmos_sheets = length(out_atmos_sheets)
 out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
                     "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", 
