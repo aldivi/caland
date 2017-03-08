@@ -455,8 +455,12 @@ for ( i in 1:num_out_stock_sheets) {
 
 # c to atmosphere (and c from atmosphere to ecosystems)
 for (i in 1:num_out_atmos_sheets) {
+  # fill all the (empty) dataframes in the out_atmos_df_list with the All_orgC_den dataframe. This arbitrary, as it's only needed 
+  # to fill in the first 3 columns with Land_Type_ID, Land_Type and Ownership.
 	out_atmos_df_list[[i]] <- out_density_df_list[[1]]
+	# assign the name of 'start_atmos_label' (i.e. "2010_Mg"),
 	names(out_atmos_df_list[[i]])[ncol(out_atmos_df_list[[i]])] <- as.character(start_atmos_label)
+	# and clear all values and replace with 0's 
 	out_atmos_df_list[[i]][,ncol(out_atmos_df_list[[i]])] = 0.0
 }
 names(out_atmos_df_list) <- out_atmos_sheets
