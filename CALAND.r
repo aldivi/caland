@@ -2051,6 +2051,7 @@ for (year in start_year:(end_year-1)) {
 	
 	# fire to atmos; based on wildfire
 	out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
+	
 	# lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
 	out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
 	  all_c_flux[,"Land2Energy_c_stock_conv"]
@@ -2091,7 +2092,16 @@ for (year in start_year:(end_year-1)) {
 	    # "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[,"Manage_Atmos_CumGain_NonBurnedC_stock"] = 0
 	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
-	  
+	
+	# Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
+	# including this here in case changes are later made to those input wildfire fractions)
+	# burned: "Fire_Atmos_CumGain_BurnedC_stock" = (current year "Fire_Atmos_CumGain_BurnedC_stock") - "Land2Atmos_BurnedC_stock_fire_agg" 
+	out_atmos_df_list[,"Fire_Atmos_CumGain_BurnedC_stock"] = 0
+	out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+	# non-burned: "Fire_Atmos_CumGain_NonBurnedC_stock" = (current year "Fire_Atmos_CumGain_NonBurnedC_stock") - 
+	  # "Land2Atmos_NonBurnedC_stock_fire_agg" 
+	out_atmos_df_list[,"Fire_Atmos_CumGain_NonBurnedC_stock"] = 0
+	out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
 } # end loop over calculation years
 
 # Calculate some changes and totals
