@@ -2188,6 +2188,10 @@ Eco_CH4C = Eco_CH4C[order(Eco_CH4C$Land_Type_ID),]
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 
+# Partition all the appropriate burned (incl energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
+out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
+out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
+
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
 cat("Starting change/total calcs...\n")
