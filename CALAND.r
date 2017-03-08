@@ -2160,10 +2160,10 @@ for (i in 4:ncol(Eco_CumGain_C_stock)) {
   # change sign of CO2-C emissions to positive because it's a CO2 emission
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
-    Other_Cum_Eco_C[,i] <- abs(Other_neg_Ann_Eco_C[,i])
-    } else 
-    # set CO2-C to 0 because flux is positive which is net sequestration
-    Other_Cum_Eco_C[,i] <- 0
+      # change sign of CO2-C emissions to positive because it's a CO2 emission
+      Other_Cum_Eco_C[,i] <- abs(Other_Cum_Eco_C[,i])
+      # set CO2-C to 0 because flux is positive which is net sequestration
+    } else Other_Cum_Eco_C[,i] <- 0
   }
 }
 Eco_CumCO2C <- list(Other_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
@@ -2188,17 +2188,19 @@ Eco_CumCH4C = Eco_CumCH4C[order(Eco_CumCH4C$Land_Type_ID),]
 ## Annual ## 
 # go through each year column 
 Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type == "Fresh_marsh", ]
-# get the other land types with positive Eco C fluxes (net soil C sequestration)
-Other_neg_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[8]] < 0, ]
-# get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
-Other_pos_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[8]] >= 0, ]
+# get the other land types 
+Other_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_AnnGain_C_stock)) {
   # calc fresh march CO2-C
   Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
-  # change sign of CO2-C emissions to positive because it's a CO2 emission
-  Other_neg_Ann_Eco_C[,i] <- abs(Other_neg_Ann_Eco_C[,i])
-  # set CO2-C to 0 because it's net sequestration
-  Other_pos_Ann_Eco_C[,i] <- 0
+  for (r in 1:nrow(Other_Ann_Eco_C)) {
+    # if other land type eco flux is negative
+    if (Other_Ann_Eco_C[,i][r] < 0) {
+      # change sign of CO2-C emissions to positive because it's a CO2 emission
+      Other_Ann_Eco_C[,i] <- abs(Other_Ann_Eco_C[,i])
+      # set CO2-C to 0 because flux is positive which is net sequestration
+    } else Other_Ann_Eco_C[,i] <- 0
+  }
 }
 Eco_AnnCO2C <- list(Other_neg_Ann_Eco_C, Other_pos_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
 Eco_AnnCO2C <- do.call(rbind, Eco_AnnCO2C)
