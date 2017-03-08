@@ -2250,11 +2250,10 @@ if(WRITE_OUT_FILE) {
 	clearSheet(out_wrkbk, sheet = out_atmos_sheets)
 	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = out_atmos_sheets, header = TRUE)
   
-	# create worksheet for (non-burning) CO2 calcs
-  createSheet(out_wrkbk, name = "CO2-non-burned")
-  clearSheet(out_wrkbk, sheet = "CO2-non-burned")
-  
-  
+  # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_AnnGain_C_stock). Note that CO2-C is actually C 
+	# uptake (negative), and it's CO2-eq will later be added to CO2-eq of CH4 to determine net GWP. Additionally, aacount for any of the 
+	# negative Eco_AnnGain_C_stock values which are actually fluxes to atmosphere and count them as CO2-C. 
+	
   # get dataframe for the C values for fresh marsh to calculate CO2 & CH4 emissions
   Eco_AnnGain_C_stock <- out_atmos_df_list[[1]]
   
@@ -2276,17 +2275,20 @@ if(WRITE_OUT_FILE) {
   
   # repeat for CH4-C
   for (i in 4:ncol(Eco_AnnGain_C_stock)) {
-  # calc fresh march CO2-C
+  # calc fresh march CH4-C
   Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
   Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CH4_C_frac 
-  # get the other land types with negative Eco C fluxes
+  # select the other land types, 
   Other_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
-  # get the other land types and set CH4-C to 0
+  # and set CH4-C to 0 (No soil CH4 emissions from other land types)
   Other_Ann_Eco_C[,i] <- 0
   }
   Eco_CH4C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
   Eco_CH4C <- do.call(rbind, Eco_CH4C)
   
+  # create worksheet for (non-burning) CO2 calcs
+  createSheet(out_wrkbk, name = "CO2-non-burned")
+  clearSheet(out_wrkbk, sheet = "CO2-non-burned")
   
 	# write the workbook
 	saveWorkbook(out_wrkbk)
