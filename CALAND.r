@@ -2202,7 +2202,7 @@ for (i in 4:ncol(Eco_AnnGain_C_stock)) {
     } else Other_Ann_Eco_C[,i] <- 0
   }
 }
-Eco_AnnCO2C <- list(Other_neg_Ann_Eco_C, Other_pos_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
+Eco_AnnCO2C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
 Eco_AnnCO2C <- do.call(rbind, Eco_AnnCO2C)
 Eco_AnnCO2C <- transform(Eco_AnnCO2C, Land_Type_ID = as.numeric(Land_Type_ID))
 Eco_AnnCO2C = Eco_AnnCO2C[order(Eco_AnnCO2C$Land_Type_ID),]
