@@ -2149,16 +2149,17 @@ for (year in start_year:(end_year-1)) {
 Eco_AnnGain_C_stock <- out_atmos_df_list[[1]]
 
 # go through each year column 
+Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
+# get the other land types with positive Eco C fluxes (net soil C sequestration)
+Other_neg_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] < 0, ]
+# get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
+Other_pos_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] >= 0, ]
 for (i in 4:ncol(Eco_AnnGain_C_stock)) {
   # calc fresh march CO2-C
-  Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
   Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
-  # get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
-  Other_neg_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] < 0, ]
-  # change sign of CO2-C emissions to positive
+  # change sign of CO2-C emissions to positive because it's a CO2 emission
   Other_neg_Ann_Eco_C[,i] <- abs(Other_neg_Ann_Eco_C[,i])
-  # get the other land types with positive Eco C fluxes (net soil C sequestration), and set CO2-C to 0
-  Other_pos_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]][i] >= 0, ]
+  # set CO2-C to 0 because it's net sequestration
   Other_pos_Ann_Eco_C[,i] <- 0
 }
 Eco_CO2C <- list(Other_neg_Ann_Eco_C, Other_pos_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
@@ -2167,13 +2168,12 @@ Eco_CO2C <- transform(Eco_CO2C, Land_Type_ID = as.numeric(Land_Type_ID))
 Eco_CO2C = Eco_CO2C[order(Eco_CO2C$Land_Type_ID),]
 
 # repeat for CH4-C
+Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
+Other_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_AnnGain_C_stock)) {
   # calc fresh march CH4-C
-  Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
   Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CH4_C_frac 
-  # select the other land types, 
-  Other_Ann_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
-  # and set CH4-C to 0 (No soil CH4 emissions from other land types)
+  # set CH4-C to 0 (No soil CH4 emissions from other land types)
   Other_Ann_Eco_C[,i] <- 0
 }
 Eco_CH4C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
