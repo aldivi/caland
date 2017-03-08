@@ -2330,7 +2330,7 @@ Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_
   out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
   LCC_Burn_CumCO2C[,i]
 }
-# Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
+# Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
 Total_CumCH4C <- Manage_Burn_CumCH4C
 for (i in 4:ncol(Total_CumCH4C)) {
   Total_CumCH4C[,i] <- 0
@@ -2338,6 +2338,17 @@ for (i in 4:ncol(Total_CumCH4C)) {
 for (i in 4:ncol(Manage_Burn_CumCH4C)) {
   Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Burn_CumCH4C[,i] + Wildfire_Burn_CumCH4C[,i] + LCC_Burn_CumCH4C[,i]
 }
+# Third, do cumulative BC-C. Choice of ncol(Manage_Burn_CumBCC) is arbitrary -  just need the total number of columns.
+Total_CumBCC <- Manage_Burn_CumBCC
+for (i in 4:ncol(Total_CumBCC)) {
+  Total_CumBCC[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_CumBCC)) {
+  Total_CumBCC[,i] <- Manage_Burn_CumBCC[,i] + Wildfire_Burn_CumBCC[,i] + LCC_Burn_CumBCC[,i]
+}
+
+
+
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
