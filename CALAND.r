@@ -2055,16 +2055,20 @@ for (year in start_year:(end_year-1)) {
 	# lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
 	out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
 	  all_c_flux[,"Land2Energy_c_stock_conv"]
+	
 	# wood products to atmos; from the wood tables: "Total_Wood_CumLoss_C_stock"
 	out_atmos_df_list[[6]][, next_atmos_label] = out_wood_df_list[[3]][,next_wood_label]
+	
 	# total energy to atmos; just to compare it with the total cum atmos c
 	out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_conv"]
+	
 	# total to atmos; the total release of land and wood product and energy c to the atmosphere
 	# the energy release is inluded in the manage and lcc releases
 	out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
 	  out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
-	# annual values
+	
+	##### annual values	#####
 	out_atmos_df_list[[8]][, cur_atmos_label] = all_c_flux[,"tot_area"] * 
 	  (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
 	# manage to atmos; based on biomass removal, includes energy from biomass
@@ -2102,6 +2106,16 @@ for (year in start_year:(end_year-1)) {
 	  # "Land2Atmos_NonBurnedC_stock_fire_agg" 
 	out_atmos_df_list[,"Fire_Atmos_CumGain_NonBurnedC_stock"] = 0
 	out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+
+	# Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
+	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
+	# is released as CO2 (decomposition) and not burned
+	# burned: "LCC_Atmos_CumGain_EnergyC_stock" = (current year "LCC_Atmos_CumGain_EnergyC_stock") - "Land2Energy_c_stock_conv"
+	out_atmos_df_list[,"LCC_Atmos_CumGain_EnergyC_stock"] = 0
+	out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
+	# non-burned: "LCC_Atmos_CumGain_NonEnergyC_stock" = (current year "LCC_Atmos_CumGain_EnergyC_stock") - "Land2Atmos_c_stock_conv"
+	out_atmos_df_list[,"LCC_Atmos_CumGain_NonEnergyC_stock"] = 0
+	out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
 } # end loop over calculation years
 
 # Calculate some changes and totals
