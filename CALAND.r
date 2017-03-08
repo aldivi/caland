@@ -2152,19 +2152,21 @@ Eco_AnnGain_C_stock <- out_atmos_df_list[[8]]
 ## Cummulative ## 
 # go through each year column 
 Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
-# get the other land types with positive Eco C fluxes (net soil C sequestration)
-Other_neg_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]] < 0, ]
-# get the other land types with negative Eco C fluxes (set to positive because it's a CO2 emission)
-Other_pos_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh" & out_atmos_df_list[[1]] >= 0, ]
+# get the other land types 
+Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
   # calc fresh march CO2-C
   Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
   # change sign of CO2-C emissions to positive because it's a CO2 emission
-  Other_neg_Cum_Eco_C[,i] <- abs(Other_neg_Ann_Eco_C[,i])
-  # set CO2-C to 0 because it's net sequestration
-  Other_pos_Cum_Eco_C[,i] <- 0
+  for (r in 1:nrow(Other_Cum_Eco_C)) {
+    if (Other_Cum_Eco_C[,i][r] < 0) {
+    Other_Cum_Eco_C[,i] <- abs(Other_neg_Ann_Eco_C[,i])
+    } else 
+    # set CO2-C to 0 because flux is positive which is net sequestration
+    Other_Cum_Eco_C[,i] <- 0
+  }
 }
-Eco_CumCO2C <- list(Other_neg_Cum_Eco_C, Other_pos_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
+Eco_CumCO2C <- list(Other_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
 Eco_CumCO2C <- do.call(rbind, Eco_CumCO2C)
 Eco_CumCO2C <- transform(Eco_CumCO2C, Land_Type_ID = as.numeric(Land_Type_ID))
 Eco_CumCO2C = Eco_CumCO2C[order(Eco_CumCO2C$Land_Type_ID),]
@@ -2315,10 +2317,16 @@ for (i in 4:ncol(LCC_AnnBurnedC)) {
 }
 
 # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain.
-# Cumulative CO2-C. Choice of ncol(Manage_AnnBurnedC) is arbitrary -  just need the total number of columns.
-for (i in 4:ncol(Manage_AnnBurnedC)) {
-All_CO2C_Cum[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list["Manage_Atmos_CumGain_NonBurnedC_stock"][,i] + 
-  out_atmos_df_list["Fire_Atmos_CumGain_NonBurnedC_stock"][,i] + out_atmos_df_list["LCC_Atmos_AnnGain_NonEnergyC_stock"][,i]
+# First, do cumulative CO2-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
+Total_CumCO2C <- Manage_Burn_CumCO2C
+for (i in 4:ncol(Total_CumCO2C)) {
+  Total_CumCO2C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_CumCO2C)) {
+Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] +
+  out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC_stock"]][,i] + 
+  out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] +
+  Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + LCC_Burn_CumCO2C[,i]
 }
 
 
