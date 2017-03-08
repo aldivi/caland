@@ -2048,10 +2048,8 @@ for (year in start_year:(end_year-1)) {
 	  # "Land2Energy_c_stock_man_agg"  
 	out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
- 
-	 
 	
-	# fire to atmos; based on fire
+	# fire to atmos; based on wildfire
 	out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
 	# lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
 	out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
