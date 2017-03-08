@@ -132,10 +132,6 @@ marsh_CH4_C_frac <- 0.14
 wildfire_frac <- 1
 
 # management
-  # urban prescribed burn
-urban_presc_burn <- 1
-  # urban dead removal
-urban_dead_rem <- 0
   # forest (or any) clearcut and above-main removed to energy
 clrcut_energy <- 1
   # forest partial_cut and above-main removed to energy
@@ -2189,6 +2185,15 @@ out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 
 # Partition all the appropriate burned (incl energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
+CO2C_burn_frac <- 0.9891
+CH4C_burn_frac <- 0.0091
+BCC_burn_frac <- 0.0018
+Manage_BurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC_stock"]]
+Manage_Burn_CO2C <- Manage_BurnedC
+for (i in 4:ncol(Manage_BurnedC)) {
+  Manage_Burn_CO2C[,i] <- CO2C_burn_frac * Manage_BurnedC[,i]
+}
+
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 
