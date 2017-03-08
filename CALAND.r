@@ -2098,7 +2098,7 @@ for (year in start_year:(end_year-1)) {
 	# Partition the "Manage_Atmos_CumGain_C_stock" into burned and non-burned C sources
 	# burned: "Manage_Atmos_CumGain_BurnedC_stock" = (current year "Manage_Atmos_CumGain_BurnedC_stock") - "Land2Atmos_burnedC_stock_man_agg" -
 	    # "Land2Energy_c_stock_man_agg" 
-	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedc_stock_man_agg"] - 
+	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
 	# non-burned: "Manage_Atmos_CumGain_NonBurnedC_stock" = (current year "Manage_Atmos_CumGain_NonBurnedC_stock") - 
 	    # "Land2Atmos_nonburnedC_stock_man_agg"
@@ -2124,7 +2124,7 @@ for (year in start_year:(end_year-1)) {
 	# Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
 	# burned: "Manage_Atmos_AnnGain_BurnedC_stock" = - "Land2Atmos_burnedC_stock_man_agg" -
 	# "Land2Energy_c_stock_man_agg" 
-	out_atmos_df_list[[21]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_burnedc_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	out_atmos_df_list[[21]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
 	# non-burned: "Manage_Atmos_AnnGain_NonBurnedC_stock" = - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[22]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
@@ -2289,6 +2289,8 @@ if(WRITE_OUT_FILE) {
   # create worksheet for (non-burning) CO2 calcs
   createSheet(out_wrkbk, name = "CO2-non-burned")
   clearSheet(out_wrkbk, sheet = "CO2-non-burned")
+  # writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = out_atmos_sheets, header = TRUE)
+  
   
 	# write the workbook
 	saveWorkbook(out_wrkbk)
