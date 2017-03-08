@@ -2188,6 +2188,8 @@ out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 CO2C_burn_frac <- 0.9891
 CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
+
+## Cumulative ##
 Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC_stock"]]
 Manage_Burn_CumCO2C <- Manage_CumBurnedC
 for (i in 4:ncol(Manage_CumBurnedC)) {
@@ -2229,6 +2231,51 @@ LCC_Burn_CumBCC <- LCC_CumBurnedC
 for (i in 4:ncol(LCC_CumBurnedC)) {
   LCC_Burn_CumBCC[,i] <- BCC_burn_frac * LCC_CumBurnedC[,i]
 }
+
+## annual ##
+
+Manage_AnnBurnedC <- out_atmos_df_list[["Manage_Atmos_AnnGain_BurnedC_stock"]]
+Manage_Burn_AnnCO2C <- Manage_AnnBurnedC
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+  Manage_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurnedC[,i]
+}
+Manage_Burn_AnnCH4C <- Manage_AnnBurnedC
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+  Manage_Burn_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnBurnedC[,i]
+}
+Manage_Burn_AnnBCC <- Manage_AnnBurnedC
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+  Manage_Burn_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurnedC[,i]
+}
+
+Wildfire_AnnBurnedC <- out_atmos_df_list[["Fire_Atmos_AnnGain_BurnedC_stock"]]
+Wildfire_Burn_AnnCO2C <- Wildfire_AnnBurnedC
+for (i in 4:ncol(Wildfire_AnnBurnedC)) {
+  Wildfire_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Wildfire_AnnBurnedC[,i]
+}
+Wildfire_Burn_AnnCH4C <- Wildfire_AnnBurnedC
+for (i in 4:ncol(Wildfire_AnnBurnedC)) {
+  Wildfire_Burn_AnnCH4C[,i] <- CH4C_burn_frac * Wildfire_AnnBurnedC[,i]
+}
+Wildfire_Burn_AnnBCC <- Wildfire_AnnBurnedC
+for (i in 4:ncol(Wildfire_AnnBurnedC)) {
+  Wildfire_Burn_AnnBCC[,i] <- BCC_burn_frac * Wildfire_AnnBurnedC[,i]
+}
+
+LCC_AnnBurnedC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC_stock"]]
+LCC_Burn_AnnCO2C <- LCC_AnnBurnedC
+for (i in 4:ncol(LCC_AnnBurnedC)) {
+  LCC_Burn_AnnCO2C[,i] <- CO2C_burn_frac * LCC_AnnBurnedC[,i]
+}
+LCC_Burn_AnnCH4C <- LCC_AnnBurnedC
+for (i in 4:ncol(LCC_AnnBurnedC)) {
+  LCC_Burn_AnnCH4C[,i] <- CH4C_burn_frac * LCC_AnnBurnedC[,i]
+}
+LCC_Burn_AnnBCC <- LCC_AnnBurnedC
+for (i in 4:ncol(LCC_AnnBurnedC)) {
+  LCC_Burn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
+}
+
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
