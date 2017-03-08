@@ -2185,6 +2185,8 @@ Eco_CH4C <- do.call(rbind, Eco_CH4C)
 Eco_CH4C <- transform(Eco_CH4C, Land_Type_ID = as.numeric(Land_Type_ID))
 Eco_CH4C = Eco_CH4C[order(Eco_CH4C$Land_Type_ID),]
 
+out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
+out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
