@@ -2033,15 +2033,24 @@ for (year in start_year:(end_year-1)) {
 	# "Above_main_C_den_gain_eco" to "Soil_orgC_den_gain_eco"
 	sum_change = 0
 	for(i in 1:7){
+	  # checks the eco accum value below
 		sum_change = sum_change + sum(all_c_flux[, egnames[i]] * all_c_flux$tot_area)
 	}
 
-	# cumulative values
+	##### cumulative values ##### 
+	
+	# "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
 	out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
 	  (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
-	# manage to atmos; based on biomass removal, includes energy from biomass
+	
+	# manage to atmos; based on biomass removal, includes energy from biomass (note: actually adding terms because they are negative)
+	# "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Atmos_c_stock_man_agg" -
+	  # "Land2Energy_c_stock_man_agg"  
 	out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
+ 
+	 
+	
 	# fire to atmos; based on fire
 	out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
 	# lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
@@ -2074,7 +2083,17 @@ for (year in start_year:(end_year-1)) {
 	out_atmos_df_list[[9]][, cur_atmos_label] = out_atmos_df_list[[10]][,cur_atmos_label] + out_atmos_df_list[[11]][,cur_atmos_label] + 
 	  out_atmos_df_list[[12]][,cur_atmos_label] + out_atmos_df_list[[13]][,cur_atmos_label]
 
-
+	# Partition the "Manage_Atmos_CumGain_C_stock" into burned and non-burned C sources
+	# burned: "Manage_Atmos_CumGain_BurnedC_stock" = (current year "Manage_Atmos_CumGain_BurnedC_stock") - "Land2Atmos_burnedC_stock_man_agg" -
+	    # "Land2Energy_c_stock_man_agg" 
+	out_atmos_df_list[,"Manage_Atmos_CumGain_BurnedC_stock"] = 0
+	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedc_stock_man_agg"] - 
+	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	# non-burned: "Manage_Atmos_CumGain_NonBurnedC_stock" = (current year "Manage_Atmos_CumGain_NonBurnedC_stock") - 
+	    # "Land2Atmos_nonburnedC_stock_man_agg"
+	out_atmos_df_list[,"Manage_Atmos_CumGain_NonBurnedC_stock"] = 0
+	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+	  
 } # end loop over calculation years
 
 # Calculate some changes and totals
