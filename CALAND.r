@@ -2188,46 +2188,46 @@ out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
 CO2C_burn_frac <- 0.9891
 CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
-Manage_BurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC_stock"]]
-Manage_Burn_CumCO2C <- Manage_BurnedC
-for (i in 4:ncol(Manage_BurnedC)) {
-  Manage_Burn_CumCO2C[,i] <- CO2C_burn_frac * Manage_BurnedC[,i]
+Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC_stock"]]
+Manage_Burn_CumCO2C <- Manage_CumBurnedC
+for (i in 4:ncol(Manage_CumBurnedC)) {
+  Manage_Burn_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurnedC[,i]
 }
-Manage_Burn_CumCH4C <- Manage_BurnedC
-for (i in 4:ncol(Manage_BurnedC)) {
-  Manage_Burn_CumCH4C[,i] <- CH4C_burn_frac * Manage_BurnedC[,i]
+Manage_Burn_CumCH4C <- Manage_CumBurnedC
+for (i in 4:ncol(Manage_CumBurnedC)) {
+  Manage_Burn_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumBurnedC[,i]
 }
-Manage_Burn_CumBCC <- Manage_BurnedC
-for (i in 4:ncol(Manage_BurnedC)) {
-  Manage_Burn_CumBCC[,i] <- BCC_burn_frac * Manage_BurnedC[,i]
-}
-
-Wildfire_BurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC_stock"]]
-Wildfire_Burn_CumCO2C <- Wildfire_BurnedC
-for (i in 4:ncol(Wildfire_BurnedC)) {
-  Wildfire_Burn_CumCO2C[,i] <- CO2C_burn_frac * Wildfire_BurnedC[,i]
-}
-Wildfire_Burn_CH4C <- Wildfire_BurnedC
-for (i in 4:ncol(Wildfire_BurnedC)) {
-  Wildfire_Burn_CumCH4C[,i] <- CH4C_burn_frac * Wildfire_BurnedC[,i]
-}
-Wildfire_Burn_BCC <- Wildfire_BurnedC
-for (i in 4:ncol(Wildfire_BurnedC)) {
-  Wildfire_Burn_CumBCC[,i] <- BCC_burn_frac * Wildfire_BurnedC[,i]
+Manage_Burn_CumBCC <- Manage_CumBurnedC
+for (i in 4:ncol(Manage_CumBurnedC)) {
+  Manage_Burn_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurnedC[,i]
 }
 
-LCC_BurnedC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC_stock"]]
-LCC_Burn_CumCO2C <- LCC_BurnedC
-for (i in 4:ncol(LCC_BurnedC)) {
-  LCC_Burn_CumCO2C[,i] <- CO2C_burn_frac * LCC_BurnedC[,i]
+Wildfire_CumBurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC_stock"]]
+Wildfire_Burn_CumCO2C <- Wildfire_CumBurnedC
+for (i in 4:ncol(Wildfire_CumBurnedC)) {
+  Wildfire_Burn_CumCO2C[,i] <- CO2C_burn_frac * Wildfire_CumBurnedC[,i]
 }
-LCC_Burn_CH4C <- LCC_BurnedC
-for (i in 4:ncol(LCC_BurnedC)) {
-  LCC_Burn_CumCH4C[,i] <- CH4C_burn_frac * LCC_BurnedC[,i]
+Wildfire_Burn_CumCH4C <- Wildfire_CumBurnedC
+for (i in 4:ncol(Wildfire_CumBurnedC)) {
+  Wildfire_Burn_CumCH4C[,i] <- CH4C_burn_frac * Wildfire_CumBurnedC[,i]
 }
-LCC_Burn_BCC <- LCC_BurnedC
-for (i in 4:ncol(LCC_BurnedC)) {
-  LCC_Burn_CumBCC[,i] <- BCC_burn_frac * LCC_BurnedC[,i]
+Wildfire_Burn_CumBCC <- Wildfire_CumBurnedC
+for (i in 4:ncol(Wildfire_CumBurnedC)) {
+  Wildfire_Burn_CumBCC[,i] <- BCC_burn_frac * Wildfire_CumBurnedC[,i]
+}
+
+LCC_CumBurnedC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC_stock"]]
+LCC_Burn_CumCO2C <- LCC_CumBurnedC
+for (i in 4:ncol(LCC_CumBurnedC)) {
+  LCC_Burn_CumCO2C[,i] <- CO2C_burn_frac * LCC_CumBurnedC[,i]
+}
+LCC_Burn_CumCH4C <- LCC_CumBurnedC
+for (i in 4:ncol(LCC_CumBurnedC)) {
+  LCC_Burn_CumCH4C[,i] <- CH4C_burn_frac * LCC_CumBurnedC[,i]
+}
+LCC_Burn_CumBCC <- LCC_CumBurnedC
+for (i in 4:ncol(LCC_CumBurnedC)) {
+  LCC_Burn_CumBCC[,i] <- BCC_burn_frac * LCC_CumBurnedC[,i]
 }
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
