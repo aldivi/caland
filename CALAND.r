@@ -2182,7 +2182,8 @@ for (i in 4:ncol(Eco_AnnGain_C_stock)) {
 }
 Eco_CH4C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
 Eco_CH4C <- do.call(rbind, Eco_CH4C)
-
+Eco_CH4C <- transform(Eco_CH4C, Land_Type_ID = as.numeric(Land_Type_ID))
+Eco_CH4C = Eco_CH4C[order(Eco_CH4C$Land_Type_ID),]
 
 
 # Calculate some changes and totals
