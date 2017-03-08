@@ -2276,6 +2276,10 @@ for (i in 4:ncol(LCC_AnnBurnedC)) {
   LCC_Burn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
 }
 
+# sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain.
+# Cumulative CO2-C. Choice of ncol(Manage_AnnBurnedC) is arbitrary -  just need the total number of columns.
+for (i in 4:ncol(Manage_AnnBurnedC)) 
+# All_CO2C_Cum[,i] <- sum(Eco_CO2C[,i],)
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
