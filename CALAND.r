@@ -2425,9 +2425,15 @@ for (i in 4:ncol(Total_AnnCO2)) {
   Total_AnnCO2eq_all[,i] <- Total_AnnCO2[,i] + Total_AnnCH4eq[,i] + Total_AnnBCeq[,i]
 }
 
-
-out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
-out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
+# add GHG dataframes to out_atmos_df_list
+out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
+out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
+out_atmos_df_list[["Total_CumBCeq"]] <- Total_CumBCeq
+out_atmos_df_list[["Total_AnnCO2"]] <- Total_AnnCO2
+out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
+out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
+out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
+out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
 
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
