@@ -117,14 +117,20 @@ if (value_col != 7) {
 	}
 }
 
+
 # 100 yr global warming potential of CO2, CH4, and black C (BC)
 gwp_CO2 <- 1
 gwp_CH4 <- 25
 gwp_BC <- 680
 
 # assign fraction of soil c accumulation that is CO2-C and CH4-C
-marsh_CO2_C_frac <- -1.14
+marsh_CO2_C_frac <- 1.14
 marsh_CH4_C_frac <- 0.14
+
+# assign emissions fractions of total C emissions for all burned C (incl energy)
+CO2C_burn_frac <- 0.9891
+CH4C_burn_frac <- 0.0091
+BCC_burn_frac <- 0.0018
 
 ####### assign burned fraction of fractions of to-atmosphere fluxes #######
 
@@ -2154,7 +2160,7 @@ Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type
 Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
   # calc fresh march CO2-C, & change sign of CO2-C emissions to positive because it's a CO2 emission
-  Fresh_marsh_Cum_Eco_C[,i] <- -1 * Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
+  Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
   # change sign of CO2-C emissions to positive because it's a CO2 emission
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
@@ -2220,9 +2226,6 @@ Eco_AnnCH4C <- transform(Eco_AnnCH4C, Land_Type_ID = as.numeric(Land_Type_ID))
 Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Type_ID),]
 
 # Partition all the appropriate burned (incl energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
-CO2C_burn_frac <- 0.9891
-CH4C_burn_frac <- 0.0091
-BCC_burn_frac <- 0.0018
   ### Cumulative ###
 Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]]
 Manage_Burn_CumCO2C <- Manage_CumBurnedC
@@ -2319,7 +2322,7 @@ for (i in 4:ncol(Total_CumCO2C)) {
   Total_CumCO2C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_CumCO2C)) {
-Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C"]][,i] + 
+Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
   out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + 
   out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
   LCC_Burn_CumCO2C[,i]
@@ -2348,7 +2351,7 @@ for (i in 4:ncol(Total_AnnCO2C)) {
   Total_AnnCO2C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_AnnCO2C)) {
-  Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C"]][,i] + 
+  Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
     out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + 
     out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_Burn_AnnCO2C[,i] + 
     LCC_Burn_AnnCO2C[,i]
