@@ -2120,24 +2120,24 @@ for (year in start_year:(end_year-1)) {
 	# Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
 	# burned: "Manage_Atmos_AnnGain_BurnedC_stock" = - "Land2Atmos_burnedC_stock_man_agg" -
 	# "Land2Energy_c_stock_man_agg" 
-	out_atmos_df_list[[21]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	out_atmos_df_list[[21]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
 	# non-burned: "Manage_Atmos_AnnGain_NonBurnedC_stock" = - "Land2Atmos_nonburnedC_stock_man_agg"
-	out_atmos_df_list[[22]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+	out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
 	# Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
 	# including this here in case changes are later made to those input wildfire fractions)
 	# burned: "Fire_Atmos_AnnGain_BurnedC_stock" = - "Land2Atmos_BurnedC_stock_fire_agg" 
-	out_atmos_df_list[[23]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+	out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
 	# non-burned: "Fire_Atmos_AnnGain_NonBurnedC_stock" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-	out_atmos_df_list[[24]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+	out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
 
 	# Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
 	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
 	# is released as CO2 (decomposition) and not burned
 	# burned: "LCC_Atmos_AnnGain_EnergyC_stock" = - "Land2Energy_c_stock_conv"
-	out_atmos_df_list[[25]][, next_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
+	out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
 	# non-burned: "LCC_Atmos_AnnGain_NonEnergyC_stock" = - "Land2Atmos_c_stock_conv"
-	out_atmos_df_list[[26]][, next_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
+	out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
 } # end loop over calculation years
 
 # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
@@ -2382,9 +2382,9 @@ for (i in 4:ncol(Manage_Burn_AnnBCC)) {
 # if desired
   ### cumulative ###
 # first, convert total cumulative CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
-Total_CumCO2eq <- Total_CumCO2C
+Total_CumCO2 <- Total_CumCO2C
 for (i in 4:ncol(Total_CumCO2)) {
-  Total_CumCO2eq[,i] <- Total_CumCO2C[,i] * (44.01/12.0107) * gwp_CO2
+  Total_CumCO2[,i] <- Total_CumCO2C[,i] * (44.01/12.0107) * gwp_CO2
 }
 # second, convert total cumulative CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
 Total_CumCH4eq <- Total_CumCH4C
@@ -2399,9 +2399,9 @@ for (i in 4:ncol(Total_CumBCC)) {
 
   ### annual ###
 # first, convert total annual CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
-Total_AnnCO2eq <- Total_AnnCO2C
+Total_AnnCO2 <- Total_AnnCO2C
 for (i in 4:ncol(Total_AnnCO2)) {
-  Total_AnnCO2eq[,i] <- Total_AnnCO2C[,i] * (44.01/12.0107) * gwp_CO2
+  Total_AnnCO2[,i] <- Total_AnnCO2C[,i] * (44.01/12.0107) * gwp_CO2
 }
 # second, convert total annual CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
 Total_AnnCH4eq <- Total_AnnCH4C
@@ -2414,6 +2414,17 @@ for (i in 4:ncol(Total_AnnBCC)) {
   Total_AnnBCeq[,i] <- Total_AnnBCC[,i] * gwp_BC
 }
 
+# sum all CO2-eq to get total GWP [Mg CO2-eq/ha/y]
+  ### cumulative ###
+Total_CumCO2eq_all <- Total_CumCO2
+for (i in 4:ncol(Total_CumCO2)) {
+  Total_CumCO2eq_all[,i] <- Total_CumCO2[,i] + Total_CumCH4eq[,i] + Total_CumBCeq[,i]
+}
+  ### annual ###
+Total_AnnCO2eq_all <- Total_AnnCO2
+for (i in 4:ncol(Total_AnnCO2)) {
+  Total_AnnCO2eq_all[,i] <- Total_AnnCO2[,i] + Total_AnnCH4eq[,i] + Total_AnnBCeq[,i]
+}
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
