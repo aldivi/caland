@@ -2497,7 +2497,7 @@ for (i in 1:num_out_wood_sheets) {
 }
 
 # atmosphere
-for (i in 1:num_out_atmos_sheets) {
+for (i in 1:length(out_atmos_df_list)) {
 	end_label = ncol(out_atmos_df_list[[i]])
 	out_atmos_df_list[[i]][, "Change_Mg"] = out_atmos_df_list[[i]][,end_label] - out_atmos_df_list[[i]][,start_atmos_label]
 	sum_row = out_atmos_df_list[[i]][1,]
@@ -2506,7 +2506,6 @@ for (i in 1:num_out_atmos_sheets) {
 	out_atmos_df_list[[i]] = rbind(out_atmos_df_list[[i]], sum_row)
 	out_atmos_df_list[[i]][,c(4:ncol(out_atmos_df_list[[i]]))] = round(out_atmos_df_list[[i]][,c(4:ncol(out_atmos_df_list[[i]]))], 0)
 }
-
 
 
 # write to excel file
