@@ -2230,8 +2230,7 @@ Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Type_ID),]
 CO2C_burn_frac <- 0.9891
 CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
-
-## Cumulative ##
+  ### Cumulative ###
 Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC_stock"]]
 Manage_Burn_CumCO2C <- Manage_CumBurnedC
 for (i in 4:ncol(Manage_CumBurnedC)) {
@@ -2329,7 +2328,7 @@ for (i in 4:ncol(Total_CumCO2C)) {
 for (i in 4:ncol(Manage_Burn_CumCO2C)) {
 Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
   out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC_stock"]][,i] + 
-  out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
+  out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC_stock"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
   LCC_Burn_CumCO2C[,i]
 }
 # Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
@@ -2388,7 +2387,7 @@ for (i in 4:ncol(Total_CumCO2)) {
 }
 # second, convert total cumulative CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
 Total_CumCH4eq <- Total_CumCH4C
-for (i in 4:ncol(Total_CumCH4)) {
+for (i in 4:ncol(Total_CumCH4eq)) {
   Total_CumCH4eq[,i] <- Total_CumCH4C[,i] * (16.04/12.0107) * gwp_CH4
 }
 # third, convert total cumulative BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
@@ -2405,7 +2404,7 @@ for (i in 4:ncol(Total_AnnCO2)) {
 }
 # second, convert total annual CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
 Total_AnnCH4eq <- Total_AnnCH4C
-for (i in 4:ncol(Total_AnnCH4)) {
+for (i in 4:ncol(Total_AnnCH4eq)) {
   Total_AnnCH4eq[,i] <- Total_AnnCH4C[,i] * (16.04/12.0107) * gwp_CH4
 }
 # third, convert total annual BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
@@ -2425,6 +2424,7 @@ Total_AnnCO2eq_all <- Total_AnnCO2
 for (i in 4:ncol(Total_AnnCO2)) {
   Total_AnnCO2eq_all[,i] <- Total_AnnCO2[,i] + Total_AnnCH4eq[,i] + Total_AnnBCeq[,i]
 }
+
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
 out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
