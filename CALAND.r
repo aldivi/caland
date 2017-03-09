@@ -148,7 +148,7 @@ clrcut_above_burn <- 0.25
 parcut_above_burn <- 0.25
   # forest fuel_reduction and above-main removed to atmos
 fuelred_above_burn <- 0.25
-  # forest Prescribed_burn and above-main removed to atmos (currently no above is removed in input)
+  # forest Prescribed_burn and above-main removed to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
 prescrburn_above_burn <- 1
   # forest clearcut and understory to atmos
 clrcut_under_burn <- 0.25
@@ -2359,9 +2359,10 @@ for (i in 4:ncol(Total_CumCH4eq)) {
   Total_CumCH4eq[,i] <- Total_CumCH4C[,i] * (16.04/12.0107) * gwp_CH4
 }
 # third, convert total cumulative BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+# multiplying by 1/0.6 based on assumption that 60% black C is C.
 Total_CumBCeq <- Total_CumBCC
 for (i in 4:ncol(Total_CumBCC)) {
-  Total_CumBCeq[,i] <- Total_CumBCC[,i] * gwp_BC
+  Total_CumBCeq[,i] <- Total_CumBCC[,i] * (1/0.6) * gwp_BC
 }
 
   ### annual ###
@@ -2378,7 +2379,7 @@ for (i in 4:ncol(Total_AnnCH4eq)) {
 # third, convert total annual BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
 Total_AnnBCeq <- Total_AnnBCC
 for (i in 4:ncol(Total_AnnBCC)) {
-  Total_AnnBCeq[,i] <- Total_AnnBCC[,i] * gwp_BC
+  Total_AnnBCeq[,i] <- Total_AnnBCC[,i] * (1/0.6) * gwp_BC
 }
 
 # sum all CO2-eq to get total GWP [Mg CO2-eq/ha/y]
