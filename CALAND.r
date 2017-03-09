@@ -2132,7 +2132,7 @@ Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type
 Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
   # calc fresh march CO2-C, & change sign of CO2-C emissions to positive because it's a CO2 emission
-  Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
+  Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
   # change sign of CO2-C emissions to positive because it's a CO2 emission
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
@@ -2285,7 +2285,8 @@ for (i in 4:ncol(LCC_AnnBurnedC)) {
   LCC_Burn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
 }
 
-# sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain.
+# sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain 
+# (less eco C emissions).
   
   ### cumulative ###
 # first, do cumulative CO2-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
@@ -2345,6 +2346,9 @@ for (i in 4:ncol(Manage_Burn_AnnBCC)) {
   Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_Burn_AnnBCC[,i] + LCC_Burn_AnnBCC[,i]
 }
 
+identical((Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]),
+    (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][,4:ncol(Total_AnnCO2C)] +  Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + 
+       Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]))
 # individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
 # if desired
   ### cumulative ###
@@ -2403,6 +2407,21 @@ out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
 out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
 out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
 out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
+out_atmos_df_list[["Eco_AnnCO2C"]] <- Eco_AnnCO2C
+out_atmos_df_list[["Eco_AnnCH4C"]] <- Eco_AnnCH4C
+out_atmos_df_list[["Eco_CumCO2C"]] <- Eco_CumCO2C
+out_atmos_df_list[["Eco_CumCH4C"]] <- Eco_CumCH4C
+
+# check that total atmos C gain is equal to the sum of the partitions, less the Eco C emissions (not included in the Total_Atmos gain C)
+zero_test <- Total_CumCO2
+for (i in 4:ncol(zero_test)) {
+  zero_test[,i] <- 0
+}
+for (i in 4:ncol(Total_CumCO2)) {
+    zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
+              Total_CumCH4eq[,i] * (12.0107/(25*16.04)) + Total_CumBCeq[,i] * (0.67/680) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
+} 
+all(zero_test == 0) 
 
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
