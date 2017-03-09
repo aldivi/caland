@@ -195,31 +195,6 @@ conv_down_atmos <- 0.25
   # forest (or any land type) litter to atmos
 conv_litter_atmos <- 0.25
  
-
-# add accounting to partition C fluxes to atmopshere into: CO2, CH4, Black C:
-    
-# Add to Wildfire & to Management prescribed burn
-# liu et al 2014 Forest Eco Management:  
-# x Mg C = 0.8715x CO2-C + 0.009x CH4-C + 0.0005x BC-C + 0.119x other-C
-# Mg CO2 = Mg C * (44.01/12.0107) * (0.8715)
-# Mg CH4 = Mg C * (16.0425/12.0107) * (0.009)
-# Mg BC = Mg C * (0.0005)
-# does not need to be tracked: Mg other-C = Mg C * (0.119)
-
-# Add to Fresh marsh:
-# Mg CO2-C = Mg soil C/ha/y * (1.14)
-# Mg CH4-C = Mg soil C/ha/y * (-0.14)
-
-
-# add final conversion of annual and cumulative CO2, CH4, Black C to CO2-eq 
-# in output file, add columns (or individual sheets) for (1) CH4 [Mg CH4/ha/y], (2) CO2 [Mg CO2/ha/y], (3) Black Carbon [Mg BC/ha/y], 
-  # (4) CH4 [Mg CO2-eq/ha/y], (5) CO2 [Mg CO2-eq/ha/y], (6) Black Carbon [Mg CO2-eq/ha/y], (7) GWP [Mg CO2-eq/ha/y]
-  # in sheets: Total_Atmos_CumGain_C_stock, Manage_Atmos_CumGain_C_stock, Fire_Atmos_CumGain_C_stock
-  # LCC_Atmos_CumGain_C_stock, Wood_Atmos_CumGain_C_stock, Total_Energy2Atmos_C_stock, Total_Atmos_AnnGain_C_stock
-  # Manage_Atmos_AnnGain_C_stock, Fire_Atmos_AnnGain_C_stock, LCC_Atmos_AnnGain_C_stock, Wood_Atmos_AnnGain_C_stock,
-  # Total_AnnEnergy2Atmos_C_stock
-
-
 # output tables
 out_area_sheets = c("Area", "Managed_area", "Wildfire_area")
 num_out_area_sheets = length(out_area_sheets)
