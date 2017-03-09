@@ -2378,13 +2378,41 @@ for (i in 4:ncol(Manage_Burn_AnnBCC)) {
   Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_Burn_AnnBCC[,i] + LCC_Burn_AnnBCC[,i]
 }
 
-
 # individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
 # if desired
-
+  ### cumulative ###
 # first, convert total cumulative CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_CumCO2eq <- Total_CumCO2C
+for (i in 4:ncol(Total_CumCO2)) {
+  Total_CumCO2eq[,i] <- Total_CumCO2C[,i] * (44.01/12.0107) * gwp_CO2
+}
+# second, convert total cumulative CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_CumCH4eq <- Total_CumCH4C
+for (i in 4:ncol(Total_CumCH4)) {
+  Total_CumCH4eq[,i] <- Total_CumCH4C[,i] * (16.04/12.0107) * gwp_CH4
+}
+# third, convert total cumulative BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_CumBCeq <- Total_CumBCC
+for (i in 4:ncol(Total_CumBCC)) {
+  Total_CumBCeq[,i] <- Total_CumBCC[,i] * gwp_BC
+}
 
-
+  ### annual ###
+# first, convert total annual CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_AnnCO2eq <- Total_AnnCO2C
+for (i in 4:ncol(Total_AnnCO2)) {
+  Total_AnnCO2eq[,i] <- Total_AnnCO2C[,i] * (44.01/12.0107) * gwp_CO2
+}
+# second, convert total annual CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_AnnCH4eq <- Total_AnnCH4C
+for (i in 4:ncol(Total_AnnCH4)) {
+  Total_AnnCH4eq[,i] <- Total_AnnCH4C[,i] * (16.04/12.0107) * gwp_CH4
+}
+# third, convert total annual BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_AnnBCeq <- Total_AnnBCC
+for (i in 4:ncol(Total_AnnBCC)) {
+  Total_AnnBCeq[,i] <- Total_AnnBCC[,i] * gwp_BC
+}
 
 
 out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
