@@ -118,12 +118,12 @@ if (value_col != 7) {
 }
 
 
-# 100 yr global warming potential of CO2, CH4, and black C (BC)
+# assign 100 yr global warming potential of CO2, CH4, and black C (BC)
 gwp_CO2 <- 1
 gwp_CH4 <- 25
 gwp_BC <- 680
 
-# assign fraction of soil c accumulation that is CO2-C and CH4-C
+# assign fractions of soil c accumulation that is CO2-C and CH4-C
 marsh_CO2_C_frac <- 1.14
 marsh_CH4_C_frac <- 0.14
 
@@ -133,9 +133,6 @@ CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
 
 ####### assign burned fraction of fractions of to-atmosphere fluxes #######
-
-# wildfire
-wildfire_frac <- 1
 
 # management
   # forest (or any) clearcut and above-main removed to energy
