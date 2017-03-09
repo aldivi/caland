@@ -2153,8 +2153,8 @@ Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type
 # get the other land types 
 Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
-  # calc fresh march CO2-C
-  Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
+  # calc fresh march CO2-C, & change sign of CO2-C emissions to positive because it's a CO2 emission
+  Fresh_marsh_Cum_Eco_C[,i] <- -1 * Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
   # change sign of CO2-C emissions to positive because it's a CO2 emission
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
@@ -2530,16 +2530,9 @@ if(WRITE_OUT_FILE) {
 	writeWorksheet(out_wrkbk, data = out_wood_df_list, sheet = out_wood_sheets, header = TRUE)
 
 	# atmosphere
-	createSheet(out_wrkbk, name = out_atmos_sheets)
-	clearSheet(out_wrkbk, sheet = out_atmos_sheets)
-	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = out_atmos_sheets, header = TRUE)
-  
-
-  # create worksheet for (non-burning) CO2 calcs
-  createSheet(out_wrkbk, name = "CO2-non-burned")
-  clearSheet(out_wrkbk, sheet = "CO2-non-burned")
-  # writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = out_atmos_sheets, header = TRUE)
-  
+	createSheet(out_wrkbk, name = names(out_atmos_df_list))
+	clearSheet(out_wrkbk, sheet = names(out_atmos_df_list))
+	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = names(out_atmos_df_list), header = TRUE)
   
 	# write the workbook
 	saveWorkbook(out_wrkbk)
