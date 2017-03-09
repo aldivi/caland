@@ -124,7 +124,7 @@ gwp_CH4 <- 25
 gwp_BC <- 680
 
 # assign fractions of soil c accumulation that is CO2-C and CH4-C
-marsh_CO2_C_frac <- 1.14
+marsh_CO2_C_frac <- -1.14
 marsh_CH4_C_frac <- 0.14
 
 # assign emissions fractions of total C emissions for all burned C (incl energy)
@@ -132,7 +132,7 @@ CO2C_burn_frac <- 0.9891
 CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
 
-####### assign burned fraction of fractions of to-atmosphere fluxes #######
+####### assign burned fraction of input fractions of c pool emissions #######
 
 # management
   # forest (or any) clearcut and above-main removed to energy
@@ -148,7 +148,7 @@ clrcut_above_burn <- 0.25
 parcut_above_burn <- 0.25
   # forest fuel_reduction and above-main removed to atmos
 fuelred_above_burn <- 0.25
-  # forest Prescribed_burn and above-main removed to atmos
+  # forest Prescribed_burn and above-main removed to atmos (currently no above is removed in input)
 prescrburn_above_burn <- 1
   # forest clearcut and understory to atmos
 clrcut_under_burn <- 0.25
