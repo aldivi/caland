@@ -230,10 +230,10 @@ out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Mana
                      "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", 
                      "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", 
                      "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
-                     "Manage_Atmos_CumGain_BurnedC_stock", "Manage_Atmos_CumGain_NonBurnedC_stock", "Fire_Atmos_CumGain_BurnedC_stock",
-                     "Fire_Atmos_CumGain_NonBurnedC_stock", "LCC_Atmos_CumGain_EnergyC_stock", "LCC_Atmos_CumGain_NonEnergyC_stock",
-                     "Manage_Atmos_AnnGain_BurnedC_stock", "Manage_Atmos_AnnGain_NonBurnedC_stock", "Fire_Atmos_AnnGain_BurnedC_stock",
-                     "Fire_Atmos_AnnGain_NonBurnedC_stock", "LCC_Atmos_AnnGain_EnergyC_stock", "LCC_Atmos_AnnGain_NonEnergyC_stock")
+                     "Manage_Atmos_CumGain_BurnedC", "Manage_Atmos_CumGain_NonBurnedC", "Fire_Atmos_CumGain_BurnedC",
+                     "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_EnergyC", "LCC_Atmos_CumGain_NonEnergyC",
+                     "Manage_Atmos_AnnGain_BurnedC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC",
+                     "Fire_Atmos_AnnGain_NonBurnedC", "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonEnergyC")
 num_out_atmos_sheets = length(out_atmos_sheets)
 out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
                     "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", 
@@ -2092,51 +2092,49 @@ for (year in start_year:(end_year-1)) {
 
 	### cumulative (again) ### 
 	# Partition the "Manage_Atmos_CumGain_C_stock" into burned and non-burned C sources
-	# burned: "Manage_Atmos_CumGain_BurnedC_stock" = (current year "Manage_Atmos_CumGain_BurnedC_stock") - "Land2Atmos_burnedC_stock_man_agg" -
+	# burned: "Manage_Atmos_CumGain_BurnedC" = (current year "Manage_Atmos_CumGain_BurnedC") - "Land2Atmos_burnedC_stock_man_agg" -
 	    # "Land2Energy_c_stock_man_agg" 
 	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
-	# non-burned: "Manage_Atmos_CumGain_NonBurnedC_stock" = (current year "Manage_Atmos_CumGain_NonBurnedC_stock") - 
-	    # "Land2Atmos_nonburnedC_stock_man_agg"
+	# non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
 	# Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
 	# including this here in case changes are later made to those input wildfire fractions)
-	# burned: "Fire_Atmos_CumGain_BurnedC_stock" = (current year "Fire_Atmos_CumGain_BurnedC_stock") - "Land2Atmos_BurnedC_stock_fire_agg" 
+	# burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
 	out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
-	# non-burned: "Fire_Atmos_CumGain_NonBurnedC_stock" = (current year "Fire_Atmos_CumGain_NonBurnedC_stock") - 
-	  # "Land2Atmos_NonBurnedC_stock_fire_agg" 
+	# non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
 	out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
 
 	# Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
 	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
 	# is released as CO2 (decomposition) and not burned
-	# burned: "LCC_Atmos_CumGain_EnergyC_stock" = (current year "LCC_Atmos_CumGain_EnergyC_stock") - "Land2Energy_c_stock_conv"
+	# burned: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
 	out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
-	# non-burned: "LCC_Atmos_CumGain_NonEnergyC_stock" = (current year "LCC_Atmos_CumGain_EnergyC_stock") - "Land2Atmos_c_stock_conv"
+	# non-burned: "LCC_Atmos_CumGain_NonEnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
 	out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
 	
 	### annual (again) ###
 	# Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
-	# burned: "Manage_Atmos_AnnGain_BurnedC_stock" = - "Land2Atmos_burnedC_stock_man_agg" -
+	# burned: "Manage_Atmos_AnnGain_BurnedC" = - "Land2Atmos_burnedC_stock_man_agg" -
 	# "Land2Energy_c_stock_man_agg" 
 	out_atmos_df_list[[21]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-	# non-burned: "Manage_Atmos_AnnGain_NonBurnedC_stock" = - "Land2Atmos_nonburnedC_stock_man_agg"
+	# non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
 	# Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
 	# including this here in case changes are later made to those input wildfire fractions)
-	# burned: "Fire_Atmos_AnnGain_BurnedC_stock" = - "Land2Atmos_BurnedC_stock_fire_agg" 
+	# burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
 	out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
-	# non-burned: "Fire_Atmos_AnnGain_NonBurnedC_stock" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
+	# non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
 	out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
 
 	# Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
 	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
 	# is released as CO2 (decomposition) and not burned
-	# burned: "LCC_Atmos_AnnGain_EnergyC_stock" = - "Land2Energy_c_stock_conv"
+	# burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
 	out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
-	# non-burned: "LCC_Atmos_AnnGain_NonEnergyC_stock" = - "Land2Atmos_c_stock_conv"
+	# non-burned: "LCC_Atmos_AnnGain_NonEnergyC" = - "Land2Atmos_c_stock_conv"
 	out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
 } # end loop over calculation years
 
@@ -2221,17 +2219,12 @@ Eco_AnnCH4C <- do.call(rbind, Eco_AnnCH4C)
 Eco_AnnCH4C <- transform(Eco_AnnCH4C, Land_Type_ID = as.numeric(Land_Type_ID))
 Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Type_ID),]
 
-
-
-#out_atmos_df_list[["Eco_CO2C"]] <- Eco_CO2C
-#out_atmos_df_list[["Eco_CH4C"]] <- Eco_CH4C
-
 # Partition all the appropriate burned (incl energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
 CO2C_burn_frac <- 0.9891
 CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
   ### Cumulative ###
-Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC_stock"]]
+Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]]
 Manage_Burn_CumCO2C <- Manage_CumBurnedC
 for (i in 4:ncol(Manage_CumBurnedC)) {
   Manage_Burn_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurnedC[,i]
@@ -2245,7 +2238,7 @@ for (i in 4:ncol(Manage_CumBurnedC)) {
   Manage_Burn_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurnedC[,i]
 }
 
-Wildfire_CumBurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC_stock"]]
+Wildfire_CumBurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC"]]
 Wildfire_Burn_CumCO2C <- Wildfire_CumBurnedC
 for (i in 4:ncol(Wildfire_CumBurnedC)) {
   Wildfire_Burn_CumCO2C[,i] <- CO2C_burn_frac * Wildfire_CumBurnedC[,i]
@@ -2259,7 +2252,7 @@ for (i in 4:ncol(Wildfire_CumBurnedC)) {
   Wildfire_Burn_CumBCC[,i] <- BCC_burn_frac * Wildfire_CumBurnedC[,i]
 }
 
-LCC_CumBurnedC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC_stock"]]
+LCC_CumBurnedC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC"]]
 LCC_Burn_CumCO2C <- LCC_CumBurnedC
 for (i in 4:ncol(LCC_CumBurnedC)) {
   LCC_Burn_CumCO2C[,i] <- CO2C_burn_frac * LCC_CumBurnedC[,i]
@@ -2275,7 +2268,7 @@ for (i in 4:ncol(LCC_CumBurnedC)) {
 
 ## annual ##
 
-Manage_AnnBurnedC <- out_atmos_df_list[["Manage_Atmos_AnnGain_BurnedC_stock"]]
+Manage_AnnBurnedC <- out_atmos_df_list[["Manage_Atmos_AnnGain_BurnedC"]]
 Manage_Burn_AnnCO2C <- Manage_AnnBurnedC
 for (i in 4:ncol(Manage_AnnBurnedC)) {
   Manage_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurnedC[,i]
@@ -2289,7 +2282,7 @@ for (i in 4:ncol(Manage_AnnBurnedC)) {
   Manage_Burn_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurnedC[,i]
 }
 
-Wildfire_AnnBurnedC <- out_atmos_df_list[["Fire_Atmos_AnnGain_BurnedC_stock"]]
+Wildfire_AnnBurnedC <- out_atmos_df_list[["Fire_Atmos_AnnGain_BurnedC"]]
 Wildfire_Burn_AnnCO2C <- Wildfire_AnnBurnedC
 for (i in 4:ncol(Wildfire_AnnBurnedC)) {
   Wildfire_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Wildfire_AnnBurnedC[,i]
@@ -2303,7 +2296,7 @@ for (i in 4:ncol(Wildfire_AnnBurnedC)) {
   Wildfire_Burn_AnnBCC[,i] <- BCC_burn_frac * Wildfire_AnnBurnedC[,i]
 }
 
-LCC_AnnBurnedC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC_stock"]]
+LCC_AnnBurnedC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC"]]
 LCC_Burn_AnnCO2C <- LCC_AnnBurnedC
 for (i in 4:ncol(LCC_AnnBurnedC)) {
   LCC_Burn_AnnCO2C[,i] <- CO2C_burn_frac * LCC_AnnBurnedC[,i]
@@ -2326,9 +2319,9 @@ for (i in 4:ncol(Total_CumCO2C)) {
   Total_CumCO2C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_CumCO2C)) {
-Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
-  out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC_stock"]][,i] + 
-  out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC_stock"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
+Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C"]][,i] + 
+  out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + 
+  out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
   LCC_Burn_CumCO2C[,i]
 }
 # Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
@@ -2355,9 +2348,9 @@ for (i in 4:ncol(Total_AnnCO2C)) {
   Total_AnnCO2C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_AnnCO2C)) {
-  Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
-    out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC_stock"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC_stock"]][,i] + 
-    out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC_stock"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_Burn_AnnCO2C[,i] + 
+  Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C"]][,i] + 
+    out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + 
+    out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_Burn_AnnCO2C[,i] + 
     LCC_Burn_AnnCO2C[,i]
 }
 # Second, do annual CH4-C. Choice of ncol(Manage_Burn_AnnCH4C) is arbitrary -  just need the total number of columns.
@@ -2542,7 +2535,6 @@ if(WRITE_OUT_FILE) {
 	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = out_atmos_sheets, header = TRUE)
   
 
-  
   # create worksheet for (non-burning) CO2 calcs
   createSheet(out_wrkbk, name = "CO2-non-burned")
   clearSheet(out_wrkbk, sheet = "CO2-non-burned")
