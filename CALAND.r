@@ -1111,6 +1111,9 @@ for (year in start_year:(end_year-1)) {
 	# create man_adjust_df$Land2Atmos_nonburnedC_stock_man  
 	man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
 	
+	# check that burned and non-burned c equal total land 2atmos from management
+	identical(man_adjust_df[,agg_names[11]]+man_adjust_df[,agg_names[12]], man_adjust_df[,agg_names[8]])
+	
 	# now aggregate to land type by summing the management options
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos, energy (atmos), and wood
@@ -1338,7 +1341,7 @@ for (year in start_year:(end_year-1)) {
 	                                                                   fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$StandDead2Atmos_c + 
 	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Below2Atmos_c + 
 	                                                                   fire_adjust_df$Above2Atmos_c)
-	# Partition the Land2Atmos_c_stock into total burned (CO2+CH4+BC) and total non-burned C emissions (CO2). Currently soil c and root c 
+	# Partition the Land2Atmos_c_stock into total burned (CO2-C+CH4-C+BC-C) and total non-burned C emissions (CO2-C). Currently soil c and root c 
 	# are assumed not to burn, and decay is captured in ongoing soil accum rates. (i.e. input values for wildfire effects fractions on 
 	# root and soil c to atmosphere are currently 0. Update if contrary evidence is found)
 	# first, calculate burned c emissions from wildfire
@@ -1350,6 +1353,9 @@ for (year in start_year:(end_year-1)) {
 	# currently this is 0 as there's no lost root or soil c.
 	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_NonBurnedC_stock"))
 	fire_adjust_df[,fire_agg_names[10]] = fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]]
+	
+	# check
+	identical(fire_adjust_df[,fire_agg_names[8]], fire_adjust_df[,fire_agg_names[9]] + 	fire_adjust_df[,fire_agg_names[10]])
 	
 	############################################################################################################
 	######### sixth, aggregate changes in each C density pool within each landtype-ownership class ############# 
@@ -2072,25 +2078,25 @@ for (year in start_year:(end_year-1)) {
 	# Partition the "Manage_Atmos_CumGain_C_stock" into burned and non-burned C sources
 	# burned: "Manage_Atmos_CumGain_BurnedC" = (current year "Manage_Atmos_CumGain_BurnedC") - "Land2Atmos_burnedC_stock_man_agg" -
 	    # "Land2Energy_c_stock_man_agg" 
-	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
+	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, next_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
 	# non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
-	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, next_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
 	# Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
 	# including this here in case changes are later made to those input wildfire fractions)
 	# burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
-	out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+	out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, next_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
 	# non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-	out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+	out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, next_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
 
 	# Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
 	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
 	# is released as CO2 (decomposition) and not burned
 	# burned: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
-	out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
+	out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, next_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
 	# non-burned: "LCC_Atmos_CumGain_NonEnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
-	out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
+	out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, next_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
 	
 	### annual (again) ###
 	# Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
