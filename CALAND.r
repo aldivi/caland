@@ -1951,12 +1951,17 @@ for (year in start_year:(end_year-1)) {
 	# annual change values are in the year they occurred
 	
 	k = log(2) / wp_half_life
+	# next year's "LCC_Wood_C_stock" = current year's "LCC_Wood_C_stock" * decay_term * more_wood
 	out_wood_df_list[[11]][,next_wood_label] = out_wood_df_list[[11]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
 	  (-all_c_flux$Land2Wood_c_stock_conv)
+	# next year's "LCC_Wood_CumGain_C_stock" = current year's "LCC_Wood_CumGain_C_stock" + harvested_wood_conv
 	out_wood_df_list[[12]][,next_wood_label] = out_wood_df_list[[12]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv
+	# current year's "LCC_Wood_AnnGain_C_stock" = harvested_wood_conv
 	out_wood_df_list[[14]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_conv
+	# current year's "LCC_Wood_AnnLoss_C_stock" = current year's "LCC_Wood_C_stock" + harvested_wood_conv - next year's "LCC_Wood_C_stock"
 	out_wood_df_list[[15]][,cur_wood_label] = out_wood_df_list[[11]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv - 
 	  out_wood_df_list[[11]][,next_wood_label]
+	# next year's "LCC_Wood_CumLoss_C_stock" = current year's "LCC_Wood_CumLoss_C_stock" + current year's "LCC_Wood_AnnLoss_C_stock" 
 	out_wood_df_list[[13]][,next_wood_label] = out_wood_df_list[[13]][,cur_wood_label] + out_wood_df_list[[15]][,cur_wood_label]
 	
 	# update the total wood tables
