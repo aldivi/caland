@@ -1039,7 +1039,7 @@ for (year in start_year:(end_year-1)) {
 	
 	# to get the carbon must multiply these by the tot_area
 	# atmos
-	  # calc C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_man") via decomposition of organic C (CO2 + CH4)
+	  # calc C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_man") 
 	  #  "Land2Atmos_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
 	  #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
 	 agg_names = c(agg_names, paste0("Land2Atmos_c_stock_man"))
@@ -1073,7 +1073,7 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
 	  # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
 	man_adjust_df[,"Burned_downdead_c"] = 0
-	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
 	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
@@ -2420,7 +2420,7 @@ for (i in 4:ncol(zero_test)) {
 }
 for (i in 4:ncol(Total_CumCO2)) {
     zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
-              Total_CumCH4eq[,i] * (12.0107/(25*16.04)) + Total_CumBCeq[,i] * (0.67/680) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
+              Total_CumCH4eq[,i] * (12.0107/(25*16.04)) + Total_CumBCeq[,i] * (0.6/680) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
 } 
 all(zero_test == 0) 
 
