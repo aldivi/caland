@@ -2399,6 +2399,10 @@ for (i in 4:ncol(Total_AnnCO2)) {
 }
 
 # add GHG dataframes to out_atmos_df_list
+out_atmos_df_list[["Eco_AnnCO2C"]] <- Eco_AnnCO2C
+out_atmos_df_list[["Eco_AnnCH4C"]] <- Eco_AnnCH4C
+out_atmos_df_list[["Eco_CumCO2C"]] <- Eco_CumCO2C
+out_atmos_df_list[["Eco_CumCH4C"]] <- Eco_CumCH4C
 out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
 out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
 out_atmos_df_list[["Total_CumBCeq"]] <- Total_CumBCeq
@@ -2407,10 +2411,7 @@ out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
 out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
 out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
 out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
-out_atmos_df_list[["Eco_AnnCO2C"]] <- Eco_AnnCO2C
-out_atmos_df_list[["Eco_AnnCH4C"]] <- Eco_AnnCH4C
-out_atmos_df_list[["Eco_CumCO2C"]] <- Eco_CumCO2C
-out_atmos_df_list[["Eco_CumCH4C"]] <- Eco_CumCH4C
+
 
 # check that total atmos C gain is equal to the sum of the partitions, less the Eco C emissions (not included in the Total_Atmos gain C)
 zero_test <- Total_CumCO2
@@ -2483,6 +2484,16 @@ for (i in 1:num_out_wood_sheets) {
 	out_wood_df_list[[i]] = rbind(out_wood_df_list[[i]], sum_row)
 	out_wood_df_list[[i]][,c(4:ncol(out_wood_df_list[[i]]))] = round(out_wood_df_list[[i]][,c(4:ncol(out_wood_df_list[[i]]))], 0)
 }
+
+# remove the Xs added to the front of the year columns so that the following atmosphere section can work without error
+man_targetyear_labels = names(scen_df_list[[3]])[c(6:ncol(scen_df_list[[3]]))]
+out_atmos_df_list_Ann_labels = names(out_atmos_df_list[[38]])
+colnames_Ann = names(out_atmos_df_list[[38]])
+colnames_Cum = names(out_atmos_df_list[[37]])
+names(out_atmos_df_list[["Eco_AnnCO2C"]]) = colnames_Ann
+names(out_atmos_df_list[["Eco_AnnCH4C"]]) = colnames_Ann
+names(out_atmos_df_list[["Eco_CumCO2C"]]) = colnames_Cum
+names(out_atmos_df_list[["Eco_CumCH4C"]]) = colnames_Cum
 
 # atmosphere
 for (i in 1:length(out_atmos_df_list)) {
