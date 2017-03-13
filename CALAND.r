@@ -2134,8 +2134,9 @@ for (year in start_year:(end_year-1)) {
 } # end loop over calculation years
 
 # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
-# CO2-C is actually C uptake (negative), and it's CO2-eq will later be added to CO2-eq of CH4 to determine net GWP. Additionally, aacount 
-# for any of the negative values which are actually fluxes to atmosphere and count them as CO2-C. 
+# the CO2 portion of Eco C is actually C uptake (negative value), and it's CO2-eq will later be added to CO2-eq of CH4 to determine net GWP. 
+# Additionally, here we will account for any of negative Eco C values (i.e. in grassland) as these are net C fluxes to atmosphere and will 
+# be counted as CO2-C. 
 
 # get dataframes for the C values for fresh marsh to calculate CO2 & CH4 emissions, and any negative Eco C fluxes to calc CO2 emissions
 # for other land types (i.e grassland)
