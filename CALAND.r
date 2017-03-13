@@ -135,12 +135,6 @@ BCC_burn_frac <- 0.0018
 ####### assign burned fraction of input fractions of c pool emissions #######
 
 # management
-  # forest (or any) clearcut and above-main removed to energy
-clrcut_energy <- 1
-  # forest partial_cut and above-main removed to energy
-parcut_energy <- 1
-  # forest fuel_reduction and above-main removed to energy
-fuelred_energy <- 1
   # do lit search regarding slash burning in logging and thinning practices to get fractions below:
   # forest clearcut and above-main removed to atmos
 clrcut_above_burn <- 0.25
@@ -182,18 +176,6 @@ parcut_mainremoved_burn <- 0.25
 fuelred_mainremoved_burn <- 0.25
   # forest Prescribed_burn and above-main removed  to atmos
 prescrburn_mainremoved_burn <- 1
-
-# conversion to ag or urban
-  # forest (or any land type) above-main removed to energy
-conv_rem_energy <- 1
-  # forest (or any land type) above-main removed to atmos
-conv_rem_atmos <- 0.25
-  # forest (or any land type) above-main understory to atmos
-conv_under_atmos <- 0.25
-  # forest (or any land type) down dead to atmos
-conv_down_atmos <- 0.25
-  # forest (or any land type) litter to atmos
-conv_litter_atmos <- 0.25
  
 # output tables
 out_area_sheets = c("Area", "Managed_area", "Wildfire_area")
@@ -428,8 +410,7 @@ for ( i in 1:num_out_stock_sheets) {
 }
 
 # c to atmosphere (and c from atmosphere to ecosystems)
-## update 1:38 later so that it's generic
-for (i in 1:38) {
+for (i in 1:num_out_atmos_sheets) {
   # fill all the (empty) dataframes in the out_atmos_df_list with the All_orgC_den dataframe. This arbitrary, as it's only needed 
   # to fill in the first 3 columns with Land_Type_ID, Land_Type and Ownership.
 	out_atmos_df_list[[i]] <- out_density_df_list[[1]]
@@ -439,7 +420,7 @@ for (i in 1:38) {
 	out_atmos_df_list[[i]][,ncol(out_atmos_df_list[[i]])] = 0.0
 }
 names(out_atmos_df_list) <- out_atmos_sheets
-for ( i in 1:38) {
+for ( i in 1:num_out_atmos_sheets) {
 	out_atmos_df_list[[i]][is.na(out_atmos_df_list[[i]])] <- 0.0
 }
 
@@ -1139,6 +1120,9 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
+	# check that Land2Atmos burned + non-burned still equals total land2atmos
+	identical(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]], all_c_flux[["Land2Atmos_c_stock_man_agg"]])
+	
 	# loop over the out density tables to update the carbon pools based on the management fluxes
 	# carbon cannot go below zero
 	sum_change = 0
@@ -1385,6 +1369,9 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
+	# check
+	identical(all_c_flux[["Land2Atmos_BurnedC_stock_fire_agg"]] + all_c_flux[["Land2Atmos_NonBurnedC_stock_fire_agg"]], all_c_flux[["Land2Atmos_c_stock_fire_agg"]])
+	
 	# loop over the relevant out density tables to update the carbon pools based on the fire fluxes
 	# carbon cannot go below zero
 	sum_change = 0
@@ -1401,7 +1388,7 @@ for (year in start_year:(end_year-1)) {
 	  ################################### Lastly, UPDATE NEXT YEAR'S C DENSITIES #################################
 	  ############################################################################################################
 	  
-	  # add the corresponding fire-caused C density change to last year's C density
+	  # add the corresponding fire-caused C density change to next year's C density
 	  out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, fire_agg_names2[i-2]]
 	  # calc the total state-wide cumulative C not subtracted because it sends density negative (used as check to make sure it's minimal)
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
@@ -1925,7 +1912,7 @@ for (year in start_year:(end_year-1)) {
 	} # end loop over out densities for updating due to conversion
 	
 	# to get the carbon must multiply these by the tot_area
-	# atmos
+	# atmos: assumed none of this is burned
 	all_c_flux[,"Land2Atmos_c_stock_conv"] = -conv_adjust_df$tot_area * 
 	  (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Litter2Atmos_conv_c + conv_adjust_df$DownDead2Atmos_conv_c + 
 	     conv_adjust_df$Understory2Atmos_conv_c + conv_adjust_df$Removed2Atmos_conv_c + conv_adjust_df$Below2Atmos_conv_c + 
@@ -2091,6 +2078,20 @@ for (year in start_year:(end_year-1)) {
 	# non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
+	# check
+	identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]],all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]]+all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
+	# check total manage 2atmos cumulative C = 2atmos cumulative C - land2atmos - land2energy
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
+	            all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
+	# check total manage 2atmos cumulative C = manage 2atmos cumulative C - land2atmos_burned - land2atmos_nonburned - land2energy
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
+	            all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] -
+	            all_c_flux[["Land2Energy_c_stock_man_agg"]])
+	# check  manage 2atmos cumulative burned C (energy+burned)= total manage 2atmos cumulative C + land2atmos_nonburned 
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] +
+	            out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
+
+
 	# Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
 	# including this here in case changes are later made to those input wildfire fractions)
 	# burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
@@ -2436,7 +2437,10 @@ for (i in 4:ncol(Total_CumCO2)) {
     zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
               Total_CumCH4eq[,i] * (12.0107/(25*16.04)) + Total_CumBCeq[,i] * (0.6/680) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
 } 
-all(zero_test == 0) 
+# rounding error so this test is false
+all(zero_test[4:ncol(zero_test)] == 0) 
+# but this should be true
+all(zero_test[4:ncol(zero_test)] < abs(0.00000001)) 
 
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
