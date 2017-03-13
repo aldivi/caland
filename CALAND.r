@@ -1093,8 +1093,8 @@ for (year in start_year:(end_year-1)) {
 	# create man_adjust_df$Land2Atmos_nonburnedC_stock_man  
 	man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
 	
-	# check that burned and non-burned c equal total land 2atmos from management
-	identical(man_adjust_df[,agg_names[11]]+man_adjust_df[,agg_names[12]], man_adjust_df[,agg_names[8]])
+	# checks true that management Land2Atmos c flux equals the sum of burned and non-burned c in man_adjust_df 
+	identical(man_adjust_df[,agg_names[8]], man_adjust_df[,agg_names[11]] + man_adjust_df[,agg_names[12]])
 	
 	# now aggregate to land type by summing the management options
 	# these c density values are the direct changes to the overall c density
@@ -1120,9 +1120,12 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
-	# check that Land2Atmos burned + non-burned still equals total land2atmos
+	# check that management Land2Atmos c flux is equal to sum of burned + non-burned land2atmos c flux in all_c_flux
+	  ## this is false because of rounding error - probably from aggregate()
 	identical(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]], all_c_flux[["Land2Atmos_c_stock_man_agg"]])
-	
+	# however, this checks true that the difference between total management Land2Atmos c flux and the sum of burned + non-burned land2atmos c flux is minimal (<1 & >-1)
+	all(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] < 1 &
+	      all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] > -1)
 	# loop over the out density tables to update the carbon pools based on the management fluxes
 	# carbon cannot go below zero
 	sum_change = 0
@@ -1339,8 +1342,8 @@ for (year in start_year:(end_year-1)) {
 	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_NonBurnedC_stock"))
 	fire_adjust_df[,fire_agg_names[10]] = fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]]
 	
-	# check
-	identical(fire_adjust_df[,fire_agg_names[8]], fire_adjust_df[,fire_agg_names[9]] + 	fire_adjust_df[,fire_agg_names[10]])
+	# check that fire Land2Atmos c flux is equal to the sum of burned and non-burned c stock in the fire_adjust_df
+	identical(fire_adjust_df[,fire_agg_names[8]], fire_adjust_df[,fire_agg_names[9]] + fire_adjust_df[,fire_agg_names[10]])
 	
 	############################################################################################################
 	######### sixth, aggregate changes in each C density pool within each landtype-ownership class ############# 
@@ -1369,7 +1372,7 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
-	# check
+	# check that the fire Land2Atmos c flux is equal to the sum of burned and non-burned land2Atmos c flux in the all_c_flux dataframe
 	identical(all_c_flux[["Land2Atmos_BurnedC_stock_fire_agg"]] + all_c_flux[["Land2Atmos_NonBurnedC_stock_fire_agg"]], all_c_flux[["Land2Atmos_c_stock_fire_agg"]])
 	
 	# loop over the relevant out density tables to update the carbon pools based on the fire fluxes
@@ -2078,21 +2081,24 @@ for (year in start_year:(end_year-1)) {
 	# non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
-	# check that management land to atmosphere C flux is equal to the management burned plus unburned land to atmosphere C flux
+	# checks false due to rounding error in the agrregated all_c_flux:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
 	identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]], all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
-	- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] == 0
-	which(all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] != 0)
-	# check total manage 2atmos cumulative C = 2atmos cumulative C - land2atmos - land2energy
+	# however the difference is minimal. 
+	# checks true that the difference is <0.5 and >-0.5
+	all((- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) < 0.5 & 
+	      (- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) > -0.5)
+
+	# checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos - current year's Land2Energy
 	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
 	            all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
-	# check total manage 2atmos cumulative C = manage 2atmos cumulative C - land2atmos_burned - land2atmos_nonburned - land2energy
+	
+	# checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos_burned - current year Land2Atmos_nonburned - 
+	 # current year land2energy
 	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
-	            all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] -
-	            all_c_flux[["Land2Energy_c_stock_man_agg"]])
-	# check  manage 2atmos cumulative burned C (energy+burned)= total manage 2atmos cumulative C + land2atmos_nonburned 
-	identical(out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] +
+	            all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
+	# checks true: next year's management Land2Atmos_burned cumulative C = next year's Land2Atmos cumulative C - next year Land2Atmos_nonburned 
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] -
 	            out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
-
 
 	# Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
 	# including this here in case changes are later made to those input wildfire fractions)
