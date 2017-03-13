@@ -121,7 +121,7 @@ if (value_col != 7) {
 # assign 100 yr global warming potential of CO2, CH4, and black C (BC)
 gwp_CO2 <- 1
 gwp_CH4 <- 25
-gwp_BC <- 680
+gwp_BC <- 900
 
 # assign fractions of soil c accumulation that is CO2-C and CH4-C
 marsh_CO2_C_frac <- -1.14
@@ -2078,8 +2078,10 @@ for (year in start_year:(end_year-1)) {
 	# non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
-	# check
-	identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]],all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]]+all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
+	# check that management land to atmosphere C flux is equal to the management burned plus unburned land to atmosphere C flux
+	identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]], all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
+	- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] == 0
+	which(all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] != 0)
 	# check total manage 2atmos cumulative C = 2atmos cumulative C - land2atmos - land2energy
 	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
 	            all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
@@ -2361,9 +2363,13 @@ for (i in 4:ncol(Manage_Burn_AnnBCC)) {
   Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_Burn_AnnBCC[,i] + LCC_Burn_AnnBCC[,i]
 }
 
-identical((Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]),
-    (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][,4:ncol(Total_AnnCO2C)] +  Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + 
-       Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]))
+# the following check is used to show that the differences between total annual CO2-C, CH4-C and BC-C, and
+# total atmosphere C gain, less Eco C to atmosphere fluxes (i.e. grassland and coastal marsh) are all less than abs(0.5). Due to 
+# rounding error, 0.5 is used instead of 0.
+(Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
+          (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
+            Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) < abs(0.5)
+
 # individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
 # if desired
   ### cumulative ###
