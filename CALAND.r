@@ -1050,6 +1050,8 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_litter_burn * 
 	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_litter_burn * 
+	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
 	  # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
 	man_adjust_df[,"Burned_downdead_c"] = 0
 	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
@@ -1060,6 +1062,8 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_down_burn * 
 	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_down_burn * 
+	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
 	  # Third, calculate burned understory c using default fractions of 2Atmos pools set in beginning
 	man_adjust_df[,"Burned_under_c"] = 0
 	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
@@ -1070,6 +1074,8 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
 	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_under_burn * 
+	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
 	  # Fourth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
 	  # doesn't include removed 2 energy
   man_adjust_df[,"Burned_mainremoved_c"] = 0
@@ -1081,6 +1087,8 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
 	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_mainremoved_burn * 
 	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_mainremoved_burn * 
+	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
 	  
 	agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
 	  # create man_adjust_df$Land2Atmos_burnedC_stock_man 
