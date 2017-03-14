@@ -107,12 +107,12 @@ stemfrac = 0.66
 wp_half_life = 52
 
 if (value_col != 7) {
-	out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xlsx")
+	out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xls")
 }else {
 	if(ADD) {
-		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_add", ".xlsx")
+		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_add", ".xls")
 	}else {
-		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_sub", ".xlsx")
+		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_sub", ".xls")
 	}
 }
 
