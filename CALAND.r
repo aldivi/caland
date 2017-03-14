@@ -52,8 +52,7 @@
 # density values are the stats of the total pixel population within each land type id
 # accumulation values are stats of literature values
 
-CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, 
-                   WRITE_OUT_FILE = TRUE) {
+CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE) {
 
 cat("Start CALAND at", date(), "\n")
 # this enables java to use up to 4GB of memory for reading and writing excel files
@@ -123,7 +122,7 @@ gwp_CO2 <- 1
 gwp_CH4 <- 25
 gwp_BC <- 900
 
-# assign fractions of soil c accumulation that is CO2-C and CH4-C
+# assign fractions of soil c accumulation that is CO2-C and CH4-C in fresh marsh 
 marsh_CO2_C_frac <- -1.14
 marsh_CH4_C_frac <- 0.14
 
@@ -132,51 +131,50 @@ CO2C_burn_frac <- 0.9891
 CH4C_burn_frac <- 0.0091
 BCC_burn_frac <- 0.0018
 
-####### assign burned fraction of input fractions of c pool emissions #######
+####### assign burned fraction of 2Atmos fluxes due to management activities #######
 
-# management
-  # do lit search regarding slash burning in logging and thinning practices to get fractions below:
-  # forest clearcut and above-main removed to atmos
-clrcut_above_burn <- 0.25
-  # forest partial_cut and above-main removed to atmos
-parcut_above_burn <- 0.25
-  # forest fuel_reduction and above-main removed to atmos
-fuelred_above_burn <- 0.25
-  # forest Prescribed_burn and above-main removed to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
-prescrburn_above_burn <- 1
-  # forest clearcut and understory to atmos
-clrcut_under_burn <- 0.25
-  # forest partial_cut and understory to atmos
-parcut_under_burn <- 0.25
-  # forest fuel_reduction and understory to atmos
-fuelred_under_burn <- 0.25
-  # forest Prescribed_burn and understory to atmos
-prescrburn_under_burn <- 1
-  # forest clearcut and down dead to atmos
-clrcut_down_burn <- 0.25
-  # forest partial_cut and down dead to atmos
-parcut_down_burn <- 0.25
-  # forest fuel_reduction and down dead to atmos
-fuelred_down_burn <- 0.25
-  # forest Prescribed_burn and down dead to atmos
-prescrburn_down_burn <- 1
-  # forest clearcut and litter to atmos
-clrcut_litter_burn <- 0.25
-  # forest partial_cut and litter to atmos
-parcut_litter_burn <- 0.25
-  # forest fuel_reduction and litter to atmos
-fuelred_litter_burn <- 0.25
-  # forest Prescribed_burn and litter to atmos
-prescrburn_litter_burn <- 1
-  # forest clearcut and above-main removed to atmos
+# do lit search regarding slash burning in logging and thinning practices to get fractions below:
+# forest clearcut and above-main removed to atmos
 clrcut_mainremoved_burn <- 0.25
-  # forest partial_cut and above-main removed  to atmos
+# forest partial_cut and above-main removed  to atmos
 parcut_mainremoved_burn <- 0.25
-  # forest fuel_reduction and above-main removed  to atmos
+# forest fuel_reduction and above-main removed  to atmos
 fuelred_mainremoved_burn <- 0.25
-  # forest Prescribed_burn and above-main removed  to atmos
+# forest Prescribed_burn and above-main removed  to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
 prescrburn_mainremoved_burn <- 1
- 
+# forest Weed_treatment and above-main removed to atmos
+weedtrt_mainremoved_burn <- 0.25
+# forest clearcut and understory to atmos
+clrcut_under_burn <- 0.25
+# forest partial_cut and understory to atmos
+parcut_under_burn <- 0.25
+# forest fuel_reduction and understory to atmos
+fuelred_under_burn <- 0.25
+# forest Prescribed_burn and understory to atmos
+prescrburn_under_burn <- 1
+# forest weed_treatment and understory removed to atmos
+weedtrt_under_burn <- 0.25
+# forest clearcut and down dead to atmos
+clrcut_down_burn <- 0.25
+# forest partial_cut and down dead to atmos
+parcut_down_burn <- 0.25
+# forest fuel_reduction and down dead to atmos
+fuelred_down_burn <- 0.25
+# forest Prescribed_burn and down dead to atmos
+prescrburn_down_burn <- 1
+# forest Weed_treatment and down dead removed to atmos
+weedtrt_down_burn <- 0.25
+# forest clearcut and litter to atmos
+clrcut_litter_burn <- 0.25
+# forest partial_cut and litter to atmos
+parcut_litter_burn <- 0.25
+# forest fuel_reduction and litter to atmos
+fuelred_litter_burn <- 0.25
+# forest Prescribed_burn and litter to atmos
+prescrburn_litter_burn <- 1
+# forest weed_treatment and litter removed to atmos
+weedtrt_litter_burn <- 0.25 
+
 # output tables
 out_area_sheets = c("Area", "Managed_area", "Wildfire_area")
 num_out_area_sheets = length(out_area_sheets)
