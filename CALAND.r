@@ -1039,7 +1039,6 @@ for (year in start_year:(end_year-1)) {
 	agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
 	man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Wood_c
 	
-	
 	# Before partioning the Land2Atmos_c_stock_man into total burned and total non-burned C emissions, partition the 
 	# individual above-ground pools within it.
 	# Soil c and root c are assumed to not burn, so 100% of 2Atmos c from these pools will be CO2.
@@ -2072,13 +2071,11 @@ for (year in start_year:(end_year-1)) {
 
 	### cumulative (again) ### 
 	# Partition the "Manage_Atmos_CumGain_C_stock" into burned and non-burned C sources
-	# burned: "Manage_Atmos_CumGain_BurnedC" = (current year "Manage_Atmos_CumGain_BurnedC") - "Land2Atmos_burnedC_stock_man_agg" -
+	  # burned: "Manage_Atmos_CumGain_BurnedC" = (current year "Manage_Atmos_CumGain_BurnedC") - "Land2Atmos_burnedC_stock_man_agg" -
 	    # "Land2Energy_c_stock_man_agg" 
-	# burned: "Manage_Atmos_CumGain_BurnedC" = (current year "Manage_Atmos_CumGain_BurnedC") - "Land2Atmos_burnedC_stock_man_agg" -
-	# "Land2Energy_c_stock_man_agg" 
 	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
 	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
-	# non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
+	  # non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
 	
 	# checks false due to rounding error in the agrregated all_c_flux:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
@@ -2117,8 +2114,7 @@ for (year in start_year:(end_year-1)) {
 	
 	### annual (again) ###
 	# Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
-	# burned: "Manage_Atmos_AnnGain_BurnedC" = - "Land2Atmos_burnedC_stock_man_agg" -
-	# "Land2Energy_c_stock_man_agg" 
+	# burned: "Manage_Atmos_AnnGain_BurnedC" = - "Land2Atmos_burnedC_stock_man_agg" - "Land2Energy_c_stock_man_agg" 
 	out_atmos_df_list[[21]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
 	# non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
 	out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
@@ -2133,15 +2129,15 @@ for (year in start_year:(end_year-1)) {
 	# Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
 	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
 	# is released as CO2 (decomposition) and not burned
-	# burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
+	  # burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
 	out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
-	# non-burned: "LCC_Atmos_AnnGain_NonEnergyC" = - "Land2Atmos_c_stock_conv"
+	  # non-burned: "LCC_Atmos_AnnGain_NonEnergyC" = - "Land2Atmos_c_stock_conv"
 	out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
 } # end loop over calculation years
 
 # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
 # the CO2 portion of Eco C is actually C uptake (negative value), and it's CO2-eq will later be added to CO2-eq of CH4 to determine net GWP. 
-# Additionally, here we will account for any of negative Eco C values (i.e. in grassland) as these are net C fluxes to atmosphere and will 
+# Additionally, here we will account for any negative Eco C values (currently only in grassland) as these are net C fluxes to atmosphere and will 
 # be counted as CO2-C. 
 
 # get dataframes for the C values for fresh marsh to calculate CO2 & CH4 emissions, and any negative Eco C fluxes to calc CO2 emissions
@@ -2155,9 +2151,9 @@ Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type
 # get the other land types 
 Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
-  # calc fresh march CO2-C, & change sign of CO2-C emissions to positive because it's a CO2 emission
+  # calc fresh march CO2-C (negative value because it's C sequestration based on flux tower measurement by Knox et al (2015)
   Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
-  # change sign of CO2-C emissions to positive because it's a CO2 emission
+  # change sign of CO2-C emissions to negative because it's land to atmosphere C flux
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
       # change sign of CO2-C emissions to positive because it's a CO2 emission
@@ -2371,11 +2367,14 @@ for (i in 4:ncol(Manage_Burn_AnnBCC)) {
 }
 
 # the following check is used to show that the differences between total annual CO2-C, CH4-C and BC-C, and
-# total atmosphere C gain, less Eco C to atmosphere fluxes (i.e. grassland and coastal marsh) are all less than abs(0.5). Due to 
+# total atmosphere C gain, less Eco C to atmosphere fluxes (i.e. grassland and coastal marsh) are < 0.5 and > -0.5. Due to 
 # rounding error, 0.5 is used instead of 0.
-(Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
+all((Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
           (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
-            Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) < abs(0.5)
+            Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) < 0.5 & 
+      (Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
+      (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
+         Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) > -0.5)
 
 # individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
 # if desired
@@ -2448,12 +2447,12 @@ for (i in 4:ncol(zero_test)) {
 }
 for (i in 4:ncol(Total_CumCO2)) {
     zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
-              Total_CumCH4eq[,i] * (12.0107/(25*16.04)) + Total_CumBCeq[,i] * (0.6/680) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
+              Total_CumCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_CumBCeq[,i] * (0.6/gwp_BC) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
 } 
 # rounding error so this test is false
 all(zero_test[4:ncol(zero_test)] == 0) 
-# but this should be true
-all(zero_test[4:ncol(zero_test)] < abs(0.00000001)) 
+# but this checks to be true
+all(zero_test[4:ncol(zero_test)] < 0.001 & zero_test[4:ncol(zero_test)] > -0.001) 
 
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
