@@ -2157,15 +2157,15 @@ Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type
 # get the other land types 
 Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
-  # calc fresh march CO2-C (negative value because it's C sequestration based on flux tower measurement by Knox et al (2015)
+  # calc fresh march CO2-C (negative frac because it's C sequestration based on flux tower measurement by Knox et al (2015)
   Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
   # change sign of CO2-C emissions to negative because it's land to atmosphere C flux
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
       # change sign of CO2-C emissions to positive because it's a CO2 emission
       Other_Cum_Eco_C[,i] <- abs(Other_Cum_Eco_C[,i])
-      # set CO2-C to 0 because flux is positive which is net sequestration
-    } else Other_Cum_Eco_C[,i] <- 0
+      # keep positive Eco C values because flux is CO2 sequestration
+    } else Other_Cum_Eco_C[,i] <- Other_Cum_Eco_C[,i]
   }
 }
 Eco_CumCO2C <- list(Other_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
