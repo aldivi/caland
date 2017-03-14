@@ -2159,13 +2159,13 @@ Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "F
 for (i in 4:ncol(Eco_CumGain_C_stock)) {
   # calc fresh march CO2-C (negative frac because it's C sequestration based on flux tower measurement by Knox et al (2015)
   Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
-  # change sign of CO2-C emissions to negative because it's land to atmosphere C flux
+  # for other land type Eco CO2-C,
   for (r in 1:nrow(Other_Cum_Eco_C)) {
     if (Other_Cum_Eco_C[,i][r] < 0) {
-      # change sign of CO2-C emissions to positive because it's a CO2 emission
-      Other_Cum_Eco_C[,i] <- abs(Other_Cum_Eco_C[,i])
-      # keep positive Eco C values but change sign to negative because flux is CO2 uptake
-    } else Other_Cum_Eco_C[,i] <- -1 * Other_Cum_Eco_C[,i]
+      # change sign of negative Eco C values to positive CO2-C emissions 
+      Other_Cum_Eco_C[,i][r] <- abs(Other_Cum_Eco_C[,i][r])
+      # change sign of positive Eco C values to negative CO2-C emissions (i.e sequestration)
+    } else Other_Cum_Eco_C[,i][r] <- -1 * Other_Cum_Eco_C[,i][r]
   }
 }
 Eco_CumCO2C <- list(Other_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
@@ -2196,12 +2196,12 @@ for (i in 4:ncol(Eco_AnnGain_C_stock)) {
   # calc fresh march CO2-C
   Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
   for (r in 1:nrow(Other_Ann_Eco_C)) {
-    # if other land type eco flux is negative
+    # for other land type Eco CO2-C,
     if (Other_Ann_Eco_C[,i][r] < 0) {
-      # change sign of CO2-C emissions to positive because it's a CO2 emission
-      Other_Ann_Eco_C[,i] <- abs(Other_Ann_Eco_C[,i])
-      # keep positive Eco C values but change sign to negative because flux is CO2 uptake
-    } else Other_Ann_Eco_C[,i] <- -1 * Other_Ann_Eco_C[,i]
+      # change sign of negative Eco C values to positive CO2-C emissions 
+      Other_Ann_Eco_C[,i][r] <- abs(Other_Ann_Eco_C[,i][r])
+      # change sign of positive Eco C values to negative CO2-C emissions (i.e sequestration)
+    } else Other_Ann_Eco_C[,i][r] <- -1 * Other_Ann_Eco_C[,i][r]
   }
 }
 Eco_AnnCO2C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
