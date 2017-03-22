@@ -432,8 +432,8 @@ for (year in start_year:(end_year-1)) {
 	man_area_sum$excess_area = man_area_sum$man_area_agg_extra - man_area_sum$tot_area
 	excess_area_inds = which(man_area_sum$excess_area > 0)
 	man_area_sum$man_area[excess_area_inds] = man_area_sum$man_area[excess_area_inds] - man_area_sum$excess_area[excess_area_inds] * man_area_sum$man_area[excess_area_inds] / man_area_sum$man_area_agg_extra[excess_area_inds]
-	man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, is.nan(man_area_sum$man_area_sum), 0)
-	man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
+	man_area_sum$man_area_sum = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
+	man_area_sum$man_area_sum = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
 	man_area_agg2 = aggregate(man_area ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
 	names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
 	man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Type_ID", all.x =TRUE)
@@ -606,8 +606,8 @@ for (year in start_year:(end_year-1)) {
 	above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label]
 	vegc_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Forest"]
 	added_vegc_flux_vals = vegc_flux_vals * (leaffrac + barkfrac + branchfrac) / stemfrac 
-	deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label] * stemfrac
-	above2dldead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label] * (1.0 - stemfrac)
+	deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * above_vals * stemfrac
+	above2dldead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * above_vals * (1.0 - stemfrac)
 	#deadc2vegc_ratios = deadc_flux_vals / vegc_flux_vals
 	#above2dldead_flux_vals = deadc2vegc_ratios * added_vegc_flux_vals
 	all_c_flux[all_c_flux$Land_Type == "Forest",egnames[1]] = vegc_flux_vals + added_vegc_flux_vals - deadc_flux_vals - above2dldead_flux_vals
