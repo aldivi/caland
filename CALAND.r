@@ -107,49 +107,130 @@ stemfrac = 0.66
 wp_half_life = 52
 
 if (value_col != 7) {
-	out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xlsx")
+	out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xls")
 }else {
 	if(ADD) {
-		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_add", ".xlsx")
+		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_add", ".xls")
 	}else {
-		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_sub", ".xlsx")
+		out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_sub", ".xls")
 	}
 }
+
+
+# assign 100 yr global warming potential of CO2, CH4, and black C (BC)
+gwp_CO2 <- 1
+gwp_CH4 <- 25
+gwp_BC <- 900
+
+# assign fractions of soil c accumulation that is CO2-C and CH4-C in fresh marsh 
+marsh_CO2_C_frac <- -1.14
+marsh_CH4_C_frac <- 0.14
+
+# assign emissions fractions of total C emissions for all burned C (incl energy)
+CO2C_burn_frac <- 0.9891
+CH4C_burn_frac <- 0.0091
+BCC_burn_frac <- 0.0018
+
+####### assign burned fraction of 2Atmos fluxes due to management activities #######
+
+# do lit search regarding slash burning in logging and thinning practices to get fractions below:
+# forest clearcut and above-main removed to atmos
+clrcut_mainremoved_burn <- 0.25
+# forest partial_cut and above-main removed  to atmos
+parcut_mainremoved_burn <- 0.25
+# forest fuel_reduction and above-main removed  to atmos
+fuelred_mainremoved_burn <- 0.25
+# forest Prescribed_burn and above-main removed  to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
+prescrburn_mainremoved_burn <- 1
+# forest Weed_treatment and above-main removed to atmos
+weedtrt_mainremoved_burn <- 0.25
+# forest clearcut and understory to atmos
+clrcut_under_burn <- 0.25
+# forest partial_cut and understory to atmos
+parcut_under_burn <- 0.25
+# forest fuel_reduction and understory to atmos
+fuelred_under_burn <- 0.25
+# forest Prescribed_burn and understory to atmos
+prescrburn_under_burn <- 1
+# forest weed_treatment and understory removed to atmos
+weedtrt_under_burn <- 0.25
+# forest clearcut and down dead to atmos
+clrcut_down_burn <- 0.25
+# forest partial_cut and down dead to atmos
+parcut_down_burn <- 0.25
+# forest fuel_reduction and down dead to atmos
+fuelred_down_burn <- 0.25
+# forest Prescribed_burn and down dead to atmos
+prescrburn_down_burn <- 1
+# forest Weed_treatment and down dead removed to atmos
+weedtrt_down_burn <- 0.25
+# forest clearcut and litter to atmos
+clrcut_litter_burn <- 0.25
+# forest partial_cut and litter to atmos
+parcut_litter_burn <- 0.25
+# forest fuel_reduction and litter to atmos
+fuelred_litter_burn <- 0.25
+# forest Prescribed_burn and litter to atmos
+prescrburn_litter_burn <- 1
+# forest weed_treatment and litter removed to atmos
+weedtrt_litter_burn <- 0.25 
 
 # output tables
 out_area_sheets = c("Area", "Managed_area", "Wildfire_area")
 num_out_area_sheets = length(out_area_sheets)
-out_density_sheets = c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", "StandDead_C_den", "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
+out_density_sheets = c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", "StandDead_C_den", 
+                       "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
 num_out_density_sheets = length(out_density_sheets)
-out_stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Above_main_C_stock", "Below_main_C_stock", "Understory_C_stock", "StandDead_C_stock", "DownDead_C_stock", "Litter_C_stock", "Soil_orgC_stock")
+out_stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Above_main_C_stock", "Below_main_C_stock", "Understory_C_stock", 
+                     "StandDead_C_stock", "DownDead_C_stock", "Litter_C_stock", "Soil_orgC_stock")
 num_out_stock_sheets = length(out_stock_sheets)
-out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock")
+out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", 
+                     "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", 
+                     "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", 
+                     "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
+                     "Manage_Atmos_CumGain_BurnedC", "Manage_Atmos_CumGain_NonBurnedC", "Fire_Atmos_CumGain_BurnedC",
+                     "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_EnergyC", "LCC_Atmos_CumGain_NonEnergyC",
+                     "Manage_Atmos_AnnGain_BurnedC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC",
+                     "Fire_Atmos_AnnGain_NonBurnedC", "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonEnergyC")
 num_out_atmos_sheets = length(out_atmos_sheets)
-out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", "Manage_Wood_AnnGain_C_stock", "Manage_Wood_AnnLoss_C_stock", "LCC_Wood_C_stock", "LCC_Wood_CumGain_C_stock", "LCC_Wood_CumLoss_C_stock", "LCC_Wood_AnnGain_C_stock", "LCC_Wood_AnnLoss_C_stock")
+out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
+                    "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", 
+                    "Manage_Wood_AnnGain_C_stock", "Manage_Wood_AnnLoss_C_stock", "LCC_Wood_C_stock", "LCC_Wood_CumGain_C_stock", 
+                    "LCC_Wood_CumLoss_C_stock", "LCC_Wood_AnnGain_C_stock", "LCC_Wood_AnnLoss_C_stock")
 num_out_wood_sheets = length(out_wood_sheets)
 
 # column names from the management table to calculate non-accum manage carbon adjustments
-man_frac_names = c("Above_removed_frac", "StandDead_removed_frac", "Removed2Wood_frac", "Removed2Energy_frac", "Removed2Atmos_frac", "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Soil2Atmos_frac", "Understory2DownDead_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+man_frac_names = c("Above_removed_frac", "StandDead_removed_frac", "Removed2Wood_frac", "Removed2Energy_frac", "Removed2Atmos_frac", 
+                   "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Soil2Atmos_frac", "Understory2DownDead_frac", 
+                   "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
 num_manfrac_cols = length(man_frac_names)
 # new c trans column names matching the non-accum manage frac names
-c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
+c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", 
+                  "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", 
+                  "Below2Soil_c")
 # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
 # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
 manage_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 3, 4, 4)
 
 # column names from the fire table to calculate fire carbon adjustments
-fire_frac_names = c("Above2Atmos_frac", "StandDead2Atmos_frac", "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Above2StandDead_frac", "Understory2DownDead_frac", "Below2Atmos_frac", "Soil2Atmos_frac")
+fire_frac_names = c("Above2Atmos_frac", "StandDead2Atmos_frac", "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", 
+                    "Above2StandDead_frac", "Understory2DownDead_frac", "Below2Atmos_frac", "Soil2Atmos_frac")
 num_firefrac_cols = length(fire_frac_names)
 # new c trans column names matching the fire frac names
-firec_trans_names = c("Above2Atmos_c", "StandDead2Atmos_c", "Understory2Atmos_c", "DownDead2Atmos_c", "Litter2Atmos_c", "Above2StandDead_c", "Understory2DownDead_c", "Below2Atmos_c", "Soil2Atmos_c")
+firec_trans_names = c("Above2Atmos_c", "StandDead2Atmos_c", "Understory2Atmos_c", "DownDead2Atmos_c", "Litter2Atmos_c", "Above2StandDead_c", 
+                      "Understory2DownDead_c", "Below2Atmos_c", "Soil2Atmos_c")
 # indices of the appropriate density source df for the fire frac to c calcs; corresponds with out_density_sheets above
 fire_density_inds = c(3, 6, 5, 7, 8, 3, 5, 4, 9)
 
 # column names from the conversion to ag/urban table to calculate conversion to ag/urban carbon adjustments
-conv_frac_names = c("Above_removed_conv_frac", "StandDead_removed_conv_frac", "Removed2Wood_conv_frac", "Removed2Energy_conv_frac", "Removed2Atmos_conv_frac", "Understory2Atmos_conv_frac", "DownDead2Atmos_conv_frac", "Litter2Atmos_conv_frac", "Soil2Atmos_conv_frac", "Understory2DownDead_conv_frac", "Below2Atmos_conv_frac", "Below2Soil_conv_frac")
+conv_frac_names = c("Above_removed_conv_frac", "StandDead_removed_conv_frac", "Removed2Wood_conv_frac", "Removed2Energy_conv_frac", 
+                    "Removed2Atmos_conv_frac", "Understory2Atmos_conv_frac", "DownDead2Atmos_conv_frac", "Litter2Atmos_conv_frac", 
+                    "Soil2Atmos_conv_frac", "Understory2DownDead_conv_frac", "Below2Atmos_conv_frac", "Below2Soil_conv_frac")
 num_convfrac_cols = length(conv_frac_names)
 # new c trans column names matching the conversion frac names
-convc_trans_names = c("Above_removed_conv_c", "StandDead_removed_conv_c", "Removed2Wood_conv_c", "Removed2Energy_conv_c", "Removed2Atmos_conv_c", "Understory2Atmos_conv_c", "DownDead2Atmos_conv_c", "Litter2Atmos_conv_c", "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below2Atmos_conv_c", "Below2Soil_conv_c")
+convc_trans_names = c("Above_removed_conv_c", "StandDead_removed_conv_c", "Removed2Wood_conv_c", "Removed2Energy_conv_c", 
+                      "Removed2Atmos_conv_c", "Understory2Atmos_conv_c", "DownDead2Atmos_conv_c", "Litter2Atmos_conv_c", 
+                      "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below2Atmos_conv_c", "Below2Soil_conv_c")
 # indices of the appropriate density source df for the conversion frac to c calcs; corresponds with out_density_sheets above
 # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
 conv_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 4, 4)
@@ -159,7 +240,8 @@ libs <- c( "XLConnect" )
 for( i in libs ) {
     if( !require( i, character.only=T ) ) {
         cat( "Couldn't load", i, "\n" )
-        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it for local user if you do not have root access\n" )
+        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
+              for local user if you do not have root access\n" )
     }
     library( i, character.only=T )
 }
@@ -175,7 +257,8 @@ scen_sheets = getSheets(scen_wrkbk)
 num_scen_sheets = length(scen_sheets)
 
 # NA values need to be converted to numeric
-# the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is converted to NA value
+# the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
+# converted to NA value
 c_col_types1 = c("numeric", "character", "character", rep("numeric",50))
 c_col_types2 = c("numeric", "numeric", "character", "character", "character", rep("numeric",50))
 c_col_types3 = c("numeric", "character", rep("numeric",50))
@@ -302,13 +385,15 @@ names(out_density_df_list) <- out_density_sheets
 # add up the total org c pool density
 out_density_df_list[[1]][, start_density_label] = 0
 for (i in 3:num_out_density_sheets) {
-	out_density_df_list[[1]][, start_density_label] = out_density_df_list[[1]][, start_density_label] + out_density_df_list[[i]][, start_density_label]
+	out_density_df_list[[1]][, start_density_label] = out_density_df_list[[1]][, start_density_label] + 
+	  out_density_df_list[[i]][, start_density_label]
 }
 	
 # add up the biomass c pool density (all non-decomposed veg material; i.e. all non-soil c)
 out_density_df_list[[2]][, start_density_label] = 0
 for (i in 3:(num_out_density_sheets-1)) {
-	out_density_df_list[[2]][, start_density_label] = out_density_df_list[[2]][, start_density_label] + out_density_df_list[[i]][, start_density_label]
+	out_density_df_list[[2]][, start_density_label] = out_density_df_list[[2]][, start_density_label] + 
+	  out_density_df_list[[i]][, start_density_label]
 }
 
 # c stock
@@ -324,8 +409,12 @@ for ( i in 1:num_out_stock_sheets) {
 
 # c to atmosphere (and c from atmosphere to ecosystems)
 for (i in 1:num_out_atmos_sheets) {
+  # fill all the (empty) dataframes in the out_atmos_df_list with the All_orgC_den dataframe. This arbitrary, as it's only needed 
+  # to fill in the first 3 columns with Land_Type_ID, Land_Type and Ownership.
 	out_atmos_df_list[[i]] <- out_density_df_list[[1]]
+	# assign the name of 'start_atmos_label' (i.e. "2010_Mg"),
 	names(out_atmos_df_list[[i]])[ncol(out_atmos_df_list[[i]])] <- as.character(start_atmos_label)
+	# and clear all values and replace with 0's 
 	out_atmos_df_list[[i]][,ncol(out_atmos_df_list[[i]])] = 0.0
 }
 names(out_atmos_df_list) <- out_atmos_sheets
@@ -394,7 +483,8 @@ for (year in start_year:(end_year-1)) {
 	if (prev_targetyear == next_targetyear | length(hinds) == 0) {
 		man_area_sum$man_area = man_target_df[,pcol]
 	} else {
-		man_area_sum$man_area = man_target_df[,pcol] + (year - prev_targetyear) * (man_target_df[,ncol] - man_target_df[,pcol]) / (next_targetyear - prev_targetyear)
+		man_area_sum$man_area = man_target_df[,pcol] + (year - prev_targetyear) * (man_target_df[,ncol] - 
+		                                      man_target_df[,pcol]) / (next_targetyear - prev_targetyear)
 	}
 
 	# the developed practices are independent of each other and so they don't use the aggregate sums
@@ -404,36 +494,45 @@ for (year in start_year:(end_year-1)) {
 	man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
 	man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Type_ID", "Land_Type","Ownership"), all.x = TRUE)
 	man_area_sum = man_area_sum[order(man_area_sum$Land_Type_ID, man_area_sum$Manage_ID),]
-	man_area_sum_agg = aggregate(man_area_sum ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
+	man_area_sum_agg = aggregate(man_area_sum ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
+	                                                                         man_area_sum$Management != "Restoration",], FUN=sum)
 	names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
 	man_area_sum = merge(man_area_sum, man_area_sum_agg, by = "Land_Type_ID", all.x = TRUE)
 	man_area_sum$man_area_sum_agg_extra = replace(man_area_sum$man_area_sum_agg_extra, is.na(man_area_sum$man_area_sum_agg_extra), 0)
 	man_area_sum = man_area_sum[order(man_area_sum$Land_Type_ID, man_area_sum$Manage_ID),]
-	man_area_sum$man_area_sum_agg_extra[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
+	man_area_sum$man_area_sum_agg_extra[man_area_sum$Land_Type == "Developed_all"] = 
+	  man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
 	man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
 	man_area_sum$excess_sum_area = man_area_sum$man_area_sum_agg_extra - man_area_sum$tot_area
 	excess_sum_area_inds = which(man_area_sum$excess_sum_area > 0)
-	man_area_sum$man_area_sum[excess_sum_area_inds] = man_area_sum$man_area_sum[excess_sum_area_inds] - man_area_sum$excess_sum_area[excess_sum_area_inds] * man_area_sum$man_area_sum[excess_sum_area_inds] / man_area_sum$man_area_sum_agg_extra[excess_sum_area_inds]
+	man_area_sum$man_area_sum[excess_sum_area_inds] = man_area_sum$man_area_sum[excess_sum_area_inds] - 
+	  man_area_sum$excess_sum_area[excess_sum_area_inds] * man_area_sum$man_area_sum[excess_sum_area_inds] / 
+	  man_area_sum$man_area_sum_agg_extra[excess_sum_area_inds]
 	man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, is.nan(man_area_sum$man_area_sum), 0)
 	man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
-	man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
+	man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
+	                                                                     man_area_sum$Management != "Restoration",], FUN=sum)
 	names(man_area_sum_agg2)[ncol(man_area_sum_agg2)] <- "man_area_sum_agg"
 	man_area_sum = merge(man_area_sum, man_area_sum_agg2, by = "Land_Type_ID", all.x =TRUE)
 	man_area_sum$man_area_sum_agg = replace(man_area_sum$man_area_sum_agg, is.na(man_area_sum$man_area_sum_agg), 0)
 	man_area_sum = man_area_sum[order(man_area_sum$Land_Type_ID, man_area_sum$Manage_ID),]
-	man_area_sum$man_area_sum_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
-	man_area_agg = aggregate(man_area ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
+	man_area_sum$man_area_sum_agg[man_area_sum$Land_Type == "Developed_all"] = 
+	  man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
+	man_area_agg = aggregate(man_area ~ Land_Type_ID, 
+	                         man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], 
+	                         FUN=sum)
 	names(man_area_agg)[ncol(man_area_agg)] <- "man_area_agg_extra"
 	man_area_sum = merge(man_area_sum, man_area_agg, by = "Land_Type_ID", all.x = TRUE)
 	man_area_sum$man_area_agg_extra = replace(man_area_sum$man_area_agg_extra, is.na(man_area_sum$man_area_agg_extra), 0)
 	man_area_sum = man_area_sum[order(man_area_sum$Land_Type_ID, man_area_sum$Manage_ID),]
-	man_area_sum$man_area_agg_extra[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
+	man_area_sum$man_area_agg_extra[man_area_sum$Land_Type == "Developed_all"] = 
+	  man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
 	man_area_sum$man_area_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
 	man_area_sum$excess_area = man_area_sum$man_area_agg_extra - man_area_sum$tot_area
 	excess_area_inds = which(man_area_sum$excess_area > 0)
 	man_area_sum$man_area[excess_area_inds] = man_area_sum$man_area[excess_area_inds] - man_area_sum$excess_area[excess_area_inds] * man_area_sum$man_area[excess_area_inds] / man_area_sum$man_area_agg_extra[excess_area_inds]
-	man_area_sum$man_area_sum = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
-	man_area_sum$man_area_sum = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
+	man_area_sum$man_area = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
+	man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
 	man_area_agg2 = aggregate(man_area ~ Land_Type_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
 	names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
 	man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Type_ID", all.x =TRUE)
@@ -450,7 +549,8 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux$unman_area = all_c_flux[,"tot_area"] - all_c_flux[,"man_area_agg"]
 	all_c_flux = merge(all_c_flux, man_area_sum_agg2, by = "Land_Type_ID", all.x = TRUE)
 	all_c_flux = all_c_flux[order(all_c_flux$Land_Type_ID),]
-	all_c_flux$man_area_sum_agg[all_c_flux$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Management == "Dead_removal"]
+	all_c_flux$man_area_sum_agg[all_c_flux$Land_Type == "Developed_all"] = 
+	  man_area_sum$man_area_sum[man_area_sum$Management == "Dead_removal"]
 	na_inds = which(is.na(all_c_flux[,"man_area_sum_agg"]))
 	all_c_flux[na_inds,"man_area_sum_agg"] = 0
 	all_c_flux$unman_area_sum = all_c_flux[,"tot_area"] - all_c_flux[,"man_area_sum_agg"]
@@ -458,35 +558,54 @@ for (year in start_year:(end_year-1)) {
 	man_adjust_df = rbind(man_grass_df, man_ag_df)
 	man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
 	man_adjust_df = rbind(man_adjust_df, man_dev_df[,c(1:5,dev_soilcaccumfrac_colind)])
-	man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Land_Type_ID","Manage_ID", "Land_Type", "Ownership", "Management", "SoilCaccum_frac"), all.x = TRUE)
-	man_adjust_df = merge(man_area_sum, man_adjust_df, by = c("Land_Type_ID","Manage_ID", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+	man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Land_Type_ID","Manage_ID", "Land_Type", "Ownership", 
+	                                                                              "Management", "SoilCaccum_frac"), all.x = TRUE)
+	man_adjust_df = merge(man_area_sum, man_adjust_df, by = c("Land_Type_ID","Manage_ID", "Land_Type", "Ownership", "Management"), 
+	                      all.x = TRUE)
 	man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Type_ID, man_adjust_df$Manage_ID),]
 	# replace the NA values with more appropriate ones
-	man_adjust_df[,c("SoilCaccum_frac","VegCuptake_frac","DeadCaccum_frac")] <- apply(man_adjust_df[,c("SoilCaccum_frac","VegCuptake_frac","DeadCaccum_frac")], 2, function (x) {replace(x, is.na(x), 1.00)})
+	man_adjust_df[,c("SoilCaccum_frac","VegCuptake_frac","DeadCaccum_frac")] <- 
+	  apply(man_adjust_df[,c("SoilCaccum_frac","VegCuptake_frac","DeadCaccum_frac")], 2, function (x) {replace(x, is.na(x), 1.00)})
 	man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
 	# the proportional increase in urban forest area is represented as a proportional increase in veg c uptake
 	if (year == start_year) {
-		start_urban_forest_fraction = man_adjust_df[man_adjust_df$Management == "Urban_forest","man_area"] / man_adjust_df[man_adjust_df$Management == "Urban_forest","tot_area"]
+		start_urban_forest_fraction = man_adjust_df[man_adjust_df$Management == "Urban_forest","man_area"] / 
+		  man_adjust_df[man_adjust_df$Management == "Urban_forest","tot_area"]
 	}
-	man_adjust_df[man_adjust_df$Management == "Urban_forest","VegCuptake_frac"] = man_adjust_df[man_adjust_df$Management == "Urban_forest","man_area"] / man_adjust_df[man_adjust_df$Management == "Urban_forest","tot_area"] / start_urban_forest_fraction
+	man_adjust_df[man_adjust_df$Management == "Urban_forest","VegCuptake_frac"] = 
+	  man_adjust_df[man_adjust_df$Management == "Urban_forest","man_area"] / 
+	  man_adjust_df[man_adjust_df$Management == "Urban_forest","tot_area"] / start_urban_forest_fraction
 	
 	# soil
 	# agriculture uses the current year managed area
 	man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Type_ID", "Land_Type","Ownership"), all = TRUE)
 	man_soil_df = man_soil_df[order(man_soil_df$Land_Type_ID, man_soil_df$Manage_ID),]
-	man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Agriculture"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Agriculture"] * man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Agriculture"] * man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Agriculture"]
-	man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Agriculture"] = man_soil_df$man_area[man_soil_df$Land_Type == "Agriculture"] * man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Agriculture"] * man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Agriculture"]
+	man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Agriculture"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Agriculture"] * 
+	  man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Agriculture"] * 
+	  man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Agriculture"]
+	man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Agriculture"] = man_soil_df$man_area[man_soil_df$Land_Type == "Agriculture"] * 
+	  man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Agriculture"] * 
+	  man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Agriculture"]
 	man_soilflux_agg = aggregate(soilcfluxXarea ~ Land_Type_ID + Land_Type + Ownership, man_soil_df, FUN=sum)
 	man_soilflux_agg = merge(all_c_flux, man_soilflux_agg, by = c("Land_Type_ID", "Land_Type","Ownership"), all = TRUE)
 	na_inds = which(is.na(man_soilflux_agg$soilcfluxXarea))
 	man_soilflux_agg$soilcfluxXarea[na_inds] = 0
-	man_soilflux_agg = merge(man_soilflux_agg, man_soil_df[,c("Land_Type_ID", "Land_Type","Ownership", "soilc_accum_val")], by = c("Land_Type_ID", "Land_Type","Ownership"))
+	man_soilflux_agg = merge(man_soilflux_agg, man_soil_df[,c("Land_Type_ID", "Land_Type","Ownership", "soilc_accum_val")], 
+	                         by = c("Land_Type_ID", "Land_Type","Ownership"))
 	man_soilflux_agg = man_soilflux_agg[order(man_soilflux_agg$Land_Type_ID),]
 	man_soilflux_agg = unique(man_soilflux_agg)
 	na_inds = which(is.na(man_soilflux_agg$soilc_accum_val))
 	man_soilflux_agg[na_inds,"soilc_accum_val"] = 0
-	man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Agriculture"] = (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type != "Agriculture"] + man_soilflux_agg$unman_area_sum[man_soilflux_agg$Land_Type != "Agriculture"] * man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type != "Agriculture"]) / tot_area_df$tot_area[tot_area_df$Land_Type != "Agriculture"]
-	man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Agriculture"] = (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type == "Agriculture"] + man_soilflux_agg$unman_area[man_soilflux_agg$Land_Type == "Agriculture"] * man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type == "Agriculture"]) / tot_area_df$tot_area[tot_area_df$Land_Type == "Agriculture"]
+	man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Agriculture"] = 
+	  (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type != "Agriculture"] + 
+	     man_soilflux_agg$unman_area_sum[man_soilflux_agg$Land_Type != "Agriculture"] * 
+	     man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type != "Agriculture"]) / 
+	  tot_area_df$tot_area[tot_area_df$Land_Type != "Agriculture"]
+	man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Agriculture"] = 
+	  (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type == "Agriculture"] + 
+	     man_soilflux_agg$unman_area[man_soilflux_agg$Land_Type == "Agriculture"] * 
+	     man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type == "Agriculture"]) / 
+	  tot_area_df$tot_area[tot_area_df$Land_Type == "Agriculture"]
 	nan_inds = which(is.nan(man_soilflux_agg$fin_soilc_accum) | man_soilflux_agg$fin_soilc_accum == Inf)
 	man_soilflux_agg$fin_soilc_accum[nan_inds] = man_soilflux_agg[nan_inds,"soilc_accum_val"]
 	man_soilflux_agg$man_change_soilc_accum = man_soilflux_agg$fin_soilc_accum - man_soilflux_agg$soilc_accum_val
@@ -498,18 +617,23 @@ for (year in start_year:(end_year-1)) {
 	man_veg_df = man_veg_df[order(man_veg_df$Land_Type_ID, man_veg_df$Manage_ID),]
 	man_veg_df = man_veg_df[(man_veg_df$Management != "Dead_removal" & man_veg_df$Management != "Growth") | is.na(man_veg_df$Management),]
 	man_veg_df$vegcfluxXarea = man_veg_df$man_area_sum * man_veg_df$VegCuptake_frac * man_veg_df$vegc_uptake_val
-	man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
+	man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
+	  man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
 	man_vegflux_agg = aggregate(vegcfluxXarea ~ Land_Type_ID + Land_Type + Ownership, man_veg_df, FUN=sum)
 	man_vegflux_agg = merge(all_c_flux, man_vegflux_agg, by = c("Land_Type_ID", "Land_Type","Ownership"), all = TRUE)
 	na_inds = which(is.na(man_vegflux_agg$vegcfluxXarea))
 	man_vegflux_agg$vegcfluxXarea[na_inds] = 0
-	man_vegflux_agg = merge(man_vegflux_agg, man_veg_df[,c("Land_Type_ID", "Land_Type","Ownership", "vegc_uptake_val")], by = c("Land_Type_ID", "Land_Type","Ownership"))
+	man_vegflux_agg = merge(man_vegflux_agg, man_veg_df[,c("Land_Type_ID", "Land_Type","Ownership", "vegc_uptake_val")], 
+	                        by = c("Land_Type_ID", "Land_Type","Ownership"))
 	man_vegflux_agg = man_vegflux_agg[order(man_vegflux_agg$Land_Type_ID),]
 	man_vegflux_agg = unique(man_vegflux_agg)
 	na_inds = which(is.na(man_vegflux_agg$vegc_uptake_val))
 	man_vegflux_agg[na_inds,"vegc_uptake_val"] = 0
-	man_vegflux_agg$fin_vegc_uptake = (man_vegflux_agg$vegcfluxXarea + man_vegflux_agg$unman_area_sum * man_vegflux_agg$vegc_uptake_val) / tot_area_df$tot_area
-	man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Developed_all"] = man_vegflux_agg$vegcfluxXarea[man_vegflux_agg$Land_Type == "Developed_all"] / tot_area_df$tot_area[man_vegflux_agg$Land_Type == "Developed_all"]
+	man_vegflux_agg$fin_vegc_uptake = (man_vegflux_agg$vegcfluxXarea + man_vegflux_agg$unman_area_sum * 
+	                                     man_vegflux_agg$vegc_uptake_val) / tot_area_df$tot_area
+	man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Developed_all"] = 
+	  man_vegflux_agg$vegcfluxXarea[man_vegflux_agg$Land_Type == "Developed_all"] / 
+	  tot_area_df$tot_area[man_vegflux_agg$Land_Type == "Developed_all"]
 	nan_inds = which(is.nan(man_vegflux_agg$fin_vegc_uptake) | man_vegflux_agg$fin_vegc_uptake == Inf)
 	man_vegflux_agg$fin_vegc_uptake[nan_inds] = man_vegflux_agg[nan_inds,"vegc_uptake_val"]
 	man_vegflux_agg$man_change_vegc_uptake = man_vegflux_agg$fin_vegc_uptake - man_vegflux_agg$vegc_uptake_val
@@ -533,7 +657,8 @@ for (year in start_year:(end_year-1)) {
 	if (prev_targetyear == next_targetyear | length(hinds) == 0) {
 		deadc_frac_df$deadc_frac_in = mortality_target_df[,pcol]
 	} else {
-		deadc_frac_df$deadc_frac_in = mortality_target_df[,pcol] + (year - prev_targetyear) * (mortality_target_df[,ncol] - mortality_target_df[,pcol]) / (next_targetyear - prev_targetyear)
+		deadc_frac_df$deadc_frac_in = mortality_target_df[,pcol] + 
+		  (year - prev_targetyear) * (mortality_target_df[,ncol] - mortality_target_df[,pcol]) / (next_targetyear - prev_targetyear)
 	}
 	
 	man_dead_df = merge(man_adjust_df, deadc_frac_df, by = c("Land_Type_ID", "Land_Type","Ownership"), all = TRUE)
@@ -543,12 +668,14 @@ for (year in start_year:(end_year-1)) {
 	man_deadfrac_agg = merge(all_c_flux, man_deadfrac_agg, by = c("Land_Type_ID", "Land_Type","Ownership"), all = TRUE)
 	na_inds = which(is.na(man_deadfrac_agg$deadcfracXarea))
 	man_deadfrac_agg$deadcfracXarea[na_inds] = 0
-	man_deadfrac_agg = merge(man_deadfrac_agg, man_dead_df[,c("Land_Type_ID", "Land_Type","Ownership", "deadc_frac_in")], by = c("Land_Type_ID", "Land_Type","Ownership"))
+	man_deadfrac_agg = merge(man_deadfrac_agg, man_dead_df[,c("Land_Type_ID", "Land_Type","Ownership", "deadc_frac_in")], 
+	                         by = c("Land_Type_ID", "Land_Type","Ownership"))
 	man_deadfrac_agg = man_deadfrac_agg[order(man_deadfrac_agg$Land_Type_ID),]
 	man_deadfrac_agg = unique(man_deadfrac_agg)
 	na_inds = which(is.na(man_deadfrac_agg$deadc_frac_in))
 	man_deadfrac_agg[na_inds,"deadc_frac_in"] = 0
-	man_deadfrac_agg$fin_deadc_frac = (man_deadfrac_agg$deadcfracXarea + man_deadfrac_agg$unman_area_sum * man_deadfrac_agg$deadc_frac_in) / tot_area_df$tot_area
+	man_deadfrac_agg$fin_deadc_frac = (man_deadfrac_agg$deadcfracXarea + man_deadfrac_agg$unman_area_sum * 
+	                                     man_deadfrac_agg$deadc_frac_in) / tot_area_df$tot_area
 	nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf)
 	man_deadfrac_agg$fin_deadc_frac[nan_inds] = man_deadfrac_agg[nan_inds,"deadc_frac_in"]
 	man_deadfrac_agg$man_change_deadc_accum = man_deadfrac_agg$fin_deadc_frac - man_deadfrac_agg$deadc_frac_in
@@ -563,7 +690,8 @@ for (year in start_year:(end_year-1)) {
 	# assume veg uptake is net live standing biomass accum (sans mortality)
 	# calculate net below ground accum based on above to below ratio
 	# assume dead accum is net mortality, subtract from above veg uptake - this goes to standing dead, downed dead, litter
-	# calculate net below ground mortality from dead accum to above accum ratio - this is only subtracted from below pool because soil c values are assumed to be net density changes
+	# calculate net below ground mortality from dead accum to above accum ratio - this is only subtracted from below pool because soil c values 
+	# are assumed to be net density changes
 	# calculate net understory uptake and mortality from above values - this goes to downed dead and litter pools
 	# estimate litter accum values from mortality and litter fraction of dead pools
 
@@ -575,11 +703,14 @@ for (year in start_year:(end_year-1)) {
 	# these flux transfers are normalized to current tot_area, and gains are positive
 	
 	# forest above main accum needs net foliage and branches/bark accums added to it based on estimated component fractions
-	# forest downed dead and litter accum are estimated from the added above c based on mort:vegc flux ratio - this goes from above to downed dead and litter - and this value is also a net value
+	# forest downed dead and litter accum are estimated from the added above c based on mort:vegc flux ratio - this goes from above to downed 
+	# dead and litter - and this value is also a net value
 	# forest dead standing is subtracted from above main
 	# forest below main accum and understory accum need to calculated based on ratio of these existing densities to the above densities
-	# forest understory mortality uses a 1% default value (so it is not directly affected by prescribed tree mortality) - this is added to downed dead and litter - as the additional veg c uptake is a net values, this accumulation is also a net value
-	# forest below mortality is estimated based upon standing dead accum to vegc uptake ratio - this is only subtracted from below as soil c is a net value
+	# forest understory mortality uses a 1% default value (so it is not directly affected by prescribed tree mortality) - this is added to 
+	# downed dead and litter - as the additional veg c uptake is a net values, this accumulation is also a net value
+	# forest below mortality is estimated based upon standing dead accum to vegc uptake ratio - this is only subtracted from below as soil c is 
+	# a net value
 
 	# savanna/woodland veg uptake is net above and below (sans mortality) - so split it based on existing ratios
 	# savanna/woodland has net eco exchange flux based on the tree uptake and the soil accum so don't add any other flux unless it cancels out
@@ -587,7 +718,8 @@ for (year in start_year:(end_year-1)) {
 	# savanna/woodland to include mortality: transfer mortality of below density to soil c
 	# savanna/woodland understory will stay the same over time
 
-	# out density sheet names: c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", "StandDead_C_den", "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
+	# out density sheet names: c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", 
+	# "StandDead_C_den", "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
 	# put the current year density values into the next year column to start with
 	# then add the carbon transfers to the next year column
 	# eco accum names
@@ -624,7 +756,9 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[all_c_flux$Land_Type == "Forest",egnames[3]] = underc_flux_vals - under2dldead_flux_vals
 	
 	# downed dead and litter
-	downfrac = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Forest", cur_density_label] / (out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Forest", cur_density_label] + out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type == "Forest", cur_density_label])
+	downfrac = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Forest", cur_density_label] / 
+	  (out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Forest", cur_density_label] + 
+	     out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type == "Forest", cur_density_label])
 	# downded dead
 	all_c_flux[all_c_flux$Land_Type == "Forest",egnames[5]] = downfrac * (above2dldead_flux_vals + under2dldead_flux_vals)
 	# litter
@@ -636,7 +770,8 @@ for (year in start_year:(end_year-1)) {
 	#  so store the initial below ground mortality flux
 	# assume that the other soil fluxes do not change (litter input rates and emissions) because I don't have enough info to change these
 	#  basically, the litter input would change based on its density, and the emissions may increase with additional soil c
-	below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Forest", cur_density_label]
+	below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * 
+	  out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Forest", cur_density_label]
 	if (year == start_year) { below2dead_flux_initial_forest = below2dead_flux_vals }
 	# first calculate the net root biomass increase
 	below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Forest", cur_density_label]
@@ -645,7 +780,8 @@ for (year in start_year:(end_year-1)) {
 	
 	# soil
 	# need to add the difference due to chnages from default/initial mortality
-	all_c_flux[all_c_flux$Land_Type == "Forest",egnames[7]] = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Forest"] + (below2dead_flux_vals - below2dead_flux_initial_forest)
+	all_c_flux[all_c_flux$Land_Type == "Forest",egnames[7]] = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Forest"] + 
+	  (below2dead_flux_vals - below2dead_flux_initial_forest)
 
 	# savanna/woodland
 
@@ -654,16 +790,20 @@ for (year in start_year:(end_year-1)) {
 	#  so here changing mortality is already accounted for with respect to additions to soil carbon
 	# transfer above loss proportionally to standing, down, and litter pools
 	# leave understory c static because the available data are for a grass understory, which has no long-term veg accumulation
-	above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Savanna" | out_density_df_list[[3]]$Land_Type == "Woodland", cur_density_label]
+	above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Savanna" | out_density_df_list[[3]]$Land_Type == "Woodland", 
+	                                      cur_density_label]
 	vegc_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Savanna" | man_vegflux_agg$Land_Type == "Woodland"]
-	below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Savanna" | out_density_df_list[[4]]$Land_Type == "Woodland", cur_density_label]
+	below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Savanna" | out_density_df_list[[4]]$Land_Type == "Woodland", 
+	                                      cur_density_label]
 	above_flux_vals = vegc_flux_vals * above_vals / (above_vals + below_vals)
 	below_flux_vals = vegc_flux_vals * below_vals / (above_vals + below_vals)
-	above2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Savanna" | man_deadfrac_agg$Land_Type == "Woodland"] * above_vals
+	above2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Savanna" | man_deadfrac_agg$Land_Type == "Woodland"] * 
+	  above_vals
 	#zinds = which(above2dead_flux_vals == 0 & above_flux_vals > 0)
 	#above2dead_flux_vals[zinds] = default_mort_frac * above_vals[zinds]
 	#deadc2vegc_ratios = above2dead_flux_vals / above_flux_vals
-	below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Savanna" | man_deadfrac_agg$Land_Type == "Woodland"] * below_vals
+	below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Savanna" | man_deadfrac_agg$Land_Type == "Woodland"] * 
+	  below_vals
 	#naninds = which(is.nan(below2dead_flux_vals) & below_flux_vals > 0)
 	#below2dead_flux_vals[naninds] = default_mort_frac * below_vals[naninds]
 	#naninds = which(is.nan(below2dead_flux_vals))
@@ -672,9 +812,12 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[2]] = below_flux_vals - below2dead_flux_vals
 
 	# standing, down, and litter
-	standdead_vals = out_density_df_list[[6]][out_density_df_list[[6]]$Land_Type == "Savanna" | out_density_df_list[[6]]$Land_Type == "Woodland", cur_density_label]
-	downdead_vals = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Savanna" | out_density_df_list[[7]]$Land_Type == "Woodland", cur_density_label]
-	litter_vals = out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type == "Savanna" | out_density_df_list[[8]]$Land_Type == "Woodland", cur_density_label]
+	standdead_vals = out_density_df_list[[6]][out_density_df_list[[6]]$Land_Type == "Savanna" | out_density_df_list[[6]]$Land_Type == "Woodland", 
+	                                          cur_density_label]
+	downdead_vals = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Savanna" | out_density_df_list[[7]]$Land_Type == "Woodland", 
+	                                         cur_density_label]
+	litter_vals = out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type == "Savanna" | out_density_df_list[[8]]$Land_Type == "Woodland", 
+	                                       cur_density_label]
 	standdead_frac_vals = standdead_vals / (standdead_vals + downdead_vals + litter_vals)
 	downdead_frac_vals = downdead_vals / (standdead_vals + downdead_vals + litter_vals)
 	litter_frac_vals = litter_vals / (standdead_vals + downdead_vals + litter_vals)
@@ -690,22 +833,34 @@ for (year in start_year:(end_year-1)) {
 	# assume vegc flux is all standing net density change, sans mortality
 	# assume above an understory deadc flux is all mort density change - take from above and distribute among stand, down, and litter
 	# use mortality only if there is veg c accum due to growth
-	# assume soilc flux is net density change - so the below is simply a net root density change, and the calculated mortality implicitly goes to soil
-	above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type != "Savanna" & out_density_df_list[[3]]$Land_Type != "Woodland" & out_density_df_list[[3]]$Land_Type != "Forest", cur_density_label]
-	below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type != "Savanna" & out_density_df_list[[4]]$Land_Type != "Woodland" & out_density_df_list[[4]]$Land_Type != "Forest", cur_density_label]
-	under_vals = out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & out_density_df_list[[5]]$Land_Type != "Woodland" & out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
-	standdead_vals = out_density_df_list[[6]][out_density_df_list[[6]]$Land_Type != "Savanna" & out_density_df_list[[6]]$Land_Type != "Woodland" & out_density_df_list[[6]]$Land_Type != "Forest", cur_density_label]
-	downdead_vals = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type != "Savanna" & out_density_df_list[[7]]$Land_Type != "Woodland" & out_density_df_list[[7]]$Land_Type != "Forest", cur_density_label]
-	litter_vals = out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type != "Savanna" & out_density_df_list[[8]]$Land_Type != "Woodland" & out_density_df_list[[8]]$Land_Type != "Forest", cur_density_label]
-	soil_vals = out_density_df_list[[9]][out_density_df_list[[9]]$Land_Type != "Savanna" & out_density_df_list[[9]]$Land_Type != "Woodland" & out_density_df_list[[9]]$Land_Type != "Forest", cur_density_label]
+	# assume soilc flux is net density change - so the below is simply a net root density change, and the calculated mortality implicitly goes 
+	# to soil
+	above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type != "Savanna" & out_density_df_list[[3]]$Land_Type != "Woodland" & 
+	                                        out_density_df_list[[3]]$Land_Type != "Forest", cur_density_label]
+	below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type != "Savanna" & out_density_df_list[[4]]$Land_Type != "Woodland" & 
+	                                        out_density_df_list[[4]]$Land_Type != "Forest", cur_density_label]
+	under_vals = out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & out_density_df_list[[5]]$Land_Type != "Woodland" & 
+	                                        out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
+	standdead_vals = out_density_df_list[[6]][out_density_df_list[[6]]$Land_Type != "Savanna" & out_density_df_list[[6]]$Land_Type != "Woodland" & 
+	                                            out_density_df_list[[6]]$Land_Type != "Forest", cur_density_label]
+	downdead_vals = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type != "Savanna" & out_density_df_list[[7]]$Land_Type != "Woodland" & 
+	                                           out_density_df_list[[7]]$Land_Type != "Forest", cur_density_label]
+	litter_vals = out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type != "Savanna" & out_density_df_list[[8]]$Land_Type != "Woodland" & 
+	                                         out_density_df_list[[8]]$Land_Type != "Forest", cur_density_label]
+	soil_vals = out_density_df_list[[9]][out_density_df_list[[9]]$Land_Type != "Savanna" & out_density_df_list[[9]]$Land_Type != "Woodland" & 
+	                                       out_density_df_list[[9]]$Land_Type != "Forest", cur_density_label]
 	# above and below
-	above_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & man_vegflux_agg$Land_Type != "Forest"]
+	above_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
+	                                                    man_vegflux_agg$Land_Type != "Forest"]
 	below_flux_vals = above_flux_vals * below_vals / above_vals
 	naninds = which(is.nan(below_flux_vals))
 	below_flux_vals[naninds] = above_flux_vals[naninds] * default_below2above_frac
-	#deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & man_deadfrac_agg$Land_Type != "Forest"]
-	soilc_flux_vals = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland" & man_soilflux_agg$Land_Type != "Forest"]
-	above2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & man_deadfrac_agg$Land_Type != "Forest"] * above_vals
+	#deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & 
+	# man_deadfrac_agg$Land_Type != "Forest"]
+	soilc_flux_vals = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland" & 
+	                                                     man_soilflux_agg$Land_Type != "Forest"]
+	above2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & 
+	                                                         man_deadfrac_agg$Land_Type != "Forest"] * above_vals
 	#zinds = which(above2dead_flux_vals == 0 & above_flux_vals > 0)
 	#above2dead_flux_vals[zinds] = default_mort_frac * above_vals[zinds]
 	#deadc2vegc_ratios = above2dead_flux_vals / above_flux_vals
@@ -714,7 +869,8 @@ for (year in start_year:(end_year-1)) {
 	#  so store the initial below ground mortality flux
 	# assume that the other soil fluxes do not change (litter input rates and emissions) because I don't have enough info to change these
 	#  basically, the litter input would change based on its density, and the emissions may increase with additional soil c
-	below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & man_deadfrac_agg$Land_Type != "Forest"] * below_vals
+	below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & 
+	                                                         man_deadfrac_agg$Land_Type != "Forest"] * below_vals
 	if (year == start_year) { below2dead_flux_initial_rest = below2dead_flux_vals }
 	#naninds = which(is.nan(below2dead_flux_vals) & below_flux_vals > 0)
 	#below2dead_flux_vals[naninds] = default_mort_frac * below_vals[naninds]
@@ -722,23 +878,28 @@ for (year in start_year:(end_year-1)) {
 	#below2dead_flux_vals[naninds] = 0
 	
 	# above
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[1]] = above_flux_vals - above2dead_flux_vals
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[1]] = 
+	  above_flux_vals - above2dead_flux_vals
 
 	# below
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[2]] = below_flux_vals - below2dead_flux_vals
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[2]] = 
+	  below_flux_vals - below2dead_flux_vals
 
 	# understory
 	underfrac = under_vals / above_vals
 	underc_flux_vals = underfrac * above_flux_vals
 	naninds = which(is.nan(underc_flux_vals))
 	underc_flux_vals[naninds] = default_under_frac * above_flux_vals[naninds]
-	under2dead_flux_vals = default_mort_frac * out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & out_density_df_list[[5]]$Land_Type != "Woodland" & out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
+	under2dead_flux_vals = default_mort_frac * out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & 
+	                                                                      out_density_df_list[[5]]$Land_Type != "Woodland" & 
+	                                                                      out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
 	#under2dead_flux_vals = deadc2vegc_ratios * underc_flux_vals
 	#naninds = which(is.nan(under2dead_flux_vals) & underc_flux_vals > 0)
 	#under2dead_flux_vals[naninds] = default_mort_frac * under_vals[naninds]
 	#naninds = which(is.nan(under2dead_flux_vals))
 	#under2dead_flux_vals[naninds] = 0
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[3]] = underc_flux_vals - under2dead_flux_vals
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[3]] = 
+	  underc_flux_vals - under2dead_flux_vals
 
 	# stand, down, litter
 	standdead_frac_vals = standdead_vals / (standdead_vals + downdead_vals + litter_vals)
@@ -750,13 +911,17 @@ for (year in start_year:(end_year-1)) {
 	litter_frac_vals = litter_vals / (standdead_vals + downdead_vals + litter_vals)
 	naninds = which(is.nan(litter_frac_vals))
 	litter_frac_vals[naninds] = default_litter_frac
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[4]] = standdead_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[5]] = downdead_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[6]] = litter_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[4]] = 
+	  standdead_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[5]] = 
+	  downdead_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[6]] = 
+	  litter_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
 
 	# soil
 	# add any c due to changes from default/initial mortality
-	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[7]] = soilc_flux_vals + (below2dead_flux_vals - below2dead_flux_initial_rest)
+	all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[7]] = 
+	  soilc_flux_vals + (below2dead_flux_vals - below2dead_flux_initial_rest)
 
 	# clean up numerical errors
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.na(x), 0.00)})
@@ -773,8 +938,10 @@ for (year in start_year:(end_year-1)) {
 		# first calc the carbon not subtracted because it sends density negative
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
 		cat("neginds for out_density_df_list eco" , i, "are", neginds, "\n")
-		sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
-		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
+		sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+		                                  out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+		                                                          out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
 	} # end loop over out densities for updating due to eco fluxes
 	cat("eco carbon change is", sum_change, "\n")
 	cat("eco negative carbon cleared is", sum_neg_eco, "\n")
@@ -786,17 +953,26 @@ for (year in start_year:(end_year-1)) {
 	
 	# loop over the non-accum manage frac columns to calculate the transfer carbon density for each frac column
 	# the transfer carbon density is based on tot_area so that it can be aggregated and subtracted directly from the current density
+	
+	############################################################################################################
+	#################### Do management C transfers [MgC/y] for forest & developed areas ########################
+	############################################################################################################
+	
 	for (i in 1:num_manfrac_cols){
 		# the removed values are calculated first, so this will work
 		# if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns
 		if (manage_density_inds[i] == -1) {
-			man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[1]] + man_adjust_df[,c_trans_names[2]]) * man_adjust_df[,man_frac_names[i]]
+			man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[1]] + man_adjust_df[,c_trans_names[2]]) * 
+			  man_adjust_df[,man_frac_names[i]]
 		} else {
 			if (!out_density_sheets[manage_density_inds[i]] %in% colnames(man_adjust_df)) {
-				man_adjust_df = merge(man_adjust_df, out_density_df_list[[manage_density_inds[i]]][,c("Land_Type_ID", "Land_Type", "Ownership", next_density_label)], by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
+				man_adjust_df = merge(man_adjust_df, 
+				                      out_density_df_list[[manage_density_inds[i]]][,c("Land_Type_ID", "Land_Type", "Ownership", next_density_label)], 
+				                      by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
 				names(man_adjust_df)[names(man_adjust_df) == next_density_label] = out_density_sheets[manage_density_inds[i]]
 			}
-			man_adjust_df[,c_trans_names[i]] = man_adjust_df[,out_density_sheets[manage_density_inds[i]]] * man_adjust_df[,man_frac_names[i]] * man_adjust_df$man_area / man_adjust_df$tot_area
+			man_adjust_df[,c_trans_names[i]] = man_adjust_df[,out_density_sheets[manage_density_inds[i]]] * man_adjust_df[,man_frac_names[i]] * 
+			  man_adjust_df$man_area / man_adjust_df$tot_area
 		}
 	} # end for i loop over the managed transfer fractions for calcuting the transfer carbon
 	man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Type_ID),]
@@ -809,45 +985,133 @@ for (year in start_year:(end_year-1)) {
 	# store the names for aggregation below
 	agg_names = NULL
 	# above
+	  # add column called "Above_main_C_den_gain_man":  above main C density = -(above removed C) -(above to standing dead C)
 	agg_names = c(agg_names, paste0(out_density_sheets[3], "_gain_man"))
 	man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_removed_c - man_adjust_df$Above2StandDead_c
 	# below
+	  # add column called "Below_main_C_den_gain_man": root C density = -(root to soil C) -(root to atmos C)
 	agg_names = c(agg_names, paste0(out_density_sheets[4], "_gain_man"))
 	man_adjust_df[,agg_names[2]] = -man_adjust_df$Below2Soil_c - man_adjust_df$Below2Atmos_c
 	# understory
+	  # add column called "Understory_C_den_gain_man": understory C density = -(understory to atmos C) -(understory to down dead C)
 	agg_names = c(agg_names, paste0(out_density_sheets[5], "_gain_man"))
 	man_adjust_df[,agg_names[3]] = -man_adjust_df$Understory2Atmos_c - man_adjust_df$Understory2DownDead_c
 	# standing dead
+	  # add column called "StandDead_C_den_gain_man": standing dead C density = -(removed standing dead C) + (above main to standing dead C)
 	agg_names = c(agg_names, paste0(out_density_sheets[6], "_gain_man"))
 	man_adjust_df[,agg_names[4]] = -man_adjust_df$StandDead_removed_c + man_adjust_df$Above2StandDead_c
 	# down dead
+	  # add column called "DownDead_C_den_gain_man": down dead C density = -(down dead to atmos C) + (understory to down dead C)
 	agg_names = c(agg_names, paste0(out_density_sheets[7], "_gain_man"))
 	man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2DownDead_c
 	# litter
+	  # add column called "Litter_C_den_gain_man": litter C density = -(litter to atmos C)
 	agg_names = c(agg_names, paste0(out_density_sheets[8], "_gain_man"))
 	man_adjust_df[,agg_names[6]] = -man_adjust_df$Litter2Atmos_c
 	# soil
+	  # add column called "Soil_orgC_C_den_gain_man": soil C density = -(soil to atmos C) + (root to soil C)
 	agg_names = c(agg_names, paste0(out_density_sheets[9], "_gain_man"))
 	man_adjust_df[,agg_names[7]] = -man_adjust_df$Soil2Atmos_c + man_adjust_df$Below2Soil_c
+	
 	# to get the carbon must multiply these by the tot_area
 	# atmos
-	agg_names = c(agg_names, paste0("Land2Atmos_c_stock_man"))
-	man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Litter2Atmos_c + man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2Atmos_c + man_adjust_df$Removed2Atmos_c + man_adjust_df$Below2Atmos_c)
+	  # calc C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_man") 
+	  #  "Land2Atmos_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
+	  #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
+	 agg_names = c(agg_names, paste0("Land2Atmos_c_stock_man"))
+	 man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Litter2Atmos_c + 
+	                                                           man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2Atmos_c + 
+	                                                           man_adjust_df$Removed2Atmos_c + man_adjust_df$Below2Atmos_c)
+	
 	# energy - this is assume to go to the atmosphere immediately
+	  # calc C loss to atmosphere [Mg C] ("Land2Energy_c_stock_man") via energy generation (CO2 + CH4 + BC) (assume to go to the atmosphere 
+	      # immediately) = -(total area [ha]) * (above-ground C removed for energy [MgC/ha])
 	agg_names = c(agg_names, paste0("Land2Energy_c_stock_man"))
 	man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Energy_c
+	
 	# wood - this decays with a half-life
 	agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
 	man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Wood_c
 	
+	# Before partioning the Land2Atmos_c_stock_man into total burned and total non-burned C emissions, partition the 
+	# individual above-ground pools within it.
+	# Soil c and root c are assumed to not burn, so 100% of 2Atmos c from these pools will be CO2.
+	  # First, calculate burned litter c using default fractions  of 2Atmos pools set in beginning
+	man_adjust_df[,"Burned_litter_c"] = 0
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_litter_burn * 
+	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_litter_burn * 
+	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_litter_burn * 
+	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_litter_burn * 
+	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_litter_burn * 
+	    man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+	  # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
+	man_adjust_df[,"Burned_downdead_c"] = 0
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
+	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
+	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_down_burn * 
+	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_down_burn * 
+	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_down_burn * 
+	    man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+	  # Third, calculate burned understory c using default fractions of 2Atmos pools set in beginning
+	man_adjust_df[,"Burned_under_c"] = 0
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
+	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_under_burn * 
+	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_under_burn * 
+	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
+	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_under_burn * 
+	    man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+	  # Fourth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
+	  # doesn't include removed 2 energy
+  man_adjust_df[,"Burned_mainremoved_c"] = 0
+	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_mainremoved_burn * 
+	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_mainremoved_burn * 
+	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_mainremoved_burn * 
+	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_mainremoved_burn * 
+	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+	  man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_mainremoved_burn * 
+	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+	  
+	agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
+	  # create man_adjust_df$Land2Atmos_burnedC_stock_man 
+	man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Burned_litter_c + man_adjust_df$Burned_downdead_c +
+	                                                             man_adjust_df$Burned_under_c + man_adjust_df$Burned_mainremoved_c)
+	agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
+	# create man_adjust_df$Land2Atmos_nonburnedC_stock_man  
+	man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
+	
+	# checks true that management Land2Atmos c flux equals the sum of burned and non-burned c in man_adjust_df 
+	identical(man_adjust_df[,agg_names[8]], man_adjust_df[,agg_names[11]] + man_adjust_df[,agg_names[12]])
+	
 	# now aggregate to land type by summing the management options
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos, energy (atmos), and wood
+	
+	# first, create table that has a row for each land type ID, and a column for each of the management-caused C density changes [MgC/ha], 
+	# and corresponding net cumulative C transfers [Mg C] to atmosphere (via decomp, burning, or energy (also burning)) or to wood 
 	agg_cols = array(dim=c(length(man_adjust_df$Land_Type_ID),length(agg_names)))
+	# second, populate the table by applying loop to each row's land type ID  
 	for (i in 1:length(agg_names)) {
-		agg_cols[,i] = man_adjust_df[,agg_names[i]]
+	  # fill columns with corresponding management-caused C transfers from the man_adjust_df
+	  agg_cols[,i] = man_adjust_df[,agg_names[i]]
 	}
+	# third, aggregate the C transfers by summing within each land type and ownership combination and assign to man_adjust_agg df
 	man_adjust_agg = aggregate(agg_cols ~ Land_Type_ID + Land_Type + Ownership, data=man_adjust_df, FUN=sum)
+	# fourth, label the columns of the aggregated table 
 	agg_names2 = paste0(agg_names,"_agg")
 	names(man_adjust_agg)[c(4:ncol(man_adjust_agg))] = agg_names2
 	# merge these values to the unman area table to apply the adjustments to each land type
@@ -857,130 +1121,249 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
+	# check that management Land2Atmos c flux is equal to sum of burned + non-burned land2atmos c flux in all_c_flux
+	  ## this is false because of rounding error - probably from aggregate()
+	identical(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]], all_c_flux[["Land2Atmos_c_stock_man_agg"]])
+	# however, this checks true that the difference between total management Land2Atmos c flux and the sum of burned + non-burned land2atmos c flux is minimal (<1 & >-1)
+	all(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] < 1 &
+	      all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] > -1)
 	# loop over the out density tables to update the carbon pools based on the management fluxes
 	# carbon cannot go below zero
 	sum_change = 0
 	sum_neg_man = 0
+	# for above-main C density through soil organic C density dataframes, do:
 	for (i in 3:num_out_density_sheets) {
+	  # subset each of the columns represneting aggregated management-caused C density gains and the C stock transfers (i.e. C emissions and wood), 
+	  # multiply by total area, and
+	  # sum them all 
+	  # this gives a single value for state-wide cumulative management C changes [Mg C/y] -- used to make sure sure nothing is negative
 		sum_change = sum_change + sum(all_c_flux[, agg_names2[i-2]] * all_c_flux$tot_area)
+		
+		#################################################### UPDATE NEXT YEAR'S C DENSITIES ####################################################
+		# add corresponding management C density change to the value that is there (previous year's C density)
 		out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, agg_names2[i-2]]
-		# first calc the carbon not subtracted because it sends density negative
+		# calc the total state-wide cumulative C not subtracted because it sends density negative -- used as check to make sure this is minimal
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
 		cat("neginds for out_density_df_list manage" , i, "are", neginds, "\n")
-		sum_neg_man = sum_neg_man + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
-		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
+		sum_neg_man = sum_neg_man + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+		                                  out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+		
+		# replace any negative updated C densities with 0
+		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+		                                                          out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
 	} # end loop over out densities for updating due to veg management
 	cat("manage carbon change is ", sum_change, "\n")
 	cat("manage carbon to wood is ", sum(man_adjust_agg$Land2Wood_c_stock_man), "\n")
 	cat("manage carbon to atmos is ", sum(man_adjust_agg$Land2Atmos_c_stock_man), "\n")
 	cat("manage carbon to energy is ", sum(man_adjust_agg$Land2Energy_c_stock_man), "\n")
+	cat("manage burned carbon to atmos is ", sum(man_adjust_agg$Land2Atmos_burnedC_stock_man), "\n")
+	cat("manage non-burned carbon to atmos is ", sum(man_adjust_agg$Land2Atmos_nonburnedC_stock_man), "\n")
 	cat("manage negative carbon cleared is ", sum_neg_man, "\n")
 
 	# update the managed wood tables
 	# recall that the transfers from land are negative values
 	# use the IPCC half life equation for first order decay of wood products, and the CA average half life for all products
 	#  this includes the current year loss on the current year production
-	# running stock and cumulative change values are at the beginning of the labeled year - so the next year value is the stock or sum after current year production and loss
+	# running stock and cumulative change values are at the beginning of the labeled year - so the next year value is the stock or sum after 
+	# current year production and loss
 	# annual change values are in the year they occurred
 	
 	k = log(2) / wp_half_life
-	out_wood_df_list[[6]][,next_wood_label] = out_wood_df_list[[6]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * -all_c_flux$Land2Wood_c_stock_man_agg
+	out_wood_df_list[[6]][,next_wood_label] = out_wood_df_list[[6]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
+	  -all_c_flux$Land2Wood_c_stock_man_agg
 	out_wood_df_list[[7]][,next_wood_label] = out_wood_df_list[[7]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg
 	out_wood_df_list[[9]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_man_agg
-	out_wood_df_list[[10]][,cur_wood_label] = out_wood_df_list[[6]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg - out_wood_df_list[[6]][,next_wood_label]
+	out_wood_df_list[[10]][,cur_wood_label] = out_wood_df_list[[6]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg - 
+	  out_wood_df_list[[6]][,next_wood_label]
 	out_wood_df_list[[8]][,next_wood_label] = out_wood_df_list[[8]][,cur_wood_label] + out_wood_df_list[[10]][,cur_wood_label]
 	
-	####
-	####
+	############################################################################################################
+	############################################################################################################
+	#########################################  Apply FIRE to C pools  ##########################################
+	############################################################################################################
+	############################################################################################################
+	
 	# apply fire to the carbon pools (current year area and updated carbon)
 	# distribute fire to forest, woodland, savanna, shrubland, and grassland, proportionally within the ownerships
 	# assume that burn area is not reflected in the baseline land type change numbers
 	#  (which isn't necessarily the case)
 	cat("Starting fire c transfers\n")
 	
-	# calculate this years fire area based on the targets
+	############################################################################################################
+	########################## first, calculate this year's FIRE AREA based on the targets #####################
+	############################################################################################################
+	
 	# if the year is past the final target year than use the final target year
+	
+	# indices of prior or current target years
 	linds = which(fire_targetyears <= year)
+	# indices of upcoming or current target years
 	hinds = which(fire_targetyears >= year)
+	# set latest (or current) target year
 	prev_targetyear = max(fire_targetyears[linds])
+	# set next (or current) target year
 	next_targetyear = min(fire_targetyears[hinds])
+	# index of previous target year
 	pind = which(fire_targetyears == prev_targetyear)
+	# index of next target year
 	nind = which(fire_targetyears == next_targetyear)
+	# column header of previous target year
 	pcol = fire_targetyear_labels[pind]
+	# column header of next target year
 	ncol = fire_targetyear_labels[nind]
 	
+	# assign the fire target areas to fire_area_df
 	fire_area_df = fire_target_df[,c(1:5)]
+	# if current year is a target year or past all target years, 
 	if (prev_targetyear == next_targetyear | length(hinds) == 0) {
+	  # then create column for previous year target area and set to previous (or current) year's target area 
 		fire_area_df[,pcol] = fire_target_df[,pcol]
+		# else add a column with previous year target area
 	} else {
 		fire_area_df = fire_target_df[,c(1:5,pcol)]
-		fire_area_df[,pcol] = fire_target_df[,pcol] + (year - prev_targetyear) * (fire_target_df[,ncol] - fire_target_df[,pcol]) / (next_targetyear - prev_targetyear)
+		# update the column with the linear interpolation of the areas between target years
+		fire_area_df[,pcol] = fire_target_df[,pcol] + (year - prev_targetyear) * (fire_target_df[,ncol] - fire_target_df[,pcol]) / 
+		  (next_targetyear - prev_targetyear)
 	}
-
+	############################################################################################################
+	################## second, proportionally distribute ownership fire areas to each landtype #################
+	############################################################################################################
+	
+	# assign assigned FIRE TARGET AREA BY OWNERSHIP [ha] to "fire_own_area" 
 	names(fire_area_df)[names(fire_area_df) == pcol] = "fire_own_area"
+	# merge the fire effects dataframe with the fire target areas and assign to fire_adjust_df
 	fire_adjust_df = merge(fire_area_df, fire_df, by = c("Fire_ID", "Intensity"), all.x = TRUE)
 	fire_adjust_df$Land_Type_ID = NULL
 	fire_adjust_df$Land_Type = NULL
+	# merge with the tot_area_df by ownership class
 	fire_adjust_df = merge(tot_area_df, fire_adjust_df, by = c("Ownership"), all.x = TRUE)
-	fire_adjust_df = fire_adjust_df[fire_adjust_df$Land_Type == "Forest" | fire_adjust_df$Land_Type == "Woodland" | fire_adjust_df$Land_Type == "Savanna" | fire_adjust_df$Land_Type == "Grassland" | fire_adjust_df$Land_Type == "Shrubland",]
+	# trim dataframe to only include forest, woodland, savanna, grassland, shrubland
+	fire_adjust_df = fire_adjust_df[fire_adjust_df$Land_Type == "Forest" | fire_adjust_df$Land_Type == "Woodland" | 
+	                                  fire_adjust_df$Land_Type == "Savanna" | fire_adjust_df$Land_Type == "Grassland" | 
+	                                  fire_adjust_df$Land_Type == "Shrubland",]
+	# create new dataframe for OWNERSHIP AREA [ha]: AGGREGATE total AREAS by OWNERSHIP, omitting duplicates
 	avail_own_area = aggregate(tot_area ~ Ownership, data = unique(fire_adjust_df[,c(1:4)]), sum)
+	# rename OWNERSHIP AREA [ha]: "avail_own_area"
 	names(avail_own_area)[2] = "avail_own_area"
+	# merge FIRE C TRANSFER EFFECTS (fractions) dataframe with the ownership areas dataframe
 	fire_adjust_df = merge(avail_own_area, fire_adjust_df, by = c("Ownership"), all.y = TRUE)
-	fire_adjust_df$fire_own_area <- replace(fire_adjust_df$fire_own_area, fire_adjust_df$fire_own_area > fire_adjust_df$avail_own_area, fire_adjust_df$avail_own_area)
+	# if assigned FIRE TARGET AREA BY OWNERSHIP [ha] > TOTAL AREA OF OWNERSHIP [ha], set target area equal to the total ownership area
+	fire_adjust_df$fire_own_area <- replace(fire_adjust_df$fire_own_area, fire_adjust_df$fire_own_area > fire_adjust_df$avail_own_area, 
+	                                        fire_adjust_df$avail_own_area)
+	# create column for BURNED AREA [ha] for each landtype-ownership combination and proportinally distribute burned areas 
+	  # BURNED AREA [ha] = (FIRE TARGET AREA BY OWNERSHIP [ha]) * (landtype area / ownership area)
 	fire_adjust_df$fire_burn_area = fire_adjust_df$fire_own_area * fire_adjust_df$tot_area / fire_adjust_df$avail_own_area
 	
+	############################################################################################################
+	################# third, calc changes in C densities for each of the fire effects within the ###############
+	#########################  fire areas withn each landtypes-ownership cmbination ############################
+	############################################################################################################ 
 	# loop over the fire frac columns to calculate the transfer carbon density for each frac column
 	# the transfer carbon density is based on tot_area so that it can be aggregated and subtracted directly from the current density
 	for (i in 1:num_firefrac_cols){
+	  # if the column names of C densities MgC/ha are not in the fire_adjust df (basically saying stop when done)
 		if (!out_density_sheets[fire_density_inds[i]] %in% colnames(fire_adjust_df)) {
-			fire_adjust_df = merge(fire_adjust_df, out_density_df_list[[fire_density_inds[i]]][,c("Land_Type_ID", "Land_Type", "Ownership", next_density_label)], by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
-			names(fire_adjust_df)[names(fire_adjust_df) == next_density_label] = out_density_sheets[fire_density_inds[i]]
+		  # then merge the C density pool corresponding to the source of all the fire C transfer fractions 
+		  fire_adjust_df = merge(fire_adjust_df, 
+			                       out_density_df_list[[fire_density_inds[i]]][,c("Land_Type_ID", "Land_Type", "Ownership", next_density_label)], 
+			                       by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
+		  # and assign the name of the C density pool to the column
+		  names(fire_adjust_df)[names(fire_adjust_df) == next_density_label] = out_density_sheets[fire_density_inds[i]]
 		}
-		fire_adjust_df[,firec_trans_names[i]] = fire_adjust_df[,out_density_sheets[fire_density_inds[i]]] * fire_adjust_df[,fire_frac_names[i]] * fire_adjust_df$fire_burn_area / fire_adjust_df$tot_area
+	  # lastly, fill in each of the fire C transfer = C density [Mg/ha] * fraction of effected C pool *  landtype-ownership fire area/ total area
+		fire_adjust_df[,firec_trans_names[i]] = fire_adjust_df[,out_density_sheets[fire_density_inds[i]]] * fire_adjust_df[,fire_frac_names[i]] * 
+		  fire_adjust_df$fire_burn_area / fire_adjust_df$tot_area
 	} # end for loop over the fire transfer fractions for calcuting the transfer carbon
+	# clean up fire output
 	fire_adjust_df = fire_adjust_df[order(fire_adjust_df$Land_Type_ID),]
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	fire_adjust_df[,c(8:ncol(fire_adjust_df))] <- apply(fire_adjust_df[,c(8:ncol(fire_adjust_df))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
+	############################################################################################################
+	################ fourth, consolidate the changes in C densities within each C density pool #################
+	############################################################################################################
 	# now consolidate the c density transfers to the pools
 	# convert these to gains for consistency: all terrestrial gains are positive, losses are negative
 	# store the names for aggregation below
 	fire_agg_names = NULL
 	# above
+	  # add a column called "Above_main_C_den_gain": above-main C density = -(above to atmos C) -(above to standing dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[3], "_gain"))
 	fire_adjust_df[,fire_agg_names[1]] = -fire_adjust_df$Above2Atmos_c - fire_adjust_df$Above2StandDead_c
 	# below
+	  # add a column called "Below_main_C_den_gain": root C density = -(root to atmos C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[4], "_gain"))
 	fire_adjust_df[,fire_agg_names[2]] = -fire_adjust_df$Below2Atmos_c
 	# understory
+	  # add a column called "Understory_C_den_gain": understory C density = -(understory to atmos C) -(understory to down dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[5], "_gain"))
 	fire_adjust_df[,fire_agg_names[3]] = -fire_adjust_df$Understory2Atmos_c - fire_adjust_df$Understory2DownDead_c
 	# standing dead
+	  # add a column called "StandDead_C_den_gain": standing dead C density = -(standing dead to atmos C) + (above-main to standing dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[6], "_gain"))
 	fire_adjust_df[,fire_agg_names[4]] = -fire_adjust_df$StandDead2Atmos_c + fire_adjust_df$Above2StandDead_c
 	# down dead
+	  # add a column called "DownDead_C_den_gain": down dead C density = -(down dead to atmos C) + (understory to down dead C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[7], "_gain"))
 	fire_adjust_df[,fire_agg_names[5]] = -fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$Understory2DownDead_c
 	# litter
+	  # add a column called "Litter_C_den_gain": litter C density = -(litter to atmos C)
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[8], "_gain"))
 	fire_adjust_df[,fire_agg_names[6]] = -fire_adjust_df$Litter2Atmos_c
 	# soil
+	  # add a column called "Soil_orgC_den_gain": soil C density = -(soil to atmos C) 
 	fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[9], "_gain"))
 	fire_adjust_df[,fire_agg_names[7]] = -fire_adjust_df$Soil2Atmos_c
+	
+	############################################################################################################
+	################################## fifth, calc total C loss to atmosphere #################################  
+	############################################################################################################
+	
 	# to get the carbon must multiply these by the tot_area
 	# atmos
+	  # calc fire C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_man") = -(total area [ha]) * (soil emissons [MgC/ha] + 
+	    # litter emissons [Mg/ha] + down dead emissons [Mg/ha] + standing dead emissions [Mg/ha] + understory emissons [Mg/ha] + 
+	    # root emissions [Mg/ha] + above-main emissions [Mg/ha])
 	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_c_stock"))
-	fire_adjust_df[,fire_agg_names[8]] = -fire_adjust_df$tot_area * (fire_adjust_df$Soil2Atmos_c + fire_adjust_df$Litter2Atmos_c + fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$StandDead2Atmos_c + fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Below2Atmos_c + fire_adjust_df$Above2Atmos_c)
-
+	fire_adjust_df[,fire_agg_names[8]] = -fire_adjust_df$tot_area * (fire_adjust_df$Soil2Atmos_c + fire_adjust_df$Litter2Atmos_c + 
+	                                                                   fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$StandDead2Atmos_c + 
+	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Below2Atmos_c + 
+	                                                                   fire_adjust_df$Above2Atmos_c)
+	# Partition the Land2Atmos_c_stock into total burned (CO2-C+CH4-C+BC-C) and total non-burned C emissions (CO2-C). Currently soil c and root c 
+	# are assumed not to burn, and decay is captured in ongoing soil accum rates. (i.e. input values for wildfire effects fractions on 
+	# root and soil c to atmosphere are currently 0. Update if contrary evidence is found)
+	# first, calculate burned c emissions from wildfire
+	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_BurnedC_stock"))
+	fire_adjust_df[,fire_agg_names[9]] = -fire_adjust_df$tot_area * (fire_adjust_df$Litter2Atmos_c + fire_adjust_df$DownDead2Atmos_c + 
+	                                                                   fire_adjust_df$StandDead2Atmos_c + 
+	                                                                   fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Above2Atmos_c)
+	# second, calculate non-burned c emissions from wildfire
+	# currently this is 0 as there's no lost root or soil c.
+	fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_NonBurnedC_stock"))
+	fire_adjust_df[,fire_agg_names[10]] = fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]]
+	
+	# check that fire Land2Atmos c flux is equal to the sum of burned and non-burned c stock in the fire_adjust_df
+	identical(fire_adjust_df[,fire_agg_names[8]], fire_adjust_df[,fire_agg_names[9]] + fire_adjust_df[,fire_agg_names[10]])
+	
+	############################################################################################################
+	######### sixth, aggregate changes in each C density pool within each landtype-ownership class ############# 
+	############################################################################################################
 	# now aggregate to land type by summing the fire intensities
 	# these c density values are the direct changes to the overall c density
 	# the c stock values are the total carbon form each land type going to atmos
+	
+	# first, create table that has a row for each land type ID, and a column for each of the fire-caused C density change [MgC/ha], 
+	# and corresponding C transfer to atmosphere [Mg C]  
 	fire_agg_cols = array(dim=c(length(fire_adjust_df$Land_Type_ID),length(fire_agg_names)))
+	# second, populate the table by applying loop to each row's land type ID 
 	for (i in 1:length(fire_agg_names)) {
+	  # fill columns with corresponding fire-caused C DENSITY CHANNGES from the fire_adjust_df
 		fire_agg_cols[,i] = fire_adjust_df[,fire_agg_names[i]]
 	}
+	# third, aggregate the C DENSITY CHANGES by summing within each land type-ownership combination and assign to fire_adjust_agg 
 	fire_adjust_agg = aggregate(fire_agg_cols ~ Land_Type_ID + Land_Type + Ownership, data=fire_adjust_df, FUN=sum)
+	# fourth, label the columns of the aggregated table 
 	fire_agg_names2 = paste0(fire_agg_names,"_fire_agg")
 	names(fire_adjust_agg)[c(4:ncol(fire_adjust_agg))] = fire_agg_names2
 	# merge these values to the unman area table to apply the adjustments to each land type
@@ -990,24 +1373,45 @@ for (year in start_year:(end_year-1)) {
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
 	all_c_flux[,c(7:ncol(all_c_flux))] <- apply(all_c_flux[,c(7:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
 
+	# check that the fire Land2Atmos c flux is equal to the sum of burned and non-burned land2Atmos c flux in the all_c_flux dataframe
+	identical(all_c_flux[["Land2Atmos_BurnedC_stock_fire_agg"]] + all_c_flux[["Land2Atmos_NonBurnedC_stock_fire_agg"]], all_c_flux[["Land2Atmos_c_stock_fire_agg"]])
+	
 	# loop over the relevant out density tables to update the carbon pools based on the fire fluxes
 	# carbon cannot go below zero
 	sum_change = 0
 	sum_neg_fire = 0
+	# for above-main C density through soil organic C density dataframes, do:
 	for (i in 3:num_out_density_sheets) {
-		sum_change = sum_change + sum(all_c_flux[, fire_agg_names2[i-2]] * all_c_flux$tot_area)
-		out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, fire_agg_names2[i-2]]
-		# first calc the carbon not subtracted because it sends density negative
+	  # subset each of the columns representing aggregated fire-caused C density changes and the C emissions 
+	  # multiply by total area
+	  # sum them all 
+	  # this gives a single value for state-wide cumulative fire C changes [Mg C/y] -- used to make sure sure nothing is negative
+	  sum_change = sum_change + sum(all_c_flux[, fire_agg_names2[i-2]] * all_c_flux$tot_area)
+		
+	  ############################################################################################################
+	  ################################### Lastly, UPDATE NEXT YEAR'S C DENSITIES #################################
+	  ############################################################################################################
+	  
+	  # add the corresponding fire-caused C density change to next year's C density
+	  out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, fire_agg_names2[i-2]]
+	  # calc the total state-wide cumulative C not subtracted because it sends density negative (used as check to make sure it's minimal)
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
 		cat("neginds for out_density_df_list fire" , i, "are", neginds, "\n")
-		sum_neg_fire = sum_neg_fire + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
-		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
+		sum_neg_fire = sum_neg_fire + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+		                                    out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+		# replace any negative updated C densities with 0
+		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+		                                                          out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
 	} # end loop over out densities for updating due to fire
 	cat("fire carbon to atmosphere is ", sum_change, "\n")
 	cat("fire negative carbon cleared is ", sum_neg_fire, "\n")
 
-	####
-	####
+	############################################################################################################
+	############################################################################################################
+	###################################  Apply LAND CONVERSIONS to C pools  ####################################
+	############################################################################################################
+	############################################################################################################
+	
 	# apply land conversion to the carbon pools (current year area and updated carbon)
 	# as the changes are net, the land type area gains will be distributed proportionally among the land type area losses
 	# the "to" land type columns are in land type id order and do not include seagrass because it is just an expansion
@@ -1027,14 +1431,21 @@ for (year in start_year:(end_year-1)) {
 	# assume that these entries do not need aggregation with other similar management activities within land type id
 	#  in other words, there is only one area-changing management per land type id and each is dealt with uniquely
 	
+	# create dataframe for conversion adjustments: merge the annual net coversion area changes with the total area dataframe
 	conv_adjust_df = merge(tot_area_df, conv_area_df, by = c("Land_Type_ID", "Land_Type", "Ownership"))
+	# sort
 	conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Land_Type_ID),]
+	# duplicate column for annual net area conversions ("base_area_change") and call it "area_change"
 	conv_adjust_df$area_change = conv_adjust_df$base_area_change
 	# put the total area in the new area column for now
 	# so that it can be adjusted as necessary by ownership below
 	conv_adjust_df$new_area = conv_adjust_df$tot_area
 	
-	man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | man_adjust_df$Management == "Growth",1:7]
+	############################################################################################################
+	#########  FIRST, ADJUST BASELINE AREA CHANGE FOR RESTORATION, AFFORESTATION & LIMITED GROWTH ##############
+	############################################################################################################
+	man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | 
+	                              man_adjust_df$Management == "Growth",1:7]
 	man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Land_Type_ID", "Land_Type", "Ownership", "Manage_ID", "Management"))
 	names(man_conv_df)[names(man_conv_df) == start_area_label] = "initial_man_area"
 	
@@ -1060,35 +1471,60 @@ for (year in start_year:(end_year-1)) {
 		
 		# the seagrass adjustment is separate
 		if (own_names[i] == "Ocean") {
-			conv_own$base_change_adjust[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = conv_own$man_area[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+			conv_own$base_change_adjust[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
+			  conv_own$man_area[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
 		} else {
 			
 		# calc growth adjustment before specific activities
 		# change will be distributed to other land types proportionally within land type id, except for fresh marsh
 		# note that developed land doesn't quite play out as prescribed, does this have to do with fresh marsh?
-		temp_adjust = conv_own$man_area[conv_own$Management == "Growth" & !is.na(conv_own$Management)] - conv_own$initial_man_area[conv_own$Management == "Growth" & !is.na(conv_own$Management)]
+		temp_adjust = conv_own$man_area[conv_own$Management == "Growth" & !is.na(conv_own$Management)] - 
+		  conv_own$initial_man_area[conv_own$Management == "Growth" & !is.na(conv_own$Management)]
 		conv_own$base_change_adjust[conv_own$Management == "Growth" & !is.na(conv_own$Management)] = temp_adjust
-		conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] = conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] - sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] / sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"])
+		conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] = 
+		  conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] - 
+		  sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] / 
+		  sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"])
 	
 		# Afforestation activities will come proportionally out of shrub and grass only
-		temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
-		conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
-		conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
+		temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
+		  conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+		conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 
+		  conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
+		conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
+		  conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
+		  conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
+		  sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
 	
 		# coastal marsh restoration will come out of ag land only
 		temp_adjust = conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-		conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + temp_adjust
-		conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] = conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] - sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Agriculture"] / sum(conv_own$tot_area[conv_own$Land_Type == "Agriculture"])
+		conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
+		  conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
+		  temp_adjust
+		conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] = conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] - 
+		  sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Agriculture"] / sum(conv_own$tot_area[conv_own$Land_Type == "Agriculture"])
 		
 		# fresh marsh restoration will come out of ag land only
 		temp_adjust = conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-		conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + temp_adjust
-		conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] = conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] - sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Agriculture"] / sum(conv_own$tot_area[conv_own$Land_Type == "Agriculture"])
+		conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
+		  conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
+		  temp_adjust
+		conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] = conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] - 
+		  sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Agriculture"] / sum(conv_own$tot_area[conv_own$Land_Type == "Agriculture"])
 	
 		# meadow restoration will come proportionally out of shrub, grass, savanna, woodland only
 		temp_adjust = conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-		conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + temp_adjust
-		conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] = conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] - sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] / sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"])
+		conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
+		  conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
+		  temp_adjust
+		conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+		                              conv_own$Land_Type == "Woodland"] = 
+		  conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+		                                conv_own$Land_Type == "Woodland"] - sum(temp_adjust) * 
+		  conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+		                      conv_own$Land_Type == "Woodland"] / 
+		  sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+		                          conv_own$Land_Type == "Woodland"])
 		} # end else calc land adjusments to baseline area change
 		
 		# clean up division numerical errors
@@ -1099,18 +1535,41 @@ for (year in start_year:(end_year-1)) {
 		conv_own$area_change = conv_own$base_area_change + conv_own$base_change_adjust
 		conv_own$new_area = conv_own$tot_area + conv_own$area_change
 		
-		# first adjust the new area and area change to account for the protection of restored fresh marsh and restored meadow and restored coastal marsh
+		# first adjust the new area and area change to account for the protection of restored fresh marsh and restored meadow and restored coastal 
+		# marsh
 		# this alos accounts for new area going negative
-		conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] + (conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] - conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")])
-		sum_restored_neg = -sum(conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] - conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")])
-		conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")]
+		conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & 
+		                       (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = 
+		  conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & 
+		                         (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] + 
+		  (conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
+		                           (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] - 
+		     conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
+		                         (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")])
+		sum_restored_neg = -sum(conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
+		                                                (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
+		                                                   conv_own$Land_Type == "Coastal_marsh")] - 
+		                          conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
+		                                              (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
+		                                                 conv_own$Land_Type == "Coastal_marsh")])
+		conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
+		                    (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = 
+		  conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
+		                          (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")]
 	
-		# if new area is negative, add the magnitude of the negative area to the area_change and subtract the difference proportionally from the positive area changes (except for fresh marsh and meadow and coastal marsh), then calc new area again
+		# if new area is negative, add the magnitude of the negative area to the area_change and subtract the difference proportionally from the 
+		# positive area changes (except for fresh marsh and meadow and coastal marsh), then calc new area again
 		# restored fresh marsh and meadow and coastal marsh are protected, so make sure that these restored areas are not negated by this adjustment
 		conv_own$area_change[conv_own$new_area < 0] = conv_own$area_change[conv_own$new_area < 0] - conv_own$new_area[conv_own$new_area < 0]
 		sum_neg_new = sum(conv_own$new_area[conv_own$new_area < 0]) + sum_restored_neg
-		sum_pos_change = sum(conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"])
-		conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] = conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] / sum_pos_change
+		sum_pos_change = sum(conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
+		                                            conv_own$Land_Type != "Coastal_marsh"])
+		conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
+		                       conv_own$Land_Type != "Coastal_marsh"] = 
+		  conv_own$area_change[conv_own$area_change > 0 & 
+		                         conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
+		  sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
+		                                       conv_own$Land_Type != "Coastal_marsh"] / sum_pos_change
 		conv_own$new_area = conv_own$tot_area + conv_own$area_change
 		
 		# calculate the conversion area matrices by ownership
@@ -1125,7 +1584,8 @@ for (year in start_year:(end_year-1)) {
 			# loop over the land types to get the positive from-to area values
 			for (l in 1:length(conv_own$Land_Type)) {
 				conv_own[,conv_own$Land_Type[l]] = 0.0
-				conv_own[,conv_own$Land_Type[l]][conv_own$area_change < 0] = - conv_own$area_change[conv_own$area_change < 0] * conv_own$area_change[l] / conv_own$own_gain_sum[l]
+				conv_own[,conv_own$Land_Type[l]][conv_own$area_change < 0] = - conv_own$area_change[conv_own$area_change < 0] * 
+				  conv_own$area_change[l] / conv_own$own_gain_sum[l]
 			} # end for l loop over land type
 			conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x < 0, 0.00)})
 			conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
@@ -1134,7 +1594,8 @@ for (year in start_year:(end_year-1)) {
 			# do it again to get the negative to-from values
 			for (l in 1:length(conv_own$Land_Type)) {
 				conv_own2[,conv_own2$Land_Type[l]] = 0.0
-				conv_own2[,conv_own2$Land_Type[l]][conv_own2$area_change > 0] = - conv_own2$area_change[conv_own2$area_change > 0] * conv_own2$area_change[l] / conv_own2$own_gain_sum[l]
+				conv_own2[,conv_own2$Land_Type[l]][conv_own2$area_change > 0] = - conv_own2$area_change[conv_own2$area_change > 0] * 
+				  conv_own2$area_change[l] / conv_own2$own_gain_sum[l]
 			} # end for l loop over land type
 			conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x < 0, 0.00)})
 			conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
@@ -1144,7 +1605,10 @@ for (year in start_year:(end_year-1)) {
 			# first find which columns are empty
 			zinds = which(apply(conv_own[,conv_col_names],2,sum) == 0)
 			conv_own[,conv_col_names][,zinds] = -conv_own2[,conv_col_names][,zinds]
-
+			
+			############################# calc 'FROM' land type losses due to conversion to ag and developed ############################# 
+			# if ag or developed is shrinking, then there is no conversion flux 
+			# (ag and urban losses don't use conversion fractions, but gains are dictated by the input conversion fractions)
 			# calc from land type losses due to conversion to ag and developed
 			# if there is an ag or urban loss, then there is no conversion flux
 			# assume that these losses are immediate
@@ -1152,7 +1616,8 @@ for (year in start_year:(end_year-1)) {
 			# ag and developed only have above main c, so only need to adjust this as new area with zero carbon
 			# loop over the ag/dev conversion frac columns to calculate the transfer carbon density for each frac column
 			# this applies to the ag and developed columns only, and add these two areas to get one adjustment
-			# the carbon density change is based on land type id tot_area so that it can be aggregated and subtracted directly from the current density values
+			# the carbon density change is based on land type id tot_area so that it can be aggregated and subtracted directly from the current 
+			# density values
 			# probably should deal with the remaining c transfer here, rather than below, so that all transfers are included
 			for (f in 1:num_convfrac_cols){
 				# the removed values are calculated first, so this will work
@@ -1161,12 +1626,21 @@ for (year in start_year:(end_year-1)) {
 					conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[1]] + conv_own[,convc_trans_names[2]]) * conv_own[,conv_frac_names[f]]
 				} else {
 					if (!out_density_sheets[conv_density_inds[f]] %in% names(conv_own)) {
-						conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Land_Type_ID", "Land_Type", "Ownership", next_density_label)], by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
+						conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Land_Type_ID", "Land_Type", "Ownership", 
+						                                                                          next_density_label)], 
+						                 by = c("Land_Type_ID", "Land_Type", "Ownership"), all.x = TRUE)
 						names(conv_own)[names(conv_own) == next_density_label] = out_density_sheets[conv_density_inds[f]]
 					}
-					conv_own[conv_own$Agriculture > 0,convc_trans_names[f]] = conv_own[conv_own$Agriculture > 0,out_density_sheets[conv_density_inds[f]]] * conv_own[conv_own$Agriculture > 0,conv_frac_names[f]] * conv_own$Agriculture[conv_own$Agriculture > 0] / conv_own$tot_area[conv_own$Agriculture > 0]
+					conv_own[conv_own$Agriculture > 0,convc_trans_names[f]] = 
+					  conv_own[conv_own$Agriculture > 0, out_density_sheets[conv_density_inds[f]]] * 
+					  conv_own[conv_own$Agriculture > 0,conv_frac_names[f]] * conv_own$Agriculture[conv_own$Agriculture > 0] / 
+					  conv_own$tot_area[conv_own$Agriculture > 0]
 					
-					conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] = conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] + conv_own[conv_own$Developed_all > 0,out_density_sheets[conv_density_inds[f]]] * conv_own[conv_own$Developed_all > 0,conv_frac_names[f]] * conv_own$Developed_all[conv_own$Developed_all > 0] / conv_own$tot_area[conv_own$Developed_all > 0]
+					conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] = 
+					  conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] + 
+					  conv_own[conv_own$Developed_all > 0,out_density_sheets[conv_density_inds[f]]] * 
+					  conv_own[conv_own$Developed_all > 0,conv_frac_names[f]] * conv_own$Developed_all[conv_own$Developed_all > 0] / 
+					  conv_own$tot_area[conv_own$Developed_all > 0]
 				} # end if removed source else density source
 			} # end for f loop over the managed transfer fractions for calcuting the transfer carbon
 			conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.nan(x), 0.00)})
@@ -1188,7 +1662,8 @@ for (year in start_year:(end_year-1)) {
 			#   and the from conversion loss from total clearing has been calculated above
 			# assume that loss happens faster than gain
 			# above ground carbon expansion:
-			#  if new land type has less carbon, send the difference to the atmosphere, and calc the to carbon change based on area change and to land type carbon
+			#  if new land type has less carbon, send the difference to the atmosphere, and calc the to carbon change based on area change and to 
+			# land type carbon
 			#  if new land type has more carbon, just calc the to carbon change, based on area change and from land type carbon
 			# below ground and soil carbon expansion:
 			#  regardless of difference, calc the to density change based on area change and from land type carbon
@@ -1233,10 +1708,14 @@ for (year in start_year:(end_year-1)) {
 								# positive diff here means that some c is lost to atmosphere
 								# calc density for diff positive
 								# density change = change in "from-to" area * "to" carbon / "to" total area
-								lt_conv[(lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] > 0), chname] = lt_conv[(lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] > 0), conv_col_names[l]] * lt_conv[l, cind] / lt_conv$tot_area[l]
+								lt_conv[(lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] > 0), chname] = 
+								  lt_conv[(lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] > 0), conv_col_names[l]] * lt_conv[l, cind] / 
+								  lt_conv$tot_area[l]
 								# calc density for diff negative
 								# density change = change in "from-to" area * "from" carbon / "to" total area
-								lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), chname] = lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), conv_col_names[l]] * lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), cind] / lt_conv$tot_area[l]
+								lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), chname] = 
+								  lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), conv_col_names[l]] * 
+								  lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), cind] / lt_conv$tot_area[l]
 							} # end not to ag or developed
 						} else {		# underground
 							if(conv_col_names[l] == "Agriculture" | conv_col_names[l] == "Developed_all") {
@@ -1244,15 +1723,20 @@ for (year in start_year:(end_year-1)) {
 									# this should be zero, and the frac should send it all to the atmos above
 									# but add it just in case the frac is changed
 									# density change = change in "from-to" area * "from" carbon * rembelowcfrac / "to" total area
-									lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] * (1-lt_conv[lt_conv[,conv_col_names[l]] > 0, "Below2Atmos_conv_frac"]) / lt_conv$tot_area[l]
+									lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * 
+									  lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] * (1-lt_conv[lt_conv[,conv_col_names[l]] > 0, "Below2Atmos_conv_frac"]) / 
+									  lt_conv$tot_area[l]
 								} else {
 									# a fraction of the from soil c has been removed to atmosphere
 									# density change = change in "from-to" area * "from" carbon * remsoilcfrac / "to" total area
-									lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] * (1-lt_conv[lt_conv[,conv_col_names[l]] > 0, "Soil2Atmos_conv_frac"]) / lt_conv$tot_area[l]
+									lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * 
+									  lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] * (1-lt_conv[lt_conv[,conv_col_names[l]] > 0, "Soil2Atmos_conv_frac"]) / 
+									  lt_conv$tot_area[l]
 								} # end else soil c for to ag and dev
 							} else {	# end else underground ag and dev
 								# density change = change in "from-to" area * "from" carbon / "to" total area
-								lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] / lt_conv$tot_area[l]
+								lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * 
+								  lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] / lt_conv$tot_area[l]
 							}
 						} # end else underground
 					} else if(sum(lt_conv[,conv_col_names[l]]) < 0) {
@@ -1270,29 +1754,48 @@ for (year in start_year:(end_year-1)) {
 							# density change = change in "to-from" area * "from" carbon / "from" total area
 							# do the "to" non-ag non-dev
 							# this value should be negative
-							lt_conv[lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = lt_conv[lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", conv_col_names[l]] * lt_conv[l, cind] / lt_conv$tot_area[l]
+							lt_conv[lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = 
+							  lt_conv[lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", 
+							          conv_col_names[l]] * 
+							  lt_conv[l, cind] / lt_conv$tot_area[l]
 							# "to" ag and dev needs the remaining fraction of c for each c pool
 							# this value should be negative
 							if(c==4) {remfrac = (1-lt_conv[l,"Below2Atmos_conv_frac"])} else
 							{remfrac = (1-lt_conv[l,"Soil2Atmos_conv_frac"])}
-							lt_conv[lt_conv[,conv_col_names[l]] < 0 & (lt_conv$Land_Type == "Agriculture" | lt_conv$Land_Type == "Developed_all"), chname] = lt_conv[lt_conv[,conv_col_names[l]] < 0 & (lt_conv$Land_Type == "Agriculture" | lt_conv$Land_Type == "Developed_all"), conv_col_names[l]] * remfrac * lt_conv[l, cind] / lt_conv$tot_area[l]	
+							lt_conv[lt_conv[,conv_col_names[l]] < 0 & (lt_conv$Land_Type == "Agriculture" | lt_conv$Land_Type == "Developed_all"), chname] = 
+							  lt_conv[lt_conv[,conv_col_names[l]] < 0 & (lt_conv$Land_Type == "Agriculture" | lt_conv$Land_Type == "Developed_all"), 
+							          conv_col_names[l]] * remfrac * lt_conv[l, cind] / lt_conv$tot_area[l]	
 						} else {	# end if underground for to-from
 							# above ground
 							# the diff matters here - positive diff values mean all from carbon is transferred
 							# density change = change in "to-from" area * "from" carbon / "from" total area
 							# this value should be negative
-							lt_conv[lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = lt_conv[lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", conv_col_names[l]] * lt_conv[l, cind] / lt_conv$tot_area[l]
+							lt_conv[lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] < 0 & 
+							          lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = 
+							  lt_conv[lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] < 0 & 
+							            lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", conv_col_names[l]] * 
+							  lt_conv[l, cind] / lt_conv$tot_area[l]
 							# the diff matters here - negative diff values mean some carbon is sent to atmosphere
 							# density change = change in "to-from" area * "to" carbon / "from" total area
 							# this value should be negative
-							lt_conv[lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = lt_conv[lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", conv_col_names[l]] * lt_conv[lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", cind] / lt_conv$tot_area[l]
+							lt_conv[lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & 
+							          lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = 
+							  lt_conv[lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & 
+							            lt_conv$Land_Type != "Developed_all", conv_col_names[l]] * 
+							  lt_conv[lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & 
+							            lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", cind] / lt_conv$tot_area[l]
 							# send above ground lost carbon to the atmosphere if necessary
 							# operate only where to-from diff is negative
 							# 2atmos = "to" minus "from" diff * "from-to" area / "from" total area
 							# this value ends up positive, consistent with the removed transfers above
 							atmosname = paste0(out_density_sheets[c],"2Atmos")
 							lt_conv[,atmosname] = 0
-							lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all"), atmosname] = lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all"),diffname] * lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all"), conv_col_names[l]] / lt_conv$tot_area[l]
+							lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & 
+							           lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all"), atmosname] = 
+							  lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & 
+							             lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all"),diffname] * 
+							  lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & 
+							             lt_conv$Land_Type != "Developed_all"), conv_col_names[l]] / lt_conv$tot_area[l]
 							conv_own[conv_own$Land_Type_ID == lt_conv$Land_Type_ID[l],atmosname] = sum(lt_conv[,atmosname])
 							# these deal with numerical errors due to roundoff, divide by zero, and any added NA values
 							conv_own[,atmosname] = replace(conv_own[,atmosname], is.na(conv_own[,atmosname]), 0.0)
@@ -1321,13 +1824,21 @@ for (year in start_year:(end_year-1)) {
 			skip = length(names(conv_own))
 			add = names(own_conv_df_list[[1]])[(skip+1):ncol(own_conv_df_list[[1]])]
 			conv_own[,add] = 0
-			conv_own[conv_own$Land_Type == "Seagrass", "Above_main_C_den"] = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Seagrass",next_density_label]
-			conv_own[conv_own$Land_Type == "Seagrass", "Soil_orgC_den"] = out_density_df_list[[9]][out_density_df_list[[9]]$Land_Type == "Seagrass",next_density_label]
+			conv_own[conv_own$Land_Type == "Seagrass", "Above_main_C_den"] = 
+			  out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Seagrass",next_density_label]
+			conv_own[conv_own$Land_Type == "Seagrass", "Soil_orgC_den"] = 
+			  out_density_df_list[[9]][out_density_df_list[[9]]$Land_Type == "Seagrass",next_density_label]
 			# contraction
-			conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Above_main_C_den_change"] = conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "area_change"] * conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Above_main_C"] / conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "tot_area"]
+			conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Above_main_C_den_change"] = 
+			  conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "area_change"] * 
+			  conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Above_main_C"] / 
+			  conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "tot_area"]
 			conv_own[,"Above_main_C_den_change"] = replace(conv_own[,"Above_main_C_den_change"], is.nan(conv_own[,"Above_main_C_den_change"]), 0.0)
 			conv_own[,"Above_main_C_den_change"] = replace(conv_own[,"Above_main_C_den_change"], conv_own[,"Above_main_C_den_change"] == Inf, 0.0)
-			conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Soil_orgC_den_change"] = conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "area_change"] * conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Soil_orgC_den"] / conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "tot_area"]
+			conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Soil_orgC_den_change"] = 
+			  conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "area_change"] * 
+			  conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Soil_orgC_den"] / 
+			  conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "tot_area"]
 			conv_own[,"Soil_orgC_den_change"] = replace(conv_own[,"Soil_orgC_den_change"], is.nan(conv_own[,"Soil_orgC_den_change"]), 0.0)
 			conv_own[,"Soil_orgC_den_change"] = replace(conv_own[,"Soil_orgC_den_change"], conv_own[,"Soil_orgC_den_change"] == Inf, 0.0)
 			# expansion
@@ -1355,19 +1866,23 @@ for (year in start_year:(end_year-1)) {
 	cgnames = NULL
 	# above
 	cgnames = c(cgnames, paste0(out_density_sheets[3],"_gain_conv"))
-	all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_removed_conv_c - conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Above_main_C_den_change
+	all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_removed_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
+	  conv_adjust_df$Above_main_C_den_change
 	# below
 	cgnames = c(cgnames, paste0(out_density_sheets[4],"_gain_conv"))
 	all_c_flux[,cgnames[2]] = - conv_adjust_df$Below2Atmos_conv_c + conv_adjust_df$Below_main_C_den_change
 	# understory
 	cgnames = c(cgnames, paste0(out_density_sheets[5],"_gain_conv"))
-	all_c_flux[,cgnames[3]] = - conv_adjust_df$Understory2Atmos_conv_c - conv_adjust_df$Understory2DownDead_conv_c - conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$Understory_C_den_change
+	all_c_flux[,cgnames[3]] = - conv_adjust_df$Understory2Atmos_conv_c - conv_adjust_df$Understory2DownDead_conv_c - 
+	  conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$Understory_C_den_change
 	# standing dead
 	cgnames = c(cgnames, paste0(out_density_sheets[6],"_gain_conv"))
-	all_c_flux[,cgnames[4]] = - conv_adjust_df$StandDead_removed_conv_c - conv_adjust_df$StandDead_C_den2Atmos + conv_adjust_df$StandDead_C_den_change
+	all_c_flux[,cgnames[4]] = - conv_adjust_df$StandDead_removed_conv_c - conv_adjust_df$StandDead_C_den2Atmos + 
+	  conv_adjust_df$StandDead_C_den_change
 	# down dead
 	cgnames = c(cgnames, paste0(out_density_sheets[7],"_gain_conv"))
-	all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Understory2DownDead_conv_c - conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$DownDead_C_den_change
+	all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Understory2DownDead_conv_c - 
+	  conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$DownDead_C_den_change
 	# litter
 	cgnames = c(cgnames, paste0(out_density_sheets[8],"_gain_conv"))
 	all_c_flux[,cgnames[6]] = - conv_adjust_df$Litter2Atmos_conv_c - conv_adjust_df$Litter_C_den2Atmos + conv_adjust_df$Litter_C_den_change
@@ -1388,17 +1903,25 @@ for (year in start_year:(end_year-1)) {
 		# first calc the carbon not subtracted because it sends density negative
 		neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
 		cat("neginds for out_density_df_list lcc" , i, "are", neginds, "\n")
-		sum_neg_conv = sum_neg_conv + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
-		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
+		sum_neg_conv = sum_neg_conv + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+		                                    out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+		                                                          out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
 		# normalize it to the new area and check for zero new area
 		out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] * all_c_flux$tot_area / all_c_flux$new_area
-		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], is.nan(out_density_df_list[[i]][, next_density_label]), 0.00)
-		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], out_density_df_list[[i]][, next_density_label] == Inf, 0.00)
+		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+		                                                          is.nan(out_density_df_list[[i]][, next_density_label]), 0.00)
+		out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+		                                                          out_density_df_list[[i]][, next_density_label] == Inf, 0.00)
 	} # end loop over out densities for updating due to conversion
 	
 	# to get the carbon must multiply these by the tot_area
-	# atmos
-	all_c_flux[,"Land2Atmos_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Litter2Atmos_conv_c + conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Understory2Atmos_conv_c + conv_adjust_df$Removed2Atmos_conv_c + conv_adjust_df$Below2Atmos_conv_c + conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$StandDead_C_den2Atmos + conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$Litter_C_den2Atmos)
+	# atmos: assumed none of this is burned
+	all_c_flux[,"Land2Atmos_c_stock_conv"] = -conv_adjust_df$tot_area * 
+	  (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Litter2Atmos_conv_c + conv_adjust_df$DownDead2Atmos_conv_c + 
+	     conv_adjust_df$Understory2Atmos_conv_c + conv_adjust_df$Removed2Atmos_conv_c + conv_adjust_df$Below2Atmos_conv_c + 
+	     conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$StandDead_C_den2Atmos + 
+	     conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$Litter_C_den2Atmos)
 	# energy - this is assumed to go to the atmosphere immediately
 	all_c_flux[,"Land2Energy_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Removed2Energy_conv_c)
 	# wood - this decays with a half-life
@@ -1415,14 +1938,22 @@ for (year in start_year:(end_year-1)) {
 	# recall that the transfers from land are negative values
 	# use the IPCC half life equation for first order decay of wood products, and the CA average half life for all products
 	#  this includes the current year loss on the current year production
-	# running stock and cumulative change values are at the beginning of the labeled year - so the next year value is the stock or sum after current year production and loss
+	# running stock and cumulative change values are at the beginning of the labeled year - so the next year value is the stock or sum after 
+	# current year production and loss
 	# annual change values are in the year they occurred
 	
 	k = log(2) / wp_half_life
-	out_wood_df_list[[11]][,next_wood_label] = out_wood_df_list[[11]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * (-all_c_flux$Land2Wood_c_stock_conv)
+	# next year's "LCC_Wood_C_stock" = current year's "LCC_Wood_C_stock" * decay_term * more_wood
+	out_wood_df_list[[11]][,next_wood_label] = out_wood_df_list[[11]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
+	  (-all_c_flux$Land2Wood_c_stock_conv)
+	# next year's "LCC_Wood_CumGain_C_stock" = current year's "LCC_Wood_CumGain_C_stock" + harvested_wood_conv
 	out_wood_df_list[[12]][,next_wood_label] = out_wood_df_list[[12]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv
+	# current year's "LCC_Wood_AnnGain_C_stock" = harvested_wood_conv
 	out_wood_df_list[[14]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_conv
-	out_wood_df_list[[15]][,cur_wood_label] = out_wood_df_list[[11]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv - out_wood_df_list[[11]][,next_wood_label]
+	# current year's "LCC_Wood_AnnLoss_C_stock" = current year's "LCC_Wood_C_stock" + harvested_wood_conv - next year's "LCC_Wood_C_stock"
+	out_wood_df_list[[15]][,cur_wood_label] = out_wood_df_list[[11]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv - 
+	  out_wood_df_list[[11]][,next_wood_label]
+	# next year's "LCC_Wood_CumLoss_C_stock" = current year's "LCC_Wood_CumLoss_C_stock" + current year's "LCC_Wood_AnnLoss_C_stock" 
 	out_wood_df_list[[13]][,next_wood_label] = out_wood_df_list[[13]][,cur_wood_label] + out_wood_df_list[[15]][,cur_wood_label]
 	
 	# update the total wood tables
@@ -1440,26 +1971,37 @@ for (year in start_year:(end_year-1)) {
 	
 	# set this years actual fire area - output by the lt breakdown
 	if(year == start_year){
+	  # add 3rd data frame with these introductory columns
 		out_area_df_list[[3]] = fire_adjust_df[,c("Land_Type_ID", "Fire_ID", "Land_Type", "Ownership", "Intensity")]
 	}
+	# add column for current (initial) burn area determined earlier for how it's distributed
 	out_area_df_list[[3]][,cur_area_label] = fire_adjust_df$fire_burn_area
 	
 	# add up the total org c pool density
 	out_density_df_list[[1]][, next_density_label] = 0
+	# loop through all c dens pools and add to new column
 	for (i in 3:num_out_density_sheets) {
-		out_density_df_list[[1]][, next_density_label] = out_density_df_list[[1]][, next_density_label] + out_density_df_list[[i]][, next_density_label]
+		out_density_df_list[[1]][, next_density_label] = out_density_df_list[[1]][, next_density_label] + 
+		  out_density_df_list[[i]][, next_density_label]
 	}
 	
 	# add up the biomass c pool density (all non-decomposed veg material)
 	out_density_df_list[[2]][, next_density_label] = 0
 	for (i in 3:(num_out_density_sheets-1)) {
-		out_density_df_list[[2]][, next_density_label] = out_density_df_list[[2]][, next_density_label] + out_density_df_list[[i]][, next_density_label]
+		out_density_df_list[[2]][, next_density_label] = out_density_df_list[[2]][, next_density_label] + 
+		  out_density_df_list[[i]][, next_density_label]
 	}
 
 	# fill the carbon stock out tables and the atmos tables
-	#out_stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Above_main_C_stock", "Below_main_C_stock", "Understory_C_stock", "StandDead_C_stock", "DownDead_C_stock", "Litter_C_stock", "Soil_orgC_stock")
-	#out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock")
-	#out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", "Manage_Wood_AnnGain_C_stock", "Manage_Wood_AnnLoss_C_stock", "LCC_Wood_C_stock", "LCC_Wood_CumGain_C_stock", "LCC_Wood_CumLoss_C_stock", "LCC_Wood_AnnGain_C_stock", "LCC_Wood_AnnLoss_C_stock")
+	#out_stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Above_main_C_stock", "Below_main_C_stock", "Understory_C_stock", 
+	#"StandDead_C_stock", "DownDead_C_stock", "Litter_C_stock", "Soil_orgC_stock")
+	#out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", 
+	#"LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", 
+	#"Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", 
+	# "Total_AnnEnergy2Atmos_C_stock") out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", 
+	# "Total_Wood_AnnGain_C_stock", "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", 
+	# "Manage_Wood_CumLoss_C_stock", "Manage_Wood_AnnGain_C_stock", "Manage_Wood_AnnLoss_C_stock", "LCC_Wood_C_stock", "LCC_Wood_CumGain_C_stock", 
+	# "LCC_Wood_CumLoss_C_stock", "LCC_Wood_AnnGain_C_stock", "LCC_Wood_AnnLoss_C_stock")
 
 	# carbon stock
 	for (i in 1:num_out_stock_sheets) {
@@ -1476,26 +2018,44 @@ for (year in start_year:(end_year-1)) {
 	# "Above_main_C_den_gain_eco" to "Soil_orgC_den_gain_eco"
 	sum_change = 0
 	for(i in 1:7){
+	  # checks the eco accum value below
 		sum_change = sum_change + sum(all_c_flux[, egnames[i]] * all_c_flux$tot_area)
 	}
 
-	# cumulative values
-	out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
-	# manage to atmos; based on biomass removal, includes energy from biomass
-	out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-	# fire to atmos; based on fire
+	##### cumulative values ##### 
+	
+	# "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
+	out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
+	  (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
+	
+	# manage to atmos; based on biomass removal, includes energy from biomass (note: actually adding terms because they are negative)
+	# "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Atmos_c_stock_man_agg" -
+	  # "Land2Energy_c_stock_man_agg"  
+	out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - 
+	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	
+	# fire to atmos; based on wildfire
 	out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
+	
 	# lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
-	out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - all_c_flux[,"Land2Energy_c_stock_conv"]
+	out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
+	  all_c_flux[,"Land2Energy_c_stock_conv"]
+	
 	# wood products to atmos; from the wood tables: "Total_Wood_CumLoss_C_stock"
 	out_atmos_df_list[[6]][, next_atmos_label] = out_wood_df_list[[3]][,next_wood_label]
+	
 	# total energy to atmos; just to compare it with the total cum atmos c
-	out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_conv"]
+	out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
+	  all_c_flux[,"Land2Energy_c_stock_conv"]
+	
 	# total to atmos; the total release of land and wood product and energy c to the atmosphere
 	# the energy release is inluded in the manage and lcc releases
-	out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
-	# annual values
-	out_atmos_df_list[[8]][, cur_atmos_label] = all_c_flux[,"tot_area"] * (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
+	out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
+	  out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
+	
+	##### annual values	#####
+	out_atmos_df_list[[8]][, cur_atmos_label] = all_c_flux[,"tot_area"] * 
+	  (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
 	# manage to atmos; based on biomass removal, includes energy from biomass
 	out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
 	# fire to atmos; based on fire
@@ -1508,10 +2068,393 @@ for (year in start_year:(end_year-1)) {
 	out_atmos_df_list[[14]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_conv"]
 	# total to atmos; the total release of land and wood product and energy c to the atmosphere
 	# the energy release is inluded in the manage and lcc releases
-	out_atmos_df_list[[9]][, cur_atmos_label] = out_atmos_df_list[[10]][,cur_atmos_label] + out_atmos_df_list[[11]][,cur_atmos_label] + out_atmos_df_list[[12]][,cur_atmos_label] + out_atmos_df_list[[13]][,cur_atmos_label]
+	out_atmos_df_list[[9]][, cur_atmos_label] = out_atmos_df_list[[10]][,cur_atmos_label] + out_atmos_df_list[[11]][,cur_atmos_label] + 
+	  out_atmos_df_list[[12]][,cur_atmos_label] + out_atmos_df_list[[13]][,cur_atmos_label]
 
+	### cumulative (again) ### 
+	# Partition the "Manage_Atmos_CumGain_C_stock" into burned and non-burned C sources
+	  # burned: "Manage_Atmos_CumGain_BurnedC" = (current year "Manage_Atmos_CumGain_BurnedC") - "Land2Atmos_burnedC_stock_man_agg" -
+	    # "Land2Energy_c_stock_man_agg" 
+	out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
+	  all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	  # non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
+	out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+	
+	# checks false due to rounding error in the agrregated all_c_flux:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
+	identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]], all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
+	# however the difference is minimal. 
+	# checks true that the difference is <0.5 and >-0.5
+	all((- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) < 0.5 & 
+	      (- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) > -0.5)
 
+	# checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos - current year's Land2Energy
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
+	            all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
+	
+	# checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos_burned - current year Land2Atmos_nonburned - 
+	 # current year land2energy
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
+	            all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
+	# checks true: next year's management Land2Atmos_burned cumulative C = next year's Land2Atmos cumulative C - next year Land2Atmos_nonburned 
+	identical(out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] -
+	            out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
+
+	# Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
+	# including this here in case changes are later made to those input wildfire fractions)
+	# burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
+	out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+	# non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
+	out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+
+	# Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
+	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
+	# is released as CO2 (decomposition) and not burned
+	# burned: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
+	out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
+	# non-burned: "LCC_Atmos_CumGain_NonEnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
+	out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
+	
+	### annual (again) ###
+	# Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
+	# burned: "Manage_Atmos_AnnGain_BurnedC" = - "Land2Atmos_burnedC_stock_man_agg" - "Land2Energy_c_stock_man_agg" 
+	out_atmos_df_list[[21]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	# non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
+	out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+	
+	# Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
+	# including this here in case changes are later made to those input wildfire fractions)
+	# burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
+	out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+	# non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
+	out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+
+	# Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
+	# With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
+	# is released as CO2 (decomposition) and not burned
+	  # burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
+	out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
+	  # non-burned: "LCC_Atmos_AnnGain_NonEnergyC" = - "Land2Atmos_c_stock_conv"
+	out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
 } # end loop over calculation years
+
+# Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
+# the CO2 portion of Eco C is actually C uptake (negative value), and it's CO2-eq will later be added to CO2-eq of CH4 to determine net GWP. 
+# Additionally, here we will account for any negative Eco C values (currently only in grassland) as these are net C fluxes to atmosphere and will 
+# be counted as CO2-C. 
+
+# get dataframes for the C values for fresh marsh to calculate CO2 & CH4 emissions, and any negative Eco C fluxes to calc CO2 emissions
+# for other land types (i.e grassland)
+Eco_CumGain_C_stock <- out_atmos_df_list[[1]]
+Eco_AnnGain_C_stock <- out_atmos_df_list[[8]]
+
+## Cummulative ## 
+# go through each year column 
+Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
+# get the other land types 
+Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
+for (i in 4:ncol(Eco_CumGain_C_stock)) {
+  # calc fresh march CO2-C (negative frac because it's C sequestration based on flux tower measurement by Knox et al (2015)
+  Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
+  # for other land type Eco CO2-C,
+  for (r in 1:nrow(Other_Cum_Eco_C)) {
+    if (Other_Cum_Eco_C[,i][r] < 0) {
+      # change sign of negative Eco C values to positive CO2-C emissions 
+      Other_Cum_Eco_C[,i][r] <- abs(Other_Cum_Eco_C[,i][r])
+      # change sign of positive Eco C values to negative CO2-C emissions (i.e sequestration)
+    } else Other_Cum_Eco_C[,i][r] <- -1 * Other_Cum_Eco_C[,i][r]
+  }
+}
+Eco_CumCO2C <- list(Other_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
+Eco_CumCO2C <- do.call(rbind, Eco_CumCO2C)
+Eco_CumCO2C <- transform(Eco_CumCO2C, Land_Type_ID = as.numeric(Land_Type_ID))
+Eco_CumCO2C = Eco_CumCO2C[order(Eco_CumCO2C$Land_Type_ID),]
+
+# repeat for CH4-C
+Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
+Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
+for (i in 4:ncol(Eco_CumGain_C_stock)) {
+  # calc fresh march CH4-C
+  Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CH4_C_frac 
+  # set CH4-C to 0 (Assuming no CH4 flux from other land types)
+  Other_Cum_Eco_C[,i] <- 0
+}
+Eco_CumCH4C <- list(Other_Cum_Eco_C, Fresh_marsh_Cum_Eco_C)
+Eco_CumCH4C <- do.call(rbind, Eco_CumCH4C)
+Eco_CumCH4C <- transform(Eco_CumCH4C, Land_Type_ID = as.numeric(Land_Type_ID))
+Eco_CumCH4C = Eco_CumCH4C[order(Eco_CumCH4C$Land_Type_ID),]
+
+## Annual ## 
+# go through each year column 
+Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type == "Fresh_marsh", ]
+# get the other land types 
+Other_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh", ]
+for (i in 4:ncol(Eco_AnnGain_C_stock)) {
+  # calc fresh march CO2-C
+  Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CO2_C_frac 
+  for (r in 1:nrow(Other_Ann_Eco_C)) {
+    # for other land type Eco CO2-C,
+    if (Other_Ann_Eco_C[,i][r] < 0) {
+      # change sign of negative Eco C values to positive CO2-C emissions 
+      Other_Ann_Eco_C[,i][r] <- abs(Other_Ann_Eco_C[,i][r])
+      # change sign of positive Eco C values to negative CO2-C emissions (i.e sequestration)
+    } else Other_Ann_Eco_C[,i][r] <- -1 * Other_Ann_Eco_C[,i][r]
+  }
+}
+Eco_AnnCO2C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
+Eco_AnnCO2C <- do.call(rbind, Eco_AnnCO2C)
+Eco_AnnCO2C <- transform(Eco_AnnCO2C, Land_Type_ID = as.numeric(Land_Type_ID))
+Eco_AnnCO2C = Eco_AnnCO2C[order(Eco_AnnCO2C$Land_Type_ID),]
+
+# repeat for CH4-C
+Fresh_marsh_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type == "Fresh_marsh", ]
+Other_Ann_Eco_C <- out_atmos_df_list[[8]][out_atmos_df_list[[8]]$Land_Type != "Fresh_marsh", ]
+for (i in 4:ncol(Eco_AnnGain_C_stock)) {
+  # calc fresh march CH4-C
+  Fresh_marsh_Ann_Eco_C[,i] <- Fresh_marsh_Ann_Eco_C[[i]] * marsh_CH4_C_frac 
+  # set CH4-C to 0 (No soil CH4 emissions from other land types)
+  Other_Ann_Eco_C[,i] <- 0
+}
+Eco_AnnCH4C <- list(Other_Ann_Eco_C, Fresh_marsh_Ann_Eco_C)
+Eco_AnnCH4C <- do.call(rbind, Eco_AnnCH4C)
+Eco_AnnCH4C <- transform(Eco_AnnCH4C, Land_Type_ID = as.numeric(Land_Type_ID))
+Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Type_ID),]
+
+# Partition all the appropriate burned (incl energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
+  ### Cumulative ###
+Manage_CumBurnedC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]]
+Manage_Burn_CumCO2C <- Manage_CumBurnedC
+for (i in 4:ncol(Manage_CumBurnedC)) {
+  Manage_Burn_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurnedC[,i]
+}
+Manage_Burn_CumCH4C <- Manage_CumBurnedC
+for (i in 4:ncol(Manage_CumBurnedC)) {
+  Manage_Burn_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumBurnedC[,i]
+}
+Manage_Burn_CumBCC <- Manage_CumBurnedC
+for (i in 4:ncol(Manage_CumBurnedC)) {
+  Manage_Burn_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurnedC[,i]
+}
+
+Wildfire_CumBurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC"]]
+Wildfire_Burn_CumCO2C <- Wildfire_CumBurnedC
+for (i in 4:ncol(Wildfire_CumBurnedC)) {
+  Wildfire_Burn_CumCO2C[,i] <- CO2C_burn_frac * Wildfire_CumBurnedC[,i]
+}
+Wildfire_Burn_CumCH4C <- Wildfire_CumBurnedC
+for (i in 4:ncol(Wildfire_CumBurnedC)) {
+  Wildfire_Burn_CumCH4C[,i] <- CH4C_burn_frac * Wildfire_CumBurnedC[,i]
+}
+Wildfire_Burn_CumBCC <- Wildfire_CumBurnedC
+for (i in 4:ncol(Wildfire_CumBurnedC)) {
+  Wildfire_Burn_CumBCC[,i] <- BCC_burn_frac * Wildfire_CumBurnedC[,i]
+}
+
+LCC_CumBurnedC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC"]]
+LCC_Burn_CumCO2C <- LCC_CumBurnedC
+for (i in 4:ncol(LCC_CumBurnedC)) {
+  LCC_Burn_CumCO2C[,i] <- CO2C_burn_frac * LCC_CumBurnedC[,i]
+}
+LCC_Burn_CumCH4C <- LCC_CumBurnedC
+for (i in 4:ncol(LCC_CumBurnedC)) {
+  LCC_Burn_CumCH4C[,i] <- CH4C_burn_frac * LCC_CumBurnedC[,i]
+}
+LCC_Burn_CumBCC <- LCC_CumBurnedC
+for (i in 4:ncol(LCC_CumBurnedC)) {
+  LCC_Burn_CumBCC[,i] <- BCC_burn_frac * LCC_CumBurnedC[,i]
+}
+
+## annual ##
+
+Manage_AnnBurnedC <- out_atmos_df_list[["Manage_Atmos_AnnGain_BurnedC"]]
+Manage_Burn_AnnCO2C <- Manage_AnnBurnedC
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+  Manage_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurnedC[,i]
+}
+Manage_Burn_AnnCH4C <- Manage_AnnBurnedC
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+  Manage_Burn_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnBurnedC[,i]
+}
+Manage_Burn_AnnBCC <- Manage_AnnBurnedC
+for (i in 4:ncol(Manage_AnnBurnedC)) {
+  Manage_Burn_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurnedC[,i]
+}
+
+Wildfire_AnnBurnedC <- out_atmos_df_list[["Fire_Atmos_AnnGain_BurnedC"]]
+Wildfire_Burn_AnnCO2C <- Wildfire_AnnBurnedC
+for (i in 4:ncol(Wildfire_AnnBurnedC)) {
+  Wildfire_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Wildfire_AnnBurnedC[,i]
+}
+Wildfire_Burn_AnnCH4C <- Wildfire_AnnBurnedC
+for (i in 4:ncol(Wildfire_AnnBurnedC)) {
+  Wildfire_Burn_AnnCH4C[,i] <- CH4C_burn_frac * Wildfire_AnnBurnedC[,i]
+}
+Wildfire_Burn_AnnBCC <- Wildfire_AnnBurnedC
+for (i in 4:ncol(Wildfire_AnnBurnedC)) {
+  Wildfire_Burn_AnnBCC[,i] <- BCC_burn_frac * Wildfire_AnnBurnedC[,i]
+}
+
+LCC_AnnBurnedC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC"]]
+LCC_Burn_AnnCO2C <- LCC_AnnBurnedC
+for (i in 4:ncol(LCC_AnnBurnedC)) {
+  LCC_Burn_AnnCO2C[,i] <- CO2C_burn_frac * LCC_AnnBurnedC[,i]
+}
+LCC_Burn_AnnCH4C <- LCC_AnnBurnedC
+for (i in 4:ncol(LCC_AnnBurnedC)) {
+  LCC_Burn_AnnCH4C[,i] <- CH4C_burn_frac * LCC_AnnBurnedC[,i]
+}
+LCC_Burn_AnnBCC <- LCC_AnnBurnedC
+for (i in 4:ncol(LCC_AnnBurnedC)) {
+  LCC_Burn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
+}
+
+# sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain 
+# (less eco C emissions).
+  
+  ### cumulative ###
+# first, do cumulative CO2-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
+Total_CumCO2C <- Manage_Burn_CumCO2C
+for (i in 4:ncol(Total_CumCO2C)) {
+  Total_CumCO2C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_CumCO2C)) {
+Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
+  out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + 
+  out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
+  LCC_Burn_CumCO2C[,i]
+}
+# Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
+Total_CumCH4C <- Manage_Burn_CumCH4C
+for (i in 4:ncol(Total_CumCH4C)) {
+  Total_CumCH4C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_CumCH4C)) {
+  Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Burn_CumCH4C[,i] + Wildfire_Burn_CumCH4C[,i] + LCC_Burn_CumCH4C[,i]
+}
+# Third, do cumulative BC-C. Choice of ncol(Manage_Burn_CumBCC) is arbitrary -  just need the total number of columns.
+Total_CumBCC <- Manage_Burn_CumBCC
+for (i in 4:ncol(Total_CumBCC)) {
+  Total_CumBCC[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_CumBCC)) {
+  Total_CumBCC[,i] <- Manage_Burn_CumBCC[,i] + Wildfire_Burn_CumBCC[,i] + LCC_Burn_CumBCC[,i]
+}
+
+  ### annual ###
+# first, do annual CO2-C. Choice of ncol(Manage_Burn_AnnCO2C) is arbitrary -  just need the total number of columns.
+Total_AnnCO2C <- Manage_Burn_AnnCO2C
+for (i in 4:ncol(Total_AnnCO2C)) {
+  Total_AnnCO2C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_AnnCO2C)) {
+  Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
+    out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + 
+    out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_Burn_AnnCO2C[,i] + 
+    LCC_Burn_AnnCO2C[,i]
+}
+# Second, do annual CH4-C. Choice of ncol(Manage_Burn_AnnCH4C) is arbitrary -  just need the total number of columns.
+Total_AnnCH4C <- Manage_Burn_AnnCH4C
+for (i in 4:ncol(Total_AnnCH4C)) {
+  Total_AnnCH4C[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_AnnCH4C)) {
+  Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Burn_AnnCH4C[,i] + Wildfire_Burn_AnnCH4C[,i] + LCC_Burn_AnnCH4C[,i]
+}
+# Third, do annual BC-C. Choice of ncol(Manage_Burn_AnnBCC) is arbitrary -  just need the total number of columns.
+Total_AnnBCC <- Manage_Burn_AnnBCC
+for (i in 4:ncol(Total_AnnBCC)) {
+  Total_AnnBCC[,i] <- 0
+}
+for (i in 4:ncol(Manage_Burn_AnnBCC)) {
+  Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_Burn_AnnBCC[,i] + LCC_Burn_AnnBCC[,i]
+}
+
+# the following check is used to show that the differences between total annual CO2-C, CH4-C and BC-C, and
+# total atmosphere C gain, less Eco C to atmosphere fluxes (i.e. grassland and coastal marsh) are < 0.5 and > -0.5. Due to 
+# rounding error, 0.5 is used instead of 0.
+all((Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
+          (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
+            Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) < 0.5 & 
+      (Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
+      (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
+         Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) > -0.5)
+
+# individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
+# if desired
+  ### cumulative ###
+# first, convert total cumulative CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_CumCO2 <- Total_CumCO2C
+for (i in 4:ncol(Total_CumCO2)) {
+  Total_CumCO2[,i] <- Total_CumCO2C[,i] * (44.01/12.0107) * gwp_CO2
+}
+# second, convert total cumulative CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_CumCH4eq <- Total_CumCH4C
+for (i in 4:ncol(Total_CumCH4eq)) {
+  Total_CumCH4eq[,i] <- Total_CumCH4C[,i] * (16.04/12.0107) * gwp_CH4
+}
+# third, convert total cumulative BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+# multiplying by 1/0.6 based on assumption that 60% black C is C.
+Total_CumBCeq <- Total_CumBCC
+for (i in 4:ncol(Total_CumBCC)) {
+  Total_CumBCeq[,i] <- Total_CumBCC[,i] * (1/0.6) * gwp_BC
+}
+
+  ### annual ###
+# first, convert total annual CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_AnnCO2 <- Total_AnnCO2C
+for (i in 4:ncol(Total_AnnCO2)) {
+  Total_AnnCO2[,i] <- Total_AnnCO2C[,i] * (44.01/12.0107) * gwp_CO2
+}
+# second, convert total annual CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_AnnCH4eq <- Total_AnnCH4C
+for (i in 4:ncol(Total_AnnCH4eq)) {
+  Total_AnnCH4eq[,i] <- Total_AnnCH4C[,i] * (16.04/12.0107) * gwp_CH4
+}
+# third, convert total annual BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
+Total_AnnBCeq <- Total_AnnBCC
+for (i in 4:ncol(Total_AnnBCC)) {
+  Total_AnnBCeq[,i] <- Total_AnnBCC[,i] * (1/0.6) * gwp_BC
+}
+
+# sum all CO2-eq to get total GWP [Mg CO2-eq/ha/y]
+  ### cumulative ###
+Total_CumCO2eq_all <- Total_CumCO2
+for (i in 4:ncol(Total_CumCO2)) {
+  Total_CumCO2eq_all[,i] <- Total_CumCO2[,i] + Total_CumCH4eq[,i] + Total_CumBCeq[,i]
+}
+  ### annual ###
+Total_AnnCO2eq_all <- Total_AnnCO2
+for (i in 4:ncol(Total_AnnCO2)) {
+  Total_AnnCO2eq_all[,i] <- Total_AnnCO2[,i] + Total_AnnCH4eq[,i] + Total_AnnBCeq[,i]
+}
+
+# add GHG dataframes to out_atmos_df_list
+out_atmos_df_list[["Eco_AnnCO2C"]] <- Eco_AnnCO2C
+out_atmos_df_list[["Eco_AnnCH4C"]] <- Eco_AnnCH4C
+out_atmos_df_list[["Eco_CumCO2C"]] <- Eco_CumCO2C
+out_atmos_df_list[["Eco_CumCH4C"]] <- Eco_CumCH4C
+out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
+out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
+out_atmos_df_list[["Total_CumBCeq"]] <- Total_CumBCeq
+out_atmos_df_list[["Total_AnnCO2"]] <- Total_AnnCO2
+out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
+out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
+out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
+out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
+
+
+# check that total atmos C gain is equal to the sum of the partitions, less the Eco C emissions (not included in the Total_Atmos gain C)
+zero_test <- Total_CumCO2
+for (i in 4:ncol(zero_test)) {
+  zero_test[,i] <- 0
+}
+for (i in 4:ncol(Total_CumCO2)) {
+    zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
+              Total_CumCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_CumBCeq[,i] * (0.6/gwp_BC) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
+} 
+# rounding error so this test is false
+all(zero_test[4:ncol(zero_test)] == 0) 
+# but this checks to be true
+all(zero_test[4:ncol(zero_test)] < 0.001 & zero_test[4:ncol(zero_test)] > -0.001) 
 
 # Calculate some changes and totals
 # also round everything to integer ha, MgC and MgC/ha places for realistic precision
@@ -1521,7 +2464,8 @@ cat("Starting change/total calcs...\n")
 out_area_df_list[[1]][, "Change_ha"] = out_area_df_list[[1]][,end_area_label] - out_area_df_list[[1]][,start_area_label]
 sum_row = out_area_df_list[[1]][1,]
 sum_row[,c(1:3)] = c(-1, "All_land", "All_own")
-sum_row[,c(4:ncol(sum_row))] = apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Ownership"] != "Ocean", c(4:ncol(out_area_df_list[[1]]))], 2 , sum)
+sum_row[,c(4:ncol(sum_row))] = 
+  apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Ownership"] != "Ocean", c(4:ncol(out_area_df_list[[1]]))], 2 , sum)
 out_area_df_list[[1]] = rbind(out_area_df_list[[1]], sum_row)
 out_area_df_list[[1]][,c(4:ncol(out_area_df_list[[1]]))] = round(out_area_df_list[[1]][,c(4:ncol(out_area_df_list[[1]]))], 0)
 for (i in 2:num_out_area_sheets) {
@@ -1529,7 +2473,8 @@ for (i in 2:num_out_area_sheets) {
 	out_area_df_list[[i]][, "Change_ha"] = out_area_df_list[[i]][,end_label] - out_area_df_list[[i]][,start_area_label]
 	sum_row = out_area_df_list[[i]][1,]
 	sum_row[,c(1:5)] = c(-1, -1, "All_land", "All_own", "All")
-	sum_row[,c(6:ncol(sum_row))] = apply(out_area_df_list[[i]][out_area_df_list[[i]][, "Ownership"] != "Ocean", c(6:ncol(out_area_df_list[[i]]))], 2 , sum)
+	sum_row[,c(6:ncol(sum_row))] = 
+	  apply(out_area_df_list[[i]][out_area_df_list[[i]][, "Ownership"] != "Ocean", c(6:ncol(out_area_df_list[[i]]))], 2 , sum)
 	out_area_df_list[[i]] = rbind(out_area_df_list[[i]], sum_row)
 	out_area_df_list[[i]][,c(6:ncol(out_area_df_list[[i]]))] = round(out_area_df_list[[i]][,c(6:ncol(out_area_df_list[[i]]))], 0)
 }
@@ -1539,9 +2484,13 @@ for (i in 1:num_out_density_sheets) {
 	out_density_df_list[[i]][, "Change_Mg_ha"] = out_density_df_list[[i]][,end_density_label] - out_density_df_list[[i]][,start_density_label]
 	avg_row = out_density_df_list[[i]][1,]
 	avg_row[,c(1:3)] = c(-1, "All_land", "All_own")
-	avg_row[,c(4:ncol(avg_row))] = apply(out_density_df_list[[i]][1:45, c(4:ncol(out_density_df_list[[i]]))] * out_area_df_list[[1]][1:45, c(4:ncol(out_area_df_list[[1]]))], 2, sum)
-	avg_row[1,c(4:(ncol(avg_row)-1))] = avg_row[1,c(4:(ncol(avg_row)-1))] / out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Type_ID"] == -1, c(4:(ncol(out_area_df_list[[1]])-1))]
-	avg_row[1,ncol(avg_row)] = avg_row[1,ncol(avg_row)] / out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Type_ID"] == -1, ncol(out_area_df_list[[1]])-1]
+	avg_row[,c(4:ncol(avg_row))] = 
+	  apply(out_density_df_list[[i]][1:45, c(4:ncol(out_density_df_list[[i]]))] * 
+	          out_area_df_list[[1]][1:45, c(4:ncol(out_area_df_list[[1]]))], 2, sum)
+	avg_row[1,c(4:(ncol(avg_row)-1))] = avg_row[1,c(4:(ncol(avg_row)-1))] / 
+	  out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Type_ID"] == -1, c(4:(ncol(out_area_df_list[[1]])-1))]
+	avg_row[1,ncol(avg_row)] = avg_row[1,ncol(avg_row)] / 
+	  out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Type_ID"] == -1, ncol(out_area_df_list[[1]])-1]
 	out_density_df_list[[i]] = rbind(out_density_df_list[[i]], avg_row)
 	out_density_df_list[[i]][,c(4:ncol(out_density_df_list[[i]]))] = round(out_density_df_list[[i]][,c(4:ncol(out_density_df_list[[i]]))], 0)
 }
@@ -1562,13 +2511,24 @@ for (i in 1:num_out_wood_sheets) {
 	out_wood_df_list[[i]][, "Change_Mg"] = out_wood_df_list[[i]][,end_label] - out_wood_df_list[[i]][,start_wood_label]
 	sum_row = out_wood_df_list[[i]][1,]
 	sum_row[,c(1:3)] = c(-1, "All_land", "All_own")
-	sum_row[,c(4:ncol(sum_row))] = apply(out_wood_df_list[[i]][out_wood_df_list[[i]][, "Ownership"] != "Ocean", c(4:ncol(out_wood_df_list[[i]]))], 2 , sum)
+	sum_row[,c(4:ncol(sum_row))] = 
+	  apply(out_wood_df_list[[i]][out_wood_df_list[[i]][, "Ownership"] != "Ocean", c(4:ncol(out_wood_df_list[[i]]))], 2 , sum)
 	out_wood_df_list[[i]] = rbind(out_wood_df_list[[i]], sum_row)
 	out_wood_df_list[[i]][,c(4:ncol(out_wood_df_list[[i]]))] = round(out_wood_df_list[[i]][,c(4:ncol(out_wood_df_list[[i]]))], 0)
 }
 
+# remove the Xs added to the front of the year columns so that the following atmosphere section can work without error
+man_targetyear_labels = names(scen_df_list[[3]])[c(6:ncol(scen_df_list[[3]]))]
+out_atmos_df_list_Ann_labels = names(out_atmos_df_list[[38]])
+colnames_Ann = names(out_atmos_df_list[[38]])
+colnames_Cum = names(out_atmos_df_list[[37]])
+names(out_atmos_df_list[["Eco_AnnCO2C"]]) = colnames_Ann
+names(out_atmos_df_list[["Eco_AnnCH4C"]]) = colnames_Ann
+names(out_atmos_df_list[["Eco_CumCO2C"]]) = colnames_Cum
+names(out_atmos_df_list[["Eco_CumCH4C"]]) = colnames_Cum
+
 # atmosphere
-for (i in 1:num_out_atmos_sheets) {
+for (i in 1:length(out_atmos_df_list)) {
 	end_label = ncol(out_atmos_df_list[[i]])
 	out_atmos_df_list[[i]][, "Change_Mg"] = out_atmos_df_list[[i]][,end_label] - out_atmos_df_list[[i]][,start_atmos_label]
 	sum_row = out_atmos_df_list[[i]][1,]
@@ -1608,10 +2568,10 @@ if(WRITE_OUT_FILE) {
 	writeWorksheet(out_wrkbk, data = out_wood_df_list, sheet = out_wood_sheets, header = TRUE)
 
 	# atmosphere
-	createSheet(out_wrkbk, name = out_atmos_sheets)
-	clearSheet(out_wrkbk, sheet = out_atmos_sheets)
-	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = out_atmos_sheets, header = TRUE)
-
+	createSheet(out_wrkbk, name = names(out_atmos_df_list))
+	clearSheet(out_wrkbk, sheet = names(out_atmos_df_list))
+	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = names(out_atmos_df_list), header = TRUE)
+  
 	# write the workbook
 	saveWorkbook(out_wrkbk)
 
