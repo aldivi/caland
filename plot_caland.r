@@ -43,8 +43,8 @@ libs <- c( "XLConnect", "ggplot2", "grid", "RColorBrewer" )
 for( i in libs ) {
     if( !require( i, character.only=T ) ) {
         cat( "Couldn't load", i, "\n" )
-        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it for local user if you do 
-              not have root access\n" )
+        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it for 
+            local user if you do not have root access\n" )
     }
     library( i, character.only=T )
 }
@@ -64,10 +64,12 @@ a_lab = "kha"
 stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Soil_orgC_stock", "Total_Wood_C_stock", "Total_Atmos_CumGain_C_stock")
 num_stock_sheets = length(stock_sheets)
 ann_sheets = c("Total_Wood_AnnGain_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", 
-               "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock")
+               "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnCO2", 
+               "Total_AnnCH4eq", "Total_AnnBCeq", "Total_AnnCO2eq_all")
 num_ann_sheets = length(ann_sheets)
 cum_sheets = c("Total_Wood_CumGain_C_stock", "Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", 
-               "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock")
+               "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_CumCO2",
+               "Total_CumCH4eq", "Total_CumBCeq", "Total_CumCO2eq_all")
 num_cum_sheets = length(cum_sheets)
 area_sheets = c("Area", "Managed_area", "Wildfire_area")
 num_area_sheets = length(area_sheets)
@@ -75,7 +77,8 @@ den_sheets = c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_m
                "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
 num_den_sheets = length(den_sheets)
 bar_plot_labels = c("Wood_Gain_from_Eco", "Ecosystem_Gain_from_Atmos", "Total_Atmosphere_Gain", "Loss_to_Atmos_from_Manage", 
-                    "Loss_to_Atmos_from_Fire", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Wood")
+                    "Loss_to_Atmos_from_Fire", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Wood", "Net_GWP_CO2_Emissions",
+                    "Net_GWP_CH4_Emissions", "Net_GWP_BC_Emissions", "Net_GWP_All")
 
 # loop over the land types
 for (l in 1:num_lt) {
