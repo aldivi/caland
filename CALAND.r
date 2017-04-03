@@ -2137,6 +2137,18 @@ for (year in start_year:(end_year-1)) {
 	out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
 	  # non-burned: "LCC_Atmos_AnnGain_NonEnergyC" = - "Land2Atmos_c_stock_conv"
 	out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
+	
+	# Split "Manage_Atmos_CumGain_BurnedC" into burned C from bioenergy and burned C from managed burns in the forest
+	# burned C from bioenergy "Manage_Atmos_CumGain_Burned4EnergyC"
+	out_atmos_df_list[[27]][, next_atmos_label] = out_atmos_df_list[[27]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	# burned C from managed burns "Manage_Atmos_CumGain_ManagedBurnC"
+	out_atmos_df_list[[28]][, next_atmos_label] = out_atmos_df_list[[28]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
+	
+	# Split "Manage_Atmos_AnnGain_BurnedC" into burned C from bioenergy and burned C from managed burns in the forest
+	# burned C from bioenergy "Manage_Atmos_AnnGain_Burned4EnergyC"
+	out_atmos_df_list[[29]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+	# burned C from managed burns "Manage_Atmos_AnnGain_ManagedBurnC"
+	out_atmos_df_list[[29]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
 } # end loop over calculation years
 
 # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
