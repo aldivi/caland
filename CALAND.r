@@ -2249,6 +2249,37 @@ for (i in 4:ncol(Manage_CumBurnedC)) {
   Manage_Burn_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurnedC[,i]
 }
 
+# Further split managed burn C pool into energy and non-energy
+# managed energy
+Manage_CumBurned4EnergyC <- out_atmos_df_list[, "Manage_Atmos_CumGain_Burned4EnergyC"]  
+Manage_Burn4Energy_CumCO2C <- Manage_CumBurned4EnergyC
+for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
+  Manage_Burn4Energy_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurned4EnergyC[,i]
+}
+Manage_Burn4Energy_CumCH4C <- Manage_CumBurned4EnergyC
+for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
+  Manage_Burn4Energy_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumBurned4EnergyC[,i]
+}
+Manage_Burn4Energy_CumBCC <- Manage_CumBurned4EnergyC
+for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
+  Manage_Burn4Energy_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurned4EnergyC[,i]
+}
+
+# managed non-energy
+Manage_CumManagedBurnC <- out_atmos_df_list[, "Manage_Atmos_CumGain_ManagedBurnC"]  
+Manage_ManagedBurns_CumCO2C <- Manage_CumManagedBurnC
+for (i in 4:ncol(Manage_CumManagedBurnC)) {
+  Manage_ManagedBurns_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumManagedBurnC[,i]
+}
+Manage_ManagedBurns_CumCH4C <- Manage_CumManagedBurnC
+for (i in 4:ncol(Manage_CumManagedBurnC)) {
+  Manage_ManagedBurns_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumManagedBurnC[,i]
+}
+Manage_ManagedBurns_CumBCC <- Manage_CumManagedBurnC
+for (i in 4:ncol(Manage_CumManagedBurnC)) {
+  Manage_ManagedBurns_CumBCC[,i] <- BCC_burn_frac * Manage_CumManagedBurnC[,i]
+}
+
 Wildfire_CumBurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC"]]
 Wildfire_Burn_CumCO2C <- Wildfire_CumBurnedC
 for (i in 4:ncol(Wildfire_CumBurnedC)) {
@@ -2291,6 +2322,37 @@ for (i in 4:ncol(Manage_AnnBurnedC)) {
 Manage_Burn_AnnBCC <- Manage_AnnBurnedC
 for (i in 4:ncol(Manage_AnnBurnedC)) {
   Manage_Burn_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurnedC[,i]
+}
+
+# Further split managed burn C pool into energy and non-energy
+# managed energy
+Manage_AnnBurned4EnergyC <- out_atmos_df_list[, "Manage_Atmos_AnnGain_Burned4EnergyC"]  
+Manage_Burn4Energy_AnnCO2C <- Manage_AnnBurned4EnergyC
+for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
+  Manage_Burn4Energy_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurned4EnergyC[,i]
+}
+Manage_Burn4Energy_AnnCH4C <- Manage_AnnBurned4EnergyC
+for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
+  Manage_Burn4Energy_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnBurned4EnergyC[,i]
+}
+Manage_Burn4Energy_AnnBCC <- Manage_AnnBurned4EnergyC
+for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
+  Manage_Burn4Energy_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurned4EnergyC[,i]
+}
+
+# managed non-energy
+Manage_AnnManagedBurnC <- out_atmos_df_list[, "Manage_Atmos_AnnGain_ManagedBurnC"]  
+Manage_ManagedBurns_AnnCO2C <- Manage_AnnManagedBurnC
+for (i in 4:ncol(Manage_AnnManagedBurnC)) {
+  Manage_ManagedBurns_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnManagedBurnC[,i]
+}
+Manage_ManagedBurns_AnnCH4C <- Manage_AnnManagedBurnC
+for (i in 4:ncol(Manage_AnnManagedBurnC)) {
+  Manage_ManagedBurns_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnManagedBurnC[,i]
+}
+Manage_ManagedBurns_AnnBCC <- Manage_AnnManagedBurnC
+for (i in 4:ncol(Manage_AnnManagedBurnC)) {
+  Manage_ManagedBurns_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnManagedBurnC[,i]
 }
 
 Wildfire_AnnBurnedC <- out_atmos_df_list[["Fire_Atmos_AnnGain_BurnedC"]]
