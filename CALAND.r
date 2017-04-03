@@ -1087,7 +1087,7 @@ for (year in start_year:(end_year-1)) {
 	    man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
 	  
 	agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
-	  # create man_adjust_df$Land2Atmos_burnedC_stock_man 
+	  # create man_adjust_df$Land2Atmos_burnedC_stock_man (note: does not include bioenergy)
 	man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Burned_litter_c + man_adjust_df$Burned_downdead_c +
 	                                                             man_adjust_df$Burned_under_c + man_adjust_df$Burned_mainremoved_c)
 	agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
