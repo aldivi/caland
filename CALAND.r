@@ -1133,7 +1133,7 @@ for (year in start_year:(end_year-1)) {
 	sum_neg_man = 0
 	# for above-main C density through soil organic C density dataframes, do:
 	for (i in 3:num_out_density_sheets) {
-	  # subset each of the columns represneting aggregated management-caused C density gains and the C stock transfers (i.e. C emissions and wood), 
+	  # subset each of the columns representing aggregated management-caused C density gains and the C stock transfers (i.e. C emissions and wood), 
 	  # multiply by total area, and
 	  # sum them all 
 	  # this gives a single value for state-wide cumulative management C changes [Mg C/y] -- used to make sure sure nothing is negative
