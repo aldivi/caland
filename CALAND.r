@@ -2309,9 +2309,12 @@ for (i in 4:ncol(LCC_CumBurnedC)) {
 }
 
 # total energy
-total_energy_CO2C <- LCC_Burn_CumCO2C + Manage_Burn4Energy_CumCO2C
-total_energy_CH4C <- LCC_Burn_CumCH4C + Manage_Burn4Energy_CumCH4C
-total_energy_BCC <- LCC_Burn_CumBCC + Manage_Burn4Energy_CumBCC
+total_energy_CumCO2C <- LCC_Burn_CumCO2C
+total_energy_CumCO2C[,4:ncol(total_energy_CO2C)] <- LCC_Burn_CumCO2C[,4:ncol(LCC_Burn_CumCO2C)] + Manage_Burn4Energy_CumCO2C[,4:ncol(LCC_Burn_CumCO2C)]
+total_energy_CumCH4C <- LCC_Burn_CumCH4C
+total_energy_CumCH4C[,4:ncol(total_energy_CH4C)] <- LCC_Burn_CumCH4C[,4:ncol(LCC_Burn_CumCH4C)] + Manage_Burn4Energy_CumCH4C[,4:ncol(LCC_Burn_CumCH4C)]
+total_energy_CumBCC <- LCC_Burn_CumBCC
+total_energy_CumBCC[,4:ncol(total_energy_BCC)] <- LCC_Burn_CumBCC[,4:ncol(LCC_Burn_CumBCC)] + Manage_Burn4Energy_CumBCC[,4:ncol(LCC_Burn_CumBCC)]
 
 ## annual ##
 
@@ -2387,6 +2390,14 @@ LCC_Burn_AnnBCC <- LCC_AnnBurnedC
 for (i in 4:ncol(LCC_AnnBurnedC)) {
   LCC_Burn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
 }
+
+# total energy
+total_energy_AnnCO2C <- LCC_Burn_AnnCO2C
+total_energy_AnnCO2C[,4:ncol(total_energy_CO2C)] <- LCC_Burn_AnnCO2C[,4:ncol(LCC_Burn_AnnCO2C)] + Manage_Burn4Energy_AnnCO2C[,4:ncol(LCC_Burn_AnnCO2C)]
+total_energy_AnnCH4C <- LCC_Burn_AnnCH4C
+total_energy_AnnCH4C[,4:ncol(total_energy_CH4C)] <- LCC_Burn_AnnCH4C[,4:ncol(LCC_Burn_AnnCH4C)] + Manage_Burn4Energy_AnnCH4C[,4:ncol(LCC_Burn_AnnCH4C)]
+total_energy_AnnBCC <- LCC_Burn_AnnBCC
+total_energy_AnnBCC[,4:ncol(total_energy_BCC)] <- LCC_Burn_AnnBCC[,4:ncol(LCC_Burn_AnnBCC)] + Manage_Burn4Energy_AnnBCC[,4:ncol(LCC_Burn_AnnBCC)]
 
 # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain 
 # (less eco C emissions).
