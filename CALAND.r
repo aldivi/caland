@@ -2251,7 +2251,7 @@ for (i in 4:ncol(Manage_CumBurnedC)) {
 
 # Further split managed burn C pool into energy and non-energy
 # managed energy
-Manage_CumBurned4EnergyC <- out_atmos_df_list[, "Manage_Atmos_CumGain_Burned4EnergyC"]  
+Manage_CumBurned4EnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_Burned4EnergyC"]]  
 Manage_Burn4Energy_CumCO2C <- Manage_CumBurned4EnergyC
 for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
   Manage_Burn4Energy_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurned4EnergyC[,i]
@@ -2266,7 +2266,7 @@ for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
 }
 
 # managed non-energy
-Manage_CumManagedBurnC <- out_atmos_df_list[, "Manage_Atmos_CumGain_ManagedBurnC"]  
+Manage_CumManagedBurnC <- out_atmos_df_list[["Manage_Atmos_CumGain_ManagedBurnC"]] 
 Manage_ManagedBurns_CumCO2C <- Manage_CumManagedBurnC
 for (i in 4:ncol(Manage_CumManagedBurnC)) {
   Manage_ManagedBurns_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumManagedBurnC[,i]
@@ -2308,6 +2308,11 @@ for (i in 4:ncol(LCC_CumBurnedC)) {
   LCC_Burn_CumBCC[,i] <- BCC_burn_frac * LCC_CumBurnedC[,i]
 }
 
+# total energy
+total_energy_CO2C <- LCC_Burn_CumCO2C + Manage_Burn4Energy_CumCO2C
+total_energy_CH4C <- LCC_Burn_CumCH4C + Manage_Burn4Energy_CumCH4C
+total_energy_BCC <- LCC_Burn_CumBCC + Manage_Burn4Energy_CumBCC
+
 ## annual ##
 
 Manage_AnnBurnedC <- out_atmos_df_list[["Manage_Atmos_AnnGain_BurnedC"]]
@@ -2326,7 +2331,7 @@ for (i in 4:ncol(Manage_AnnBurnedC)) {
 
 # Further split managed burn C pool into energy and non-energy
 # managed energy
-Manage_AnnBurned4EnergyC <- out_atmos_df_list[, "Manage_Atmos_AnnGain_Burned4EnergyC"]  
+Manage_AnnBurned4EnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_Burned4EnergyC"]]  
 Manage_Burn4Energy_AnnCO2C <- Manage_AnnBurned4EnergyC
 for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
   Manage_Burn4Energy_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurned4EnergyC[,i]
@@ -2341,7 +2346,7 @@ for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
 }
 
 # managed non-energy
-Manage_AnnManagedBurnC <- out_atmos_df_list[, "Manage_Atmos_AnnGain_ManagedBurnC"]  
+Manage_AnnManagedBurnC <- out_atmos_df_list[["Manage_Atmos_AnnGain_ManagedBurnC"]]  
 Manage_ManagedBurns_AnnCO2C <- Manage_AnnManagedBurnC
 for (i in 4:ncol(Manage_AnnManagedBurnC)) {
   Manage_ManagedBurns_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnManagedBurnC[,i]
