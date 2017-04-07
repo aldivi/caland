@@ -52,6 +52,51 @@
 # density values are the stats of the total pixel population within each land type id
 # accumulation values are stats of literature values
 
+
+# define function CALC.GWP that (1) finds out whether each table in df.list is CO2, CH4, or BCC 
+# by reading the name of the table (i.e. element name in list)
+# and (2) converts gas columns to GWP accordingly
+
+CALC.GWP<- function(df) {      
+  # get name of list of data frames 
+  name <- names(df)
+  new.df <- df
+  for (l in 1:length(name)) { #loop over each data frame
+    #loop over each data frame and get the unique number of columns (different for annual and cumulative)
+    # loop over the C emissions columns
+    for (i in 4:ncol(df[[l]])) { 
+      # if not BCC and not CH4C
+      if ((substr(name[[l]], nchar(name[[l]])-2, nchar(name[[l]]))) != "BCC" & 
+          (substr(name[[l]], nchar(name[[l]])-2, nchar(name[[l]]))) != "H4C") {
+        # then it's CO2C, so covert C to CO2 according to molar mass ratio 
+        new.df[[l]][,i] <- df[[l]][,i] * (44.01/12.0107) * gwp_CO2 
+        # otherwise if it's CH4C
+      } else { if (substr(name[[l]], nchar(name[[l]])-2, nchar(name[[l]])) == "H4C") {
+        # convert CH4-C to [Mg CO2-eq/ha/y]
+        new.df[[l]][,i] <- df[[l]][,i] * (16.04/12.0107) * gwp_CH4
+        # otherwise it's BCC, so convert to [Mg CO2-eq/ha/y]
+        # multiplying by 1/0.6 based on assumption that 60% black C is C.
+      } else { new.df[[l]][,i] <- df[[l]][,i] * (1/0.6) * gwp_BC } 
+      }
+    }
+  }
+  return(new.df)
+}
+
+# define function GET.NAMES that produces a list of new names that drops the last 'C' in CO2C, CH4C, and BCC 
+# and adds 'eq' for CH4 and BC  
+GET.NAMES <- function(df) {
+  name <- names(df)
+  for (i in 1:length(name)) {
+    if ((substr(name[[i]], nchar(name[[i]])-2, nchar(name[[i]]))) == "BCC" | (substr(name[[i]], nchar(name[[i]])-2, nchar(name[[i]]))) == "H4C") {
+      new.name[[i]] <- substr(name[[i]], 1, nchar(name[[i]]) - 1)
+      new.name[[i]] <- paste0(new.name[[i]], "eq")
+    } else { new.name[[i]] <- substr(name[[i]], 1, nchar(name[[i]]) - 1) }
+  }
+  return(new.name)
+}
+
+
 CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE) {
 
 cat("Start CALAND at", date(), "\n")
@@ -192,8 +237,8 @@ out_atmos_sheets = c("Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Mana
                      "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_EnergyC", "LCC_Atmos_CumGain_NonEnergyC",
                      "Manage_Atmos_AnnGain_BurnedC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC",
                      "Fire_Atmos_AnnGain_NonBurnedC", "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonEnergyC", 
-                     "Manage_Atmos_CumGain_Burned4EnergyC", "Manage_Atmos_CumGain_ManagedBurnC", "Manage_Atmos_AnnGain_Burned4EnergyC", 
-                     "Manage_Atmos_AnnGain_ManagedBurnC")
+                     "Manage_Atmos_CumGain_EnergyC", "Manage_Atmos_CumGain_ManBurnC", "Manage_Atmos_AnnGain_EnergyC", 
+                     "Manage_Atmos_AnnGain_ManBurnC")
 num_out_atmos_sheets = length(out_atmos_sheets)
 out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
                     "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", 
@@ -2139,15 +2184,15 @@ for (year in start_year:(end_year-1)) {
 	out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
 	
 	# Split "Manage_Atmos_CumGain_BurnedC" into burned C from bioenergy and burned C from managed burns in the forest
-	# burned C from bioenergy "Manage_Atmos_CumGain_Burned4EnergyC"
+	# burned C from bioenergy "Manage_Atmos_CumGain_EnergyC"
 	out_atmos_df_list[[27]][, next_atmos_label] = out_atmos_df_list[[27]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-	# burned C from managed burns "Manage_Atmos_CumGain_ManagedBurnC"
+	# burned C from managed burns "Manage_Atmos_CumGain_ManBurnC"
 	out_atmos_df_list[[28]][, next_atmos_label] = out_atmos_df_list[[28]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
 	
 	# Split "Manage_Atmos_AnnGain_BurnedC" into burned C from bioenergy and burned C from managed burns in the forest
-	# burned C from bioenergy "Manage_Atmos_AnnGain_Burned4EnergyC"
+	# burned C from bioenergy "Manage_Atmos_AnnGain_EnergyC"
 	out_atmos_df_list[[29]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-	# burned C from managed burns "Manage_Atmos_AnnGain_ManagedBurnC"
+	# burned C from managed burns "Manage_Atmos_AnnGain_ManBurnC"
 	out_atmos_df_list[[30]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
 } # end loop over calculation years
 
@@ -2251,22 +2296,22 @@ for (i in 4:ncol(Manage_CumBurnedC)) {
 
 # Further split managed burn C pool into energy and non-energy
 # managed energy
-Manage_CumBurned4EnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_Burned4EnergyC"]]  
-Manage_Burn4Energy_CumCO2C <- Manage_CumBurned4EnergyC
+Manage_CumBurned4EnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]]  
+ManEnergy_CumCO2C <- Manage_CumBurned4EnergyC
 for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
-  Manage_Burn4Energy_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurned4EnergyC[,i]
+  ManEnergy_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurned4EnergyC[,i]
 }
-Manage_Burn4Energy_CumCH4C <- Manage_CumBurned4EnergyC
+ManEnergy_CumCH4C <- Manage_CumBurned4EnergyC
 for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
-  Manage_Burn4Energy_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumBurned4EnergyC[,i]
+  ManEnergy_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumBurned4EnergyC[,i]
 }
-Manage_Burn4Energy_CumBCC <- Manage_CumBurned4EnergyC
+ManEnergy_CumBCC <- Manage_CumBurned4EnergyC
 for (i in 4:ncol(Manage_CumBurned4EnergyC)) {
-  Manage_Burn4Energy_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurned4EnergyC[,i]
+  ManEnergy_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurned4EnergyC[,i]
 }
 
 # managed non-energy
-Manage_CumManagedBurnC <- out_atmos_df_list[["Manage_Atmos_CumGain_ManagedBurnC"]] 
+Manage_CumManagedBurnC <- out_atmos_df_list[["Manage_Atmos_CumGain_ManBurnC"]] 
 Manage_ManagedBurns_CumCO2C <- Manage_CumManagedBurnC
 for (i in 4:ncol(Manage_CumManagedBurnC)) {
   Manage_ManagedBurns_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumManagedBurnC[,i]
@@ -2281,40 +2326,40 @@ for (i in 4:ncol(Manage_CumManagedBurnC)) {
 }
 
 Wildfire_CumBurnedC <- out_atmos_df_list[["Fire_Atmos_CumGain_BurnedC"]]
-Wildfire_Burn_CumCO2C <- Wildfire_CumBurnedC
+Wildfire_CumCO2C <- Wildfire_CumBurnedC
 for (i in 4:ncol(Wildfire_CumBurnedC)) {
-  Wildfire_Burn_CumCO2C[,i] <- CO2C_burn_frac * Wildfire_CumBurnedC[,i]
+  Wildfire_CumCO2C[,i] <- CO2C_burn_frac * Wildfire_CumBurnedC[,i]
 }
-Wildfire_Burn_CumCH4C <- Wildfire_CumBurnedC
+Wildfire_CumCH4C <- Wildfire_CumBurnedC
 for (i in 4:ncol(Wildfire_CumBurnedC)) {
-  Wildfire_Burn_CumCH4C[,i] <- CH4C_burn_frac * Wildfire_CumBurnedC[,i]
+  Wildfire_CumCH4C[,i] <- CH4C_burn_frac * Wildfire_CumBurnedC[,i]
 }
-Wildfire_Burn_CumBCC <- Wildfire_CumBurnedC
+Wildfire_CumBCC <- Wildfire_CumBurnedC
 for (i in 4:ncol(Wildfire_CumBurnedC)) {
-  Wildfire_Burn_CumBCC[,i] <- BCC_burn_frac * Wildfire_CumBurnedC[,i]
+  Wildfire_CumBCC[,i] <- BCC_burn_frac * Wildfire_CumBurnedC[,i]
 }
 
 LCC_CumBurnedC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC"]]
-LCC_Burn_CumCO2C <- LCC_CumBurnedC
+LCCBurn_CumCO2C <- LCC_CumBurnedC
 for (i in 4:ncol(LCC_CumBurnedC)) {
-  LCC_Burn_CumCO2C[,i] <- CO2C_burn_frac * LCC_CumBurnedC[,i]
+  LCCBurn_CumCO2C[,i] <- CO2C_burn_frac * LCC_CumBurnedC[,i]
 }
-LCC_Burn_CumCH4C <- LCC_CumBurnedC
+LCCBurn_CumCH4C <- LCC_CumBurnedC
 for (i in 4:ncol(LCC_CumBurnedC)) {
-  LCC_Burn_CumCH4C[,i] <- CH4C_burn_frac * LCC_CumBurnedC[,i]
+  LCCBurn_CumCH4C[,i] <- CH4C_burn_frac * LCC_CumBurnedC[,i]
 }
-LCC_Burn_CumBCC <- LCC_CumBurnedC
+LCCBurn_CumBCC <- LCC_CumBurnedC
 for (i in 4:ncol(LCC_CumBurnedC)) {
-  LCC_Burn_CumBCC[,i] <- BCC_burn_frac * LCC_CumBurnedC[,i]
+  LCCBurn_CumBCC[,i] <- BCC_burn_frac * LCC_CumBurnedC[,i]
 }
 
-# total energy
-total_energy_CumCO2C <- LCC_Burn_CumCO2C
-total_energy_CumCO2C[,4:ncol(total_energy_CO2C)] <- LCC_Burn_CumCO2C[,4:ncol(LCC_Burn_CumCO2C)] + Manage_Burn4Energy_CumCO2C[,4:ncol(LCC_Burn_CumCO2C)]
-total_energy_CumCH4C <- LCC_Burn_CumCH4C
-total_energy_CumCH4C[,4:ncol(total_energy_CH4C)] <- LCC_Burn_CumCH4C[,4:ncol(LCC_Burn_CumCH4C)] + Manage_Burn4Energy_CumCH4C[,4:ncol(LCC_Burn_CumCH4C)]
-total_energy_CumBCC <- LCC_Burn_CumBCC
-total_energy_CumBCC[,4:ncol(total_energy_BCC)] <- LCC_Burn_CumBCC[,4:ncol(LCC_Burn_CumBCC)] + Manage_Burn4Energy_CumBCC[,4:ncol(LCC_Burn_CumBCC)]
+# total energy CO2-C, CH4-C, and BC-C 
+TotalEnergy_CumCO2C <- LCCBurn_CumCO2C
+TotalEnergy_CumCO2C[,4:ncol(total_energy_CO2C)] <- LCCBurn_CumCO2C[,4:ncol(LCCBurn_CumCO2C)] + ManEnergy_CumCO2C[,4:ncol(LCCBurn_CumCO2C)]
+TotalEnergy_CumCH4C <- LCCBurn_CumCH4C
+TotalEnergy_CumCH4C[,4:ncol(total_energy_CH4C)] <- LCCBurn_CumCH4C[,4:ncol(LCCBurn_CumCH4C)] + ManEnergy_CumCH4C[,4:ncol(LCCBurn_CumCH4C)]
+TotalEnergy_CumBCC <- LCCBurn_CumBCC
+TotalEnergy_CumBCC[,4:ncol(total_energy_BCC)] <- LCCBurn_CumBCC[,4:ncol(LCCBurn_CumBCC)] + ManEnergy_CumBCC[,4:ncol(LCCBurn_CumBCC)]
 
 ## annual ##
 
@@ -2334,70 +2379,70 @@ for (i in 4:ncol(Manage_AnnBurnedC)) {
 
 # Further split managed burn C pool into energy and non-energy
 # managed energy
-Manage_AnnBurned4EnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_Burned4EnergyC"]]  
-Manage_Burn4Energy_AnnCO2C <- Manage_AnnBurned4EnergyC
+Manage_AnnBurned4EnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]]  
+ManEnergy_AnnCO2C <- Manage_AnnBurned4EnergyC
 for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
-  Manage_Burn4Energy_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurned4EnergyC[,i]
+  ManEnergy_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnBurned4EnergyC[,i]
 }
-Manage_Burn4Energy_AnnCH4C <- Manage_AnnBurned4EnergyC
+ManEnergy_AnnCH4C <- Manage_AnnBurned4EnergyC
 for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
-  Manage_Burn4Energy_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnBurned4EnergyC[,i]
+  ManEnergy_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnBurned4EnergyC[,i]
 }
-Manage_Burn4Energy_AnnBCC <- Manage_AnnBurned4EnergyC
+ManEnergy_AnnBCC <- Manage_AnnBurned4EnergyC
 for (i in 4:ncol(Manage_AnnBurned4EnergyC)) {
-  Manage_Burn4Energy_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurned4EnergyC[,i]
+  ManEnergy_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnBurned4EnergyC[,i]
 }
 
 # managed non-energy
-Manage_AnnManagedBurnC <- out_atmos_df_list[["Manage_Atmos_AnnGain_ManagedBurnC"]]  
-Manage_ManagedBurns_AnnCO2C <- Manage_AnnManagedBurnC
+Manage_AnnManagedBurnC <- out_atmos_df_list[["Manage_Atmos_AnnGain_ManBurnC"]]  
+ManBurns_AnnCO2C <- Manage_AnnManagedBurnC
 for (i in 4:ncol(Manage_AnnManagedBurnC)) {
-  Manage_ManagedBurns_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnManagedBurnC[,i]
+  ManBurns_AnnCO2C[,i] <- CO2C_burn_frac * Manage_AnnManagedBurnC[,i]
 }
-Manage_ManagedBurns_AnnCH4C <- Manage_AnnManagedBurnC
+ManBurns_AnnCH4C <- Manage_AnnManagedBurnC
 for (i in 4:ncol(Manage_AnnManagedBurnC)) {
-  Manage_ManagedBurns_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnManagedBurnC[,i]
+  ManBurns_AnnCH4C[,i] <- CH4C_burn_frac * Manage_AnnManagedBurnC[,i]
 }
-Manage_ManagedBurns_AnnBCC <- Manage_AnnManagedBurnC
+ManBurns_AnnBCC <- Manage_AnnManagedBurnC
 for (i in 4:ncol(Manage_AnnManagedBurnC)) {
-  Manage_ManagedBurns_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnManagedBurnC[,i]
+  ManBurns_AnnBCC[,i] <- BCC_burn_frac * Manage_AnnManagedBurnC[,i]
 }
 
 Wildfire_AnnBurnedC <- out_atmos_df_list[["Fire_Atmos_AnnGain_BurnedC"]]
-Wildfire_Burn_AnnCO2C <- Wildfire_AnnBurnedC
+Wildfire_AnnCO2C <- Wildfire_AnnBurnedC
 for (i in 4:ncol(Wildfire_AnnBurnedC)) {
-  Wildfire_Burn_AnnCO2C[,i] <- CO2C_burn_frac * Wildfire_AnnBurnedC[,i]
+  Wildfire_AnnCO2C[,i] <- CO2C_burn_frac * Wildfire_AnnBurnedC[,i]
 }
-Wildfire_Burn_AnnCH4C <- Wildfire_AnnBurnedC
+Wildfire_AnnCH4C <- Wildfire_AnnBurnedC
 for (i in 4:ncol(Wildfire_AnnBurnedC)) {
-  Wildfire_Burn_AnnCH4C[,i] <- CH4C_burn_frac * Wildfire_AnnBurnedC[,i]
+  Wildfire_AnnCH4C[,i] <- CH4C_burn_frac * Wildfire_AnnBurnedC[,i]
 }
-Wildfire_Burn_AnnBCC <- Wildfire_AnnBurnedC
+Wildfire_AnnBCC <- Wildfire_AnnBurnedC
 for (i in 4:ncol(Wildfire_AnnBurnedC)) {
-  Wildfire_Burn_AnnBCC[,i] <- BCC_burn_frac * Wildfire_AnnBurnedC[,i]
+  Wildfire_AnnBCC[,i] <- BCC_burn_frac * Wildfire_AnnBurnedC[,i]
 }
 
 LCC_AnnBurnedC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC"]]
-LCC_Burn_AnnCO2C <- LCC_AnnBurnedC
+LCCBurn_AnnCO2C <- LCC_AnnBurnedC
 for (i in 4:ncol(LCC_AnnBurnedC)) {
-  LCC_Burn_AnnCO2C[,i] <- CO2C_burn_frac * LCC_AnnBurnedC[,i]
+  LCCBurn_AnnCO2C[,i] <- CO2C_burn_frac * LCC_AnnBurnedC[,i]
 }
-LCC_Burn_AnnCH4C <- LCC_AnnBurnedC
+LCCBurn_AnnCH4C <- LCC_AnnBurnedC
 for (i in 4:ncol(LCC_AnnBurnedC)) {
-  LCC_Burn_AnnCH4C[,i] <- CH4C_burn_frac * LCC_AnnBurnedC[,i]
+  LCCBurn_AnnCH4C[,i] <- CH4C_burn_frac * LCC_AnnBurnedC[,i]
 }
-LCC_Burn_AnnBCC <- LCC_AnnBurnedC
+LCCBurn_AnnBCC <- LCC_AnnBurnedC
 for (i in 4:ncol(LCC_AnnBurnedC)) {
-  LCC_Burn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
+  LCCBurn_AnnBCC[,i] <- BCC_burn_frac * LCC_AnnBurnedC[,i]
 }
 
-# total energy
-total_energy_AnnCO2C <- LCC_Burn_AnnCO2C
-total_energy_AnnCO2C[,4:ncol(total_energy_CO2C)] <- LCC_Burn_AnnCO2C[,4:ncol(LCC_Burn_AnnCO2C)] + Manage_Burn4Energy_AnnCO2C[,4:ncol(LCC_Burn_AnnCO2C)]
-total_energy_AnnCH4C <- LCC_Burn_AnnCH4C
-total_energy_AnnCH4C[,4:ncol(total_energy_CH4C)] <- LCC_Burn_AnnCH4C[,4:ncol(LCC_Burn_AnnCH4C)] + Manage_Burn4Energy_AnnCH4C[,4:ncol(LCC_Burn_AnnCH4C)]
-total_energy_AnnBCC <- LCC_Burn_AnnBCC
-total_energy_AnnBCC[,4:ncol(total_energy_BCC)] <- LCC_Burn_AnnBCC[,4:ncol(LCC_Burn_AnnBCC)] + Manage_Burn4Energy_AnnBCC[,4:ncol(LCC_Burn_AnnBCC)]
+# total energy CO2-C, CH4-C, and BC-C 
+TotalEnergy_AnnCO2C <- LCCBurn_AnnCO2C
+TotalEnergy_AnnCO2C[,4:ncol(total_energy_CO2C)] <- LCCBurn_AnnCO2C[,4:ncol(LCCBurn_AnnCO2C)] + ManEnergy_AnnCO2C[,4:ncol(LCCBurn_AnnCO2C)]
+TotalEnergy_AnnCH4C <- LCCBurn_AnnCH4C
+TotalEnergy_AnnCH4C[,4:ncol(total_energy_CH4C)] <- LCCBurn_AnnCH4C[,4:ncol(LCCBurn_AnnCH4C)] + ManEnergy_AnnCH4C[,4:ncol(LCCBurn_AnnCH4C)]
+TotalEnergy_AnnBCC <- LCCBurn_AnnBCC
+TotalEnergy_AnnBCC[,4:ncol(total_energy_BCC)] <- LCCBurn_AnnBCC[,4:ncol(LCCBurn_AnnBCC)] + ManEnergy_AnnBCC[,4:ncol(LCCBurn_AnnBCC)]
 
 # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain 
 # (less eco C emissions).
@@ -2411,8 +2456,8 @@ for (i in 4:ncol(Total_CumCO2C)) {
 for (i in 4:ncol(Manage_Burn_CumCO2C)) {
 Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
   out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + 
-  out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_Burn_CumCO2C[,i] + 
-  LCC_Burn_CumCO2C[,i]
+  out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_CumCO2C[,i] + 
+  LCCBurn_CumCO2C[,i]
 }
 # Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
 Total_CumCH4C <- Manage_Burn_CumCH4C
@@ -2420,7 +2465,7 @@ for (i in 4:ncol(Total_CumCH4C)) {
   Total_CumCH4C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_CumCH4C)) {
-  Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Burn_CumCH4C[,i] + Wildfire_Burn_CumCH4C[,i] + LCC_Burn_CumCH4C[,i]
+  Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Burn_CumCH4C[,i] + Wildfire_CumCH4C[,i] + LCCBurn_CumCH4C[,i]
 }
 # Third, do cumulative BC-C. Choice of ncol(Manage_Burn_CumBCC) is arbitrary -  just need the total number of columns.
 Total_CumBCC <- Manage_Burn_CumBCC
@@ -2428,7 +2473,7 @@ for (i in 4:ncol(Total_CumBCC)) {
   Total_CumBCC[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_CumBCC)) {
-  Total_CumBCC[,i] <- Manage_Burn_CumBCC[,i] + Wildfire_Burn_CumBCC[,i] + LCC_Burn_CumBCC[,i]
+  Total_CumBCC[,i] <- Manage_Burn_CumBCC[,i] + Wildfire_CumBCC[,i] + LCCBurn_CumBCC[,i]
 }
 
   ### annual ###
@@ -2440,8 +2485,8 @@ for (i in 4:ncol(Total_AnnCO2C)) {
 for (i in 4:ncol(Manage_Burn_AnnCO2C)) {
   Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
     out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + 
-    out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_Burn_AnnCO2C[,i] + 
-    LCC_Burn_AnnCO2C[,i]
+    out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_AnnCO2C[,i] + 
+    LCCBurn_AnnCO2C[,i]
 }
 # Second, do annual CH4-C. Choice of ncol(Manage_Burn_AnnCH4C) is arbitrary -  just need the total number of columns.
 Total_AnnCH4C <- Manage_Burn_AnnCH4C
@@ -2449,7 +2494,7 @@ for (i in 4:ncol(Total_AnnCH4C)) {
   Total_AnnCH4C[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_AnnCH4C)) {
-  Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Burn_AnnCH4C[,i] + Wildfire_Burn_AnnCH4C[,i] + LCC_Burn_AnnCH4C[,i]
+  Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Burn_AnnCH4C[,i] + Wildfire_AnnCH4C[,i] + LCCBurn_AnnCH4C[,i]
 }
 # Third, do annual BC-C. Choice of ncol(Manage_Burn_AnnBCC) is arbitrary -  just need the total number of columns.
 Total_AnnBCC <- Manage_Burn_AnnBCC
@@ -2457,7 +2502,7 @@ for (i in 4:ncol(Total_AnnBCC)) {
   Total_AnnBCC[,i] <- 0
 }
 for (i in 4:ncol(Manage_Burn_AnnBCC)) {
-  Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_Burn_AnnBCC[,i] + LCC_Burn_AnnBCC[,i]
+  Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_AnnBCC[,i] + LCCBurn_AnnBCC[,i]
 }
 
 # the following check is used to show that the differences between total annual CO2-C, CH4-C and BC-C, and
@@ -2519,6 +2564,69 @@ for (i in 4:ncol(Total_AnnCO2)) {
   Total_AnnCO2eq_all[,i] <- Total_AnnCO2[,i] + Total_AnnCH4eq[,i] + Total_AnnBCeq[,i]
 }
 
+######### Calculate additonal breakdowns of total CO2, CH4, & BC (CO2-eq) from various sources ######### 
+
+# subset outputs from out_atmos to include in df.list below
+LCC_Decay_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonEnergyC"]]
+LCC_Decay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonEnergyC"]]
+
+# create list of all the additonal tables from which we want to calculate GWP 
+df.list <- list(ManEnergy_CumCO2C = ManEnergy_CumCO2C,
+ManEnergy_CumCH4C = ManEnergy_CumCH4C,
+ManEnergy_CumBCC = ManEnergy_CumBCC,
+
+LCCBurn_CumCO2C = LCCBurn_CumCO2C,
+LCCBurn_CumCH4C = LCCBurn_CumCH4C,
+LCCBurn_CumBCC  = LCCBurn_CumBCC,
+
+TotalEnergy_CumCO2C = TotalEnergy_CumCO2C,
+TotalEnergy_CumCH4C = TotalEnergy_CumCH4C,
+TotalEnergy_CumBCC  = TotalEnergy_CumBCC,
+
+Wildfire_CumCO2C = Wildfire_CumCO2C,
+Wildfire_CumCH4C = Wildfire_CumCH4C,
+Wildfire_CumBCC  = Wildfire_CumBCC,
+
+LCC_Decay_CumCO2C = LCC_Decay_CumCO2C,
+
+ManBurns_AnnCO2C = ManBurns_AnnCO2C, 
+ManBurns_AnnCH4C = ManBurns_AnnCH4C,
+ManBurns_AnnBCC  = ManBurns_AnnBCC,
+
+ManEnergy_AnnCO2C = ManEnergy_AnnCO2C,
+ManEnergy_AnnCH4C = ManEnergy_AnnCH4C,
+ManEnergy_AnnBCC  = ManEnergy_AnnBCC,
+
+LCCBurn_AnnCO2C = LCCBurn_AnnCO2C,
+LCCBurn_AnnCH4C = LCCBurn_AnnCH4C,
+LCCBurn_AnnBCC  = LCCBurn_AnnBCC,
+
+LCC_Decay_AnnCO2C = LCC_Decay_AnnCO2C,
+
+TotalEnergy_AnnCO2C = TotalEnergy_AnnCO2C,
+TotalEnergy_AnnCH4C = TotalEnergy_AnnCH4C,
+TotalEnergy_AnnBCC  = TotalEnergy_AnnBCC,
+
+Wildfire_AnnCO2C = Wildfire_AnnCO2C,
+Wildfire_AnnCH4C = Wildfire_AnnCH4C,
+Wildfire_AnnBCC  = Wildfire_AnnBCC)
+
+# calc GWP [CO2-eq] for each table in df.list
+new.df <- c()
+for (i in length(df.list)) { 
+  new.df <- c(new.df, CALC.GWP(df.list))
+}
+
+# get list of new names for df.list that drops the last 'C' in CO2C, CH4C, and BCC 
+# and adds 'eq' for CH4 and BC  
+new.name <- c()
+for (i in length(df.list)) { 
+  new.name <- c(new.name, GET.NAMES(df.list))
+}
+
+# replace names of the elements in new.df with the CO2-eq names
+names(new.df) <- paste0(new.name)
+
 # add GHG dataframes to out_atmos_df_list
 out_atmos_df_list[["Eco_AnnCO2C"]] <- Eco_AnnCO2C
 out_atmos_df_list[["Eco_AnnCH4C"]] <- Eco_AnnCH4C
@@ -2533,6 +2641,8 @@ out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
 out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
 out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
 
+# combine new.df with the additional CO2eq breakdowns with the out_atmos_df_list
+out_atmos_df_list <- c(out_atmos_df_list, new.df)
 
 # check that total atmos C gain is equal to the sum of the partitions, less the Eco C emissions (not included in the Total_Atmos gain C)
 zero_test <- Total_CumCO2
@@ -2664,6 +2774,8 @@ if(WRITE_OUT_FILE) {
 	clearSheet(out_wrkbk, sheet = names(out_atmos_df_list))
 	writeWorksheet(out_wrkbk, data = out_atmos_df_list, sheet = names(out_atmos_df_list), header = TRUE)
   
+	#setDataFormatForType(out_wrkbk, type = XLC$"DATA_TYPE.NUMERIC", format = "0.000") 
+	
 	# write the workbook
 	saveWorkbook(out_wrkbk)
 
