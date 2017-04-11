@@ -360,7 +360,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   names(conv_area_df)[ncol(conv_area_df)] = "base_area_change"
   vegc_uptake_df = c_df_list[[10]]
   vegc_uptake_df$vegc_uptake_val = vegc_uptake_df[,value_col]
-  deadc_frac_df = c_df_list[[3]][,c("Land_Type_ID", "Land_Type", "Ownership")]
+  deadc_frac_df = c_df_list[[3]][,c("Category_ID", "Region", "Land_Type", "Ownership")]
   soilc_accum_df = c_df_list[[11]]
   soilc_accum_df$soilc_accum_val = soilc_accum_df[,value_col]
   conv_df = c_df_list[[12]]
