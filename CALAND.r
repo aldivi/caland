@@ -475,7 +475,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   
   # wood c stock
   for (i in 1:num_out_wood_sheets) {
-    out_wood_df_list[[i]] <- c_df_list[[1]][,c("Land_Type_ID", "Land_Type", "Ownership")]
+    out_wood_df_list[[i]] <- c_df_list[[1]][,c("Category_ID", "Region", "Land_Type", "Ownership")]
     out_wood_df_list[[i]][,start_wood_label] = 0.0
   }
   names(out_wood_df_list) <- out_wood_sheets
