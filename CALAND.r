@@ -63,7 +63,7 @@ CALC.GWP <- function(df) {
   for (l in 1:length(name)) { #loop over each data frame
     #loop over each data frame and get the unique number of columns (different for annual and cumulative)
     # loop over the C emissions columns
-    for (i in 4:ncol(df[[l]])) { 
+    for (i in 5:ncol(df[[l]])) { 
       # if not BCC and not CH4C
       if ((substr(name[[l]], nchar(name[[l]])-2, nchar(name[[l]]))) != "BCC" & 
           (substr(name[[l]], nchar(name[[l]])-2, nchar(name[[l]]))) != "H4C") {
