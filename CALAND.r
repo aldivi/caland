@@ -307,7 +307,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # converted to NA value
   c_col_types1 = c("numeric", "character", "character", "character", rep("numeric",50))
   c_col_types2 = c("numeric", "character", "character", "character", "character", rep("numeric",50))
-  c_col_types3 = c("numeric", "character", rep("numeric",50))
+  c_col_types3 = c("character", rep("numeric",50))
   
   # Load the worksheets into a list of data frames
   c_df_list <- list()
