@@ -336,7 +336,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # remove the Xs added to the front of the year columns, and get the years as numbers
   man_targetyear_labels = names(scen_df_list[[3]])[c(6:ncol(scen_df_list[[3]]))]
   man_targetyear_labels = substr(man_targetyear_labels,2,nchar(man_targetyear_labels[1]))
-  names(scen_df_list[[3]])[c(7:ncol(scen_df_list[[3]]))] = man_targetyear_labels
+  names(scen_df_list[[3]])[c(6:ncol(scen_df_list[[3]]))] = man_targetyear_labels
   man_targetyears = as.integer(substr(man_targetyear_labels,1,4))
   
   fire_targetyear_labels = names(scen_df_list[[4]])[c(6:ncol(scen_df_list[[4]]))]
