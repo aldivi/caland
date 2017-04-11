@@ -334,7 +334,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   names(scen_df_list) <- scen_sheets
   
   # remove the Xs added to the front of the year columns, and get the years as numbers
-  man_targetyear_labels = names(scen_df_list[[3]])[c(7:ncol(scen_df_list[[3]]))]
+  man_targetyear_labels = names(scen_df_list[[3]])[c(6:ncol(scen_df_list[[3]]))]
   man_targetyear_labels = substr(man_targetyear_labels,2,nchar(man_targetyear_labels[1]))
   names(scen_df_list[[3]])[c(7:ncol(scen_df_list[[3]]))] = man_targetyear_labels
   man_targetyears = as.integer(substr(man_targetyear_labels,1,4))
@@ -546,8 +546,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
     man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
     man_area_sum = merge(man_area_sum, tot_area_df, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
-    man_area_sum = man_area_s
-    um[order(man_area_sum$Category_ID, man_area_sum$Management),]
+    man_area_sum = man_area_sum[order(man_area_sum$Category_ID, man_area_sum$Management),]
     man_area_sum_agg = aggregate(man_area_sum ~ Category_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                              man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
