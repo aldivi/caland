@@ -546,7 +546,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
     man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
     man_area_sum = merge(man_area_sum, tot_area_df, by = c("Category_ID", "Region", "Land_Type","Ownership"), all.x = TRUE)
-    man_area_sum = man_area_sum[order(man_area_sum$Category_ID, man_area_sum$Manage_ID),]
+    man_area_sum = man_area_sum[order(man_area_sum$Category_ID, man_area_sum$Management),]
     man_area_sum_agg = aggregate(man_area_sum ~ Category_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                              man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
