@@ -1499,10 +1499,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     ############################################################################################################
     man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | 
                                   man_adjust_df$Management == "Growth",1:7]
-    man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Category_ID", "Land_Type", "Ownership", "Management"))
+    man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Category_ID", "Region", "Land_Type", "Ownership", "Management"))
     names(man_conv_df)[names(man_conv_df) == start_area_label] = "initial_man_area"
     
-    conv_adjust_df = merge(conv_adjust_df, man_conv_df, by = c("Category_ID", "Land_Type", "Ownership"), all.x=TRUE)
+    conv_adjust_df = merge(conv_adjust_df, man_conv_df, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all.x=TRUE)
     conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Category_ID),]
     conv_adjust_df[,c(10:ncol(conv_adjust_df))] <- apply(conv_adjust_df[,c(10:ncol(conv_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
     
@@ -1510,7 +1510,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     conv_adjust_df$base_change_adjust = 0
     
     # merge the conversion fractions before splitting upon ownership
-    conv_adjust_df = merge(conv_adjust_df, conv_df, by = c("Category_ID", "Land_Type", "Ownership"))
+    conv_adjust_df = merge(conv_adjust_df, conv_df, by = c("Category_ID", "Region", "Land_Type", "Ownership"))
     conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Category_ID),]
     conv_col_names = unique(conv_adjust_df$Land_Type[conv_adjust_df$Land_Type != "Seagrass"])
     num_conv_col_names = length(conv_col_names)
@@ -1679,9 +1679,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
             conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[1]] + conv_own[,convc_trans_names[2]]) * conv_own[,conv_frac_names[f]]
           } else {
             if (!out_density_sheets[conv_density_inds[f]] %in% names(conv_own)) {
-              conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Category_ID", "Land_Type", "Ownership", 
+              conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Category_ID", "Region", "Land_Type", "Ownership", 
                                                                                         next_density_label)], 
-                               by = c("Category_ID", "Land_Type", "Ownership"), all.x = TRUE)
+                               by = c("Category_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
               names(conv_own)[names(conv_own) == next_density_label] = out_density_sheets[conv_density_inds[f]]
             }
             conv_own[conv_own$Agriculture > 0,convc_trans_names[f]] = 
@@ -1913,7 +1913,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     #  so after the sums, multiply by tot_area/new_area, because these are the final adjustments
     # convert these to gains where necessary for consistency: all terrestrial gains are positive, losses are negative
     # store the transfers in all_c_flux
-    all_c_flux = merge(conv_adjust_df[,c(1:3,7)], all_c_flux, by = c("Category_ID", "Land_Type", "Ownership"))
+    all_c_flux = merge(conv_adjust_df[,c(1:3,7)], all_c_flux, by = c("Category_ID", "Region", "Land_Type", "Ownership"))
     all_c_flux = all_c_flux[order(all_c_flux$Category_ID),]
     
     cgnames = NULL
@@ -2025,7 +2025,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # set this years actual fire area - output by the lt breakdown
     if(year == start_year){
       # add 3rd data frame with these introductory columns
-      out_area_df_list[[3]] = fire_adjust_df[,c("Category_ID", "Fire_ID", "Land_Type", "Ownership", "Intensity")]
+      out_area_df_list[[3]] = fire_adjust_df[,c("Category_ID", "Region", "Land_Type", "Ownership", "Intensity")]
     }
     # add column for current (initial) burn area determined earlier for how it's distributed
     out_area_df_list[[3]][,cur_area_label] = fire_adjust_df$fire_burn_area
