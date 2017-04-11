@@ -512,8 +512,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     #  afforestation area should not be included in forest aggregate managed area and aggregate managed area sum
     # store the difference between the unmanaged and averaged with management eco fluxes, per ag, soil, and forest
     
-    # this is the current year total area by land type id
-    tot_area_df = out_area_df_list[[1]][,c(1:3,ncol(out_area_df_list[[1]]))]
+    # this is the current year total area by category id
+    # assign the first 4 columns (Category_ID, Region, Land_Type, Ownership) and the last column (2010_ha) of the out_area_df_list dataframe to 
+    # 'tot_area_df'.
+    tot_area_df = out_area_df_list[[1]][,c(1:4,ncol(out_area_df_list[[1]]))]
     names(tot_area_df)[names(tot_area_df) == cur_area_label] <- "tot_area"
     
     # reset the man_area_sum df
