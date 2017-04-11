@@ -413,8 +413,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   
   # c density
   # update the all c and bio c sums using the components, mainly because the std dev input values will not be consistent
+  # c_df_list(9 density sheets): totalC, totalbiomass, mainC, root, under, deadstand, deaddown, litter, SOC
   for ( i in 1:num_out_density_sheets) {
-    out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,value_col)]
+    # populate out_density_df_list with the first 4 columns from each of the 9 C density sheets and either mean or +/-stdev
+    out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col)]
     names(out_density_df_list[[i]])[ncol(out_density_df_list[[i]])] <- as.character(start_density_label)
     if(value_col == 7) { # std dev as value
       # this will not be the same as the sum of the components, so update it later
