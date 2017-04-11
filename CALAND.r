@@ -641,7 +641,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Agriculture"] = man_soil_df$man_area[man_soil_df$Land_Type == "Agriculture"] * 
       man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Agriculture"] * 
       man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Agriculture"]
-    man_soilflux_agg = aggregate(soilcfluxXarea ~ Category_ID + Land_Type + Ownership, man_soil_df, FUN=sum)
+    man_soilflux_agg = aggregate(soilcfluxXarea ~ Category_ID + Region + Land_Type + Ownership, man_soil_df, FUN=sum)
     man_soilflux_agg = merge(all_c_flux, man_soilflux_agg, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     na_inds = which(is.na(man_soilflux_agg$soilcfluxXarea))
     man_soilflux_agg$soilcfluxXarea[na_inds] = 0
@@ -674,7 +674,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_veg_df$vegcfluxXarea = man_veg_df$man_area_sum * man_veg_df$VegCuptake_frac * man_veg_df$vegc_uptake_val
     man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
       man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
-    man_vegflux_agg = aggregate(vegcfluxXarea ~ Category_ID + Land_Type + Ownership, man_veg_df, FUN=sum)
+    man_vegflux_agg = aggregate(vegcfluxXarea ~ Category_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
     man_vegflux_agg = merge(all_c_flux, man_vegflux_agg, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     na_inds = which(is.na(man_vegflux_agg$vegcfluxXarea))
     man_vegflux_agg$vegcfluxXarea[na_inds] = 0
@@ -719,7 +719,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_dead_df = merge(man_adjust_df, deadc_frac_df, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_dead_df = man_dead_df[order(man_dead_df$Category_ID, man_dead_df$Management),]
     man_dead_df$deadcfracXarea = man_dead_df$man_area_sum * man_dead_df$DeadCaccum_frac * man_dead_df$deadc_frac_in
-    man_deadfrac_agg = aggregate(deadcfracXarea ~ Category_ID + Land_Type + Ownership, man_dead_df, FUN=sum)
+    man_deadfrac_agg = aggregate(deadcfracXarea ~ Category_ID + Region + Land_Type + Ownership, man_dead_df, FUN=sum)
     man_deadfrac_agg = merge(all_c_flux, man_deadfrac_agg, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     na_inds = which(is.na(man_deadfrac_agg$deadcfracXarea))
     man_deadfrac_agg$deadcfracXarea[na_inds] = 0
@@ -1165,7 +1165,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       agg_cols[,i] = man_adjust_df[,agg_names[i]]
     }
     # third, aggregate the C transfers by summing within each land type and ownership combination and assign to man_adjust_agg df
-    man_adjust_agg = aggregate(agg_cols ~ Category_ID + Land_Type + Ownership, data=man_adjust_df, FUN=sum)
+    man_adjust_agg = aggregate(agg_cols ~ Category_ID + Region + Land_Type + Ownership, data=man_adjust_df, FUN=sum)
     # fourth, label the columns of the aggregated table 
     agg_names2 = paste0(agg_names,"_agg")
     names(man_adjust_agg)[c(4:ncol(man_adjust_agg))] = agg_names2
@@ -1417,7 +1417,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       fire_agg_cols[,i] = fire_adjust_df[,fire_agg_names[i]]
     }
     # third, aggregate the C DENSITY CHANGES by summing within each land type-ownership combination and assign to fire_adjust_agg 
-    fire_adjust_agg = aggregate(fire_agg_cols ~ Category_ID + Land_Type + Ownership, data=fire_adjust_df, FUN=sum)
+    fire_adjust_agg = aggregate(fire_agg_cols ~ Category_ID + Region + Land_Type + Ownership, data=fire_adjust_df, FUN=sum)
     # fourth, label the columns of the aggregated table 
     fire_agg_names2 = paste0(fire_agg_names,"_fire_agg")
     names(fire_adjust_agg)[c(4:ncol(fire_adjust_agg))] = fire_agg_names2
