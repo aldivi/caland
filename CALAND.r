@@ -344,9 +344,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   names(scen_df_list[[4]])[c(6:ncol(scen_df_list[[4]]))] = fire_targetyear_labels
   fire_targetyears = as.integer(substr(fire_targetyear_labels,1,4))
   
-  mortality_targetyear_labels = names(scen_df_list[[5]])[c(4:ncol(scen_df_list[[5]]))]
+  mortality_targetyear_labels = names(scen_df_list[[5]])[c(5:ncol(scen_df_list[[5]]))]
   mortality_targetyear_labels = substr(mortality_targetyear_labels,2,nchar(mortality_targetyear_labels[1]))
-  names(scen_df_list[[5]])[c(4:ncol(scen_df_list[[5]]))] = mortality_targetyear_labels
+  names(scen_df_list[[5]])[c(5:ncol(scen_df_list[[5]]))] = mortality_targetyear_labels
   mortality_targetyears = as.integer(substr(mortality_targetyear_labels,1,4))
   
   # get some tables
