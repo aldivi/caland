@@ -305,7 +305,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # NA values need to be converted to numeric
   # the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
   # converted to NA value
-  c_col_types1 = c("numeric", "character", "character", rep("numeric",50))
+  c_col_types1 = c("numeric", "character", "character", "character", rep("numeric",50))
   c_col_types2 = c("numeric", "numeric", "character", "character", "character", rep("numeric",50))
   c_col_types3 = c("numeric", "character", rep("numeric",50))
   
