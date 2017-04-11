@@ -546,7 +546,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
     man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
     man_area_sum = merge(man_area_sum, tot_area_df, by = c("Category_ID", "Region", "Land_Type","Ownership"), all.x = TRUE)
-    man_area_sum = man_area_sum[order(man_area_sum$Category_ID, man_area_sum$Management),]
+    man_area_sum = man_area_s
+    um[order(man_area_sum$Category_ID, man_area_sum$Management),]
     man_area_sum_agg = aggregate(man_area_sum ~ Category_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                              man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
@@ -583,7 +584,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_area_sum$man_area_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
     man_area_sum$excess_area = man_area_sum$man_area_agg_extra - man_area_sum$tot_area
     excess_area_inds = which(man_area_sum$excess_area > 0)
-    man_area_sum$man_area[excess_area_inds] = man_area_sum$man_area[excess_area_inds] - man_area_sum$excess_area[excess_area_inds] * man_area_sum$man_area[excess_area_inds] / man_area_sum$man_area_agg_extra[excess_area_inds]
+    man_area_sum$man_area[excess_area_inds] = man_area_sum$man_area[excess_area_inds] - man_area_sum$excess_area[excess_area_inds] * 
+      man_area_sum$man_area[excess_area_inds] / man_area_sum$man_area_agg_extra[excess_area_inds]
     man_area_sum$man_area = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
     man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
     man_area_agg2 = aggregate(man_area ~ Category_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
@@ -609,11 +611,11 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     all_c_flux$unman_area_sum = all_c_flux[,"tot_area"] - all_c_flux[,"man_area_sum_agg"]
     
     man_adjust_df = rbind(man_grass_df, man_ag_df)
-    man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
+      man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
     man_adjust_df = rbind(man_adjust_df, man_dev_df[,c(1:5,dev_soilcaccumfrac_colind)])
-    man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Category_ID","Management", "Land_Type", "Ownership", 
+    man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Category_ID", "Region", "Land_Type", "Ownership", 
                                                                                   "Management", "SoilCaccum_frac"), all.x = TRUE)
-    man_adjust_df = merge(man_area_sum, man_adjust_df, by = c("Category_ID","Management", "Land_Type", "Ownership", "Management"), 
+    man_adjust_df = merge(man_area_sum, man_adjust_df, by = c("Category_ID", "Region", "Land_Type", "Ownership", "Management"), 
                           all.x = TRUE)
     man_adjust_df = man_adjust_df[order(man_adjust_df$Category_ID, man_adjust_df$Management),]
     # replace the NA values with more appropriate ones
