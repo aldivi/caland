@@ -404,7 +404,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # area
   out_area_df_list[[1]] <- scen_df_list[[2]]
   names(out_area_df_list[[1]])[ncol(out_area_df_list[[1]])] <- as.character(start_area_label)
-  out_area_df_list[[2]] <- scen_df_list[[3]][,c(1:6)]
+  out_area_df_list[[2]] <- scen_df_list[[3]][,c(1:7)]
   names(out_area_df_list[[2]])[ncol(out_area_df_list[[2]])] <- as.character(start_area_label)
   #the wildfire out area df is added at the end because it has the breakdown across land type ids
   for ( i in 1:(num_out_area_sheets-1)) {
