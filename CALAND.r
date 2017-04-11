@@ -417,17 +417,20 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   for ( i in 1:num_out_density_sheets) {
     # populate out_density_df_list with the first 4 columns from each of the 9 C density sheets and either mean or +/-stdev
     out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col)]
+    # out_density_df_list now has 5 columns for each sheet/C pool (Category_ID, Region, Land_Type, Ownership, Mean or Stdev)
     names(out_density_df_list[[i]])[ncol(out_density_df_list[[i]])] <- as.character(start_density_label)
-    if(value_col == 7) { # std dev as value
+    if(value_col == 7) { # if std dev as value
       # this will not be the same as the sum of the components, so update it later
       if(ADD) {
-        out_density_df_list[[i]][,4] = out_density_df_list[[i]][,4] + c_df_list[[i]][,"Mean_Mg_ha"]
+        # if we want +stddev, then C_density = std_dev + mean
+        out_density_df_list[[i]][,5] = out_density_df_list[[i]][,5] + c_df_list[[i]][,"Mean_Mg_ha"]
       } else {
-        out_density_df_list[[i]][,4] = c_df_list[[i]][,"Mean_Mg_ha"] - out_density_df_list[[i]][,4]
+        # if we want -stddev, then C_density = mean - stdev
+        out_density_df_list[[i]][,5] = c_df_list[[i]][,"Mean_Mg_ha"] - out_density_df_list[[i]][,5]
       }
     }
     out_density_df_list[[i]][is.na(out_density_df_list[[i]])] <- 0.0
-    out_density_df_list[[i]][,4] <- replace(out_density_df_list[[i]][,4], out_density_df_list[[i]][,4] < 0, 0.00)
+    out_density_df_list[[i]][,5] <- replace(out_density_df_list[[i]][,5], out_density_df_list[[i]][,5] < 0, 0.00)
   }
   names(out_density_df_list) <- out_density_sheets
   # add up the total org c pool density
