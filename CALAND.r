@@ -2730,7 +2730,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     end_label = ncol(out_area_df_list[[i]])
     out_area_df_list[[i]][, "Change_ha"] = out_area_df_list[[i]][,end_label] - out_area_df_list[[i]][,start_area_label]
     sum_row = out_area_df_list[[i]][1,]
-    sum_row[,c(1:5)] = c(-1, -1, "All_land", "All_own", "All")
+    sum_row[,c(1:5)] = c(-1, "All_region", "All_land", "All_own", "All")
     sum_row[,c(6:ncol(sum_row))] = 
       apply(out_area_df_list[[i]][out_area_df_list[[i]][, "Ownership"] != "Ocean", c(6:ncol(out_area_df_list[[i]]))], 2 , sum)
     out_area_df_list[[i]] = rbind(out_area_df_list[[i]], sum_row)
