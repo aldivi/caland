@@ -1325,7 +1325,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                                       fire_adjust_df$Land_Type == "Savanna" | fire_adjust_df$Land_Type == "Grassland" | 
                                       fire_adjust_df$Land_Type == "Shrubland",]
     # create new dataframe for OWNERSHIP AREA [ha]: AGGREGATE total AREAS by OWNERSHIP, omitting duplicates
-    avail_own_area = aggregate(tot_area ~ Ownership, data = unique(fire_adjust_df[,c(1:4)]), sum)
+    avail_own_area = aggregate(tot_area ~ Ownership, data = unique(fire_adjust_df[,c(1:5)]), sum)
     # rename OWNERSHIP AREA [ha]: "avail_own_area"
     names(avail_own_area)[2] = "avail_own_area"
     # merge FIRE C TRANSFER EFFECTS (fractions) dataframe with the ownership areas dataframe
