@@ -2720,11 +2720,11 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   out_area_df_list[[1]][, "Change_ha"] = out_area_df_list[[1]][,end_area_label] - out_area_df_list[[1]][,start_area_label]
   sum_row = out_area_df_list[[1]][1,]
   # sum_row is a row of all land 
-  sum_row[,c(1:3)] = c(-1, "All_land", "All_own")
-  sum_row[,c(4:ncol(sum_row))] = 
-    apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Ownership"] != "Ocean", c(4:ncol(out_area_df_list[[1]]))], 2 , sum)
+  sum_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
+  sum_row[,c(5:ncol(sum_row))] = 
+    apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Ownership"] != "Ocean", c(5:ncol(out_area_df_list[[1]]))], 2 , sum)
   out_area_df_list[[1]] = rbind(out_area_df_list[[1]], sum_row)
-  out_area_df_list[[1]][,c(4:ncol(out_area_df_list[[1]]))] = round(out_area_df_list[[1]][,c(4:ncol(out_area_df_list[[1]]))], 0)
+  out_area_df_list[[1]][,c(5:ncol(out_area_df_list[[1]]))] = round(out_area_df_list[[1]][,c(5:ncol(out_area_df_list[[1]]))], 0)
   # for managed area and wildfire area
   for (i in 2:num_out_area_sheets) {
     end_label = ncol(out_area_df_list[[i]])
