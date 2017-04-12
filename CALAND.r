@@ -2691,7 +2691,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   
   # replaces any -0 with 0
   for (i in 1:length(out_atmos_df_list)) {
-    for (c in 4:ncol(out_atmos_df_list[[i]])) {
+    for (c in 5:ncol(out_atmos_df_list[[i]])) {
       out_atmos_df_list[[i]][,c] <- replace(out_atmos_df_list[[i]][,c], out_atmos_df_list[[i]][,c] == 0, 0.00000000) 
     }
     
@@ -2699,17 +2699,17 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   
   # check that total atmos C gain is equal to the sum of the partitions, less the Eco C emissions (not included in the Total_Atmos gain C)
   zero_test <- Total_CumCO2
-  for (i in 4:ncol(zero_test)) {
+  for (i in 5:ncol(zero_test)) {
     zero_test[,i] <- 0
   }
-  for (i in 4:ncol(Total_CumCO2)) {
+  for (i in 5:ncol(Total_CumCO2)) {
     zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
                                                                                  Total_CumCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_CumBCeq[,i] * (0.6/gwp_BC) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
   } 
   # rounding error so this test is false
-  all(zero_test[4:ncol(zero_test)] == 0) 
+  all(zero_test[5:ncol(zero_test)] == 0) 
   # but this checks to be true
-  all(zero_test[4:ncol(zero_test)] < 0.001 & zero_test[4:ncol(zero_test)] > -0.001) 
+  all(zero_test[5:ncol(zero_test)] < 0.001 & zero_test[5:ncol(zero_test)] > -0.001) 
   
   # Calculate some changes and totals
   # also round everything to integer ha, MgC and MgC/ha places for realistic precision
