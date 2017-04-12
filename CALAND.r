@@ -2741,16 +2741,16 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   for (i in 1:num_out_density_sheets) {
     out_density_df_list[[i]][, "Change_Mg_ha"] = out_density_df_list[[i]][,end_density_label] - out_density_df_list[[i]][,start_density_label]
     avg_row = out_density_df_list[[i]][1,]
-    avg_row[,c(1:3)] = c(-1, "All_land", "All_own")
-    avg_row[,c(4:ncol(avg_row))] = 
-      apply(out_density_df_list[[i]][1:45, c(4:ncol(out_density_df_list[[i]]))] * 
-              out_area_df_list[[1]][1:45, c(4:ncol(out_area_df_list[[1]]))], 2, sum)
-    avg_row[1,c(4:(ncol(avg_row)-1))] = avg_row[1,c(4:(ncol(avg_row)-1))] / 
-      out_area_df_list[[1]][out_area_df_list[[1]][, "Category_ID"] == -1, c(4:(ncol(out_area_df_list[[1]])-1))]
+    avg_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
+    avg_row[,c(5:ncol(avg_row))] = 
+      apply(out_density_df_list[[i]][1:45, c(5:ncol(out_density_df_list[[i]]))] * 
+              out_area_df_list[[1]][1:45, c(5:ncol(out_area_df_list[[1]]))], 2, sum)
+    avg_row[1,c(5:(ncol(avg_row)-1))] = avg_row[1,c(5:(ncol(avg_row)-1))] / 
+      out_area_df_list[[1]][out_area_df_list[[1]][, "Category_ID"] == -1, c(5:(ncol(out_area_df_list[[1]])-1))]
     avg_row[1,ncol(avg_row)] = avg_row[1,ncol(avg_row)] / 
       out_area_df_list[[1]][out_area_df_list[[1]][, "Category_ID"] == -1, ncol(out_area_df_list[[1]])-1]
     out_density_df_list[[i]] = rbind(out_density_df_list[[i]], avg_row)
-    out_density_df_list[[i]][,c(4:ncol(out_density_df_list[[i]]))] = round(out_density_df_list[[i]][,c(4:ncol(out_density_df_list[[i]]))], 0)
+    out_density_df_list[[i]][,c(5:ncol(out_density_df_list[[i]]))] = round(out_density_df_list[[i]][,c(5:ncol(out_density_df_list[[i]]))], 0)
   }
   
   # stock
