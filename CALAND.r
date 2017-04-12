@@ -1195,7 +1195,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_adjust_agg = aggregate(agg_cols ~ Category_ID + Region + Land_Type + Ownership, data=man_adjust_df, FUN=sum)
     # fourth, label the columns of the aggregated table 
     agg_names2 = paste0(agg_names,"_agg")
-    names(man_adjust_agg)[c(4:ncol(man_adjust_agg))] = agg_names2
+    names(man_adjust_agg)[c(5:ncol(man_adjust_agg))] = agg_names2
     # merge these values to the unman area table to apply the adjustments to each land type
     all_c_flux = merge(all_c_flux, man_adjust_agg, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
     all_c_flux = all_c_flux[order(all_c_flux$Category_ID),]
