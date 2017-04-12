@@ -1943,7 +1943,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     #  so after the sums, multiply by tot_area/new_area, because these are the final adjustments
     # convert these to gains where necessary for consistency: all terrestrial gains are positive, losses are negative
     # store the transfers in all_c_flux
-    all_c_flux = merge(conv_adjust_df[,c(1:3,7)], all_c_flux, by = c("Category_ID", "Region", "Land_Type", "Ownership"))
+    all_c_flux = merge(conv_adjust_df[,c(1:4,8)], all_c_flux, by = c("Category_ID", "Region", "Land_Type", "Ownership"))
     all_c_flux = all_c_flux[order(all_c_flux$Category_ID),]
     
     cgnames = NULL
