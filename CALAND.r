@@ -1448,7 +1448,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     fire_adjust_agg = aggregate(fire_agg_cols ~ Category_ID + Region + Land_Type + Ownership, data=fire_adjust_df, FUN=sum)
     # fourth, label the columns of the aggregated table 
     fire_agg_names2 = paste0(fire_agg_names,"_fire_agg")
-    names(fire_adjust_agg)[c(4:ncol(fire_adjust_agg))] = fire_agg_names2
+    names(fire_adjust_agg)[c(5:ncol(fire_adjust_agg))] = fire_agg_names2
     # merge these values to the unman area table to apply the adjustments to each land type
     all_c_flux = merge(all_c_flux, fire_adjust_agg, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
     all_c_flux = all_c_flux[order(all_c_flux$Category_ID),]
