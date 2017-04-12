@@ -2788,10 +2788,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     end_label = ncol(out_atmos_df_list[[i]])
     out_atmos_df_list[[i]][, "Change_Mg"] = out_atmos_df_list[[i]][,end_label] - out_atmos_df_list[[i]][,start_atmos_label]
     sum_row = out_atmos_df_list[[i]][1,]
-    sum_row[,c(1:3)] = c(-1, "All_land", "All_own")
-    sum_row[,c(4:ncol(sum_row))] = apply(out_atmos_df_list[[i]][1:45, c(4:ncol(out_atmos_df_list[[i]]))], 2, sum)
+    sum_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
+    sum_row[,c(5:ncol(sum_row))] = apply(out_atmos_df_list[[i]][1:45, c(5:ncol(out_atmos_df_list[[i]]))], 2, sum)
     out_atmos_df_list[[i]] = rbind(out_atmos_df_list[[i]], sum_row)
-    out_atmos_df_list[[i]][,c(4:ncol(out_atmos_df_list[[i]]))] = round(out_atmos_df_list[[i]][,c(4:ncol(out_atmos_df_list[[i]]))], 0)
+    out_atmos_df_list[[i]][,c(5:ncol(out_atmos_df_list[[i]]))] = round(out_atmos_df_list[[i]][,c(5:ncol(out_atmos_df_list[[i]]))], 0)
   }
   
   # write to excel file
