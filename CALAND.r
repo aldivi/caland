@@ -1314,8 +1314,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # assign assigned FIRE TARGET AREA BY OWNERSHIP [ha] to "fire_own_area" 
     names(fire_area_df)[names(fire_area_df) == pcol] = "fire_own_area"
     # merge the fire effects dataframe with the fire target areas and assign to fire_adjust_df
-    fire_adjust_df = merge(fire_area_df, fire_df, by = c("Fire_ID", "Intensity"), all.x = TRUE)
+    fire_adjust_df = merge(fire_area_df, fire_df, by = c("Intensity"), all.x = TRUE)
     fire_adjust_df$Category_ID = NULL
+    fire_adjust_df$Region = NULL
     fire_adjust_df$Land_Type = NULL
     # merge with the tot_area_df by ownership class
     fire_adjust_df = merge(tot_area_df, fire_adjust_df, by = c("Ownership"), all.x = TRUE)
