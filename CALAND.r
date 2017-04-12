@@ -2715,14 +2715,17 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # also round everything to integer ha, MgC and MgC/ha places for realistic precision
   cat("Starting change/total calcs...\n")
   
-  # area
+  # create columns for all the changes between initial and final year (final - initial)
+  # area: add column of total land/ocean area change for each land-type - ownership combination (46 total)
   out_area_df_list[[1]][, "Change_ha"] = out_area_df_list[[1]][,end_area_label] - out_area_df_list[[1]][,start_area_label]
   sum_row = out_area_df_list[[1]][1,]
+  # sum_row is a row of all land 
   sum_row[,c(1:3)] = c(-1, "All_land", "All_own")
   sum_row[,c(4:ncol(sum_row))] = 
     apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Ownership"] != "Ocean", c(4:ncol(out_area_df_list[[1]]))], 2 , sum)
   out_area_df_list[[1]] = rbind(out_area_df_list[[1]], sum_row)
   out_area_df_list[[1]][,c(4:ncol(out_area_df_list[[1]]))] = round(out_area_df_list[[1]][,c(4:ncol(out_area_df_list[[1]]))], 0)
+  # for managed area and wildfire area
   for (i in 2:num_out_area_sheets) {
     end_label = ncol(out_area_df_list[[i]])
     out_area_df_list[[i]][, "Change_ha"] = out_area_df_list[[i]][,end_label] - out_area_df_list[[i]][,start_area_label]
