@@ -1058,9 +1058,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       }
     } # end for i loop over the managed transfer fractions for calcuting the transfer carbon
     man_adjust_df = man_adjust_df[order(man_adjust_df$Category_ID),]
-    man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
-    man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
-    man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, x == Inf, 0.00)})
+    man_adjust_df[,c(7:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(7:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
+    man_adjust_df[,c(7:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(7:ncol(man_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
+    man_adjust_df[,c(7:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(7:ncol(man_adjust_df))], 2, function (x) {replace(x, x == Inf, 0.00)})
     
     # now consolidate the c density transfers to the pools
     # convert these to gains for consistency: all terrestrial gains are positive, losses are negative
