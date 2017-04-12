@@ -2138,7 +2138,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     
     ##### annual values	#####
     out_atmos_df_list[[8]][, cur_atmos_label] = all_c_flux[,"tot_area"] * 
-      (all_c_flux[,10] + all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16])
+      (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
     # manage to atmos; based on biomass removal, includes energy from biomass
     out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
     # fire to atmos; based on fire
