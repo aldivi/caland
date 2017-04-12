@@ -2485,10 +2485,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   ### cumulative ###
   # first, do cumulative CO2-C. Choice of ncol(Manage_Burn_CumCO2C) is arbitrary -  just need the total number of columns.
   Total_CumCO2C <- Manage_Burn_CumCO2C
-  for (i in 4:ncol(Total_CumCO2C)) {
+  for (i in 5:ncol(Total_CumCO2C)) {
     Total_CumCO2C[,i] <- 0
   }
-  for (i in 4:ncol(Manage_Burn_CumCO2C)) {
+  for (i in 5:ncol(Manage_Burn_CumCO2C)) {
     Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
       out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + 
       out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]][,i] + Manage_Burn_CumCO2C[,i] + Wildfire_CumCO2C[,i] + 
@@ -2496,28 +2496,28 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   }
   # Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
   Total_CumCH4C <- Manage_Burn_CumCH4C
-  for (i in 4:ncol(Total_CumCH4C)) {
+  for (i in 5:ncol(Total_CumCH4C)) {
     Total_CumCH4C[,i] <- 0
   }
-  for (i in 4:ncol(Manage_Burn_CumCH4C)) {
+  for (i in 5:ncol(Manage_Burn_CumCH4C)) {
     Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Burn_CumCH4C[,i] + Wildfire_CumCH4C[,i] + LCCEnergy_CumCH4C[,i]
   }
   # Third, do cumulative BC-C. Choice of ncol(Manage_Burn_CumBCC) is arbitrary -  just need the total number of columns.
   Total_CumBCC <- Manage_Burn_CumBCC
-  for (i in 4:ncol(Total_CumBCC)) {
+  for (i in 5:ncol(Total_CumBCC)) {
     Total_CumBCC[,i] <- 0
   }
-  for (i in 4:ncol(Manage_Burn_CumBCC)) {
+  for (i in 5:ncol(Manage_Burn_CumBCC)) {
     Total_CumBCC[,i] <- Manage_Burn_CumBCC[,i] + Wildfire_CumBCC[,i] + LCCEnergy_CumBCC[,i]
   }
   
   ### annual ###
   # first, do annual CO2-C. Choice of ncol(Manage_Burn_AnnCO2C) is arbitrary -  just need the total number of columns.
   Total_AnnCO2C <- Manage_Burn_AnnCO2C
-  for (i in 4:ncol(Total_AnnCO2C)) {
+  for (i in 5:ncol(Total_AnnCO2C)) {
     Total_AnnCO2C[,i] <- 0
   }
-  for (i in 4:ncol(Manage_Burn_AnnCO2C)) {
+  for (i in 5:ncol(Manage_Burn_AnnCO2C)) {
     Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
       out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + 
       out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]][,i] + Manage_Burn_AnnCO2C[,i] + Wildfire_AnnCO2C[,i] + 
@@ -2525,77 +2525,77 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   }
   # Second, do annual CH4-C. Choice of ncol(Manage_Burn_AnnCH4C) is arbitrary -  just need the total number of columns.
   Total_AnnCH4C <- Manage_Burn_AnnCH4C
-  for (i in 4:ncol(Total_AnnCH4C)) {
+  for (i in 5:ncol(Total_AnnCH4C)) {
     Total_AnnCH4C[,i] <- 0
   }
-  for (i in 4:ncol(Manage_Burn_AnnCH4C)) {
+  for (i in 5:ncol(Manage_Burn_AnnCH4C)) {
     Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Burn_AnnCH4C[,i] + Wildfire_AnnCH4C[,i] + LCCEnergy_AnnCH4C[,i]
   }
   # Third, do annual BC-C. Choice of ncol(Manage_Burn_AnnBCC) is arbitrary -  just need the total number of columns.
   Total_AnnBCC <- Manage_Burn_AnnBCC
-  for (i in 4:ncol(Total_AnnBCC)) {
+  for (i in 5:ncol(Total_AnnBCC)) {
     Total_AnnBCC[,i] <- 0
   }
-  for (i in 4:ncol(Manage_Burn_AnnBCC)) {
+  for (i in 5:ncol(Manage_Burn_AnnBCC)) {
     Total_AnnBCC[,i] <- Manage_Burn_AnnBCC[,i] + Wildfire_AnnBCC[,i] + LCCEnergy_AnnBCC[,i]
   }
   
   # the following check is used to show that the differences between total annual CO2-C, CH4-C and BC-C, and
   # total atmosphere C gain, less Eco C to atmosphere fluxes (i.e. grassland and coastal marsh) are < 0.5 and > -0.5. Due to 
   # rounding error, 0.5 is used instead of 0.
-  all((Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
-        (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
-           Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) < 0.5 & 
-        (Total_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,4:ncol(Total_AnnCO2C)] + Total_AnnBCC[,4:ncol(Total_AnnCO2C)]) - 
-        (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),4:ncol(Total_AnnCO2C)] + 
-           Eco_AnnCO2C[,4:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,4:ncol(Total_AnnCO2C)]) > -0.5)
+  all((Total_AnnCO2C[,5:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,5:ncol(Total_AnnCO2C)] + Total_AnnBCC[,5:ncol(Total_AnnCO2C)]) - 
+        (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),5:ncol(Total_AnnCO2C)] + 
+           Eco_AnnCO2C[,5:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,5:ncol(Total_AnnCO2C)]) < 0.5 & 
+        (Total_AnnCO2C[,5:ncol(Total_AnnCO2C)] + Total_AnnCH4C[,5:ncol(Total_AnnCO2C)] + Total_AnnBCC[,5:ncol(Total_AnnCO2C)]) - 
+        (out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][1:nrow(Total_AnnCO2C),5:ncol(Total_AnnCO2C)] + 
+           Eco_AnnCO2C[,5:ncol(Total_AnnCO2C)] + Eco_AnnCH4C[,5:ncol(Total_AnnCO2C)]) > -0.5)
   
   # individually convert total CO2-C, CH4-C and BC-C to CO2-eq. That way we can analyze proportions contributing to total CO2-eq
   # if desired
   ### cumulative ###
   # first, convert total cumulative CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
   Total_CumCO2 <- Total_CumCO2C
-  for (i in 4:ncol(Total_CumCO2)) {
+  for (i in 5:ncol(Total_CumCO2)) {
     Total_CumCO2[,i] <- Total_CumCO2C[,i] * (44.01/12.0107) * gwp_CO2
   }
   # second, convert total cumulative CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
   Total_CumCH4eq <- Total_CumCH4C
-  for (i in 4:ncol(Total_CumCH4eq)) {
+  for (i in 5:ncol(Total_CumCH4eq)) {
     Total_CumCH4eq[,i] <- Total_CumCH4C[,i] * (16.04/12.0107) * gwp_CH4
   }
   # third, convert total cumulative BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
   # multiplying by 1/0.6 based on assumption that 60% black C is C.
   Total_CumBCeq <- Total_CumBCC
-  for (i in 4:ncol(Total_CumBCC)) {
+  for (i in 5:ncol(Total_CumBCC)) {
     Total_CumBCeq[,i] <- Total_CumBCC[,i] * (1/0.6) * gwp_BC
   }
   
   ### annual ###
   # first, convert total annual CO2-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
   Total_AnnCO2 <- Total_AnnCO2C
-  for (i in 4:ncol(Total_AnnCO2)) {
+  for (i in 5:ncol(Total_AnnCO2)) {
     Total_AnnCO2[,i] <- Total_AnnCO2C[,i] * (44.01/12.0107) * gwp_CO2
   }
   # second, convert total annual CH4-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
   Total_AnnCH4eq <- Total_AnnCH4C
-  for (i in 4:ncol(Total_AnnCH4eq)) {
+  for (i in 5:ncol(Total_AnnCH4eq)) {
     Total_AnnCH4eq[,i] <- Total_AnnCH4C[,i] * (16.04/12.0107) * gwp_CH4
   }
   # third, convert total annual BC-C [Mg C/ha/y] to [Mg CO2-eq/ha/y]
   Total_AnnBCeq <- Total_AnnBCC
-  for (i in 4:ncol(Total_AnnBCC)) {
+  for (i in 5:ncol(Total_AnnBCC)) {
     Total_AnnBCeq[,i] <- Total_AnnBCC[,i] * (1/0.6) * gwp_BC
   }
   
   # sum all CO2-eq to get total GWP [Mg CO2-eq/ha/y]
   ### cumulative ###
   Total_CumCO2eq_all <- Total_CumCO2
-  for (i in 4:ncol(Total_CumCO2)) {
+  for (i in 5:ncol(Total_CumCO2)) {
     Total_CumCO2eq_all[,i] <- Total_CumCO2[,i] + Total_CumCH4eq[,i] + Total_CumBCeq[,i]
   }
   ### annual ###
   Total_AnnCO2eq_all <- Total_AnnCO2
-  for (i in 4:ncol(Total_AnnCO2)) {
+  for (i in 5:ncol(Total_AnnCO2)) {
     Total_AnnCO2eq_all[,i] <- Total_AnnCO2[,i] + Total_AnnCH4eq[,i] + Total_AnnBCeq[,i]
   }
   
