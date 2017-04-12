@@ -664,17 +664,39 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_soilflux_agg$fin_soilc_accum[nan_inds] = man_soilflux_agg[nan_inds, "soilc_accum_val"]
     man_soilflux_agg$man_change_soilc_accum = man_soilflux_agg$fin_soilc_accum - man_soilflux_agg$soilc_accum_val
     
-    # veg
+    ############################################################################################################
+    #########################################  All land types ##################################################
+    ########### calc managed/unmanaged area-weighted VEG C FLUXES [MgC/ha/y] (fin_vegc_uptake) #################
+    ############################################################################################################
+    
+    # all developed area veg c uptake is adjusted because urban forest increased
+      # (recall: current year's "VegCuptake_frac" for Urban_forest management = proportional change in managed urban forest area to the initial 
+      # urban forest area)
+    #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
     # all developed area veg c uptake is adjusted because urban forest increased
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
+    # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Category_ID, man_veg_df$Management),]
+    # omit all records for Dead_removal and limited_Growth managements or with management activity = NA
     man_veg_df = man_veg_df[(man_veg_df$Management != "Dead_removal" & man_veg_df$Management != "Growth") | is.na(man_veg_df$Management),]
+    
+    ################ First, calc MANAGED AREA VEG C UPTAKE [MgC/y]  (vegcfluxXarea) #############################
+    
+    # calc managed area's total veg C uptake for all landtypes using cumulative areas: 
+    # vegcfluxXarea = cumulative_management_area x VegCuptake_frac x vegc_uptake_val
     man_veg_df$vegcfluxXarea = man_veg_df$man_area_sum * man_veg_df$VegCuptake_frac * man_veg_df$vegc_uptake_val
-    man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
-      man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
+    # special calc for managed area's total veg C uptake in developed landtype using total area (managed + unmanaged)
+    man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = 
+      man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
+      man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * 
+      man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
+    # aggregate sum veg C uptake across Category_ID + Region + Land_Type + Ownership
     man_vegflux_agg = aggregate(vegcfluxXarea ~ Category_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
+    # merge aggregate sums with all_c_flux (management areas and total areas) 
     man_vegflux_agg = merge(all_c_flux, man_vegflux_agg, by = c("Category_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
+    
+    # clean up vegcfluxXarea values
     na_inds = which(is.na(man_vegflux_agg$vegcfluxXarea))
     man_vegflux_agg$vegcfluxXarea[na_inds] = 0
     man_vegflux_agg = merge(man_vegflux_agg, man_veg_df[,c("Category_ID", "Region", "Land_Type", "Ownership", "vegc_uptake_val")], 
@@ -683,6 +705,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_vegflux_agg = unique(man_vegflux_agg)
     na_inds = which(is.na(man_vegflux_agg$vegc_uptake_val))
     man_vegflux_agg[na_inds, "vegc_uptake_val"] = 0
+    
+    ################ Last, calc area-weighted VEG C FLUXES [MgC/ha/y] (fin_vegc_uptake) ##########################
+    # calc veg C flux for all landtypes using cumulative areas:
+    # add column "fin_vegc_uptake" = ((veg C uptake due to mangement) + (cumulative unmanaged area)(vegc_uptake_val)) /  (total area)
     man_vegflux_agg$fin_vegc_uptake = (man_vegflux_agg$vegcfluxXarea + man_vegflux_agg$unman_area_sum * 
                                          man_vegflux_agg$vegc_uptake_val) / tot_area_df$tot_area
     man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Developed_all"] = 
