@@ -170,10 +170,15 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   marsh_CO2_C_frac <- -1.14
   marsh_CH4_C_frac <- 0.14
   
-  # assign emissions fractions of total C emissions for all burned C (incl energy)
-  CO2C_burn_frac <- 0.9891
-  CH4C_burn_frac <- 0.0091
-  BCC_burn_frac <- 0.0018
+  # assign emissions fractions of total C emissions for all fires (Jenkins et al 1996)
+  CO2C_fire_frac <- 0.9955
+  CH4C_fire_frac <- 0.0021
+  BCC_fire_frac <- 0.0023
+  
+  # assign emissions fractions of total C emissions for all bioenergy (Dabdub et al 2015)
+  CO2C_energy_frac <- 0.9997
+  CH4C_energy_frac <- 0.0001
+  BCC_energy_frac <- 0.0002
   
   ####### assign burned fraction of 2Atmos fluxes due to management activities #######
   
