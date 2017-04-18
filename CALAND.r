@@ -2235,17 +2235,6 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # non-burned: "LCC_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_c_stock_conv"
     out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
-    # Split "Manage_Atmos_CumGain_BurnedC" into burned C from bioenergy and burned C from managed fire in the forest
-    # burned C from bioenergy "Manage_Atmos_CumGain_EnergyC"
-    out_atmos_df_list[[27]][, next_atmos_label] = out_atmos_df_list[[27]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # burned C from managed burns "Manage_Atmos_CumGain_FireC"
-    out_atmos_df_list[[28]][, next_atmos_label] = out_atmos_df_list[[28]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
-    
-    # Split "Manage_Atmos_AnnGain_BurnedC" into burned C from bioenergy and burned C from managed burns in the forest
-    # burned C from bioenergy "Manage_Atmos_AnnGain_EnergyC"
-    out_atmos_df_list[[29]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # burned C from managed burns "Manage_Atmos_AnnGain_FireC"
-    out_atmos_df_list[[30]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
   } # end loop over calculation years
   
   # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
