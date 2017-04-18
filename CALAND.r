@@ -2336,20 +2336,19 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     Manage_Fire_CumBCC[,i] <- BCC_fire_frac * Manage_CumFireC[,i]
   }
   
-  # Further split managed burn C pool into energy and fire
-  # managed energy
+  # ENERGY
   Manage_CumEnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]]  
   ManEnergy_CumCO2C <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
-    ManEnergy_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumEnergyC[,i]
+    ManEnergy_CumCO2C[,i] <- CO2C_energy_frac * Manage_CumEnergyC[,i]
   }
   ManEnergy_CumCH4C <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
-    ManEnergy_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumEnergyC[,i]
+    ManEnergy_CumCH4C[,i] <- CH4C_energy_frac * Manage_CumEnergyC[,i]
   }
   ManEnergy_CumBCC <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
-    ManEnergy_CumBCC[,i] <- BCC_burn_frac * Manage_CumEnergyC[,i]
+    ManEnergy_CumBCC[,i] <- BCC_energy_frac * Manage_CumEnergyC[,i]
   }
   
   # managed fires
