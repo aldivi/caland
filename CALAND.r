@@ -2166,6 +2166,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     ### cumulative (again) ### 
     
     # Partition the "Manage_Atmos_CumGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
+    
     # FIRE: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_burnedC_stock_man_agg" -
     # "Land2Energy_c_stock_man_agg" (note: Land2Atmos_burnedC_stock_man_agg does not include bioenergy)
     out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
@@ -2193,40 +2194,46 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     
     # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
-    # burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
+    
+    # FIRE burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
     out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
-    # non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
+    # FIRE non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
     out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
     
     # Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
     # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
     # is released as CO2 (decomposition) and not burned
-    # burned: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
-    out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # non-burned: "LCC_Atmos_CumGain_NonBurnedC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
-    out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
+    
+    # LCC Energy: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
+    out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
+    # LCC non-burned: "LCC_Atmos_CumGain_NonBurnedC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
+    out_atmos_df_list[[21]][, next_atmos_label] = out_atmos_df_list[[21]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
     ### annual (again) ###
-    # Partition the "Manage_Atmos_AnnGain_C_stock" into burned and non-burned C sources
-    # burned: "Manage_Atmos_AnnGain_BurnedC" = - "Land2Atmos_burnedC_stock_man_agg" - "Land2Energy_c_stock_man_agg" 
-    out_atmos_df_list[[21]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    
+    # Partition the "Manage_Atmos_AnnGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
+    
+    # FIRE: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_burnedC_stock_man_agg" 
+    out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
+    # ENERGY: "Manage_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_man_agg"
+    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
     # non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
-    out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
     
     # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
     # burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
-    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+    out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
     # non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+    out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
     
     # Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
     # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
     # is released as CO2 (decomposition) and not burned
     # burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
-    out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[27]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
     # non-burned: "LCC_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_c_stock_conv"
-    out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
+    out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
     # Split "Manage_Atmos_CumGain_BurnedC" into burned C from bioenergy and burned C from managed fire in the forest
     # burned C from bioenergy "Manage_Atmos_CumGain_EnergyC"
