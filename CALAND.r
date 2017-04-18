@@ -2321,18 +2321,19 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   
   # Partition all the appropriate burned (fire + energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
   ### Cumulative ###
-  Manage_CumBurnC <- out_atmos_df_list[["Manage_Atmos_CumGain_BurnedC"]]
-  Manage_Burn_CumCO2C <- Manage_CumBurnC
-  for (i in 5:ncol(Manage_CumBurnC)) {
-    Manage_Burn_CumCO2C[,i] <- CO2C_burn_frac * Manage_CumBurnC[,i]
+  # FIRE
+  Manage_CumFireC <- out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]]
+  Manage_Fire_CumCO2C <- Manage_CumFireC
+  for (i in 5:ncol(Manage_CumFireC)) {
+    Manage_Fire_CumCO2C[,i] <- CO2C_fire_frac * Manage_CumFireC[,i]
   }
-  Manage_Burn_CumCH4C <- Manage_CumBurnC
-  for (i in 5:ncol(Manage_CumBurnC)) {
-    Manage_Burn_CumCH4C[,i] <- CH4C_burn_frac * Manage_CumBurnC[,i]
+  Manage_Fire_CumCH4C <- Manage_CumFireC
+  for (i in 5:ncol(Manage_CumFireC)) {
+    Manage_Fire_CumCH4C[,i] <- CH4C_fire_frac * Manage_CumFireC[,i]
   }
-  Manage_Burn_CumBCC <- Manage_CumBurnC
-  for (i in 5:ncol(Manage_CumBurnC)) {
-    Manage_Burn_CumBCC[,i] <- BCC_burn_frac * Manage_CumBurnC[,i]
+  Manage_Fire_CumBCC <- Manage_CumFireC
+  for (i in 5:ncol(Manage_CumFireC)) {
+    Manage_Fire_CumBCC[,i] <- BCC_fire_frac * Manage_CumFireC[,i]
   }
   
   # Further split managed burn C pool into energy and fire
