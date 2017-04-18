@@ -1177,7 +1177,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Burned_litter_c + man_adjust_df$Burned_downdead_c +
                                                                  man_adjust_df$Burned_under_c + man_adjust_df$Burned_mainremoved_c)
     agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
-    # create man_adjust_df$Land2Atmos_nonburnedC_stock_man  
+    # create man_adjust_df$Land2Atmos_nonburnedC_stock_man  = "Land2Atmos_c_stock_man" - "Land2Atmos_burnedC_stock_man"
     man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
     
     # checks true that management Land2Atmos c flux equals the sum of burned and non-burned c in man_adjust_df 
@@ -1208,9 +1208,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
     
     # check that management Land2Atmos c flux is equal to sum of burned + non-burned land2atmos c flux in all_c_flux
-    ## this is false because of rounding error - probably from aggregate()
+    ## this checks true
     identical(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]], all_c_flux[["Land2Atmos_c_stock_man_agg"]])
-    # however, this checks true that the difference between total management Land2Atmos c flux and the sum of burned + non-burned land2atmos c flux is minimal (<1 & >-1)
+    # this checks true that the difference between total management Land2Atmos c flux and the sum of burned + non-burned land2atmos c flux is minimal (<1 & >-1)
     all(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] < 1 &
           all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] > -1)
     # loop over the out density tables to update the carbon pools based on the management fluxes
@@ -1461,6 +1461,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
     
     # check that the fire Land2Atmos c flux is equal to the sum of burned and non-burned land2Atmos c flux in the all_c_flux dataframe
+    # checks true
     identical(all_c_flux[["Land2Atmos_BurnedC_stock_fire_agg"]] + all_c_flux[["Land2Atmos_NonBurnedC_stock_fire_agg"]], all_c_flux[["Land2Atmos_c_stock_fire_agg"]])
     
     # loop over the relevant out density tables to update the carbon pools based on the fire fluxes
@@ -2109,70 +2110,73 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       sum_change = sum_change + sum(all_c_flux[, egnames[i]] * all_c_flux$tot_area)
     }
     
-    ##### cumulative values ##### 
+    ##### CUMULATIVE FLUXES ##### 
     
     # "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
     out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
     
-    # manage to atmos; based on biomass removal, includes energy from biomass (note: actually adding terms because they are negative)
+    # "Manage_Atmos_CumGain_C_stock" based on biomass removal and energy (note: actually adding terms because they are negative)
     # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Atmos_c_stock_man_agg" -
     # "Land2Energy_c_stock_man_agg"  
     out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - 
       all_c_flux[,"Land2Energy_c_stock_man_agg"]
     
-    # fire to atmos; based on wildfire
+    # "Fire_Atmos_CumGain_C_stock"
     out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
     
-    # lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
+    # "LCC_Atmos_CumGain_C_stock" based on land cover change with associated biomass removal and energy
     out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
       all_c_flux[,"Land2Energy_c_stock_conv"]
     
-    # wood products to atmos; from the wood tables: "Total_Wood_CumLoss_C_stock"
+    # "Wood_Atmos_CumGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[6]][, next_atmos_label] = out_wood_df_list[[3]][,next_wood_label]
     
-    # total energy to atmos; just to compare it with the total cum atmos c
+    # "Total_Energy2Atmos_C_stock" just to compare it with the total cum atmos c
     out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
       all_c_flux[,"Land2Energy_c_stock_conv"]
     
-    # total to atmos; the total release of land and wood product and energy c to the atmosphere
+    # "Total_Atmos_CumGain_C_stock" the total release of land and wood product and energy c to the atmosphere
     # the energy release is inluded in the manage and lcc releases
     out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
       out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
     
-    ##### annual values	#####
+    ##### ANNUAL FLUXES	#####
+    
+    # "Eco_AnnGain_C_stock" = total area * (Above_main_C_den_gain_eco + Below_main_C_den_gain_eco + Understory_C_den_gain_ec +
+    #                                       StandDead_C_den_gain_eco + DownDead_C_den_gain_eco + Litter_C_den_gain_eco +
+    #                                       Soil_orgC_den_gain_eco)
     out_atmos_df_list[[8]][, cur_atmos_label] = all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
-    # manage to atmos; based on biomass removal, includes energy from biomass
+    # "Manage_Atmos_AnnGain_C_stock" based on biomass removal & energy from biomass
     out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # fire to atmos; based on fire
+    # "Fire_Atmos_AnnGain_C_stock" based on fire
     out_atmos_df_list[[11]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
-    # lcc to atmos; based on land cover change with associated biomass removal, includes energy from biomass
+    # "LCC_Atmos_AnnGain_C_stock" based on land cover change with associated biomass removal, includes energy from biomass
     out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"] - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # wood products to atmos; from the wood tables: "Total_Wood_CumLoss_C_stock"
+    # "Wood_Atmos_AnnGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[13]][, cur_atmos_label] = out_wood_df_list[[5]][,cur_wood_label]
-    # total energy to atmos; just to compare it with the total cum atmos c
+    # "Total_AnnEnergy2Atmos_C_stock" just to compare it with the total cum atmos c
     out_atmos_df_list[[14]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # total to atmos; the total release of land and wood product and energy c to the atmosphere
+    # "Total_Atmos_AnnGain_C_stock" the total release of land and wood product and energy c to the atmosphere
     # the energy release is inluded in the manage and lcc releases
     out_atmos_df_list[[9]][, cur_atmos_label] = out_atmos_df_list[[10]][,cur_atmos_label] + out_atmos_df_list[[11]][,cur_atmos_label] + 
       out_atmos_df_list[[12]][,cur_atmos_label] + out_atmos_df_list[[13]][,cur_atmos_label]
     
     ### cumulative (again) ### 
-    # Partition the "Manage_Atmos_CumGain_C_stock" into fire, bioenergy, and non-burned C sources
-    # Fire: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_burnedC_stock_man_agg" -
-    # "Land2Energy_c_stock_man_agg" 
+    
+    # Partition the "Manage_Atmos_CumGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
+    # FIRE: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_burnedC_stock_man_agg" -
+    # "Land2Energy_c_stock_man_agg" (note: Land2Atmos_burnedC_stock_man_agg does not include bioenergy)
     out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
-    # Fire: "Manage_Atmos_CumGain_EnergyC" = (current year "Manage_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_man_agg" 
-    out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] - 
-      all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # non-burned: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
+    # ENERGY: "Manage_Atmos_CumGain_EnergyC" = (current year "Manage_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_man_agg" 
+    out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    # NON-BURNED: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
     out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
     
-    # checks false due to rounding error in the agrregated all_c_flux:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
+    # checks true:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
     identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]], all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
-    # however the difference is minimal. 
-    # checks true that the difference is <0.5 and >-0.5
+    # Also checks true that the difference is <0.5 and >-0.5 (in case rounding error)
     all((- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) < 0.5 & 
           (- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) > -0.5)
     
@@ -2190,9 +2194,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
     # burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
-    out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+    out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
     # non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-    out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+    out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
     
     # Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
     # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
