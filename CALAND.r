@@ -2703,8 +2703,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   ### cumulative fire ###
   TotalFire_CumCO2eq_all <- Total_CumCO2
   for (i in 5:ncol(TotalFire_CumCO2eq_all)) {
-    TotalFire_CumCO2eq_all[,i] <- new.df[["ManFire_AnnCO2"]][,i] + new.df[["ManFire_AnnCH4eq"]][,i] + new.df[["ManFire_AnnBCeq"]][,i] + 
-      new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] + new.df[["Wildfire_AnnBCeq"]][,i]
+    TotalFire_CumCO2eq_all[,i] <- new.df[["ManFire_CumCO2"]][,i] + new.df[["ManFire_CumCH4eq"]][,i] + new.df[["ManFire_CumBCeq"]][,i] + 
+      new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] + new.df[["Wildfire_CumBCeq"]][,i]
   }
   ### annual energy ###
   TotalEnergy_AnnCO2eq_all <- Total_AnnCO2
@@ -2729,10 +2729,14 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   out_atmos_df_list[["Total_AnnCO2"]] <- Total_AnnCO2
   out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
   out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
-  out_atmos_df_list[["TotalBurn_CumCO2eq_all"]] <- TotalBurn_CumCO2eq_all
   out_atmos_df_list[["TotalNonBurn_CumCO2eq_all"]] <- TotalNonBurn_CumCO2eq_all
-  out_atmos_df_list[["TotalBurn_AnnCO2eq_all"]] <- TotalBurn_AnnCO2eq_all
+  out_atmos_df_list[["TotalFire_CumCO2eq_all"]] <- TotalFire_CumCO2eq_all
+  out_atmos_df_list[["TotalEnergy_CumCO2eq_all"]] <- TotalEnergy_CumCO2eq_all
   out_atmos_df_list[["TotalNonBurn_AnnCO2eq_all"]] <- TotalNonBurn_AnnCO2eq_all
+  out_atmos_df_list[["TotalFire_AnnCO2eq_all"]] <- TotalFire_CumCO2eq_all
+  out_atmos_df_list[["TotalEnergy_AnnCO2eq_all"]] <- TotalEnergy_CumCO2eq_all
+  out_atmos_df_list[["TotalBurn_CumCO2eq_all"]] <- TotalBurn_CumCO2eq_all
+  out_atmos_df_list[["TotalBurn_AnnCO2eq_all"]] <- TotalBurn_AnnCO2eq_all
   out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
   out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
   
