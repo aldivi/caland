@@ -2591,14 +2591,15 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   df.list <- list(ManEnergy_CumCO2C = ManEnergy_CumCO2C,
                   ManEnergy_CumCH4C = ManEnergy_CumCH4C,
                   ManEnergy_CumBCC = ManEnergy_CumBCC,
-                  
                   ManFire_CumCO2C = ManFire_CumCO2C,
                   ManFire_CumCH4C = ManFire_CumCH4C,
                   ManFire_CumBCC = ManFire_CumBCC,
+                  ManNonBurn_CumCO2C = ManNonBurn_CumCO2C,
                   
                   LCCEnergy_CumCO2C = LCCEnergy_CumCO2C,
                   LCCEnergy_CumCH4C = LCCEnergy_CumCH4C,
                   LCCEnergy_CumBCC  = LCCEnergy_CumBCC,
+                  LCCNonBurn_CumCO2C = LCCNonBurn_CumCO2C,
                   
                   TotalEnergy_CumCO2C = TotalEnergy_CumCO2C,
                   TotalEnergy_CumCH4C = TotalEnergy_CumCH4C,
@@ -2608,20 +2609,17 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   Wildfire_CumCH4C = Wildfire_CumCH4C,
                   Wildfire_CumBCC  = Wildfire_CumBCC,
                   
-                  LCC_NonBurn_CumCO2C = LCC_NonBurn_CumCO2C,
-                  
                   ManEnergy_AnnCO2C = ManEnergy_AnnCO2C,
                   ManEnergy_AnnCH4C = ManEnergy_AnnCH4C,
                   ManEnergy_AnnBCC  = ManEnergy_AnnBCC,
-                  
                   ManFire_AnnCO2C = ManFire_AnnCO2C, 
                   ManFire_AnnCH4C = ManFire_AnnCH4C,
                   ManFire_AnnBCC  = ManFire_AnnBCC,
+                  ManNonBurn_AnnCO2C = ManNonBurn_AnnCO2C,
                   
                   LCCEnergy_AnnCO2C = LCCEnergy_AnnCO2C,
                   LCCEnergy_AnnCH4C = LCCEnergy_AnnCH4C,
                   LCCEnergy_AnnBCC  = LCCEnergy_AnnBCC,
-                  
                   LCC_NonBurn_AnnCO2C = LCC_NonBurn_AnnCO2C,
                   
                   TotalEnergy_AnnCO2C = TotalEnergy_AnnCO2C,
@@ -2649,9 +2647,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   names(new.df) <- paste0(new.name)
   
   # add GHG dataframes to out_atmos_df_list
-  out_atmos_df_list[["Manage_CumBurnC"]] <- Manage_CumBurnC
-  out_atmos_df_list[["Manage_CumEnergyC"]] <- Manage_CumEnergyC
   out_atmos_df_list[["Manage_CumFireC"]] <- Manage_CumFireC
+  out_atmos_df_list[["Manage_CumEnergyC"]] <- Manage_CumEnergyC
   out_atmos_df_list[["Manage_AnnBurnC"]] <- Manage_AnnBurnC
   out_atmos_df_list[["Manage_AnnEnergyC"]] <- Manage_AnnEnergyC
   out_atmos_df_list[["Manage_AnnFireC"]] <- Manage_AnnFireC
