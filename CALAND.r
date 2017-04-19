@@ -2453,7 +2453,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     Wildfire_AnnBCC[,i] <- BCC_fire_frac * Wildfire_AnnBurnedC[,i]
   }
   
-  # total energy CO2-C, CH4-C, and BC-C 
+  # TOTAL ENERGY CO2-C, CH4-C, and BC-C 
   TotalEnergy_AnnCO2C <- LCCEnergy_AnnCO2C
   TotalEnergy_AnnCO2C[,5:ncol(LCCEnergy_AnnCO2C)] <- LCCEnergy_AnnCO2C[,5:ncol(LCCEnergy_AnnCO2C)] + ManEnergy_AnnCO2C[,5:ncol(LCCEnergy_AnnCO2C)]
   TotalEnergy_AnnCH4C <- LCCEnergy_AnnCH4C
@@ -2663,12 +2663,11 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # replace names of the elements in new.df with the CO2-eq names
   names(new.df) <- paste0(new.name)
   
+  # sum total non-burned CO2eq (eco + manage + lcc + wood)
+  
+  # sum total burned CO2eq (manage fire + manage energy + lcc energy + lcc burned + wildfire)
+  
   # add GHG dataframes to out_atmos_df_list
-  out_atmos_df_list[["Manage_CumFireC"]] <- Manage_CumFireC
-  out_atmos_df_list[["Manage_CumEnergyC"]] <- Manage_CumEnergyC
-  out_atmos_df_list[["Manage_AnnBurnC"]] <- Manage_AnnBurnC
-  out_atmos_df_list[["Manage_AnnEnergyC"]] <- Manage_AnnEnergyC
-  out_atmos_df_list[["Manage_AnnFireC"]] <- Manage_AnnFireC
   out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
   out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
   out_atmos_df_list[["Total_CumBCeq"]] <- Total_CumBCeq
