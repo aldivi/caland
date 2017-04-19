@@ -2584,8 +2584,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   ######### Calculate additonal breakdowns of total CO2, CH4, & BC (CO2-eq) from various sources ######### 
   
   # subset outputs from out_atmos to include in df.list below
-  LCC_NonBurn_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]]
-  LCC_NonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]]
+  ManNonBurn_CumCO2C <- out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]]
+  ManNonBurn_AnnCO2C <- out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]]
+  LCCNonBurn_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]]
+  LCCNonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]]
   
   # create list of all the additonal tables from which we want to calculate GWP 
   df.list <- list(ManEnergy_CumCO2C = ManEnergy_CumCO2C,
