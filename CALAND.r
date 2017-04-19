@@ -2592,7 +2592,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   LCCNonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]]
   
   # create list of all the additonal tables from which we want to calculate GWP 
-  df.list <- list(ManEnergy_CumCO2C = ManEnergy_CumCO2C,
+  df.list <- list(Eco_CumCO2C = Eco_CumCO2C,
+                  Eco_CumCH4C = Eco_CumCH4C,
+                  
+                  ManEnergy_CumCO2C = ManEnergy_CumCO2C,
                   ManEnergy_CumCH4C = ManEnergy_CumCH4C,
                   ManEnergy_CumBCC = ManEnergy_CumBCC,
                   ManFire_CumCO2C = ManFire_CumCO2C,
@@ -2615,6 +2618,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   
                   # Wood_CumCO2C = Wood_CumCO2C,
                   # Wood_CumCH4C = Wood_CumCH4C,
+                  
+                  Eco_AnnCO2C = Eco_AnnCO2C,
+                  Eco_AnnCH4C = Eco_AnnCH4C,
                   
                   ManEnergy_AnnCO2C = ManEnergy_AnnCO2C,
                   ManEnergy_AnnCH4C = ManEnergy_AnnCH4C,
@@ -2663,10 +2669,6 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   out_atmos_df_list[["Manage_AnnBurnC"]] <- Manage_AnnBurnC
   out_atmos_df_list[["Manage_AnnEnergyC"]] <- Manage_AnnEnergyC
   out_atmos_df_list[["Manage_AnnFireC"]] <- Manage_AnnFireC
-  out_atmos_df_list[["Eco_AnnCO2C"]] <- Eco_AnnCO2C
-  out_atmos_df_list[["Eco_AnnCH4C"]] <- Eco_AnnCH4C
-  out_atmos_df_list[["Eco_CumCO2C"]] <- Eco_CumCO2C
-  out_atmos_df_list[["Eco_CumCH4C"]] <- Eco_CumCH4C
   out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
   out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
   out_atmos_df_list[["Total_CumBCeq"]] <- Total_CumBCeq
