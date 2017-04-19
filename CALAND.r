@@ -2476,7 +2476,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]][,i] + Manage_Fire_CumCO2C[,i] + ManEnergy_CumCO2C[,i] + 
       Wildfire_CumCO2C[,i] + LCCEnergy_CumCO2C[,i]
   }
-  # Second, do cumulative CH4-C. Choice of ncol(Manage_Burn_CumCH4C) is arbitrary -  just need the total number of columns.
+  # Second, do cumulative CH4-C. Choice of ncol(Manage_Fire_CumCH4C) is arbitrary -  just need the total number of columns.
   Total_CumCH4C <- Manage_Fire_CumCH4C
   for (i in 5:ncol(Total_CumCH4C)) {
     Total_CumCH4C[,i] <- 0
@@ -2633,7 +2633,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   LCCEnergy_AnnCO2C = LCCEnergy_AnnCO2C,
                   LCCEnergy_AnnCH4C = LCCEnergy_AnnCH4C,
                   LCCEnergy_AnnBCC  = LCCEnergy_AnnBCC,
-                  LCC_NonBurn_AnnCO2C = LCC_NonBurn_AnnCO2C,
+                  LCCNonBurn_AnnCO2C = LCCNonBurn_AnnCO2C,
                   
                   TotalEnergy_AnnCO2C = TotalEnergy_AnnCO2C,
                   TotalEnergy_AnnCH4C = TotalEnergy_AnnCH4C,
@@ -2664,9 +2664,35 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   names(new.df) <- paste0(new.name)
   
   # sum total non-burned CO2eq (eco + manage + lcc + wood)
-  
+  ### cumulative ###
+  TotalBurn_CumCO2eq_all <- Total_CumCO2
+  for (i in 5:ncol(TotalBurn_CumCO2eq_all)) {
+    TotalBurn_CumCO2eq_all[,i] <- new.df[["ManEnergy_CumCO2"]][,i] + new.df[["ManEnergy_CumCH4eq"]][,i] + new.df[["ManEnergy_CumBCeq"]][,i] +
+    new.df[["ManFire_CumCO2"]][,i] + new.df[["ManFire_CumCH4eq"]][,i] + new.df[["ManFire_CumBCeq"]][,i] + new.df[["LCCEnergy_CumCO2"]][,i] +
+    new.df[["LCCEnergy_CumCH4eq"]][,i] + new.df[["LCCEnergy_CumBCeq"]][,i] + new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] +
+    new.df[["Wildfire_CumBCeq"]][,i]
+  }
   # sum total burned CO2eq (manage fire + manage energy + lcc energy + lcc burned + wildfire)
-  
+  TotalNonBurn_CumCO2eq_all <- Total_CumCO2
+  for (i in 5:ncol(TotalNonBurn_CumCO2eq_all)) {
+    TotalBurn_CumCO2eq_all[,i] <- new.df[["Eco_CumCO2"]][,i] + new.df[["Eco_CumCH4eq"]][,i] + new.df[["ManNonBurn_CumCO2"]][,i] +
+      new.df[["LCCNonBurn_CumCO2"]][,i] 
+  }
+  ### annual ###
+  TotalBurn_AnnCO2eq_all <- Total_AnnCO2
+  for (i in 5:ncol(TotalBurn_AnnCO2eq_all)) {
+    TotalBurn_AnnCO2eq_all[,i] <- new.df[["ManEnergy_AnnCO2"]][,i] + new.df[["ManEnergy_AnnCH4eq"]][,i] + new.df[["ManEnergy_AnnBCeq"]][,i] +
+      new.df[["ManFire_AnnCO2"]][,i] + new.df[["ManFire_AnnCH4eq"]][,i] + new.df[["ManFire_AnnBCeq"]][,i] + new.df[["LCCEnergy_AnnCO2"]][,i] +
+      new.df[["LCCEnergy_AnnCH4eq"]][,i] + new.df[["LCCEnergy_AnnBCeq"]][,i] + new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] +
+      new.df[["Wildfire_AnnBCeq"]][,i]
+  }
+  # sum total burned CO2eq (manage fire + manage energy + lcc energy + lcc burned + wildfire)
+  TotalNonBurn_AnnCO2eq_all <- Total_AnnCO2
+  for (i in 5:ncol(TotalNonBurn_AnnCO2eq_all)) {
+    TotalBurn_AnnCO2eq_all[,i] <- new.df[["Eco_AnnCO2"]][,i] + new.df[["Eco_AnnCH4eq"]][,i] + new.df[["ManNonBurn_AnnCO2"]][,i] +
+      new.df[["LCCNonBurn_AnnCO2"]][,i] 
+  }
+
   # add GHG dataframes to out_atmos_df_list
   out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
   out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
@@ -2694,8 +2720,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     zero_test[,i] <- 0
   }
   for (i in 5:ncol(Total_CumCO2)) {
-    zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - (Total_CumCO2[,i] * (12.0107/44.01) + 
-                                                                                 Total_CumCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_CumBCeq[,i] * (0.6/gwp_BC) - Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
+    zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - 
+      (Total_CumCO2[,i] * (12.0107/44.01) + Total_CumCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_CumBCeq[,i] * (0.6/gwp_BC) - 
+         Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
   } 
   # rounding error so this test is false
   all(zero_test[5:ncol(zero_test)] == 0) 
