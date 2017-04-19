@@ -2609,6 +2609,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   Wildfire_CumCH4C = Wildfire_CumCH4C,
                   Wildfire_CumBCC  = Wildfire_CumBCC,
                   
+                  # Wood_CumCO2C = Wood_CumCO2C,
+                  # Wood_CumCH4C = Wood_CumCH4C,
+                  
                   ManEnergy_AnnCO2C = ManEnergy_AnnCO2C,
                   ManEnergy_AnnCH4C = ManEnergy_AnnCH4C,
                   ManEnergy_AnnBCC  = ManEnergy_AnnBCC,
@@ -2628,7 +2631,11 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   
                   Wildfire_AnnCO2C = Wildfire_AnnCO2C,
                   Wildfire_AnnCH4C = Wildfire_AnnCH4C,
-                  Wildfire_AnnBCC  = Wildfire_AnnBCC)
+                  Wildfire_AnnBCC  = Wildfire_AnnBCC,
+                  
+                  # Wood_CumCO2C = Wood_CumCO2C,
+                  # Wood_CumCH4C = Wood_CumCH4C
+                  )
   
   # calc GWP [CO2-eq] for each table in df.list
   new.df <- c()
