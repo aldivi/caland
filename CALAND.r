@@ -2692,7 +2692,36 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     TotalBurn_AnnCO2eq_all[,i] <- new.df[["Eco_AnnCO2"]][,i] + new.df[["Eco_AnnCH4eq"]][,i] + new.df[["ManNonBurn_AnnCO2"]][,i] +
       new.df[["LCCNonBurn_AnnCO2"]][,i] 
   }
-
+  
+  # sum total energy CO2eq (manage energy + lcc energy) and total fire CO2eq (manage fire + wildfire) 
+  ### cumulative energy ###
+  TotalEnergy_CumCO2eq_all <- Total_CumCO2
+  for (i in 5:ncol(TotalEnergy_CumCO2eq_all)) {
+    TotalEnergy_CumCO2eq_all[,i] <- new.df[["ManEnergy_CumCO2"]][,i] + new.df[["ManEnergy_CumCH4eq"]][,i] + new.df[["ManEnergy_CumBCeq"]][,i] +
+      new.df[["LCCEnergy_CumCO2"]][,i] + new.df[["LCCEnergy_CumCH4eq"]][,i] + new.df[["LCCEnergy_CumBCeq"]][,i] 
+  }
+  ### cumulative fire ###
+  TotalFire_CumCO2eq_all <- Total_CumCO2
+  for (i in 5:ncol(TotalFire_CumCO2eq_all)) {
+    TotalFire_CumCO2eq_all[,i] <- new.df[["ManFire_AnnCO2"]][,i] + new.df[["ManFire_AnnCH4eq"]][,i] + new.df[["ManFire_AnnBCeq"]][,i] + 
+      new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] + new.df[["Wildfire_AnnBCeq"]][,i]
+  }
+  ### annual energy ###
+  TotalEnergy_AnnCO2eq_all <- Total_AnnCO2
+  for (i in 5:ncol(TotalEnergy_AnnCO2eq_all)) {
+    TotalEnergy_AnnCO2eq_all[,i] <- new.df[["ManEnergy_AnnCO2"]][,i] + new.df[["ManEnergy_AnnCH4eq"]][,i] + new.df[["ManEnergy_AnnBCeq"]][,i] +
+      new.df[["LCCEnergy_AnnCO2"]][,i] + new.df[["LCCEnergy_AnnCH4eq"]][,i] + new.df[["LCCEnergy_AnnBCeq"]][,i] 
+  }
+  ### annual fire ###
+  TotalFire_AnnCO2eq_all <- Total_AnnCO2
+  for (i in 5:ncol(TotalFire_AnnCO2eq_all)) {
+    TotalFire_AnnCO2eq_all[,i] <- new.df[["ManFire_AnnCO2"]][,i] + new.df[["ManFire_AnnCH4eq"]][,i] + new.df[["ManFire_AnnBCeq"]][,i] + 
+      new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] + new.df[["Wildfire_AnnBCeq"]][,i]
+  }
+  
+  # combine new.df with the additional CO2eq breakdowns with the out_atmos_df_list
+  out_atmos_df_list <- c(out_atmos_df_list, new.df)
+  
   # add GHG dataframes to out_atmos_df_list
   out_atmos_df_list[["Total_CumCO2"]] <- Total_CumCO2
   out_atmos_df_list[["Total_CumCH4eq"]] <- Total_CumCH4eq
@@ -2700,11 +2729,12 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   out_atmos_df_list[["Total_AnnCO2"]] <- Total_AnnCO2
   out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
   out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
+  out_atmos_df_list[["TotalBurn_CumCO2eq_all"]] <- TotalBurn_CumCO2eq_all
+  out_atmos_df_list[["TotalNonBurn_CumCO2eq_all"]] <- TotalNonBurn_CumCO2eq_all
+  out_atmos_df_list[["TotalBurn_AnnCO2eq_all"]] <- TotalBurn_AnnCO2eq_all
+  out_atmos_df_list[["TotalNonBurn_AnnCO2eq_all"]] <- TotalNonBurn_AnnCO2eq_all
   out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
   out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
-  
-  # combine new.df with the additional CO2eq breakdowns with the out_atmos_df_list
-  out_atmos_df_list <- c(out_atmos_df_list, new.df)
   
   # replaces any -0 with 0
   for (i in 1:length(out_atmos_df_list)) {
