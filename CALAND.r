@@ -1255,12 +1255,18 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # annual change values are in the year they occurred
     
     k = log(2) / wp_half_life
+    # Next year's "Manage_Wood_C_stock" = Current year's "Manage_Wood_C_stock" * exp(-log(2)/half-life) + 
+    #                                   wood_accumulated * ((1 - exp(-log(2)/half-life) / log(2)/half-life) 
     out_wood_df_list[[6]][,next_wood_label] = out_wood_df_list[[6]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
       -all_c_flux$Land2Wood_c_stock_man_agg
+    # Next year's "Manage_Wood_CumGain_C_stock" = Current year's "Manage_Wood_CumGain_C_stock" + wood_accumulated
     out_wood_df_list[[7]][,next_wood_label] = out_wood_df_list[[7]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg
+    # Current year's "Manage_Wood_AnnGain_C_stock" = wood_accumulated
     out_wood_df_list[[9]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_man_agg
+    # Current year's "Manage_Wood_AnnLoss_C_stock" = Current year's "Manage_Wood_C_stock" + wood_accumulated - Next year's "Manage_Wood_C_stock"  
     out_wood_df_list[[10]][,cur_wood_label] = out_wood_df_list[[6]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg - 
       out_wood_df_list[[6]][,next_wood_label]
+    # Next year's "Manage_Wood_CumLoss_C_stock" = Current year's "Manage_Wood_CumLoss_C_stock" + Current year's "Manage_Wood_AnnLoss_C_stock"
     out_wood_df_list[[8]][,next_wood_label] = out_wood_df_list[[8]][,cur_wood_label] + out_wood_df_list[[10]][,cur_wood_label]
     
     ############################################################################################################
