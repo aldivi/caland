@@ -1269,6 +1269,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # Next year's "Manage_Wood_CumLoss_C_stock" = Current year's "Manage_Wood_CumLoss_C_stock" + Current year's "Manage_Wood_AnnLoss_C_stock"
     out_wood_df_list[[8]][,next_wood_label] = out_wood_df_list[[8]][,cur_wood_label] + out_wood_df_list[[10]][,cur_wood_label]
     
+  
     ############################################################################################################
     ############################################################################################################
     #########################################  Apply FIRE to C pools  ##########################################
@@ -2037,7 +2038,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # annual change values are in the year they occurred
     
     k = log(2) / wp_half_life
-    # next year's "LCC_Wood_C_stock" = current year's "LCC_Wood_C_stock" * decay_term * more_wood
+    # next year's "LCC_Wood_C_stock" = current year's "LCC_Wood_C_stock" * decay_term1 + decay_term2 * more_wood
     out_wood_df_list[[11]][,next_wood_label] = out_wood_df_list[[11]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
       (-all_c_flux$Land2Wood_c_stock_conv)
     # next year's "LCC_Wood_CumGain_C_stock" = current year's "LCC_Wood_CumGain_C_stock" + harvested_wood_conv
@@ -2138,6 +2139,44 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # "Wood_Atmos_CumGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[6]][, next_atmos_label] = out_wood_df_list[[3]][,next_wood_label]
     
+    ############## Partition C emissions from total wood decay (management & lcc) into CO2-C and CH4-C ############## 
+    # subset the total cumulative C emissions from wood decay from the out_atmos_df_list
+    wood2atmos_CumC <- out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]]
+    # copy dataframe to fill in the following loop  
+    CumANDOC <- wood2atmos_CumC
+    # calc anaerobically decomposed wood C based on ARB's weighted mean CH4 correction factor (MCF) of 0.71
+    for (i in 5:ncol(wood2atmos_CumC)) {
+      CumANDOC[,i] <- MCF * wood2atmos_CumC[,i]
+    }
+    # copy dataframe to fill in the following loop  
+    wood_CumCH4C_prod <- wood2atmos_CumC
+    # calc CH4-C production based on ARB and IPCC default value of 0.5 for fraction of CH4, by volume, in generated landfill gas (F)
+    for (i in 5:ncol(wood2atmos_CumC)) {
+      wood_CumCH4C_prod[,i] <- CumANDOC * landfill_gas_frac[,i]
+    }
+    # copy the following dataframes to fill in the following loops for calc CH4-C emissions
+    wood_CumCH4C_combust <- wood2atmos_CumC
+    wood_CumCH4C_filter <- wood2atmos_CumC
+    wood_CumCH4C <- wood2atmos_CumC
+    # calc CH4-C emissions based on ARB equation 89 using landfill gas collection efficiency (CE) = 0.75, landfill gas destruction efficiency 
+    # via combustion (DE_combust) = 0.99, and oxidation of uncollected CH4 in landfill cover (OX) = 0.1
+    for (i in 5:ncol(wood2atmos_CumC)) {
+      wood_CumCH4C_combust[,i] <- wood_CumCH4C_prod[,i] * CE * (1 - DE_combust) + wood_CumCH4C_prod[,i] * (1 - CE) * (1 - OX)
+    }
+    # Same equation except using landfill gas destruction efficiency via C filtration (DE_filter) = 0.01
+    for (i in 5:ncol(wood2atmos_CumC)) {
+      wood_CumCH4C_filter[,i] <- wood_CumCH4C_prod[,i] * CE * (1 - DE_filter) + wood_CumCH4C_prod[,i] * (1 - CE) * (1 - OX)
+    }
+    # Average CH4C emissions using the 2 methods of CH4 removal
+    for (i in 5:ncol(wood2atmos_CumC)) {
+      wood_CumCH4C[,i] <- (wood_CumCH4C_filter[,i] + wood_CumCH4C_combust[,i]) / 2
+    }
+    # Calc CO2-C emissions from wood
+    wood_CumCO2C <- wood2atmos_CumC
+    for (i in 5:ncol(wood2atmos_CumC)) {
+      wood_CumCO2C[,i] <- wood2atmos_CumC[,i] - wood_CumCH4C[,i]
+    }
+    
     # "Total_Energy2Atmos_C_stock" just to compare it with the total cum atmos c
     out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
       all_c_flux[,"Land2Energy_c_stock_conv"]
@@ -2162,6 +2201,45 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"] - all_c_flux[,"Land2Energy_c_stock_conv"]
     # "Wood_Atmos_AnnGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[13]][, cur_atmos_label] = out_wood_df_list[[5]][,cur_wood_label]
+    
+    ############## Partition C emissions from total wood decay (management & lcc) into CO2-C and CH4-C ############## 
+    # subset the total annual C emissions from wood decay from the out_atmos_df_list
+    wood2atmos_AnnC <- out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]]
+    # copy dataframe to fill in the following loop  
+    AnnANDOC <- wood2atmos_AnnC
+    # calc anaerobically decomposed wood C based on ARB's weighted mean CH4 correction factor (MCF) of 0.71
+    for (i in 5:ncol(wood2atmos_AnnC)) {
+      AnnANDOC[,i] <- MCF * wood2atmos_AnnC[,i]
+    }
+    # copy dataframe to fill in the following loop  
+    wood_AnnCH4C_prod <- wood2atmos_AnnC
+    # calc CH4-C production based on ARB and IPCC default value of 0.5 for fraction of CH4, by volume, in generated landfill gas (F)
+    for (i in 5:ncol(wood2atmos_AnnC)) {
+      wood_AnnCH4C_prod[,i] <- AnnANDOC * landfill_gas_frac[,i]
+    }
+    # copy the following dataframes to fill in the following loops for calc CH4-C emissions
+    wood_AnnCH4C_combust <- wood2atmos_AnnC
+    wood_AnnCH4C_filter <- wood2atmos_AnnC
+    wood_AnnCH4C <- wood2atmos_AnnC
+    # calc CH4-C emissions based on ARB equation 89 using landfill gas collection efficiency (CE) = 0.75, landfill gas destruction efficiency 
+    # via combustion (DE_combust) = 0.99, and oxidation of uncollected CH4 in landfill cover (OX) = 0.1
+    for (i in 5:ncol(wood2atmos_AnnC)) {
+      wood_AnnCH4C_combust[,i] <- wood_AnnCH4C_prod[,i] * CE * (1 - DE_combust) + wood_AnnCH4C_prod[,i] * (1 - CE) * (1 - OX)
+    }
+    # Same equation except using landfill gas destruction efficiency via C filtration (DE_filter) = 0.01
+    for (i in 5:ncol(wood2atmos_AnnC)) {
+      wood_AnnCH4C_filter[,i] <- wood_AnnCH4C_prod[,i] * CE * (1 - DE_filter) + wood_AnnCH4C_prod[,i] * (1 - CE) * (1 - OX)
+    }
+    # Average CH4C emissions using the 2 methods of CH4 removal
+    for (i in 5:ncol(wood2atmos_AnnC)) {
+      wood_AnnCH4C[,i] <- (wood_AnnCH4C_filter[,i] + wood_AnnCH4C_combust[,i]) / 2
+    }
+    # Calc CO2-C emissions from wood
+    wood_AnnCO2C <- wood2atmos_AnnC
+    for (i in 5:ncol(wood2atmos_AnnC)) {
+      wood_AnnCO2C[,i] <- wood2atmos_AnnC[,i] - wood_AnnCH4C[,i]
+    }
+    
     # "Total_AnnEnergy2Atmos_C_stock" just to compare it with the total cum atmos c
     out_atmos_df_list[[14]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_conv"]
     # "Total_Atmos_AnnGain_C_stock" the total release of land and wood product and energy c to the atmosphere
