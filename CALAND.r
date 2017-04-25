@@ -63,7 +63,7 @@
 # by reading the name of the table (i.e. element name in list)
 # and (2) converts gas columns to GWP accordingly
 
-CALC.GWP <- function(df) {      
+CALC.GWP <- function(df, gwp_CO2, gwp_CH4, gwp_BC) {      
   # get name of list of data frames 
   name <- names(df)
   new.df <- df
@@ -2755,7 +2755,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # calc GWP [CO2-eq] for each table in df.list
   new.df <- c()
   for (i in length(df.list)) { 
-    new.df <- c(new.df, CALC.GWP(df.list))
+    new.df <- c(new.df, CALC.GWP(df.list, gwp_CO2=gwp_CO2, gwp_CH4=gwp_CH4, gwp_BC=gwp_BC))
   }
   
   # get list of new names for df.list that drops the last 'C' in CO2C, CH4C, and BCC 
