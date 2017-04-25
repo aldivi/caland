@@ -149,6 +149,17 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   
   # average half-life for all CA wood products (years) (stewart and nakamura 2012)
   wp_half_life = 52
+  # weighted average CH4 correction factor for anerobic decomposition in landfills (IPCC waste model)
+  MCF = 0.71
+  # default CH4 gas fraction in landfills (ARB 2016 GHG inventoty technical support)
+  lanfill_gas_frac = 0.5
+  # default CH4 collection efficiency in landfills (ARB 2016 GHG inventoty technical support)
+  CF = 0.75
+  # default CH4 destruction efficiency via C filter in landfills (ARB 2016 GHG inventoty technical support)
+  DE_filter = 0.01
+  # default CH4 collection efficiency in landfills via combustion/oxidation in landfills (ARB 2016 GHG inventoty technical support)
+  DE_combust = 0.99
+  
   
   if (value_col != 7) {
     out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xls")
