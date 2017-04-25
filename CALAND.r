@@ -152,7 +152,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # weighted average CH4 correction factor for anerobic decomposition in landfills (IPCC waste model)
   MCF = 0.71
   # default CH4 gas fraction in landfills (ARB 2016 GHG inventoty technical support)
-  lanfill_gas_frac = 0.5
+  landfill_gas_frac = 0.5
   # default CH4 collection efficiency in landfills (ARB 2016 GHG inventoty technical support)
   CF = 0.75
   # default CH4 destruction efficiency via C filter in landfills (ARB 2016 GHG inventoty technical support)
