@@ -159,6 +159,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   DE_filter = 0.01
   # default CH4 collection efficiency in landfills via combustion/oxidation in landfills (ARB 2016 GHG inventoty technical support)
   DE_combust = 0.99
+  # default CH4 oxidation factor in landfill cover (ARB 2016 GHG inventoty technical support)
+  OX = 0.1
   
   
   if (value_col != 7) {
@@ -2214,7 +2216,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     
     ############## Partition C emissions from total wood decay (management & lcc) into CO2-C and CH4-C ############## 
     # subset the total annual C emissions from wood decay from the out_atmos_df_list
-    wood2atmos_AnnC <- out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]]
+    wood2atmos_AnnC <- out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]]
     # copy dataframe to fill in the following loop  
     AnnANDOC <- wood2atmos_AnnC
     # calc anaerobically decomposed wood C based on ARB's weighted mean CH4 correction factor (MCF) of 0.71
