@@ -2540,16 +2540,18 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   wood_AnnCH4C <- wood2atmos_AnnC
   # calc CH4-C emissions based on ARB equation 89 using landfill gas collection efficiency (CE) = 0.75, landfill gas destruction efficiency 
   # via combustion (DE_combust) = 0.99, and oxidation of uncollected CH4 in landfill cover (OX) = 0.1
-  for (i in 5:ncol(wood2atmos_AnnC)) {
-    wood_AnnCH4C_combust[,i] <- wood_AnnCH4C_prod[,i] * CE * (1 - DE_combust) + wood_AnnCH4C_prod[,i] * (1 - CE) * (1 - OX)
-  }
+  # for (i in 5:ncol(wood2atmos_AnnC)) {
+  #  wood_AnnCH4C_combust[,i] <- wood_AnnCH4C_prod[,i] * CE * (1 - DE_combust) + wood_AnnCH4C_prod[,i] * (1 - CE) * (1 - OX)
+  # }
   # Same equation except using landfill gas destruction efficiency via C filtration (DE_filter) = 0.01
   for (i in 5:ncol(wood2atmos_AnnC)) {
     wood_AnnCH4C_filter[,i] <- wood_AnnCH4C_prod[,i] * CE * (1 - DE_filter) + wood_AnnCH4C_prod[,i] * (1 - CE) * (1 - OX)
   }
-  # Average CH4C emissions using the 2 methods of CH4 removal
+  # Average CH4C emissions using the 2 methods of CH4 removal (currently using only C filtration)
   for (i in 5:ncol(wood2atmos_AnnC)) {
+    if (exists(wood_AnnCH4C_combust)) {
     wood_AnnCH4C[,i] <- (wood_AnnCH4C_filter[,i] + wood_AnnCH4C_combust[,i]) / 2
+    } else wood_AnnCH4C[,i] <- wood_AnnCH4C_filter[,i] 
   }
   # Calc CO2-C emissions from wood
   wood_AnnCO2C <- wood2atmos_AnnC
