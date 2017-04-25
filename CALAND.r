@@ -91,7 +91,7 @@ CALC.GWP <- function(df, gwp_CO2, gwp_CH4, gwp_BC) {
 
 # define function GET.NAMES that produces a list of new names that drops the last 'C' in CO2C, CH4C, and BCC 
 # and adds 'eq' for CH4 and BC  
-GET.NAMES <- function(df) {
+GET.NAMES <- function(df, new.name) {
   name <- names(df)
   for (i in 1:length(name)) {
     if ((substr(name[[i]], nchar(name[[i]])-2, nchar(name[[i]]))) == "BCC" | (substr(name[[i]], nchar(name[[i]])-2, nchar(name[[i]]))) == "H4C") {
@@ -2762,7 +2762,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # and adds 'eq' for CH4 and BC  
   new.name <- c()
   for (i in length(df.list)) { 
-    new.name <- c(new.name, GET.NAMES(df.list))
+    new.name <- c(new.name, GET.NAMES(df.list, new.name=new.name))
   }
   
   # replace names of the elements in new.df with the CO2-eq names
