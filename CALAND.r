@@ -2566,20 +2566,19 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   for (i in 5:ncol(Total_CumCO2C)) {
     Total_CumCO2C[,i] <- 0
   }
-  for (i in 5:ncol(Total_CumCO2C)) { ### update by splitting wood into CO2 and CH4
-    Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]][,i] + 
-      out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + 
-      out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]][,i] + Manage_Fire_CumCO2C[,i] + ManEnergy_CumCO2C[,i] + 
-      Wildfire_CumCO2C[,i] + LCCEnergy_CumCO2C[,i]
+  for (i in 5:ncol(Total_CumCO2C)) { 
+    Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + wood_CumCO2C[,i] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + 
+      out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]][,i] + 
+      Manage_Fire_CumCO2C[,i] + ManEnergy_CumCO2C[,i] + Wildfire_CumCO2C[,i] + LCCEnergy_CumCO2C[,i]
   }
   # Second, do cumulative CH4-C. Choice of ncol(Manage_Fire_CumCH4C) is arbitrary -  just need the total number of columns.
   Total_CumCH4C <- Manage_Fire_CumCH4C
   for (i in 5:ncol(Total_CumCH4C)) {
     Total_CumCH4C[,i] <- 0
   }
-  for (i in 5:ncol(Total_CumCH4C)) { #### update with wood CH4
+  for (i in 5:ncol(Total_CumCH4C)) { 
     Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Fire_CumCH4C[,i] + ManEnergy_CumCH4C[,i] + Wildfire_CumCH4C[,i] + 
-      LCCEnergy_CumCH4C[,i]
+      LCCEnergy_CumCH4C[,i] + wood_CumCH4C[,i]
   }
   # Third, do cumulative BC-C. Choice of ncol(Manage_Burn_CumBCC) is arbitrary -  just need the total number of columns.
   Total_CumBCC <- Manage_Fire_CumBCC
@@ -2597,19 +2596,18 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     Total_AnnCO2C[,i] <- 0
   }
   for (i in 5:ncol(Total_AnnCO2C)) {  ### update so that wood is split between CO2 and CH4
-    Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + out_atmos_df_list[["Wood_Atmos_AnnGain_C_stock"]][,i] + 
-      out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + 
-      out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]][,i] + Manage_Fire_AnnCO2C[,i] + ManEnergy_AnnCO2C[,i] +
-      Wildfire_AnnCO2C[,i] + LCCEnergy_AnnCO2C[,i] 
+    Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + wood_AnnCO2C[,i] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + 
+      out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]][,i] +
+      Manage_Fire_AnnCO2C[,i] + ManEnergy_AnnCO2C[,i] + Wildfire_AnnCO2C[,i] + LCCEnergy_AnnCO2C[,i] 
   }
   # Second, do annual CH4-C. Choice of ncol(Manage_Fire_AnnCH4C) is arbitrary -  just need the total number of columns.
   Total_AnnCH4C <- Manage_Fire_AnnCH4C
   for (i in 5:ncol(Total_AnnCH4C)) {
     Total_AnnCH4C[,i] <- 0
   }
-  for (i in 5:ncol(Total_AnnCH4C)) { ### update to add wood
+  for (i in 5:ncol(Total_AnnCH4C)) { 
     Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Fire_AnnCH4C[,i] + ManEnergy_AnnCH4C[,i] + Wildfire_AnnCH4C[,i] + 
-      LCCEnergy_AnnCH4C[,i]
+      LCCEnergy_AnnCH4C[,i] + wood_AnnCH4C[,i]
   }
   # Third, do annual BC-C. Choice of ncol(Manage_Fire_AnnBCC) is arbitrary -  just need the total number of columns.
   Total_AnnBCC <- Manage_Fire_AnnBCC
