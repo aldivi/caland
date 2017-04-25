@@ -52,7 +52,14 @@
 # density values are the stats of the total pixel population within each land type id
 # accumulation values are stats of literature values
 
-# define function CALC.GWP that (1) finds out whether each table in df.list is CO2, CH4, or BCC 
+# How to use CALAND for beginners in R:
+# (1) Run all 3 functions (CALC.GWP, GET.NAMES, CALAND) by highlighting everything below and clicking "Run".
+# (2) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
+# the scen_file (e.g. CALAND(scen_file = "Baseline_frst2Xmort_fire.xls")).
+
+#####################################################################################################################
+
+# CALC.GWP (1) finds out whether each table in df.list is CO2, CH4, or BCC 
 # by reading the name of the table (i.e. element name in list)
 # and (2) converts gas columns to GWP accordingly
 
