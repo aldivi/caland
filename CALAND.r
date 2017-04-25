@@ -2557,9 +2557,6 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     wood_AnnCO2C[,i] <- wood2atmos_AnnC[,i] - wood_AnnCH4C[,i]
   }
   
-  
-  
-  
   # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain 
   # (less eco C emissions).
 
@@ -2760,6 +2757,18 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # replace names of the elements in new.df with the CO2-eq names
   names(new.df) <- paste0(new.name)
   
+  # sum total wood CO2eq 
+  ### cumulative ###
+  TotalWood_CumCO2eq_all <- Total_CumCO2
+  for (i in 5:ncol(TotalWood_CumCO2eq_all)) {
+    TotalWood_CumCO2eq_all[,i] <- new.df[["Wood_CumCO2"]][,i] + new.df[["Wood_CumCH4eq"]][,i]
+  }
+  ### annual ###
+  TotalWood_AnnCO2eq_all <- Total_AnnCO2
+  for (i in 5:ncol(TotalWood_AnnCO2eq_all)) {
+    TotalWood_AnnCO2eq_all[,i] <- new.df[["Wood_AnnCO2"]][,i] + new.df[["Wood_AnnCH4eq"]][,i]
+  }
+  
   # sum total burned CO2eq (manage energy + manage fire + lcc energy + wildfire)
   ### cumulative ###
   TotalBurn_CumCO2eq_all <- Total_CumCO2
@@ -2827,6 +2836,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   out_atmos_df_list[["Total_AnnCO2"]] <- Total_AnnCO2
   out_atmos_df_list[["Total_AnnCH4eq"]] <- Total_AnnCH4eq
   out_atmos_df_list[["Total_AnnBCeq"]] <- Total_AnnBCeq
+  out_atmos_df_list[["TotalWood_CumCO2eq_all"]] <- TotalWood_CumCO2eq_all
+  out_atmos_df_list[["TotalWood_AnnCO2eq_all"]] <- TotalWood_AnnCO2eq_all
   out_atmos_df_list[["TotalNonBurn_CumCO2eq_all"]] <- TotalNonBurn_CumCO2eq_all
   out_atmos_df_list[["TotalFire_CumCO2eq_all"]] <- TotalFire_CumCO2eq_all
   out_atmos_df_list[["TotalEnergy_CumCO2eq_all"]] <- TotalEnergy_CumCO2eq_all
@@ -2928,10 +2939,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # remove the Xs added to the front of the year columns so that the following atmosphere section can work without error
   colnames_Ann = names(out_atmos_df_list[[26]])
   colnames_Cum = names(out_atmos_df_list[[20]])
-  names(out_atmos_df_list[["Eco_AnnCO2C"]]) = colnames_Ann
-  names(out_atmos_df_list[["Eco_AnnCH4C"]]) = colnames_Ann
-  names(out_atmos_df_list[["Eco_CumCO2C"]]) = colnames_Cum
-  names(out_atmos_df_list[["Eco_CumCH4C"]]) = colnames_Cum
+  names(out_atmos_df_list[["Eco_AnnCO2"]]) = colnames_Ann
+  names(out_atmos_df_list[["Eco_AnnCH4eq"]]) = colnames_Ann
+  names(out_atmos_df_list[["Eco_CumCO2"]]) = colnames_Cum
+  names(out_atmos_df_list[["Eco_CumCH4eq"]]) = colnames_Cum
   
   # atmosphere
   for (i in 1:length(out_atmos_df_list)) {
