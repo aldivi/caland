@@ -171,7 +171,6 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     }
   }
   
-  
   # assign 100 yr global warming potential of CO2, CH4, and black C (BC)
   gwp_CO2 <- 1
   gwp_CH4 <- 25
@@ -2161,7 +2160,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     }
     # copy dataframe to fill in the following loop  
     wood_CumCH4C_prod <- wood2atmos_CumC
-    # calc CH4-C production based on ARB and IPCC default value of 0.5 for fraction of CH4, by volume, in generated landfill gas (F)
+    # calc CH4-C production based on ARB and IPCC default value of 0.5 for fraction of CH4, by volume, in generated landfill gas 
     for (i in 5:ncol(wood2atmos_CumC)) {
       wood_CumCH4C_prod[,i] <- CumANDOC[,i] * landfill_gas_frac
     }
@@ -2711,8 +2710,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   Wildfire_CumCH4C = Wildfire_CumCH4C,
                   Wildfire_CumBCC  = Wildfire_CumBCC,
                   
-                  # Wood_CumCO2C = Wood_CumCO2C,
-                  # Wood_CumCH4C = Wood_CumCH4C,
+                  Wood_CumCO2C = wood_CumCO2C,
+                  Wood_CumCH4C = wood_CumCH4C,
                   
                   Eco_AnnCO2C = Eco_AnnCO2C,
                   Eco_AnnCH4C = Eco_AnnCH4C,
@@ -2736,10 +2735,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   
                   Wildfire_AnnCO2C = Wildfire_AnnCO2C,
                   Wildfire_AnnCH4C = Wildfire_AnnCH4C,
-                  Wildfire_AnnBCC  = Wildfire_AnnBCC
+                  Wildfire_AnnBCC  = Wildfire_AnnBCC,
                   
-                  # Wood_AnnCO2C = Wood_AnnCO2C,
-                  # Wood_AnnCH4C = Wood_AnnCH4C
+                  Wood_AnnCO2C = wood_AnnCO2C,
+                  Wood_AnnCH4C = wood_AnnCH4C
                   )
   
   # calc GWP [CO2-eq] for each table in df.list
@@ -2758,22 +2757,23 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # replace names of the elements in new.df with the CO2-eq names
   names(new.df) <- paste0(new.name)
   
-  # sum total non-burned CO2eq (eco + manage + lcc + wood)
+  # sum total burned CO2eq (manage energy + manage fire + lcc energy + wildfire)
   ### cumulative ###
   TotalBurn_CumCO2eq_all <- Total_CumCO2
   for (i in 5:ncol(TotalBurn_CumCO2eq_all)) {
     TotalBurn_CumCO2eq_all[,i] <- new.df[["ManEnergy_CumCO2"]][,i] + new.df[["ManEnergy_CumCH4eq"]][,i] + new.df[["ManEnergy_CumBCeq"]][,i] +
     new.df[["ManFire_CumCO2"]][,i] + new.df[["ManFire_CumCH4eq"]][,i] + new.df[["ManFire_CumBCeq"]][,i] + new.df[["LCCEnergy_CumCO2"]][,i] +
     new.df[["LCCEnergy_CumCH4eq"]][,i] + new.df[["LCCEnergy_CumBCeq"]][,i] + new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] +
-    new.df[["Wildfire_CumBCeq"]][,i]
+    new.df[["Wildfire_CumBCeq"]][,i] 
   }
-  # sum total burned CO2eq (manage fire + manage energy + lcc energy + lcc burned + wildfire)
+  # sum total non-burned CO2eq (eco + manage + lcc + wood)  
   TotalNonBurn_CumCO2eq_all <- Total_CumCO2
   for (i in 5:ncol(TotalNonBurn_CumCO2eq_all)) {
     TotalBurn_CumCO2eq_all[,i] <- new.df[["Eco_CumCO2"]][,i] + new.df[["Eco_CumCH4eq"]][,i] + new.df[["ManNonBurn_CumCO2"]][,i] +
-      new.df[["LCCNonBurn_CumCO2"]][,i] 
+      new.df[["LCCNonBurn_CumCO2"]][,i] + new.df[["Wood_CumCO2"]][,i] + new.df[["Wood_CumCH4eq"]][,i]
   }
   ### annual ###
+  # sum total burned CO2eq (manage energy + manage fire + lcc energy + wildfire)
   TotalBurn_AnnCO2eq_all <- Total_AnnCO2
   for (i in 5:ncol(TotalBurn_AnnCO2eq_all)) {
     TotalBurn_AnnCO2eq_all[,i] <- new.df[["ManEnergy_AnnCO2"]][,i] + new.df[["ManEnergy_AnnCH4eq"]][,i] + new.df[["ManEnergy_AnnBCeq"]][,i] +
@@ -2781,11 +2781,11 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       new.df[["LCCEnergy_AnnCH4eq"]][,i] + new.df[["LCCEnergy_AnnBCeq"]][,i] + new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] +
       new.df[["Wildfire_AnnBCeq"]][,i]
   }
-  # sum total burned CO2eq (manage fire + manage energy + lcc energy + lcc burned + wildfire)
+  # sum total non-burned CO2eq (eco + manage + lcc + wood)
   TotalNonBurn_AnnCO2eq_all <- Total_AnnCO2
   for (i in 5:ncol(TotalNonBurn_AnnCO2eq_all)) {
     TotalBurn_AnnCO2eq_all[,i] <- new.df[["Eco_AnnCO2"]][,i] + new.df[["Eco_AnnCH4eq"]][,i] + new.df[["ManNonBurn_AnnCO2"]][,i] +
-      new.df[["LCCNonBurn_AnnCO2"]][,i] 
+      new.df[["LCCNonBurn_AnnCO2"]][,i] + new.df[["Wood_AnnCO2"]][,i] + new.df[["Wood_AnnCH4eq"]][,i]
   }
   
   # sum total energy CO2eq (manage energy + lcc energy) and total fire CO2eq (manage fire + wildfire) 
