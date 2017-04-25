@@ -2227,7 +2227,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     wood_AnnCH4C_prod <- wood2atmos_AnnC
     # calc CH4-C production based on ARB and IPCC default value of 0.5 for fraction of CH4, by volume, in generated landfill gas (F)
     for (i in 5:ncol(wood2atmos_AnnC)) {
-      wood_AnnCH4C_prod[,i] <- AnnANDOC * landfill_gas_frac[,i]
+      wood_AnnCH4C_prod[,i] <- AnnANDOC[,i] * landfill_gas_frac
     }
     # copy the following dataframes to fill in the following loops for calc CH4-C emissions
     wood_AnnCH4C_combust <- wood2atmos_AnnC
