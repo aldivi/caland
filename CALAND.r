@@ -258,7 +258,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                        "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
                        "Manage_Atmos_CumGain_FireC", "Manage_Atmos_CumGain_EnergyC", "Manage_Atmos_CumGain_NonBurnedC", 
                        "Fire_Atmos_CumGain_BurnedC", "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_EnergyC", 
-                       "LCC_Atmos_CumGain_NonBurnedC","Manage_Atmos_AnnGain_FireC", "Manage_Atmos_AnnGain_EnergyC", 
+                       "LCC_Atmos_CumGain_NonBurnEnerC","Manage_Atmos_AnnGain_FireC", "Manage_Atmos_AnnGain_EnergyC", 
                        "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", "Fire_Atmos_AnnGain_NonBurnedC", 
                        "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonBurnedC")
   num_out_atmos_sheets = length(out_atmos_sheets)
@@ -1578,6 +1578,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     own_names = unique(conv_adjust_df$Ownership)
     
     own_conv_df_list <- list()
+    
+    ##### START BIG LOOP that ultimately calc C TRANSFER for land conversions
+    ## loop over ownerships
     for (i in 1:length(own_names)) {
       conv_own = conv_adjust_df[conv_adjust_df$Ownership == own_names[i],]
       
@@ -1963,6 +1966,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     } # end i loop over ownership for calculating land conversion c adjustments
     
     # now rebuild the conv_adjust_df
+    # start with adding the 1st and 2nd ownership data frames to conv_adjust
     conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])
     for (i in 3:length(own_names)) {
       conv_adjust_df = rbind(conv_adjust_df, own_conv_df_list[[i]])
