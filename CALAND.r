@@ -1580,10 +1580,12 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     own_conv_df_list <- list()
     
     ##### START BIG LOOP that ultimately calc C TRANSFER for land conversions
-    ## loop over regions
-    for (i in 1:length(conv_adjust_df$Region)) {
-    ## loop over ownerships
+    # loop over regions
+    for (r in 1:length(unique(conv_adjust_df$Region))) {
+    
+    # loop over ownerships
     for (i in 1:length(own_names)) {
+      # subset one ownership class at a time from the conversion adjustment table
       conv_own = conv_adjust_df[conv_adjust_df$Ownership == own_names[i],]
       
       # first need to adjust the baseline change rates and calculate the new area
@@ -1597,45 +1599,67 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         # calc growth adjustment before specific activities
         # change will be distributed to other land types proportionally within land type id, except for fresh marsh
         # note that developed land doesn't quite play out as prescribed, does this have to do with fresh marsh?
+        
+        # calc adjustment to the baseline growth rate for limited growth management 
+        # (temp_adjust) [ha] = current year limited growth area - initial limited growth area
         temp_adjust = conv_own$man_area[conv_own$Management == "Growth" & !is.na(conv_own$Management)] - 
           conv_own$initial_man_area[conv_own$Management == "Growth" & !is.na(conv_own$Management)]
+        # paste value(s) in the column for base_change_adjust 
         conv_own$base_change_adjust[conv_own$Management == "Growth" & !is.na(conv_own$Management)] = temp_adjust
+        # proportionally distribute the reductions in urban growth area to other land types
+        # for each landtype except developed and fresh marsh (not affected by these manipulations since protected): 
+        # base_change_adjust [ha] = base_change_adjust - (sum of adjustments to baseline urban growth rate) *
+        # (total area of landtype)/(total area of all the other landtypes)
         conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] = 
           conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] - 
           sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] / 
           sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"])
         
-        # Afforestation activities will come proportionally out of shrub and grass only
+        # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
+        # calc area adjustment for AFFORESTATION (temp_adjust) [ha] = current year afforestation area - initial afforestation area
         temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
           conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+        # add the difference in afforestation area since 2010 to the column for base_change_adjust because it's assumed afforestation is 
+        # included in the initial baseline area changes
         conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 
           conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
+        # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
+        # for AFFORESTATION (temp_adjust) in shrubland and grassland
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
           conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
           sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
         
-        # coastal marsh restoration will come out of ag land only
+        # coastal marsh restoration will come out of _agriculture_ land only
+        # get area adjustment for COASTAL MARSH RESTORATION (temp_adjust) [ha] = current year management area 
         temp_adjust = conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        # add the COASTAL MARSH RESTORATION area to the column for base_change_adjust 
         conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
           temp_adjust
+        # subtract this area propotionally from AGRICULTURE
         conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] = conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] - 
           sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Agriculture"] / sum(conv_own$tot_area[conv_own$Land_Type == "Agriculture"])
         
-        # fresh marsh restoration will come out of ag land only
+        # fresh marsh restoration will come out of _agriculture_ land only
+        # get area adjustment for FRESH MARSH RESTORATION (temp_adjust) [ha] = current year management area 
         temp_adjust = conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        # add the FRESH MARSH RESTORATION area to the column for base_change_adjust
         conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
           temp_adjust
+        # subtract this area propotionally from AGRICULTURE
         conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] = conv_own$base_change_adjust[conv_own$Land_Type == "Agriculture"] - 
           sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Agriculture"] / sum(conv_own$tot_area[conv_own$Land_Type == "Agriculture"])
         
-        # meadow restoration will come proportionally out of shrub, grass, savanna, woodland only
+        # meadow restoration will come proportionally out of _shrubland_, _grassland_, _savanna_, _woodland_ only
+        # get area adjustment for MEADOW RESTORATION (temp_adjust) [ha] = current year management area 
         temp_adjust = conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        # add the MEADOW RESTORATION area to the column for base_change_adjust  
         conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
           temp_adjust
+        # subtract this area propotionally from SHRUBLAND, GRASSLAND, & SAVANNA
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
                                       conv_own$Land_Type == "Woodland"] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
@@ -1651,12 +1675,19 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       conv_own$base_change_adjust[conv_own$base_change_adjust == Inf] = 0
       
       # calc the area change and the new area
+      # recall AREA CHANGE [ha] starts as annual net area conversions ("base_area_change")
+      # so add to it the newly calculated base_change_adjust:
       conv_own$area_change = conv_own$base_area_change + conv_own$base_change_adjust
+      # and recalc NEW AREA [ha] = LANDTYPE AREA + (adjusted) AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
-      
+      ################################## PROTECT RESTORED MARSH & MEADOW AREA VIA AREA CHANGE ADJUSTMENT ################################  
       # first adjust the new area and area change to account for the protection of restored fresh marsh and restored meadow and restored coastal 
       # marsh
-      # this alos accounts for new area going negative
+      # this also accounts for new area going negative
+      # new area should always be greater than the cumulative restored management area so there is no loss of protected area over time.
+      # thus, for fresh or coastal marsh, or meadow, if new area < cumulative management area, do the following two steps: 
+      # (1) recalculate AREA CHANGE by adding the deficit area to the area change
+      # (2) AREA CHANGE [ha] = AREA CHANGE + CUMULATIVE MANAGEMENT AREA - NEW AREA
       conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & 
                              (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = 
         conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & 
@@ -1665,12 +1696,14 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                                  (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] - 
            conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
                                (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")])
+      # sum_restored_neg = -1 * ( (aggregate sum all the above cumulative management areas > new areas) + new area )
       sum_restored_neg = -sum(conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
                                                       (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
                                                          conv_own$Land_Type == "Coastal_marsh")] - 
                                 conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
                                                     (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
                                                        conv_own$Land_Type == "Coastal_marsh")])
+      # second, for these cases, set the NEW AREA equal to CUMULATIVE MANAGEMENT AREA 
       conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
                           (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = 
         conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
@@ -1679,18 +1712,33 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       # if new area is negative, add the magnitude of the negative area to the area_change and subtract the difference proportionally from the 
       # positive area changes (except for fresh marsh and meadow and coastal marsh), then calc new area again
       # restored fresh marsh and meadow and coastal marsh are protected, so make sure that these restored areas are not negated by this adjustment
+      # correct NEGATIVE new areas:
+      # AREA CHANGE = AREA CHANGE - NEW AREA (this later sets new area to 0)
       conv_own$area_change[conv_own$new_area < 0] = conv_own$area_change[conv_own$new_area < 0] - conv_own$new_area[conv_own$new_area < 0]
+      # sum_neg_new = SUM NEGATIVE NEW AREAS + sum_restored_neg
       sum_neg_new = sum(conv_own$new_area[conv_own$new_area < 0]) + sum_restored_neg
+      #  For all expanding landtypes (_except_ FRESH & COASTAL marsh, and MEADOW), set area changes:
+      # first, sum the expanding land type area 
+      # sum_pos_change = SUM POSITIVE AREA CHANGES
       sum_pos_change = sum(conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                                                   conv_own$Land_Type != "Coastal_marsh"])
+      # second, adjust AREA CHANGE by subtracting the proportional sum of negative new areas from the positive area changes: 
+      # AREA CHANGE = AREA CHANGE + sum_neg_new * area change / sum_pos_change
       conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                              conv_own$Land_Type != "Coastal_marsh"] = 
         conv_own$area_change[conv_own$area_change > 0 & 
                                conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
         sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                                              conv_own$Land_Type != "Coastal_marsh"] / sum_pos_change
+      # For all landtypes:
+      ## update new area by adding adjusted area changes to the total areas for each landtype-ownership-region combination: 
+      # NEW AREA [ha] = TOTAL AREA + AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
       
+      ######################################## NOW AREA CHANGES & NEW AREAS ARE CORRECT ######################################## 
+      
+      ################################ CALC SPECIFIC FROM/TO and TO/FROM AREA CONVERSIONS ######################################
+      # need the specific amount of area conversions (from/to and to/from) to calculate the C transfers and density changes
       # calculate the conversion area matrices by ownership
       # these store the area change from the Land_Type column to the individual land type columns, by ownership
       # a from-to value is positive, a to-from value is negative
@@ -1698,11 +1746,16 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       
       # do only land here because ocean/seagrass is different
       if(own_names[i] != "Ocean") {
+        # add up all positive area changes in new column "own_gain_sum" 
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
+        # duplicate dataframe and call it conv_own2 
         conv_own2 = conv_own
-        # loop over the land types to get the positive from-to area values
+        # loop over the land types to get the positive from-to area values (from-to: expanding landtypes. if constant then value is 0)
         for (l in 1:length(conv_own$Land_Type)) {
+          # l is landtype index. add new columns that are the gains in area for each land type
           conv_own[,conv_own$Land_Type[l]] = 0.0
+          # for each from-to land type column, go to rows of decreasing landtypes: 
+          # from-to value = absolute(neg area change) * (area change of the gaining land type)/(sum all gaining areas) 
           conv_own[,conv_own$Land_Type[l]][conv_own$area_change < 0] = - conv_own$area_change[conv_own$area_change < 0] * 
             conv_own$area_change[l] / conv_own$own_gain_sum[l]
         } # end for l loop over land type
@@ -1738,23 +1791,31 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         # the carbon density change is based on land type id tot_area so that it can be aggregated and subtracted directly from the current 
         # density values
         # probably should deal with the remaining c transfer here, rather than below, so that all transfers are included
+        
+        # calculate all the c losses from landtypes that convert to ag or urban
         for (f in 1:num_convfrac_cols){
           # the removed values are calculated first, so this will work
           # if conv_density_inds[f] == -1, then the source is the removed pool; use the sum of the first two c trans columns
           if (conv_density_inds[f] == -1) {
+            # C removed [MgC/ha] =  (removed above C + removed standing dead C) * removed frac.... ("Removed2Wood_conv_frac", "Removed2Energy_conv_frac", 
+            # or "Removed2Atmos_conv_frac"
             conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[1]] + conv_own[,convc_trans_names[2]]) * conv_own[,conv_frac_names[f]]
           } else {
+            # get all the C pool densities for each C fraction 
             if (!out_density_sheets[conv_density_inds[f]] %in% names(conv_own)) {
               conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Category_ID", "Region", "Land_Type", "Ownership", 
                                                                                         next_density_label)], 
                                by = c("Category_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
               names(conv_own)[names(conv_own) == next_density_label] = out_density_sheets[conv_density_inds[f]]
             }
+            # if ag or developed land is expanding then calc the C removed or transfered from each of the land types:
+            # subset the land type rows that are losing area to ag (i.e. Agriculture is >0) and calc the amount of C transferred from shrinking land type to ag
+            # C transfer [MgC/ha] = (C density of _shrinking_ land type) * (conversion frac) * (ag area gain from _shrinking_ land type)/(total ag area)
             conv_own[conv_own$Agriculture > 0,convc_trans_names[f]] = 
               conv_own[conv_own$Agriculture > 0, out_density_sheets[conv_density_inds[f]]] * 
               conv_own[conv_own$Agriculture > 0,conv_frac_names[f]] * conv_own$Agriculture[conv_own$Agriculture > 0] / 
               conv_own$tot_area[conv_own$Agriculture > 0]
-            
+            # repeat for developed 
             conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] = 
               conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] + 
               conv_own[conv_own$Developed_all > 0,out_density_sheets[conv_density_inds[f]]] * 
@@ -1804,29 +1865,42 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         # the final change values in these dfs will be aggregated put in columns in conv_own
         # these density changes are with respect to the current land type id total area for consistency with the other changes
         # at the end of the current year multiply the final densities by tot_area/new_area
+        
         conv_df_list <- list()
         for (l in 1:num_conv_col_names) {
+          # create a dataframe of conversion C transfers for each of the 15 land type
           lt_conv = conv_own_static
           # loop over the c pools
           for (c in 3:num_out_density_sheets) {
+            # indices for matching density columns in land-type conversion C transfer dataframe and the output C density dataframe
             cind = which(names(lt_conv) == out_density_sheets[c])
+            # paste "_change" to the end of the current C density pool in loop (e.g. "Soil_orgC_den_change") 
             chname = paste0(out_density_sheets[c],"_change")
+            # create a column with this name in the current land type's conversion C transfer dataframe (fill with 0's)
             lt_conv[, chname] = 0
+            # paste "_diff" to the end of the current C density pool in loop (e.g. "Soil_orgC_den_diff") 
             diffname = paste0(out_density_sheets[c],"_diff")
             # this is the land type column minus the l column difference
+            # i.e., difference in C density of pool 'c' between all landtypes & landtype 'l' = 
+            # (C densities of pool 'c' [MgC/ha] in each landtype) - (C density of pool 'c' in landtype 'l')  
             lt_conv[,diffname] = lt_conv[,cind] - lt_conv[l,cind]
             # do from-to first; don't need to do anything for a zero column
+            # if the area change in landtype 'l' is positive (from-to), then do...
             if(sum(lt_conv[,conv_col_names[l]]) > 0) {
               # only operate where the "to" area is > 0
+              # and on above-ground C density pools 
               if (c != 4 & c != 9) { # above
+                # and if the current land type dataframe in loop (lt_conv) is for Agriculture or Developed areas
                 if(conv_col_names[l] == "Agriculture" | conv_col_names[l] == "Developed_all") {
-                  # density change = change in "from-to" area * zero carbon / "to" total area
+                  # then, for these growing landtypes only, set the C density changes to 0
+                  # initialize the changes in C density (don't keep any above-ground C when converting to ag or developed)
+                  # density change = change in "from-to" area * zero carbon / "to" total area           
                   lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = 0
                 } else {
                   # the diff matters, but the c to atmos is tallied below in the to-from section
                   # positive diff here means that some c is lost to atmosphere
                   # calc density for diff positive
-                  # density change = change in "from-to" area * "to" carbon / "to" total area
+                  # density change = change in "from-to" area * "to" carbon / "to" total area  ("to" land type is new land type)
                   lt_conv[(lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] > 0), chname] = 
                     lt_conv[(lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] > 0), conv_col_names[l]] * lt_conv[l, cind] / 
                     lt_conv$tot_area[l]
@@ -1837,11 +1911,14 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                     lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] > 0), cind] / lt_conv$tot_area[l]
                 } # end not to ag or developed
               } else {		# underground
+                # if ag or developed and root c, then...
                 if(conv_col_names[l] == "Agriculture" | conv_col_names[l] == "Developed_all") {
                   if (c==4) {
                     # this should be zero, and the frac should send it all to the atmos above
                     # but add it just in case the frac is changed
                     # density change = change in "from-to" area * "from" carbon * rembelowcfrac / "to" total area
+                    # go to all the rows in which a landtype is converting area to the landtyle l column, and multiply this area by
+                    # the correpsonding change in C density and 1 minus the fraction that goes to atmosphere (currently 100%)/tot area, so this is 0.
                     lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * 
                       lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] * (1-lt_conv[lt_conv[,conv_col_names[l]] > 0, "Below2Atmos_conv_frac"]) / 
                       lt_conv$tot_area[l]
@@ -1853,20 +1930,25 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                       lt_conv$tot_area[l]
                   } # end else soil c for to ag and dev
                 } else {	# end else underground ag and dev
+                  # soil org C & root for all other land types:
                   # density change = change in "from-to" area * "from" carbon / "to" total area
                   lt_conv[lt_conv[,conv_col_names[l]] > 0, chname] = lt_conv[lt_conv[,conv_col_names[l]] > 0, conv_col_names[l]] * 
                     lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] / lt_conv$tot_area[l]
                 }
               } # end else underground
+              # else for land types losing area....
             } else if(sum(lt_conv[,conv_col_names[l]]) < 0) {
               # to-from
               # only operate where the "from" area is < 0
               # to ag and dev already have removed carbon based on clearing above
               #  all above ground has been removed
               #  but some soil carbon still needs to be tallied as transferred
-              #  and some below ground is the frac is changed
+              #  and some below ground is the frac is changed in input file (change in root c frac is uncertain, 
+              #  can change fraction from 1 to something else in input file for sensitivity check)
               #  so only operate on the non-ag, non-dev rows for all except underground
               # carbon has been sent to atmos when the to-from difference is negative
+              
+              # if root c or soil org c...
               if (c==4 | c==9) {
                 # include ag and dev for the underground
                 # it doesn't matter what the c den diff is
@@ -1879,8 +1961,12 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                   lt_conv[l, cind] / lt_conv$tot_area[l]
                 # "to" ag and dev needs the remaining fraction of c for each c pool
                 # this value should be negative
+                # calc c taken out of 'from' landtype when it IS going to ag or developed (need to know C remaining after loss to atmosphere)
+                # if it's root c, then remaining c fraction = 1 - root frac lost to atmosphere
                 if(c==4) {remfrac = (1-lt_conv[l,"Below2Atmos_conv_frac"])} else
+                  # else it's soil org c, and remaining c fraction = 1 - soil C frac lost to atmosphere
                 {remfrac = (1-lt_conv[l,"Soil2Atmos_conv_frac"])}
+                # area lost * "from" carbon * remaining frac after conversion to ag or dev/ "from" total area 
                 lt_conv[lt_conv[,conv_col_names[l]] < 0 & (lt_conv$Land_Type == "Agriculture" | lt_conv$Land_Type == "Developed_all"), chname] = 
                   lt_conv[lt_conv[,conv_col_names[l]] < 0 & (lt_conv$Land_Type == "Agriculture" | lt_conv$Land_Type == "Developed_all"), 
                           conv_col_names[l]] * remfrac * lt_conv[l, cind] / lt_conv$tot_area[l]	
@@ -1889,6 +1975,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                 # the diff matters here - positive diff values mean all from carbon is transferred
                 # density change = change in "to-from" area * "from" carbon / "from" total area
                 # this value should be negative
+                # calc c dens change (loss) for losing areas with higher C dens that 'to' area (not to ag or dev), by 
+                # subsetting rows in c dens change column with positive C dens difference & not ag or dev = 
+                # lost area * diff in C dens
                 lt_conv[lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] < 0 & 
                           lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all", chname] = 
                   lt_conv[lt_conv[,diffname] > 0 & lt_conv[,conv_col_names[l]] < 0 & 
@@ -1915,6 +2004,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                              lt_conv$Land_Type != "Agriculture" & lt_conv$Land_Type != "Developed_all"),diffname] * 
                   lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Agriculture" & 
                              lt_conv$Land_Type != "Developed_all"), conv_col_names[l]] / lt_conv$tot_area[l]
+                # sum all C come out of 'from' land type going to atmosphere
                 conv_own[conv_own$Category_ID == lt_conv$Category_ID[l],atmosname] = sum(lt_conv[,atmosname])
                 # these deal with numerical errors due to roundoff, divide by zero, and any added NA values
                 conv_own[,atmosname] = replace(conv_own[,atmosname], is.na(conv_own[,atmosname]), 0.0)
@@ -1922,6 +2012,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
                 conv_own[,atmosname] = replace(conv_own[,atmosname], conv_own[,atmosname] == Inf, 0.0)
               } # end else above ground for to-from
             } # end else to-from
+            # sum amount of C either lost or gained for each land type
             conv_own[conv_own$Category_ID == lt_conv$Category_ID[l],chname] = sum(lt_conv[,chname])
             # these deal with numerical errors due to roundoff, divide by zero, and any added NA values
             conv_own[,chname] = replace(conv_own[,chname], is.na(conv_own[,chname]), 0.0)
@@ -1941,7 +2032,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         # no losses to atmosphere - it is assumed that it stays in the ocean
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
         skip = length(names(conv_own))
+        # 'add' gets a vector of all the column names from cov_own table
         add = names(own_conv_df_list[[1]])[(skip+1):ncol(own_conv_df_list[[1]])]
+        # fill in all the conv_own columns and fill with 0
         conv_own[,add] = 0
         conv_own[conv_own$Land_Type == "Seagrass", "Above_main_C_den"] = 
           out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Seagrass",next_density_label]
@@ -1964,16 +2057,20 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Above_main_C_den_change"] = 0
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
       } # end if land own else ocean/seagrass
-      own_conv_df_list[[i]] = conv_own
+      own_conv_df_list_pre[[i]] = conv_own
     } # end i loop over ownership for calculating land conversion c adjustments
-    } # end i loop over Region
+      # after all the ownership loops within a given region, add the conv_own df to own_conv_df_list
+      own_conv_df_list[[r]] = own_conv_df_list_pre
+    } # end r loop over Region
     
     # now rebuild the conv_adjust_df
     # start with adding the 1st and 2nd ownership data frames to conv_adjust
     conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])
+    # then just add the 3rd and 4th ownership data frames to conv_adjust
     for (i in 3:length(own_names)) {
       conv_adjust_df = rbind(conv_adjust_df, own_conv_df_list[[i]])
     }
+    # sort so it looks like input tables
     conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Category_ID),]
     
     # aggregate the transfer densities to the density pools
@@ -1986,7 +2083,10 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     
     cgnames = NULL
     # above
+    # changes in c dens
     cgnames = c(cgnames, paste0(out_density_sheets[3],"_gain_conv"))
+    # c lost from any landtype going to ag/urban - c loss (emissions) if changing land area from hi to lo c density + 
+    # c density gain if going to low to hi c density 
     all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_removed_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
       conv_adjust_df$Above_main_C_den_change
     # below
@@ -2017,19 +2117,28 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     sum_change = 0
     sum_change2 = 0
     sum_neg_conv = 0
+    # starts on 3 because 1 and 2 are total C and total living and dead biomass
     for (i in 3:num_out_density_sheets) {
+      # diagnostic for c stock change
       sum_change = sum_change + sum(all_c_flux[,cgnames[i-2]] * all_c_flux$tot_area)
+      # diagnostic for c stock change
       sum_change2 = sum_change2 + sum(conv_adjust_df[,paste0(out_density_sheets[i],"_change")] * all_c_flux$tot_area)
+      # adds next year total c density columns: "Above_main_C_den"  "Below_main_C_den"  "Understory_C_den"  "StandDead_C_den"  
+      # "DownDead_C_den"    "Litter_C_den"      "Soil_orgC_den"   
       out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[,cgnames[i-2]]
       # first calc the carbon not subtracted because it sends density negative
+      # correction and diagnostic
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list lcc" , i, "are", neginds, "\n")
+      # sum all negative
       sum_neg_conv = sum_neg_conv + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                           out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+      # set neg desities to 0
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
                                                                 out_density_df_list[[i]][, next_density_label] <= 0, 0.00)
-      # normalize it to the new area and check for zero new area
+      # normalize it to the new area and check for zero new area (sets correct c densities)
       out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] * all_c_flux$tot_area / all_c_flux$new_area
+      # set NAN or INF desities to 0
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
                                                                 is.nan(out_density_df_list[[i]][, next_density_label]), 0.00)
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
@@ -2038,6 +2147,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     
     # to get the carbon must multiply these by the tot_area
     # atmos: assumed none of this is burned
+    # getting stocks of total c emissions (assumed to be CO2) 
     all_c_flux[,"Land2Atmos_c_stock_conv"] = -conv_adjust_df$tot_area * 
       (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Litter2Atmos_conv_c + conv_adjust_df$DownDead2Atmos_conv_c + 
          conv_adjust_df$Understory2Atmos_conv_c + conv_adjust_df$Removed2Atmos_conv_c + conv_adjust_df$Below2Atmos_conv_c + 
@@ -2088,6 +2198,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     out_area_df_list[[1]][,next_area_label] = all_c_flux$new_area
     
     # set this years actual managed area (the area change activities are still just targets)
+    # can have the case where there isn't enough area to do the full input scenario target mangagement area (correction was done earlier)
     out_area_df_list[[2]][,cur_area_label] = man_adjust_df$man_area
     
     # set this years actual fire area - output by the lt breakdown
