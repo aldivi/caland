@@ -1577,8 +1577,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     num_conv_col_names = length(conv_col_names)
     own_names = unique(conv_adjust_df$Ownership)
     
+    own_conv_df_list_pre <- list()
     own_conv_df_list <- list()
-    
     ##### START BIG LOOP that ultimately calc C TRANSFER for land conversions
     # loop over regions
     for (r in 1:length(unique(conv_adjust_df$Region))) {
@@ -2033,7 +2033,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
         skip = length(names(conv_own))
         # 'add' gets a vector of all the column names from cov_own table
-        add = names(own_conv_df_list[[1]])[(skip+1):ncol(own_conv_df_list[[1]])]
+        add = names(own_conv_df_list_pre[[1]])[(skip+1):ncol(own_conv_df_list_pre[[1]])]
         # fill in all the conv_own columns and fill with 0
         conv_own[,add] = 0
         conv_own[conv_own$Land_Type == "Seagrass", "Above_main_C_den"] = 
