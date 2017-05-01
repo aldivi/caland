@@ -1577,16 +1577,28 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     num_conv_col_names = length(conv_col_names)
     own_names = unique(conv_adjust_df$Ownership)
     
-    own_conv_df_list_pre <- list()
+    # initialize lists for the following two loops
+   
     own_conv_df_list <- list()
-    ##### START BIG LOOP that ultimately calc C TRANSFER for land conversions
-    # loop over regions
-    for (r in 1:length(unique(conv_adjust_df$Region))) {
     
+    ############ START BIG LOOP that ultimately calc C TRANSFER for land conversions ############ 
+    # outer loop over regions
+    for (r in 1:length(unique(conv_adjust_df$Region))) {
+    # get region-specific ownerships to send to inner ownership loop
+      region.names <- unique(conv_adjust_df$Region) # [a, b, c, d]
+      # subset rows in conv_adjust_df that have the region ID equal to region.sames[[r]]
+      # first get row indices 
+      current_region_ID <- region.names[[r]]
+      region.row.index <- which(conv_adjust_df$Region == current_region_ID) # might not need this
+      # second subset these specific region rows from conv_adjust_df
+      region.specific.own <- conv_adjust_df[conv_adjust_df$Region == current_region_ID,]
+      # third subset region-specific ownerships from own_names
+      own_names <- unique(region.specific.own$Ownership)
+      own_conv_df_list_pre <- list()
     # loop over ownerships
     for (i in 1:length(own_names)) {
       # subset one ownership class at a time from the conversion adjustment table
-      conv_own = conv_adjust_df[conv_adjust_df$Ownership == own_names[i],]
+      conv_own = region.specific.own[region.specific.own$Ownership == own_names[i],]  
       
       # first need to adjust the baseline change rates and calculate the new area
       
@@ -2033,7 +2045,9 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
         skip = length(names(conv_own))
         # 'add' gets a vector of all the column names from cov_own table
-        add = names(own_conv_df_list_pre[[1]])[(skip+1):ncol(own_conv_df_list_pre[[1]])]
+        #add = names(own_conv_df_list_pre[[1]])[(skip+1):ncol(own_conv_df_list_pre[[1]])]
+        add = names(own_conv_df_list[[1]])[(skip+1):ncol(own_conv_df_list[[1]])]
+        
         # fill in all the conv_own columns and fill with 0
         conv_own[,add] = 0
         conv_own[conv_own$Land_Type == "Seagrass", "Above_main_C_den"] = 
@@ -2057,17 +2071,30 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Above_main_C_den_change"] = 0
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
       } # end if land own else ocean/seagrass
-      own_conv_df_list_pre[[i]] = conv_own
+      own_conv_df_list_pre[[i]] = conv_own # currently 4 ownerships total (but maybe not 4 for each region)
     } # end i loop over ownership for calculating land conversion c adjustments
       # after all the ownership loops within a given region, add the conv_own df to own_conv_df_list
-      own_conv_df_list[[r]] = own_conv_df_list_pre
+      # first combine dataframes for each ownership type within a region
+      if (length(own_conv_df_list_pre) > 1) {
+        conv_df_pre = rbind(own_conv_df_list_pre[[1]], own_conv_df_list_pre[[2]])
+        if (length(own_conv_df_list_pre) > 2) {
+          for (z in 3:length(own_names)) {
+            conv_df_pre = rbind(conv_df_pre, own_conv_df_list_pre[[z]])
+          }
+        }  
+        own_conv_df_list[[r]] = conv_df_pre
+      } else own_conv_df_list[[r]] = own_conv_df_list_pre[[1]]
     } # end r loop over Region
     
-    # now rebuild the conv_adjust_df
+    # now rebuild the conv_adjust_df  (by Region??)
+    # reset own_names   
+    region_names <- unique(conv_adjust_df$Region)
     # start with adding the 1st and 2nd ownership data frames to conv_adjust
-    conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])
-    # then just add the 3rd and 4th ownership data frames to conv_adjust
-    for (i in 3:length(own_names)) {
+    # conv_adjust is currently a single df with 46 obs. of  25 variables, and own_conv_df_list[[1]]
+    # is a list with 1 df, 15 obs., 72 variables.
+    conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])  ## does this reset conv_adjust_df or add to it??
+    # then just add the remaining ownership data frames to conv_adjust
+    for (i in 3:length(region_names)) {
       conv_adjust_df = rbind(conv_adjust_df, own_conv_df_list[[i]])
     }
     # sort so it looks like input tables
