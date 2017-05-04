@@ -379,7 +379,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   fire_target_df <- scen_df_list[[4]]
   mortality_target_df <- scen_df_list[[5]]
   # these are useful
-  conv_area_df = scen_df_list[[1]]
+  conv_area_df = scen_df_list[[2]]
   names(conv_area_df)[ncol(conv_area_df)] = "base_area_change"
   vegc_uptake_df = c_df_list[[10]]
   vegc_uptake_df$vegc_uptake_val = vegc_uptake_df[,value_col]
