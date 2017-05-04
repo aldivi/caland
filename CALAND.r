@@ -1613,7 +1613,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     for (i in 1:length(own_names)) {
       # subset one ownership class at a time from the conversion adjustment table
       conv_own = region.specific.own[region.specific.own$Ownership == own_names[i],]  
-      
+      # get region-ownership-specific landtype names
+      conv_col_names <- unique(conv_own$Land_Type)
       # first need to adjust the baseline change rates and calculate the new area
       
       # the seagrass adjustment is separate
