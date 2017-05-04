@@ -350,6 +350,13 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   for (i in 3:4) { # annual managed area and annual wildfire area
     scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
   }
+  # Check that all management areas in scen_df_list[[3]] have corresponding initial 2010 areas scen_df_list[[1]] 
+  # get all category ID's for the managed areas and initial areas
+  cat_ID_man <- scen_df_list[[3]][,1]
+  cat_ID_exist <- scen_df_list[[1]][,1]
+  if (any(!((cat_ID_man) %in% cat_ID_exist))) {
+    stop("Error: each land category in the management area table must exist in the initial area table")
+  }
   for (i in 5:5) { # annual mortality fraction
     scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
   }
@@ -379,6 +386,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   fire_target_df <- scen_df_list[[4]]
   mortality_target_df <- scen_df_list[[5]]
   # these are useful
+  # assign the conversion area sheet from sceario file to conv_area_df
   conv_area_df = scen_df_list[[2]]
   names(conv_area_df)[ncol(conv_area_df)] = "base_area_change"
   vegc_uptake_df = c_df_list[[10]]
@@ -429,14 +437,17 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   end_wood_label = paste0(end_year, "_Mg")
   
   # area
+  # Assign the initial 2010 area table to "Area" in out_area_df_list[[1]]
   out_area_df_list[[1]] <- scen_df_list[[1]]
   names(out_area_df_list[[1]])[ncol(out_area_df_list[[1]])] <- as.character(start_area_label)
+  # Assign the target management areas table to "Managed_area" in out_area_df_list[[3]]
   out_area_df_list[[2]] <- scen_df_list[[3]][,c(1:6)]
   names(out_area_df_list[[2]])[ncol(out_area_df_list[[2]])] <- as.character(start_area_label)
   #the wildfire out area df is added at the end because it has the breakdown across land type ids
   for ( i in 1:(num_out_area_sheets-1)) {
     out_area_df_list[[i]][is.na(out_area_df_list[[i]])] <- 0.0
   }
+  
   
   # c density
   # update the all c and bio c sums using the components, mainly because the std dev input values will not be consistent
