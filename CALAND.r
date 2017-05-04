@@ -395,6 +395,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   man_ag_df = c_df_list[[16]]
   fire_df = c_df_list[[17]]
   
+  # merge deadc_frac_df and mortality_target_df because zero rows do not exist and allrows are needed 
+  mortality_target_df = merge(deadc_frac_df, mortality_target_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+  mortality_target_df[,c(5:ncol(mortality_target_df))] <- apply(mortality_target_df[,c(5:ncol(mortality_target_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
+  
   # get the correct values for the accum tables if value is std dev
   if(value_col == 7) { # std dev as value
     if(ADD) {
