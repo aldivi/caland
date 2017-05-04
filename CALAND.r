@@ -1606,15 +1606,17 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       current_region_ID <- region.names[[r]]
       # second subset these specific region rows from conv_adjust_df
       region.specific.own <- conv_adjust_df[conv_adjust_df$Region == current_region_ID,]
-      # third subset region-specific ownerships from own_names
+      # third subset region-specific ownerships from own_names 
       own_names <- unique(region.specific.own$Ownership)
       own_conv_df_list_pre <- list()
+      
     # loop over ownerships
     for (i in 1:length(own_names)) {
       # subset one ownership class at a time from the conversion adjustment table
       conv_own = region.specific.own[region.specific.own$Ownership == own_names[i],]  
-      # get region-ownership-specific landtype names
+      # get region-ownership-specific landtype names and number
       conv_col_names <- unique(conv_own$Land_Type)
+      num_conv_col_names <- length(conv_col_names)
       # first need to adjust the baseline change rates and calculate the new area
       
       # the seagrass adjustment is separate
