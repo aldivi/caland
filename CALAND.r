@@ -545,8 +545,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     #  this is because the management changes the flux for an extended period of time, especially if the management is repeated later
     #  rangeland amendment is repeated on 10, 30, or 100 year periods
     # but ag is annual, and developed has its own system of independent areas
-    # restoration and Urban_forest practices are not dependent on existing area, and are applied in land conversion
-    #  Urban_forest area should not be included in forest aggregate managed area and aggregate managed area sum
+    # restoration and Afforestation practices are not dependent on existing area, and are applied in land conversion
+    #  Afforestation area should not be included in forest aggregate managed area and aggregate managed area sum
     # store the difference between the unmanaged and averaged with management eco fluxes, per ag, soil, and forest
     
     # this is the current year total area by category id
@@ -580,11 +580,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # the developed practices are independent of each other and so they don't use the aggregate sums
     #  they use their individual practice sums
     # ag management does not use sum area because they are annual practices to maintain the benefits
-    # Urban_forest and restoration are not dependent on existing area and are not included in aggregate managed area
+    # Afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
     man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
     man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
-    man_area_sum_agg = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Urban_forest" & 
+    man_area_sum_agg = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                              man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
     man_area_sum = merge(man_area_sum, man_area_sum_agg, by = "Land_Cat_ID", all.x = TRUE)
@@ -592,7 +592,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     man_area_sum$man_area_sum_agg_extra[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
-    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Urban_forest" | man_area_sum$Management == "Restoration"] = 0
+    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
     man_area_sum$excess_sum_area = man_area_sum$man_area_sum_agg_extra - man_area_sum$tot_area
     excess_sum_area_inds = which(man_area_sum$excess_sum_area > 0)
     man_area_sum$man_area_sum[excess_sum_area_inds] = man_area_sum$man_area_sum[excess_sum_area_inds] - 
@@ -600,7 +600,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       man_area_sum$man_area_sum_agg_extra[excess_sum_area_inds]
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, is.nan(man_area_sum$man_area_sum), 0)
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
-    man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Urban_forest" & 
+    man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                               man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg2)[ncol(man_area_sum_agg2)] <- "man_area_sum_agg"
     man_area_sum = merge(man_area_sum, man_area_sum_agg2, by = "Land_Cat_ID", all.x =TRUE)
@@ -609,7 +609,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     man_area_sum$man_area_sum_agg[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
     man_area_agg = aggregate(man_area ~ Land_Cat_ID, 
-                             man_area_sum[man_area_sum$Management != "Urban_forest" & man_area_sum$Management != "Restoration",], 
+                             man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], 
                              FUN=sum)
     names(man_area_agg)[ncol(man_area_agg)] <- "man_area_agg_extra"
     man_area_sum = merge(man_area_sum, man_area_agg, by = "Land_Cat_ID", all.x = TRUE)
@@ -617,14 +617,14 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     man_area_sum$man_area_agg_extra[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
-    man_area_sum$man_area_agg_extra[man_area_sum$Management == "Urban_forest" | man_area_sum$Management == "Restoration"] = 0
+    man_area_sum$man_area_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
     man_area_sum$excess_area = man_area_sum$man_area_agg_extra - man_area_sum$tot_area
     excess_area_inds = which(man_area_sum$excess_area > 0)
     man_area_sum$man_area[excess_area_inds] = man_area_sum$man_area[excess_area_inds] - man_area_sum$excess_area[excess_area_inds] * 
       man_area_sum$man_area[excess_area_inds] / man_area_sum$man_area_agg_extra[excess_area_inds]
     man_area_sum$man_area = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
     man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
-    man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Urban_forest" & man_area_sum$Management != "Restoration",], FUN=sum)
+    man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
     man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Cat_ID", all.x =TRUE)
     man_area_sum$man_area_agg = replace(man_area_sum$man_area_agg, is.na(man_area_sum$man_area_agg), 0)
@@ -1551,7 +1551,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # need to adjust historical baseline by the management targets
     # managed adjustments are assumed to be independent of each other so the net adjustments are calculated
     # these initial annual rates are assumed to be included in the baseline annual change numbers:
-    #  Urban_forest, Growth
+    #  Afforestation, Growth
     #  so the adjustment is based on a difference between the target annual change and the baseline annual change
     #  the baseline annual change is the year 2010 for these management types
     # urban forest is only tracked internally to determine the carbon accumulation rate,
@@ -1571,9 +1571,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     conv_adjust_df$new_area = conv_adjust_df$tot_area
     
     ############################################################################################################
-    #########  FIRST, ADJUST BASELINE AREA CHANGE FOR RESTORATION, Urban_forest & LIMITED GROWTH ##############
+    #########  FIRST, ADJUST BASELINE AREA CHANGE FOR RESTORATION, Afforestation & LIMITED GROWTH ##############
     ############################################################################################################
-    man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Urban_forest" | 
+    man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | 
                                   man_adjust_df$Management == "Growth",1:7]
     man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"))
     names(man_conv_df)[names(man_conv_df) == start_area_label] = "initial_man_area"
@@ -1641,16 +1641,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] / 
           sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"])
         
-        # Urban_forest activities will come proportionally out of _shrub_ and _grassland_ only
-        # calc area adjustment for Urban_forest (temp_adjust) [ha] = current year Urban_forest area - initial Urban_forest area
-        temp_adjust = conv_own$man_area[conv_own$Management == "Urban_forest" & !is.na(conv_own$Management)] - 
-          conv_own$initial_man_area[conv_own$Management == "Urban_forest" & !is.na(conv_own$Management)]
-        # add the difference in Urban_forest area since 2010 to the column for base_change_adjust because it's assumed Urban_forest is 
+        # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
+        # calc area adjustment for Afforestation (temp_adjust) [ha] = current year Afforestation area - initial Afforestation area
+        temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
+          conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+        # add the difference in Afforestation area since 2010 to the column for base_change_adjust because it's assumed Afforestation is 
         # included in the initial baseline area changes
-        conv_own$base_change_adjust[conv_own$Management == "Urban_forest" & !is.na(conv_own$Management)] = 
-          conv_own$base_change_adjust[conv_own$Management == "Urban_forest" & !is.na(conv_own$Management)] + temp_adjust
+        conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 
+          conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
         # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
-        # for Urban_forest (temp_adjust) in shrubland and grassland
+        # for Afforestation (temp_adjust) in shrubland and grassland
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
           conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
@@ -1771,11 +1771,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       # carbon needs to be subracted for the area losses because the density change values are tracked as normalized carbon
       
       # do only land here because ocean/seagrass is different
-      if(own_names[i] != "Ocean") {
+      if(own_names[i] != "Ocean") {#STOP HERE##############
         # add up all positive area changes in new column "own_gain_sum" 
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
         # duplicate dataframe and call it conv_own2 
-        conv_own2 = conv_own
+        conv_own2 = conv_own#STOP HERE
         # loop over the land types to get the positive from-to area values (from-to: expanding landtypes. if constant then value is 0)
         for (l in 1:length(conv_own$Land_Type)) {
           # l is landtype index. add new columns that are the gains in area for each land type
