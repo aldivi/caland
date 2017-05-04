@@ -425,7 +425,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   end_wood_label = paste0(end_year, "_Mg")
   
   # area
-  out_area_df_list[[1]] <- scen_df_list[[2]]
+  out_area_df_list[[1]] <- scen_df_list[[1]]
   names(out_area_df_list[[1]])[ncol(out_area_df_list[[1]])] <- as.character(start_area_label)
   out_area_df_list[[2]] <- scen_df_list[[3]][,c(1:6)]
   names(out_area_df_list[[2]])[ncol(out_area_df_list[[2]])] <- as.character(start_area_label)
