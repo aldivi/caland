@@ -2086,13 +2086,14 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
       } else own_conv_df_list[[r]] = own_conv_df_list_pre[[1]]
     } # end r loop over Region
     
-    # now rebuild the conv_adjust_df  (by Region??)
+    # now rebuild the conv_adjust_df by Region
     # reset own_names   
     region_names <- unique(conv_adjust_df$Region)
     # start with adding the 1st and 2nd ownership data frames to conv_adjust
     # conv_adjust is currently a single df with 46 obs. of  25 variables, and own_conv_df_list[[1]]
     # is a list with 1 df, 15 obs., 72 variables.
-    conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])  ## does this reset conv_adjust_df or add to it??
+    ## Reset conv_adjust_df 
+    conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])  
     # then just add the remaining ownership data frames to conv_adjust
     for (i in 3:length(region_names)) {
       conv_adjust_df = rbind(conv_adjust_df, own_conv_df_list[[i]])
@@ -2378,7 +2379,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     
     # LCC Energy: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
     out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # LCC non-burned: "LCC_Atmos_CumGain_NonBurnedC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
+    # LCC non-burned: "LCC_Atmos_CumGain_NonBurnEnerC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
     out_atmos_df_list[[21]][, next_atmos_label] = out_atmos_df_list[[21]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
     ### annual (again) ###
@@ -2404,7 +2405,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
     # is released as CO2 (decomposition) and not burned
     # burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
     out_atmos_df_list[[27]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # non-burned: "LCC_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_c_stock_conv"
+    # non-burned: "LCC_Atmos_AnnGain_NonBurnEnerC" = - "Land2Atmos_c_stock_conv"
     out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
   } # end loop over calculation years
@@ -2724,7 +2725,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   }
   for (i in 5:ncol(Total_CumCO2C)) { 
     Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + wood_CumCO2C[,i] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + 
-      out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]][,i] + 
+      out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnEnerC"]][,i] + 
       Manage_Fire_CumCO2C[,i] + ManEnergy_CumCO2C[,i] + Wildfire_CumCO2C[,i] + LCCEnergy_CumCO2C[,i]
   }
   # Second, do cumulative CH4-C. Choice of ncol(Manage_Fire_CumCH4C) is arbitrary -  just need the total number of columns.
@@ -2753,7 +2754,7 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   }
   for (i in 5:ncol(Total_AnnCO2C)) {  
     Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + wood_AnnCO2C[,i] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + 
-      out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]][,i] +
+      out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnEnerC"]][,i] +
       Manage_Fire_AnnCO2C[,i] + ManEnergy_AnnCO2C[,i] + Wildfire_AnnCO2C[,i] + LCCEnergy_AnnCO2C[,i] 
   }
   # Second, do annual CH4-C. Choice of ncol(Manage_Fire_AnnCH4C) is arbitrary -  just need the total number of columns.
@@ -2838,8 +2839,8 @@ CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010
   # subset outputs from out_atmos to include in df.list below
   ManNonBurn_CumCO2C <- out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]]
   ManNonBurn_AnnCO2C <- out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]]
-  LCCNonBurn_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]]
-  LCCNonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]]
+  LCCNonBurn_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnEnerC"]]
+  LCCNonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnEnerC"]]
   
   # create list of all the additonal tables from which we want to calculate GWP 
   df.list <- list(Eco_CumCO2C = Eco_CumCO2C,
