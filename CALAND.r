@@ -103,7 +103,7 @@ GET.NAMES <- function(df, new.name) {
 }
 
 
-CALAND <- function(scen_file, c_file = "ca_carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE) {
+CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE) {
   
   cat("Start CALAND at", date(), "\n")
   # this enables java to use up to 4GB of memory for reading and writing excel files
