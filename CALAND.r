@@ -2091,9 +2091,35 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       own_conv_df_list_pre[[i]] = conv_own 
     } # end i loop over ownership for calculating land conversion c adjustments
       # after all the ownership loops within a given region rbind all the ownership tables into one 
-      # first, add any missing landtype columns to any of the individual df's so that all the df in all the regions have the same number of columns
-      # 
-      
+      # first, get the complete list of land type names 
+      conv_col_names_all = unique(conv_adjust_df$Land_Type)
+      num_conv_col_names = length(conv_col_names_all)
+      # Second, check each df element in own_conv_df_list_pre to see if it is missing a land type column name
+      for (i in 1:length(own_conv_df_list_pre)) { 
+      if (any(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[i]])))))
+          # get indices of full name list that are missing
+          missing_inds <- which(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[i]]))))
+          # get names of missing land type columns
+          missing_names <- conv_col_names_all[missing_inds]
+          # add the missing land type columns and fill with 0's
+          own_conv_df_list_pre[[i]][missing_names] <- 0
+          # get length of new complete df
+          full_length <- length(own_conv_df_list_pre[[i]])
+          # get columns preceding the land type columns
+          begin_set_cols <- own_conv_df_list_pre[[i]][,c(1:26)]
+          # get full set of landtype columns in order
+          all_15landtype_cols <- own_conv_df_list_pre[[i]][,c(conv_col_names_all)]
+          # get number of _not_ missing column names 
+          numb_not_missing <- length(conv_col_names_all) - length(missing_names)
+          # get column index to start on for end set of columns
+          end_start_in <- 26 + numb_not_missing + 1
+          # get column index to end on for end set of columns
+          end_end_in <- full_length - length(missing_names)
+          # subset the columns following the original landtype columns and before the ones that were added to the end
+          end_set_cols <- own_conv_df_list_pre[[i]][,c(end_start_in:end_end_in)]
+          # merge the subsets of columns back together. They're in proper order now to rbind below
+          own_conv_df_list_pre[[i]] <- cbind(begin_set_cols, all_15landtype_cols, end_set_cols)
+      }
       # combine dataframes for each ownership type within a region
       if (length(own_conv_df_list_pre) > 1) {
         conv_df_pre = rbind(own_conv_df_list_pre[[1]], own_conv_df_list_pre[[2]])
