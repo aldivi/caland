@@ -2088,10 +2088,13 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Above_main_C_den_change"] = 0
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
       } # end if land own else ocean/seagrass
-      own_conv_df_list_pre[[i]] = conv_own # currently 4 ownerships total (but maybe not 4 for each region)
+      own_conv_df_list_pre[[i]] = conv_own 
     } # end i loop over ownership for calculating land conversion c adjustments
-      # after all the ownership loops within a given region, add the conv_own df to own_conv_df_list
-      # first combine dataframes for each ownership type within a region
+      # after all the ownership loops within a given region rbind all the ownership tables into one 
+      # first, add any missing landtype columns to any of the individual df's so that all the df in all the regions have the same number of columns
+      # 
+      
+      # combine dataframes for each ownership type within a region
       if (length(own_conv_df_list_pre) > 1) {
         conv_df_pre = rbind(own_conv_df_list_pre[[1]], own_conv_df_list_pre[[2]])
         if (length(own_conv_df_list_pre) > 2) {
