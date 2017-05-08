@@ -1560,7 +1560,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # assume that these entries do not need aggregation with other similar management activities within land type id
     #  in other words, there is only one area-changing management per land type id and each is dealt with uniquely
     
-    # create dataframe for conversion adjustments: merge the annual net coversion area changes with the total area dataframe
+    # create dataframe for conversion adjustments: merge the annual net coversion area changes with the total area dataframe (All 10 Regions)
     conv_adjust_df = merge(tot_area_df, conv_area_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"))
     # sort
     conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Land_Cat_ID),]
@@ -1779,7 +1779,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         # add up all positive area changes in new column "own_gain_sum" 
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
         # duplicate dataframe and call it conv_own2 
-        conv_own2 = conv_own#STOP HERE
+        conv_own2 = conv_own
         # loop over the land types to get the positive from-to area values (from-to: expanding landtypes. if constant then value is 0)
         for (l in 1:length(conv_own$Land_Type)) {
           # l is landtype index. add new columns that are the gains in area for each land type
@@ -1898,7 +1898,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         
         conv_df_list <- list()
         for (l in 1:num_conv_col_names) {
-          # create a dataframe of conversion C transfers for each of the 15 land type
+          # create a dataframe of conversion C transfers for each of the 16 land type
           lt_conv = conv_own_static
           # loop over the c pools
           for (c in 3:num_out_density_sheets) {
@@ -2095,7 +2095,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       # first, get the complete list of land type names 
       conv_col_names_all = unique(conv_adjust_df$Land_Type)
       num_conv_col_names = length(conv_col_names_all)
-      # Second, check each df element in own_conv_df_list_pre to see if it is missing a land type column name
+      # Second, check each ownership df within the current region's list (own_conv_df_list_pre) to see if it's 
+      # missing a land type column name, and replace if it is.
       for (i in 1:length(own_conv_df_list_pre)) { 
       if (any(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[i]])))))
           # get indices of full name list that are missing
@@ -2104,22 +2105,30 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           missing_names <- conv_col_names_all[missing_inds]
           # add the missing land type columns and fill with 0's
           own_conv_df_list_pre[[i]][missing_names] <- 0
-          # get length of new complete df
+          # get length of new complete df (=73)
           full_length <- length(own_conv_df_list_pre[[i]])
           # get columns preceding the land type columns
           begin_set_cols <- own_conv_df_list_pre[[i]][,c(1:26)]
           # get full set of landtype columns in order
-          all_15landtype_cols <- own_conv_df_list_pre[[i]][,c(conv_col_names_all)]
+          all_16landtype_cols <- own_conv_df_list_pre[[i]][,c(conv_col_names_all)]
           # get number of _not_ missing column names 
           numb_not_missing <- length(conv_col_names_all) - length(missing_names)
           # get column index to start on for end set of columns
-          end_start_in <- 26 + numb_not_missing + 1
+          end_start_ind <- 26 + numb_not_missing + 1
           # get column index to end on for end set of columns
-          end_end_in <- full_length - length(missing_names)
+          end_end_ind <- full_length - length(missing_names)
           # subset the columns following the original landtype columns and before the ones that were added to the end
-          end_set_cols <- own_conv_df_list_pre[[i]][,c(end_start_in:end_end_in)]
+          # order the sequence of columns in the last chunk
+          end_set_cols <- own_conv_df_list_pre[[i]][,c("Above_main_C_den", "Above_removed_conv_c", "StandDead_C_den", "StandDead_removed_conv_c", 
+                                          "Removed2Wood_conv_c", "Removed2Energy_conv_c", "Removed2Atmos_conv_c", "Understory_C_den",           
+                                          "Understory2Atmos_conv_c", "DownDead_C_den", "DownDead2Atmos_conv_c", "Litter_C_den", "Litter2Atmos_conv_c",
+                                          "Soil_orgC_den", "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below_main_C_den","Below2Atmos_conv_c",        
+                                          "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", "Understory_C_den_change",
+                                          "StandDead_C_den_change", "DownDead_C_den_change", "Litter_C_den_change", "Soil_orgC_den_change", 
+                                          "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", "DownDead_C_den2Atmos",      
+                                          "Litter_C_den2Atmos")]
           # merge the subsets of columns back together. They're in proper order now to rbind below
-          own_conv_df_list_pre[[i]] <- cbind(begin_set_cols, all_15landtype_cols, end_set_cols)
+          own_conv_df_list_pre[[i]] <- cbind(begin_set_cols, all_16landtype_cols, end_set_cols)
       }
       # combine dataframes for each ownership type within a region
       if (length(own_conv_df_list_pre) > 1) {
@@ -2137,8 +2146,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # reset own_names   
     region_names <- unique(conv_adjust_df$Region)
     # start with adding the 1st and 2nd ownership data frames to conv_adjust
-    # conv_adjust is currently a single df with 46 obs. of  25 variables, and own_conv_df_list[[1]]
-    # is a list with 1 df, 15 obs., 72 variables.
+    # conv_adjust is currently a single df with x obs. of  73 variables, and own_conv_df_list[[1]]
+    # is a list with 1 df, 114 obs., 73 variables.
     ## Reset conv_adjust_df 
     conv_adjust_df = rbind(own_conv_df_list[[1]], own_conv_df_list[[2]])  
     # then just add the remaining ownership data frames to conv_adjust
