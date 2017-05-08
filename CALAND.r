@@ -1586,9 +1586,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     conv_adjust_df$base_change_adjust = 0
     
     # merge the conversion fractions before splitting upon ownership
-    conv_adjust_df = merge(conv_adjust_df, conv_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"))
+    conv_adjust_df = merge(conv_adjust_df, conv_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
     conv_adjust_df = conv_adjust_df[order(conv_adjust_df$Land_Cat_ID),]
-    conv_col_names = unique(conv_adjust_df$Land_Type[conv_adjust_df$Land_Type != "Seagrass"])
+   # conv_col_names = unique(conv_adjust_df$Land_Type[conv_adjust_df$Land_Type != "Seagrass"])
+    conv_col_names = unique(conv_adjust_df$Land_Type)
     num_conv_col_names = length(conv_col_names)
     own_names = unique(conv_adjust_df$Ownership)
     
@@ -1613,14 +1614,14 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # loop over ownerships
     for (i in 1:length(own_names)) {
       # subset one ownership class at a time from the conversion adjustment table
-      conv_own = region.specific.own[region.specific.own$Ownership == own_names[i],]  
+      conv_own = region.specific.own[region.specific.own$Ownership =r= own_names[i],]  
       # get region-ownership-specific landtype names and number
       conv_col_names <- unique(conv_own$Land_Type)
       num_conv_col_names <- length(conv_col_names)
       # first need to adjust the baseline change rates and calculate the new area
       
       # the seagrass adjustment is separate
-      if (own_names[i] == "Ocean") {
+      if (current_region_ID == "Ocean") {
         conv_own$base_change_adjust[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
           conv_own$man_area[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
       } else {
@@ -1774,7 +1775,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       # carbon needs to be subracted for the area losses because the density change values are tracked as normalized carbon
       
       # do only land here because ocean/seagrass is different
-      if(own_names[i] != "Ocean") {#STOP HERE##############
+      if(current_region_ID != "Ocean") {
         # add up all positive area changes in new column "own_gain_sum" 
         conv_own$own_gain_sum = sum(conv_own$area_change[conv_own$area_change > 0])
         # duplicate dataframe and call it conv_own2 
