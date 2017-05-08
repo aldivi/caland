@@ -1614,7 +1614,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # loop over ownerships
     for (i in 1:length(own_names)) {
       # subset one ownership class at a time from the conversion adjustment table
-      conv_own = region.specific.own[region.specific.own$Ownership =r= own_names[i],]  
+      conv_own = region.specific.own[region.specific.own$Ownership == own_names[i],]  
       # get region-ownership-specific landtype names and number
       conv_col_names <- unique(conv_own$Land_Type)
       num_conv_col_names <- length(conv_col_names)
