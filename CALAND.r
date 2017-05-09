@@ -581,28 +581,50 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     #  they use their individual practice sums
     # ag management does not use sum area because they are annual practices to maintain the benefits
     # Afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
+    # Calc cumulative management areas: man_area_sum$man_area_sum = 0 + man_area for current year 
     man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
+    # merge df's man_area_sum & tot_area_df, and assign to man_area_sum dataframe (essentially, add additional 
+    # tot_area column to man_area_sum), excludes any land types from tot_area that are not in man_area_sum
     man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+    # sort man_area_sum dataframe by Land_Type_ID, then by Manage_ID 
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
+    # (1) aggregate cumulative areas (man_area_sum) for all management except afforestation & restoration...
+    # create df of aggregated cumulative areas (man_area_sum_agg): aggregate by summing man_area_sum with the same Land_Type_ID _except_ 
+    # for areas with Afforestation and Restoration management
     man_area_sum_agg = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                              man_area_sum$Management != "Restoration",], FUN=sum)
+    # update aggregated sums column name (man_area_sum) to man_area_sum_agg_extra
     names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
+    # merge man_area_sum & man_area_sum_agg dataframes by Land_Type_ID
     man_area_sum = merge(man_area_sum, man_area_sum_agg, by = "Land_Cat_ID", all.x = TRUE)
+    # replace 'NA' values in man_area_sum$man_area_sum_agg_extra with 0's (these are land types that didn't have any management)
     man_area_sum$man_area_sum_agg_extra = replace(man_area_sum$man_area_sum_agg_extra, is.na(man_area_sum$man_area_sum_agg_extra), 0)
+    # sort man_area_sum dataframe by man_area_sum$Land_Type_ID and man_area_sum$Manage_ID
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
+    # (2) update man_area_sum for developed_all with individual cumulative area
+    # For developed_all land type only, replace values in (extra) aggregated areas column with values in man_area_sum 
+    # (i.e. don't aggregate for developed_all, use individual cumulative mangagement areas)
     man_area_sum$man_area_sum_agg_extra[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
+    # (3) assign 0's to aggregate cumulative areas for afforestation and restoration 
+    # For afforestation or restoration management activities only, replace values in the (extra) aggregated area column with 0 
+    # (i.e. afforestation and restoration not included in aggregate sum)
     man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
+    # add new column "excess_sum_area", which is equal to the (extra) aggregated areas minus total land type areas 
     man_area_sum$excess_sum_area = man_area_sum$man_area_sum_agg_extra - man_area_sum$tot_area
+    # if excess_sum_area > 0, assign the index to excess_sum_area_inds
     excess_sum_area_inds = which(man_area_sum$excess_sum_area > 0)
+    # trim the cumulative manaagement areas: subtract out a proportional amount of any excess from each man_area_sum 
     man_area_sum$man_area_sum[excess_sum_area_inds] = man_area_sum$man_area_sum[excess_sum_area_inds] - 
       man_area_sum$excess_sum_area[excess_sum_area_inds] * man_area_sum$man_area_sum[excess_sum_area_inds] / 
       man_area_sum$man_area_sum_agg_extra[excess_sum_area_inds]
+    # replace NaN (not a number) values in man_area_sum with 0's 
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, is.nan(man_area_sum$man_area_sum), 0)
+    # man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum < 0, 0)  ########### wait before doing this because there are lots of neg values
+    # replace Infinite values in man_area_sum with 0's 
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
-    # new for version 2: replace -Inf with 0 for man_area_sum, otherwise the out_atmos_df_list will have NAN values and the code will break after the annual loop
-    # with some of the scenario file(s)
-    man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == -Inf, 0)
+    # create a _trimmed_ aggregated cumulative areas dataframe (man_area_sum_agg2): aggregate and sum man_area_sum vector by Land_Type_ID 
+    # for all management activities _except_ afforestation and restoration areas
     man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                               man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg2)[ncol(man_area_sum_agg2)] <- "man_area_sum_agg"
