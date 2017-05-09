@@ -600,6 +600,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       man_area_sum$man_area_sum_agg_extra[excess_sum_area_inds]
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, is.nan(man_area_sum$man_area_sum), 0)
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
+    # new for version 2: replace -Inf with 0 for man_area_sum, otherwise the out_atmos_df_list will have NAN values and the code will break after the annual loop
+    # with some of the scenario file(s)
+    man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == -Inf, 0)
     man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                               man_area_sum$Management != "Restoration",], FUN=sum)
     names(man_area_sum_agg2)[ncol(man_area_sum_agg2)] <- "man_area_sum_agg"
@@ -2464,6 +2467,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # non-burned: "LCC_Atmos_AnnGain_NonBurnEnerC" = - "Land2Atmos_c_stock_conv"
     out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
+    # loop over the out_atmos_df_list df's and replace any NaN with ==> ONLY DO THIS AFTER CONFIRMING WHERE NaN's come from
+    #for (d in 1:length(out_atmos_df_list)){
+      # set NAN or INF desities to 0
+     # out_atmos_df_list[[d]][, next_atmos_label] <- replace(out_atmos_df_list[[d]][, next_atmos_label], 
+                                                           #   is.nan(out_atmos_df_list[[d]][, next_atmos_label]), 0.00)
+  #  }
   } # end loop over calculation years
   
   # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
@@ -2481,11 +2490,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
   # get the other land types 
   Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
-  for (i in 5:ncol(Eco_CumGain_C_stock)) {
-    # calc fresh march CO2-C (negative frac because it's C sequestration based on flux tower measurement by Knox et al (2015)
+  for (i in 5:ncol(Eco_CumGain_C_stock)) { # outer i loop by column (46 total)
+    # calc fresh march CO2-C (negative frac because it's net C sequestration based on flux tower measurement by Knox et al (2015)
     Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
     # for other land type Eco CO2-C,
-    for (r in 1:nrow(Other_Cum_Eco_C)) {
+    for (r in 1:nrow(Other_Cum_Eco_C)) { # inner row loop (934 total)
       if (Other_Cum_Eco_C[,i][r] < 0) {
         # change sign of negative Eco C values to positive CO2-C emissions 
         Other_Cum_Eco_C[,i][r] <- abs(Other_Cum_Eco_C[,i][r])
