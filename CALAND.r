@@ -623,7 +623,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # are lots of neg values
     # replace Infinite values in man_area_sum with 0's 
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
-    # create a _trimmed_ aggregated man_area_sum df (man_area_sum_agg2): aggregate and sum man_area_sum vector by Land_Type_ID 
+    # create a _trimmed_ aggregated man_area_sum df (man_area_sum_agg2): aggregate sum man_area_sum vector by Land_Cat_ID 
     # for all management activities _except_ afforestation and restoration areas
     man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                               man_area_sum$Management != "Restoration",], FUN=sum)
@@ -657,7 +657,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
     # (8) assign 0's to aggregate (untrimmed) areas for afforestation and restoration 
     man_area_sum$man_area_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
-    # add new column "excess_area", which is equal to the (extra) aggregated areas minus total land type areas 
+    # add new column "excess_area", which is equal to the (extra) aggregated areas minus total land cat areas 
     man_area_sum$excess_area = man_area_sum$man_area_agg_extra - man_area_sum$tot_area
     # if excess_area > 0, assign the index to excess_area_inds
     excess_area_inds = which(man_area_sum$excess_area > 0)
@@ -1813,10 +1813,37 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                                conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
         sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                                              conv_own$Land_Type != "Coastal_marsh"] / sum_pos_change
+      
       # For all landtypes:
       ## update new area by adding adjusted area changes to the total areas for each landtype-ownership-region combination: 
       # NEW AREA [ha] = TOTAL AREA + AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
+      
+      # get row indices for all rows with new_area <0 
+      neg_new_inds <- which(conv_own$new_area < 0)
+      # reset these area changes by adding back the magnitude of the negative area to the area_change: area_change = area_change - new_area
+      conv_own[neg_new_inds, conv_own$area_change] <- conv_own[neg_new_inds, conv_own$area_change] - conv_own[neg_new_inds, conv_own$new_area] 
+      # add up all the negated area loss: sum_neg_new = sum <0 new_area  (negative value)
+      sum_neg_new <- sum(conv_own[neg_new_inds, conv_own$new_area])
+      # new_area = 0 (don't recalc to avoid roundoff error)
+      conv_own[neg_new_inds, conv_own$new_area] <- 0
+      # for new areas >0 & != marsh & != meadow, get proportion of new areas to make new adjustments (reduction_factor = each new area/sum of all)
+      pos_new_inds <- which(conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh")
+      sum_pos_new <- sum(conv_own[pos_new_inds, conv_own$new_area])
+      reduction_factor <- conv_own[pos_new_inds, conv_own$new_area / sum_pos_new] 
+      #  calc the proportial (negative) area change that will to be applied to new_area and area_change (magnitude subtracted from both)
+      extra_area_adjust <- reduction_factor * sum_pos_new
+      # new_area = extra_area_adjust + new_area
+      conv_own[pos_new_inds, conv_own$new_area] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$new_area] 
+      # area_change = extra_area_adj + area_change 
+      conv_own[pos_new_inds, conv_own$area_change] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$area_change] 
+      # check again all new_area > 0, end loop
+      # check if non-restored area > 0, repeat loop 
+      # end loop
+      
+      # if sill negative new areas, then reduce restoration new areas and update area change. The reduction should be no larger than assigned restoration values (i.e. no area change)
+      
+      
       
       ######################################## NOW AREA CHANGES & NEW AREAS ARE CORRECT ######################################## 
       
