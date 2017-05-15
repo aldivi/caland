@@ -1817,19 +1817,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       # NEW AREA [ha] = TOTAL AREA + AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
       
-      # check if sum(new_area) > sum(tot_area)  
-      if (sum(conv_own$new_area) > sum(conv_own$tot_area)) {
-        # get sum of area deficit
-        new_area_deficit <- sum(conv_own$new_area) - sum(conv_own$tot_area)
-        # get sum of postive area changes
-        sum_pos_change <- sum(conv_own$area_change[conv_own$area_change > 0]) 
-        # subtract this proprtionally from the posisitve area_changes with respect to area_change
-        conv_own$area_change[conv_own$area_change > 0] <- conv_own$area_change[conv_own$area_change > 0] - 
-          (new_area_deficit * ((conv_own$area_change[conv_own$area_change > 0])/sum_pos_change))
-        # recalc the new_area for all
-        conv_own$new_area <- conv_own$area_change + conv_own$tot_area
-      }
-      
       # check if any of the area changes resulted in negative new area and correct them
       while (any(conv_own$new_area < 0)) {
         # subset any land categories that have negative new areas and add them up to get the area needed to be offset to avoid negative new area
@@ -1851,6 +1838,19 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] = 
           conv_own$tot_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
           conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"]
+      }
+      
+      # check if sum(new_area) > sum(tot_area)  
+      if (sum(conv_own$new_area) > sum(conv_own$tot_area)) {
+        # get sum of area deficit
+        new_area_deficit <- sum(conv_own$new_area) - sum(conv_own$tot_area)
+        # get sum of postive area changes
+        sum_pos_change <- sum(conv_own$area_change[conv_own$area_change > 0]) 
+        # subtract this proprtionally from the posisitve area_changes with respect to area_change
+        conv_own$area_change[conv_own$area_change > 0] <- conv_own$area_change[conv_own$area_change > 0] - 
+          (new_area_deficit * ((conv_own$area_change[conv_own$area_change > 0])/sum_pos_change))
+        # recalc the new_area for all
+        conv_own$new_area <- conv_own$area_change + conv_own$tot_area
       }
       #if (any(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])) {
        
