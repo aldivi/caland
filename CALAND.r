@@ -1806,37 +1806,79 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       sum_pos_change = sum(conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                                                   conv_own$Land_Type != "Coastal_marsh"])
       # second, adjust AREA CHANGE by subtracting the proportional sum of negative new areas from the positive area changes: 
-      # AREA CHANGE = AREA CHANGE + sum_neg_new * area change / sum_pos_change
+      # AREA CHANGE = AREA CHANGE + (sum_neg_new * area change / sum_pos_change)
       conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                              conv_own$Land_Type != "Coastal_marsh"] = 
-        conv_own$area_change[conv_own$area_change > 0 & 
-                               conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
+        conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
         sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
                                              conv_own$Land_Type != "Coastal_marsh"] / sum_pos_change
-      
       # For all landtypes:
       ## update new area by adding adjusted area changes to the total areas for each landtype-ownership-region combination: 
       # NEW AREA [ha] = TOTAL AREA + AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
       
+      # check if any of the area changes resulted in negative new area and correct them
+      while (any(conv_own$new_area < 0)) {
+        # subset any land categories that have negative new areas and add them up to get the area needed to be offset to avoid negative new area
+        sum_neg_new_area <- sum(conv_own$new_area[conv_own$new_area < 0])
+        # subset any land categories except for fresh_marsh, meadow and coastal_marsh, that have postive new areas and add them up
+        sum_pos_new_area <- sum(conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
+                                                    conv_own$Land_Type != "Coastal_marsh"])
+        # update area_change for for land categories with positive new_area by subtracting the area offset (sum_neg_new_area) proportionally (w.r.t. new_area) 
+        # from the area_change (except for fresh_marsh, meadow and coastal_marsh (i.e. don't change restored areas)
+        conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] <-
+          conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] +
+          sum_neg_new_area * conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != 
+                                                 "Coastal_marsh"] / sum_pos_new_area
+        # update area_change for land categories with negative new_area by subtracting their negative new_area from it (effectively zeroing new area)
+        conv_own$area_change[conv_own$new_area < 0] <- conv_own$area_change[conv_own$new_area < 0] - conv_own$new_area[conv_own$new_area < 0]
+        # update new_area for negative new_areas by assigning 0 to them to avoid roundoff errors
+        conv_own$new_area[conv_own$new_area < 0] <- 0
+        # update new_area for positive new area land categories not marsh & not meadow by adding the adjusted area_change to the tot_area
+        conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] = 
+          conv_own$tot_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
+          conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"]
+      }
+      #if (any(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])) {
+       
+       # inds_too_small <- which(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])
+       # conv_own[abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0],]
+       # inds_not_too_small <- which(abs(conv_own$area_change[conv_own$area_change < 0]) <= conv_own$tot_area[conv_own$area_change < 0])
+        # sum the excess neg area which will need to be taken from the other land types that still have positive area
+        #sum_excess_neg <- conv_own$tot_area[inds_too_small,] 
+        # sum the total areas that are not going negative
+        #sum_pos_tot_area <- conv_own$tot_area[inds_not_too_small,] 
+        # set the area_change equal to the negative total area so that these land types will equal 0 total area (not negative).
+        #conv_own$area_change[inds_too_small,] <- -1 * sum_excess_neg
+        # adjust the area change again for land types that still have positive area by subtracting a fraction of the sum_excess_neg in proportion to tot_area
+        #conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
+         #                      conv_own$Land_Type != "Coastal_marsh"] = 
+          #conv_own$area_change[conv_own$area_change > 0 & 
+        #                         conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
+         # sum_excess_new * conv_own$tot_area[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
+        #                                       conv_own$Land_Type != "Coastal_marsh"] / sum_pos_tot_area
+        
+      #}
+      
+      # Do additional correction for any new areas that went negative from the above calculation (tot_area + area_change)
       # get row indices for all rows with new_area <0 
-      neg_new_inds <- which(conv_own$new_area < 0)
+      #neg_new_inds <- which(conv_own$new_area < 0)
       # reset these area changes by adding back the magnitude of the negative area to the area_change: area_change = area_change - new_area
-      conv_own[neg_new_inds, conv_own$area_change] <- conv_own[neg_new_inds, conv_own$area_change] - conv_own[neg_new_inds, conv_own$new_area] 
+      #conv_own[neg_new_inds, conv_own$area_change] <- conv_own[neg_new_inds, conv_own$area_change] - conv_own[neg_new_inds, conv_own$new_area] 
       # add up all the negated area loss: sum_neg_new = sum <0 new_area  (negative value)
-      sum_neg_new <- sum(conv_own[neg_new_inds, conv_own$new_area])
+      #sum_neg_new <- sum(conv_own[neg_new_inds, conv_own$new_area])
       # new_area = 0 (don't recalc to avoid roundoff error)
-      conv_own[neg_new_inds, conv_own$new_area] <- 0
+     # conv_own[neg_new_inds, conv_own$new_area] <- 0
       # for new areas >0 & != marsh & != meadow, get proportion of new areas to make new adjustments (reduction_factor = each new area/sum of all)
-      pos_new_inds <- which(conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh")
-      sum_pos_new <- sum(conv_own[pos_new_inds, conv_own$new_area])
-      reduction_factor <- conv_own[pos_new_inds, conv_own$new_area / sum_pos_new] 
+      #pos_new_inds <- which(conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh")
+      #sum_pos_new <- sum(conv_own[pos_new_inds, conv_own$new_area])
+      #reduction_factor <- conv_own[pos_new_inds, conv_own$new_area / sum_pos_new] 
       #  calc the proportial (negative) area change that will to be applied to new_area and area_change (magnitude subtracted from both)
-      extra_area_adjust <- reduction_factor * sum_pos_new
+      #extra_area_adjust <- reduction_factor * sum_pos_new
       # new_area = extra_area_adjust + new_area
-      conv_own[pos_new_inds, conv_own$new_area] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$new_area] 
+      #conv_own[pos_new_inds, conv_own$new_area] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$new_area] 
       # area_change = extra_area_adj + area_change 
-      conv_own[pos_new_inds, conv_own$area_change] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$area_change] 
+      #conv_own[pos_new_inds, conv_own$area_change] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$area_change] 
       # check again all new_area > 0, end loop
       # check if non-restored area > 0, repeat loop 
       # end loop
@@ -2177,20 +2219,20 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       num_conv_col_names = length(conv_col_names_all)
       # Second, check each ownership df within the current region's list (own_conv_df_list_pre) to see if it's 
       # missing a land type column name, and replace if it is.
-      for (i in 1:length(own_conv_df_list_pre)) { 
-      if (any(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[i]])))))
+      for (g in 1:length(own_conv_df_list_pre)) { 
+      if (any(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[g]]))))) { 
           # get indices of full name list that are missing
-          missing_inds <- which(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[i]]))))
+          missing_inds <- which(!((conv_col_names_all) %in% (names(own_conv_df_list_pre[[g]]))))
           # get names of missing land type columns
           missing_names <- conv_col_names_all[missing_inds]
           # add the missing land type columns and fill with 0's
-          own_conv_df_list_pre[[i]][missing_names] <- 0
+          own_conv_df_list_pre[[g]][missing_names] <- 0
           # get length of new complete df (=73)
-          full_length <- length(own_conv_df_list_pre[[i]])
+          full_length <- length(own_conv_df_list_pre[[g]])
           # get columns preceding the land type columns
-          begin_set_cols <- own_conv_df_list_pre[[i]][,c(1:26)]
+          begin_set_cols <- own_conv_df_list_pre[[g]][,c(1:26)]
           # get full set of landtype columns in order
-          all_16landtype_cols <- own_conv_df_list_pre[[i]][,c(conv_col_names_all)]
+          all_16landtype_cols <- own_conv_df_list_pre[[g]][,c(conv_col_names_all)]
           # get number of _not_ missing column names 
           numb_not_missing <- length(conv_col_names_all) - length(missing_names)
           # get column index to start on for end set of columns
@@ -2199,7 +2241,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           end_end_ind <- full_length - length(missing_names)
           # subset the columns following the original landtype columns and before the ones that were added to the end
           # order the sequence of columns in the last chunk
-          end_set_cols <- own_conv_df_list_pre[[i]][,c("Above_main_C_den", "Above_removed_conv_c", "StandDead_C_den", "StandDead_removed_conv_c", 
+          end_set_cols <- own_conv_df_list_pre[[g]][,c("Above_main_C_den", "Above_removed_conv_c", "StandDead_C_den", "StandDead_removed_conv_c", 
                                           "Removed2Wood_conv_c", "Removed2Energy_conv_c", "Removed2Atmos_conv_c", "Understory_C_den",           
                                           "Understory2Atmos_conv_c", "DownDead_C_den", "DownDead2Atmos_conv_c", "Litter_C_den", "Litter2Atmos_conv_c",
                                           "Soil_orgC_den", "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below_main_C_den","Below2Atmos_conv_c",        
@@ -2208,7 +2250,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                                           "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", "DownDead_C_den2Atmos",      
                                           "Litter_C_den2Atmos")]
           # merge the subsets of columns back together. They're in proper order now to rbind below
-          own_conv_df_list_pre[[i]] <- cbind(begin_set_cols, all_16landtype_cols, end_set_cols)
+          own_conv_df_list_pre[[g]] <- cbind(begin_set_cols, all_16landtype_cols, end_set_cols) }
       }
       # combine dataframes for each ownership type within a region
       if (length(own_conv_df_list_pre) > 1) {
