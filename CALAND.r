@@ -2163,7 +2163,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                 conv_own[,atmosname] = replace(conv_own[,atmosname], is.nan(conv_own[,atmosname]), 0.0)
                 conv_own[,atmosname] = replace(conv_own[,atmosname], conv_own[,atmosname] == Inf, 0.0)
               } # end else above ground for to-from
-            } # end else to-from
+            } else if ((sum(lt_conv[,conv_col_names[l]]) >= 0)) { # end else to-from  and do another else for case where LCC is static
+              atmosname = paste0(out_density_sheets[c],"2Atmos")
+              lt_conv[,atmosname] = 0
+            } # end else all land categories are static
+            
             # sum amount of C either lost or gained for each land type
             conv_own[conv_own$Land_Cat_ID == lt_conv$Land_Cat_ID[l],chname] = sum(lt_conv[,chname])
             # these deal with numerical errors due to roundoff, divide by zero, and any added NA values
