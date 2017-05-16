@@ -1,0 +1,1070 @@
+1,Central_Coast,0,Water,1,BLM,5117400.000000
+1,Central_Coast,0,Water,2,DoD,4078800.000000
+1,Central_Coast,0,Water,3,Easement,3612600.000000
+1,Central_Coast,0,Water,4,Local_gov,74354400.000000
+1,Central_Coast,0,Water,5,NPS,231300.000000
+1,Central_Coast,0,Water,6,Other_fed,108621900.000000
+1,Central_Coast,0,Water,7,Private,131240700.000000
+1,Central_Coast,0,Water,8,State_gov,36302400.000000
+1,Central_Coast,0,Water,9,USFS_nonwild,63900.000000
+1,Central_Coast,20,Barren,1,BLM,229225500.000000
+1,Central_Coast,20,Barren,2,DoD,3623400.000000
+1,Central_Coast,20,Barren,3,Easement,4036500.000000
+1,Central_Coast,20,Barren,4,Local_gov,5286600.000000
+1,Central_Coast,20,Barren,5,NPS,1206000.000000
+1,Central_Coast,20,Barren,6,Other_fed,12321000.000000
+1,Central_Coast,20,Barren,7,Private,597661200.000000
+1,Central_Coast,20,Barren,8,State_gov,24899400.000000
+1,Central_Coast,20,Barren,9,USFS_nonwild,7398900.000000
+1,Central_Coast,30,Sparse,1,BLM,24713100.000000
+1,Central_Coast,30,Sparse,2,DoD,1291500.000000
+1,Central_Coast,30,Sparse,3,Easement,2763000.000000
+1,Central_Coast,30,Sparse,4,Local_gov,2399400.000000
+1,Central_Coast,30,Sparse,5,NPS,942300.000000
+1,Central_Coast,30,Sparse,6,Other_fed,6971400.000000
+1,Central_Coast,30,Sparse,7,Private,87059700.000000
+1,Central_Coast,30,Sparse,8,State_gov,3429900.000000
+1,Central_Coast,30,Sparse,9,USFS_nonwild,4523400.000000
+1,Central_Coast,40,Desert,1,BLM,241234200.000000
+1,Central_Coast,40,Desert,2,DoD,55479600.000000
+1,Central_Coast,40,Desert,3,Easement,113175900.000000
+1,Central_Coast,40,Desert,4,Local_gov,84240000.000000
+1,Central_Coast,40,Desert,5,NPS,19104300.000000
+1,Central_Coast,40,Desert,6,Other_fed,22851000.000000
+1,Central_Coast,40,Desert,7,Private,2427725700.000000
+1,Central_Coast,40,Desert,8,State_gov,108456300.000000
+1,Central_Coast,40,Desert,9,USFS_nonwild,33706800.000000
+1,Central_Coast,50,Shrubland,1,BLM,635249700.000000
+1,Central_Coast,50,Shrubland,2,DoD,142607700.000000
+1,Central_Coast,50,Shrubland,3,Easement,219459600.000000
+1,Central_Coast,50,Shrubland,4,Local_gov,184958100.000000
+1,Central_Coast,50,Shrubland,5,NPS,64592100.000000
+1,Central_Coast,50,Shrubland,6,Other_fed,238884300.000000
+1,Central_Coast,50,Shrubland,7,Private,3213953100.000000
+1,Central_Coast,50,Shrubland,8,State_gov,165654000.000000
+1,Central_Coast,50,Shrubland,9,USFS_nonwild,422710200.000000
+1,Central_Coast,60,Grassland,1,BLM,658476900.000000
+1,Central_Coast,60,Grassland,2,DoD,386235000.000000
+1,Central_Coast,60,Grassland,3,Easement,452044800.000000
+1,Central_Coast,60,Grassland,4,Local_gov,396749700.000000
+1,Central_Coast,60,Grassland,5,NPS,13246200.000000
+1,Central_Coast,60,Grassland,6,Other_fed,740150100.000000
+1,Central_Coast,60,Grassland,7,Private,8645519700.000000
+1,Central_Coast,60,Grassland,8,State_gov,355120200.000000
+1,Central_Coast,60,Grassland,9,USFS_nonwild,257341500.000000
+1,Central_Coast,70,Savanna,1,BLM,263367900.000000
+1,Central_Coast,70,Savanna,2,DoD,82466100.000000
+1,Central_Coast,70,Savanna,3,Easement,157140900.000000
+1,Central_Coast,70,Savanna,4,Local_gov,103770900.000000
+1,Central_Coast,70,Savanna,5,NPS,23642100.000000
+1,Central_Coast,70,Savanna,6,Other_fed,134055900.000000
+1,Central_Coast,70,Savanna,7,Private,2542842900.000000
+1,Central_Coast,70,Savanna,8,State_gov,128696400.000000
+1,Central_Coast,70,Savanna,9,USFS_nonwild,251906400.000000
+1,Central_Coast,80,Woodland,1,BLM,117000900.000000
+1,Central_Coast,80,Woodland,2,DoD,181039500.000000
+1,Central_Coast,80,Woodland,3,Easement,370946700.000000
+1,Central_Coast,80,Woodland,4,Local_gov,499219200.000000
+1,Central_Coast,80,Woodland,5,NPS,12474000.000000
+1,Central_Coast,80,Woodland,6,Other_fed,522537300.000000
+1,Central_Coast,80,Woodland,7,Private,2194822800.000000
+1,Central_Coast,80,Woodland,8,State_gov,296208900.000000
+1,Central_Coast,80,Woodland,9,USFS_nonwild,277533000.000000
+1,Central_Coast,90,Forest,1,BLM,5160600.000000
+1,Central_Coast,90,Forest,2,DoD,3364200.000000
+1,Central_Coast,90,Forest,3,Easement,89550000.000000
+1,Central_Coast,90,Forest,4,Local_gov,171564300.000000
+1,Central_Coast,90,Forest,5,NPS,800100.000000
+1,Central_Coast,90,Forest,6,Other_fed,132083100.000000
+1,Central_Coast,90,Forest,7,Private,608405400.000000
+1,Central_Coast,90,Forest,8,State_gov,172301400.000000
+1,Central_Coast,90,Forest,9,USFS_nonwild,44540100.000000
+1,Central_Coast,100,Meadow,1,BLM,900.000000
+1,Central_Coast,100,Meadow,2,DoD,7799400.000000
+1,Central_Coast,100,Meadow,3,Easement,1023300.000000
+1,Central_Coast,100,Meadow,4,Local_gov,7103700.000000
+1,Central_Coast,100,Meadow,5,NPS,9900.000000
+1,Central_Coast,100,Meadow,6,Other_fed,1189800.000000
+1,Central_Coast,100,Meadow,7,Private,36332100.000000
+1,Central_Coast,100,Meadow,8,State_gov,1410300.000000
+1,Central_Coast,110,Coastal_marsh,2,DoD,126900.000000
+1,Central_Coast,110,Coastal_marsh,3,Easement,1353600.000000
+1,Central_Coast,110,Coastal_marsh,4,Local_gov,5762700.000000
+1,Central_Coast,110,Coastal_marsh,5,NPS,16200.000000
+1,Central_Coast,110,Coastal_marsh,6,Other_fed,8970300.000000
+1,Central_Coast,110,Coastal_marsh,7,Private,20996100.000000
+1,Central_Coast,110,Coastal_marsh,8,State_gov,4793400.000000
+1,Central_Coast,130,Cultivated,1,BLM,5124600.000000
+1,Central_Coast,130,Cultivated,2,DoD,6521400.000000
+1,Central_Coast,130,Cultivated,3,Easement,20570400.000000
+1,Central_Coast,130,Cultivated,4,Local_gov,12459600.000000
+1,Central_Coast,130,Cultivated,5,NPS,222300.000000
+1,Central_Coast,130,Cultivated,6,Other_fed,3797100.000000
+1,Central_Coast,130,Cultivated,7,Private,2431028700.000000
+1,Central_Coast,130,Cultivated,8,State_gov,13140900.000000
+1,Central_Coast,130,Cultivated,9,USFS_nonwild,435600.000000
+1,Central_Coast,160,Developed_all,1,BLM,50243400.000000
+1,Central_Coast,160,Developed_all,2,DoD,84797100.000000
+1,Central_Coast,160,Developed_all,3,Easement,46689300.000000
+1,Central_Coast,160,Developed_all,4,Local_gov,182229300.000000
+1,Central_Coast,160,Developed_all,5,NPS,8118000.000000
+1,Central_Coast,160,Developed_all,6,Other_fed,29154600.000000
+1,Central_Coast,160,Developed_all,7,Private,4438676700.000000
+1,Central_Coast,160,Developed_all,8,State_gov,61946100.000000
+1,Central_Coast,160,Developed_all,9,USFS_nonwild,19903500.000000
+2,Central_Valley,0,Water,1,BLM,707400.000000
+2,Central_Valley,0,Water,2,DoD,8194500.000000
+2,Central_Valley,0,Water,3,Easement,30446100.000000
+2,Central_Valley,0,Water,4,Local_gov,45430200.000000
+2,Central_Valley,0,Water,6,Other_fed,33698700.000000
+2,Central_Valley,0,Water,7,Private,350544600.000000
+2,Central_Valley,0,Water,8,State_gov,45528300.000000
+2,Central_Valley,20,Barren,1,BLM,51535800.000000
+2,Central_Valley,20,Barren,2,DoD,4198500.000000
+2,Central_Valley,20,Barren,3,Easement,27865800.000000
+2,Central_Valley,20,Barren,4,Local_gov,4209300.000000
+2,Central_Valley,20,Barren,6,Other_fed,12665700.000000
+2,Central_Valley,20,Barren,7,Private,646529400.000000
+2,Central_Valley,20,Barren,8,State_gov,16820100.000000
+2,Central_Valley,30,Sparse,1,BLM,2367900.000000
+2,Central_Valley,30,Sparse,2,DoD,279900.000000
+2,Central_Valley,30,Sparse,3,Easement,8819100.000000
+2,Central_Valley,30,Sparse,4,Local_gov,1063800.000000
+2,Central_Valley,30,Sparse,6,Other_fed,2096100.000000
+2,Central_Valley,30,Sparse,7,Private,77070600.000000
+2,Central_Valley,30,Sparse,8,State_gov,3019500.000000
+2,Central_Valley,40,Desert,1,BLM,41482800.000000
+2,Central_Valley,40,Desert,2,DoD,276300.000000
+2,Central_Valley,40,Desert,3,Easement,54077400.000000
+2,Central_Valley,40,Desert,4,Local_gov,4042800.000000
+2,Central_Valley,40,Desert,6,Other_fed,12798000.000000
+2,Central_Valley,40,Desert,7,Private,388237500.000000
+2,Central_Valley,40,Desert,8,State_gov,11581200.000000
+2,Central_Valley,50,Shrubland,1,BLM,14737500.000000
+2,Central_Valley,50,Shrubland,2,DoD,18748800.000000
+2,Central_Valley,50,Shrubland,3,Easement,465839100.000000
+2,Central_Valley,50,Shrubland,4,Local_gov,43990200.000000
+2,Central_Valley,50,Shrubland,6,Other_fed,68113800.000000
+2,Central_Valley,50,Shrubland,7,Private,3173249700.000000
+2,Central_Valley,50,Shrubland,8,State_gov,85824000.000000
+2,Central_Valley,60,Grassland,1,BLM,101960100.000000
+2,Central_Valley,60,Grassland,2,DoD,34152300.000000
+2,Central_Valley,60,Grassland,3,Easement,503289900.000000
+2,Central_Valley,60,Grassland,4,Local_gov,26593200.000000
+2,Central_Valley,60,Grassland,6,Other_fed,132693300.000000
+2,Central_Valley,60,Grassland,7,Private,2934767700.000000
+2,Central_Valley,60,Grassland,8,State_gov,86316300.000000
+2,Central_Valley,70,Savanna,1,BLM,1956600.000000
+2,Central_Valley,70,Savanna,2,DoD,1134900.000000
+2,Central_Valley,70,Savanna,3,Easement,55190700.000000
+2,Central_Valley,70,Savanna,4,Local_gov,13241700.000000
+2,Central_Valley,70,Savanna,6,Other_fed,12425400.000000
+2,Central_Valley,70,Savanna,7,Private,504727200.000000
+2,Central_Valley,70,Savanna,8,State_gov,18476100.000000
+2,Central_Valley,80,Woodland,1,BLM,343800.000000
+2,Central_Valley,80,Woodland,2,DoD,2921400.000000
+2,Central_Valley,80,Woodland,3,Easement,40297500.000000
+2,Central_Valley,80,Woodland,4,Local_gov,7725600.000000
+2,Central_Valley,80,Woodland,6,Other_fed,8694000.000000
+2,Central_Valley,80,Woodland,7,Private,257302800.000000
+2,Central_Valley,80,Woodland,8,State_gov,10158300.000000
+2,Central_Valley,90,Forest,1,BLM,1800.000000
+2,Central_Valley,90,Forest,2,DoD,16200.000000
+2,Central_Valley,90,Forest,3,Easement,135763200.000000
+2,Central_Valley,90,Forest,4,Local_gov,5400.000000
+2,Central_Valley,90,Forest,6,Other_fed,146700.000000
+2,Central_Valley,90,Forest,7,Private,4404600.000000
+2,Central_Valley,90,Forest,8,State_gov,124200.000000
+2,Central_Valley,100,Meadow,1,BLM,900.000000
+2,Central_Valley,100,Meadow,7,Private,153900.000000
+2,Central_Valley,100,Meadow,8,State_gov,900.000000
+2,Central_Valley,110,Coastal_marsh,1,BLM,207000.000000
+2,Central_Valley,110,Coastal_marsh,2,DoD,6300.000000
+2,Central_Valley,110,Coastal_marsh,3,Easement,2281500.000000
+2,Central_Valley,110,Coastal_marsh,4,Local_gov,101700.000000
+2,Central_Valley,110,Coastal_marsh,6,Other_fed,503100.000000
+2,Central_Valley,110,Coastal_marsh,7,Private,3723300.000000
+2,Central_Valley,110,Coastal_marsh,8,State_gov,429300.000000
+2,Central_Valley,130,Cultivated,1,BLM,28186200.000000
+2,Central_Valley,130,Cultivated,2,DoD,85336200.000000
+2,Central_Valley,130,Cultivated,3,Easement,498605400.000000
+2,Central_Valley,130,Cultivated,4,Local_gov,79597800.000000
+2,Central_Valley,130,Cultivated,6,Other_fed,194169600.000000
+2,Central_Valley,130,Cultivated,7,Private,28719801000.000000
+2,Central_Valley,130,Cultivated,8,State_gov,236230200.000000
+2,Central_Valley,160,Developed_all,1,BLM,19057500.000000
+2,Central_Valley,160,Developed_all,2,DoD,34054200.000000
+2,Central_Valley,160,Developed_all,3,Easement,56727000.000000
+2,Central_Valley,160,Developed_all,4,Local_gov,86513400.000000
+2,Central_Valley,160,Developed_all,6,Other_fed,28386000.000000
+2,Central_Valley,160,Developed_all,7,Private,5061054600.000000
+2,Central_Valley,160,Developed_all,8,State_gov,26657100.000000
+3,Delta,0,Water,1,BLM,234000.000000
+3,Delta,0,Water,2,DoD,8801100.000000
+3,Delta,0,Water,3,Easement,3156300.000000
+3,Delta,0,Water,4,Local_gov,6278400.000000
+3,Delta,0,Water,6,Other_fed,1381500.000000
+3,Delta,0,Water,7,Private,344059200.000000
+3,Delta,0,Water,8,State_gov,61489800.000000
+3,Delta,20,Barren,2,DoD,292500.000000
+3,Delta,20,Barren,3,Easement,17100.000000
+3,Delta,20,Barren,4,Local_gov,16200.000000
+3,Delta,20,Barren,6,Other_fed,3600.000000
+3,Delta,20,Barren,7,Private,2456100.000000
+3,Delta,20,Barren,8,State_gov,140400.000000
+3,Delta,30,Sparse,2,DoD,900.000000
+3,Delta,30,Sparse,3,Easement,9900.000000
+3,Delta,30,Sparse,4,Local_gov,23400.000000
+3,Delta,30,Sparse,6,Other_fed,11700.000000
+3,Delta,30,Sparse,7,Private,739800.000000
+3,Delta,30,Sparse,8,State_gov,64800.000000
+3,Delta,40,Desert,2,DoD,4500.000000
+3,Delta,40,Desert,3,Easement,99900.000000
+3,Delta,40,Desert,4,Local_gov,4500.000000
+3,Delta,40,Desert,7,Private,579600.000000
+3,Delta,40,Desert,8,State_gov,154800.000000
+3,Delta,50,Shrubland,1,BLM,79200.000000
+3,Delta,50,Shrubland,2,DoD,366300.000000
+3,Delta,50,Shrubland,3,Easement,1624500.000000
+3,Delta,50,Shrubland,4,Local_gov,95400.000000
+3,Delta,50,Shrubland,6,Other_fed,130500.000000
+3,Delta,50,Shrubland,7,Private,21880800.000000
+3,Delta,50,Shrubland,8,State_gov,6085800.000000
+3,Delta,60,Grassland,1,BLM,781200.000000
+3,Delta,60,Grassland,2,DoD,3346200.000000
+3,Delta,60,Grassland,3,Easement,19694700.000000
+3,Delta,60,Grassland,4,Local_gov,704700.000000
+3,Delta,60,Grassland,6,Other_fed,686700.000000
+3,Delta,60,Grassland,7,Private,85017600.000000
+3,Delta,60,Grassland,8,State_gov,22066200.000000
+3,Delta,70,Savanna,1,BLM,23400.000000
+3,Delta,70,Savanna,2,DoD,65700.000000
+3,Delta,70,Savanna,3,Easement,291600.000000
+3,Delta,70,Savanna,4,Local_gov,7200.000000
+3,Delta,70,Savanna,6,Other_fed,23400.000000
+3,Delta,70,Savanna,7,Private,3956400.000000
+3,Delta,70,Savanna,8,State_gov,808200.000000
+3,Delta,80,Woodland,1,BLM,28800.000000
+3,Delta,80,Woodland,2,DoD,17100.000000
+3,Delta,80,Woodland,3,Easement,845100.000000
+3,Delta,80,Woodland,4,Local_gov,30600.000000
+3,Delta,80,Woodland,6,Other_fed,105300.000000
+3,Delta,80,Woodland,7,Private,1356300.000000
+3,Delta,80,Woodland,8,State_gov,852300.000000
+3,Delta,90,Forest,3,Easement,3305700.000000
+3,Delta,90,Forest,4,Local_gov,900.000000
+3,Delta,90,Forest,7,Private,1176300.000000
+3,Delta,90,Forest,8,State_gov,1800.000000
+3,Delta,100,Meadow,2,DoD,1121400.000000
+3,Delta,100,Meadow,3,Easement,49500.000000
+3,Delta,100,Meadow,4,Local_gov,77400.000000
+3,Delta,100,Meadow,7,Private,5309100.000000
+3,Delta,100,Meadow,8,State_gov,790200.000000
+3,Delta,110,Coastal_marsh,1,BLM,153000.000000
+3,Delta,110,Coastal_marsh,2,DoD,7416000.000000
+3,Delta,110,Coastal_marsh,3,Easement,2081700.000000
+3,Delta,110,Coastal_marsh,4,Local_gov,94500.000000
+3,Delta,110,Coastal_marsh,6,Other_fed,85500.000000
+3,Delta,110,Coastal_marsh,7,Private,108925200.000000
+3,Delta,110,Coastal_marsh,8,State_gov,39036600.000000
+3,Delta,130,Cultivated,1,BLM,4561200.000000
+3,Delta,130,Cultivated,2,DoD,4095900.000000
+3,Delta,130,Cultivated,3,Easement,102665700.000000
+3,Delta,130,Cultivated,4,Local_gov,6057900.000000
+3,Delta,130,Cultivated,6,Other_fed,6379200.000000
+3,Delta,130,Cultivated,7,Private,1974507300.000000
+3,Delta,130,Cultivated,8,State_gov,91023300.000000
+3,Delta,160,Developed_all,1,BLM,269100.000000
+3,Delta,160,Developed_all,2,DoD,3372300.000000
+3,Delta,160,Developed_all,3,Easement,2458800.000000
+3,Delta,160,Developed_all,4,Local_gov,8203500.000000
+3,Delta,160,Developed_all,6,Other_fed,807300.000000
+3,Delta,160,Developed_all,7,Private,408968100.000000
+3,Delta,160,Developed_all,8,State_gov,5404500.000000
+4,Deserts,0,Water,1,BLM,51867900.000000
+4,Deserts,0,Water,2,DoD,3168900.000000
+4,Deserts,0,Water,3,Easement,37800.000000
+4,Deserts,0,Water,4,Local_gov,405507600.000000
+4,Deserts,0,Water,5,NPS,269100.000000
+4,Deserts,0,Water,6,Other_fed,155741400.000000
+4,Deserts,0,Water,7,Private,482627700.000000
+4,Deserts,0,Water,8,State_gov,25632900.000000
+4,Deserts,0,Water,9,USFS_nonwild,289800.000000
+4,Deserts,20,Barren,1,BLM,6047235900.000000
+4,Deserts,20,Barren,2,DoD,1760511600.000000
+4,Deserts,20,Barren,3,Easement,28258200.000000
+4,Deserts,20,Barren,4,Local_gov,230227200.000000
+4,Deserts,20,Barren,5,NPS,1294488900.000000
+4,Deserts,20,Barren,6,Other_fed,32071500.000000
+4,Deserts,20,Barren,7,Private,2455750800.000000
+4,Deserts,20,Barren,8,State_gov,1070851500.000000
+4,Deserts,20,Barren,9,USFS_nonwild,1271700.000000
+4,Deserts,30,Sparse,1,BLM,6410827800.000000
+4,Deserts,30,Sparse,2,DoD,2105478900.000000
+4,Deserts,30,Sparse,3,Easement,15390900.000000
+4,Deserts,30,Sparse,4,Local_gov,207963900.000000
+4,Deserts,30,Sparse,5,NPS,3447863100.000000
+4,Deserts,30,Sparse,6,Other_fed,139702500.000000
+4,Deserts,30,Sparse,7,Private,1825386300.000000
+4,Deserts,30,Sparse,8,State_gov,278009100.000000
+4,Deserts,30,Sparse,9,USFS_nonwild,43802100.000000
+4,Deserts,40,Desert,1,BLM,28739245500.000000
+4,Deserts,40,Desert,2,DoD,8947436400.000000
+4,Deserts,40,Desert,3,Easement,39132000.000000
+4,Deserts,40,Desert,4,Local_gov,407268900.000000
+4,Deserts,40,Desert,5,NPS,15951263400.000000
+4,Deserts,40,Desert,6,Other_fed,478559700.000000
+4,Deserts,40,Desert,7,Private,8746478100.000000
+4,Deserts,40,Desert,8,State_gov,1406408400.000000
+4,Deserts,40,Desert,9,USFS_nonwild,148042800.000000
+4,Deserts,50,Shrubland,1,BLM,318514500.000000
+4,Deserts,50,Shrubland,2,DoD,25472700.000000
+4,Deserts,50,Shrubland,3,Easement,21878100.000000
+4,Deserts,50,Shrubland,4,Local_gov,13617000.000000
+4,Deserts,50,Shrubland,5,NPS,371507400.000000
+4,Deserts,50,Shrubland,6,Other_fed,78991200.000000
+4,Deserts,50,Shrubland,7,Private,363217500.000000
+4,Deserts,50,Shrubland,8,State_gov,13844700.000000
+4,Deserts,50,Shrubland,9,USFS_nonwild,324531900.000000
+4,Deserts,60,Grassland,1,BLM,149562000.000000
+4,Deserts,60,Grassland,2,DoD,102398400.000000
+4,Deserts,60,Grassland,3,Easement,41355900.000000
+4,Deserts,60,Grassland,4,Local_gov,27040500.000000
+4,Deserts,60,Grassland,5,NPS,288288000.000000
+4,Deserts,60,Grassland,6,Other_fed,3675600.000000
+4,Deserts,60,Grassland,7,Private,384152400.000000
+4,Deserts,60,Grassland,8,State_gov,28964700.000000
+4,Deserts,60,Grassland,9,USFS_nonwild,72054900.000000
+4,Deserts,70,Savanna,1,BLM,226800.000000
+4,Deserts,70,Savanna,2,DoD,5400.000000
+4,Deserts,70,Savanna,3,Easement,565200.000000
+4,Deserts,70,Savanna,4,Local_gov,2700.000000
+4,Deserts,70,Savanna,6,Other_fed,15300.000000
+4,Deserts,70,Savanna,7,Private,5242500.000000
+4,Deserts,70,Savanna,9,USFS_nonwild,2352600.000000
+4,Deserts,80,Woodland,1,BLM,137643300.000000
+4,Deserts,80,Woodland,2,DoD,87822000.000000
+4,Deserts,80,Woodland,3,Easement,1159200.000000
+4,Deserts,80,Woodland,4,Local_gov,729000.000000
+4,Deserts,80,Woodland,5,NPS,374709600.000000
+4,Deserts,80,Woodland,6,Other_fed,128427300.000000
+4,Deserts,80,Woodland,7,Private,23971500.000000
+4,Deserts,80,Woodland,8,State_gov,9778500.000000
+4,Deserts,80,Woodland,9,USFS_nonwild,126965700.000000
+4,Deserts,90,Forest,1,BLM,2156400.000000
+4,Deserts,90,Forest,2,DoD,3600.000000
+4,Deserts,90,Forest,3,Easement,515700.000000
+4,Deserts,90,Forest,4,Local_gov,50400.000000
+4,Deserts,90,Forest,5,NPS,2136600.000000
+4,Deserts,90,Forest,6,Other_fed,11581200.000000
+4,Deserts,90,Forest,7,Private,3319200.000000
+4,Deserts,90,Forest,8,State_gov,8100.000000
+4,Deserts,90,Forest,9,USFS_nonwild,1906200.000000
+4,Deserts,100,Meadow,1,BLM,52220700.000000
+4,Deserts,100,Meadow,2,DoD,37722600.000000
+4,Deserts,100,Meadow,3,Easement,6300.000000
+4,Deserts,100,Meadow,4,Local_gov,9500400.000000
+4,Deserts,100,Meadow,5,NPS,4880700.000000
+4,Deserts,100,Meadow,6,Other_fed,1515600.000000
+4,Deserts,100,Meadow,7,Private,108541800.000000
+4,Deserts,100,Meadow,8,State_gov,2879100.000000
+4,Deserts,100,Meadow,9,USFS_nonwild,801000.000000
+4,Deserts,110,Coastal_marsh,6,Other_fed,900.000000
+4,Deserts,110,Coastal_marsh,7,Private,9900.000000
+4,Deserts,130,Cultivated,1,BLM,65474100.000000
+4,Deserts,130,Cultivated,2,DoD,5449500.000000
+4,Deserts,130,Cultivated,3,Easement,81000.000000
+4,Deserts,130,Cultivated,4,Local_gov,47580300.000000
+4,Deserts,130,Cultivated,5,NPS,13500.000000
+4,Deserts,130,Cultivated,6,Other_fed,120948300.000000
+4,Deserts,130,Cultivated,7,Private,2842684200.000000
+4,Deserts,130,Cultivated,8,State_gov,9594000.000000
+4,Deserts,160,Developed_all,1,BLM,227582100.000000
+4,Deserts,160,Developed_all,2,DoD,80643600.000000
+4,Deserts,160,Developed_all,3,Easement,3474000.000000
+4,Deserts,160,Developed_all,4,Local_gov,34101900.000000
+4,Deserts,160,Developed_all,5,NPS,52895700.000000
+4,Deserts,160,Developed_all,6,Other_fed,31281300.000000
+4,Deserts,160,Developed_all,7,Private,1898035200.000000
+4,Deserts,160,Developed_all,8,State_gov,20997000.000000
+4,Deserts,160,Developed_all,9,USFS_nonwild,8690400.000000
+4,Deserts,*,no data,1,BLM,5400.000000
+4,Deserts,*,no data,7,Private,1800.000000
+5,Eastside,0,Water,1,BLM,19581300.000000
+5,Eastside,0,Water,2,DoD,15027300.000000
+5,Eastside,0,Water,3,Easement,1601100.000000
+5,Eastside,0,Water,4,Local_gov,20774700.000000
+5,Eastside,0,Water,6,Other_fed,156966300.000000
+5,Eastside,0,Water,7,Private,683116200.000000
+5,Eastside,0,Water,8,State_gov,200339100.000000
+5,Eastside,0,Water,9,USFS_nonwild,19801800.000000
+5,Eastside,10,Ice,7,Private,900.000000
+5,Eastside,10,Ice,9,USFS_nonwild,900.000000
+5,Eastside,20,Barren,1,BLM,140331600.000000
+5,Eastside,20,Barren,2,DoD,1464300.000000
+5,Eastside,20,Barren,3,Easement,1380600.000000
+5,Eastside,20,Barren,4,Local_gov,23217300.000000
+5,Eastside,20,Barren,5,NPS,14400.000000
+5,Eastside,20,Barren,6,Other_fed,61822800.000000
+5,Eastside,20,Barren,7,Private,341875800.000000
+5,Eastside,20,Barren,8,State_gov,12084300.000000
+5,Eastside,20,Barren,9,USFS_nonwild,82336500.000000
+5,Eastside,30,Sparse,1,BLM,237578400.000000
+5,Eastside,30,Sparse,2,DoD,1494900.000000
+5,Eastside,30,Sparse,3,Easement,2546100.000000
+5,Eastside,30,Sparse,4,Local_gov,64472400.000000
+5,Eastside,30,Sparse,5,NPS,89100.000000
+5,Eastside,30,Sparse,6,Other_fed,65795400.000000
+5,Eastside,30,Sparse,7,Private,125325000.000000
+5,Eastside,30,Sparse,8,State_gov,17996400.000000
+5,Eastside,30,Sparse,9,USFS_nonwild,213750900.000000
+5,Eastside,40,Desert,1,BLM,547560900.000000
+5,Eastside,40,Desert,2,DoD,13851900.000000
+5,Eastside,40,Desert,3,Easement,3500100.000000
+5,Eastside,40,Desert,4,Local_gov,215148600.000000
+5,Eastside,40,Desert,6,Other_fed,79112700.000000
+5,Eastside,40,Desert,7,Private,111624300.000000
+5,Eastside,40,Desert,8,State_gov,17529300.000000
+5,Eastside,40,Desert,9,USFS_nonwild,132790500.000000
+5,Eastside,50,Shrubland,1,BLM,4382017200.000000
+5,Eastside,50,Shrubland,2,DoD,86979600.000000
+5,Eastside,50,Shrubland,3,Easement,63078300.000000
+5,Eastside,50,Shrubland,4,Local_gov,115187400.000000
+5,Eastside,50,Shrubland,5,NPS,1773900.000000
+5,Eastside,50,Shrubland,6,Other_fed,507141000.000000
+5,Eastside,50,Shrubland,7,Private,2783858400.000000
+5,Eastside,50,Shrubland,8,State_gov,229833900.000000
+5,Eastside,50,Shrubland,9,USFS_nonwild,3709935900.000000
+5,Eastside,60,Grassland,1,BLM,347580900.000000
+5,Eastside,60,Grassland,2,DoD,4188600.000000
+5,Eastside,60,Grassland,3,Easement,14730300.000000
+5,Eastside,60,Grassland,4,Local_gov,41915700.000000
+5,Eastside,60,Grassland,5,NPS,1458000.000000
+5,Eastside,60,Grassland,6,Other_fed,35918100.000000
+5,Eastside,60,Grassland,7,Private,173961000.000000
+5,Eastside,60,Grassland,8,State_gov,33581700.000000
+5,Eastside,60,Grassland,9,USFS_nonwild,208083600.000000
+5,Eastside,70,Savanna,1,BLM,84013200.000000
+5,Eastside,70,Savanna,3,Easement,54800100.000000
+5,Eastside,70,Savanna,4,Local_gov,12600.000000
+5,Eastside,70,Savanna,5,NPS,1800.000000
+5,Eastside,70,Savanna,6,Other_fed,21942000.000000
+5,Eastside,70,Savanna,7,Private,445347900.000000
+5,Eastside,70,Savanna,8,State_gov,4854600.000000
+5,Eastside,70,Savanna,9,USFS_nonwild,877003200.000000
+5,Eastside,80,Woodland,1,BLM,1483547400.000000
+5,Eastside,80,Woodland,2,DoD,7200.000000
+5,Eastside,80,Woodland,3,Easement,41022900.000000
+5,Eastside,80,Woodland,4,Local_gov,51370200.000000
+5,Eastside,80,Woodland,5,NPS,3600.000000
+5,Eastside,80,Woodland,6,Other_fed,510871500.000000
+5,Eastside,80,Woodland,7,Private,1087911000.000000
+5,Eastside,80,Woodland,8,State_gov,63656100.000000
+5,Eastside,80,Woodland,9,USFS_nonwild,2363728500.000000
+5,Eastside,90,Forest,1,BLM,97686900.000000
+5,Eastside,90,Forest,3,Easement,49654800.000000
+5,Eastside,90,Forest,4,Local_gov,5946300.000000
+5,Eastside,90,Forest,5,NPS,3600.000000
+5,Eastside,90,Forest,6,Other_fed,152497800.000000
+5,Eastside,90,Forest,7,Private,464923800.000000
+5,Eastside,90,Forest,8,State_gov,7970400.000000
+5,Eastside,90,Forest,9,USFS_nonwild,929304900.000000
+5,Eastside,100,Meadow,1,BLM,123503400.000000
+5,Eastside,100,Meadow,2,DoD,5252400.000000
+5,Eastside,100,Meadow,3,Easement,16207200.000000
+5,Eastside,100,Meadow,4,Local_gov,32711400.000000
+5,Eastside,100,Meadow,6,Other_fed,10157400.000000
+5,Eastside,100,Meadow,7,Private,53713800.000000
+5,Eastside,100,Meadow,8,State_gov,12462300.000000
+5,Eastside,100,Meadow,9,USFS_nonwild,49142700.000000
+5,Eastside,130,Cultivated,1,BLM,4435200.000000
+5,Eastside,130,Cultivated,2,DoD,210600.000000
+5,Eastside,130,Cultivated,3,Easement,28662300.000000
+5,Eastside,130,Cultivated,4,Local_gov,13069800.000000
+5,Eastside,130,Cultivated,5,NPS,95400.000000
+5,Eastside,130,Cultivated,6,Other_fed,117422100.000000
+5,Eastside,130,Cultivated,7,Private,827338500.000000
+5,Eastside,130,Cultivated,8,State_gov,22795200.000000
+5,Eastside,130,Cultivated,9,USFS_nonwild,1340100.000000
+5,Eastside,160,Developed_all,1,BLM,32358600.000000
+5,Eastside,160,Developed_all,2,DoD,14360400.000000
+5,Eastside,160,Developed_all,3,Easement,18608400.000000
+5,Eastside,160,Developed_all,4,Local_gov,100972800.000000
+5,Eastside,160,Developed_all,5,NPS,544500.000000
+5,Eastside,160,Developed_all,6,Other_fed,111116700.000000
+5,Eastside,160,Developed_all,7,Private,672330600.000000
+5,Eastside,160,Developed_all,8,State_gov,40072500.000000
+5,Eastside,160,Developed_all,9,USFS_nonwild,32447700.000000
+6,Klamath,0,Water,1,BLM,4394700.000000
+6,Klamath,0,Water,2,DoD,25407000.000000
+6,Klamath,0,Water,3,Easement,2330100.000000
+6,Klamath,0,Water,4,Local_gov,9876600.000000
+6,Klamath,0,Water,5,NPS,11413800.000000
+6,Klamath,0,Water,6,Other_fed,102094200.000000
+6,Klamath,0,Water,7,Private,284066100.000000
+6,Klamath,0,Water,8,State_gov,6129000.000000
+6,Klamath,0,Water,9,USFS_nonwild,206550000.000000
+6,Klamath,10,Ice,6,Other_fed,19384200.000000
+6,Klamath,10,Ice,9,USFS_nonwild,2700.000000
+6,Klamath,20,Barren,1,BLM,5796000.000000
+6,Klamath,20,Barren,2,DoD,529200.000000
+6,Klamath,20,Barren,3,Easement,3421800.000000
+6,Klamath,20,Barren,4,Local_gov,3786300.000000
+6,Klamath,20,Barren,5,NPS,74700.000000
+6,Klamath,20,Barren,6,Other_fed,30717900.000000
+6,Klamath,20,Barren,7,Private,70555500.000000
+6,Klamath,20,Barren,8,State_gov,1026900.000000
+6,Klamath,20,Barren,9,USFS_nonwild,36282600.000000
+6,Klamath,30,Sparse,1,BLM,7538400.000000
+6,Klamath,30,Sparse,2,DoD,822600.000000
+6,Klamath,30,Sparse,3,Easement,1903500.000000
+6,Klamath,30,Sparse,4,Local_gov,487800.000000
+6,Klamath,30,Sparse,5,NPS,432900.000000
+6,Klamath,30,Sparse,6,Other_fed,155746800.000000
+6,Klamath,30,Sparse,7,Private,53433000.000000
+6,Klamath,30,Sparse,8,State_gov,939600.000000
+6,Klamath,30,Sparse,9,USFS_nonwild,51101100.000000
+6,Klamath,40,Desert,3,Easement,1800.000000
+6,Klamath,40,Desert,4,Local_gov,4500.000000
+6,Klamath,40,Desert,6,Other_fed,27900.000000
+6,Klamath,40,Desert,7,Private,2249100.000000
+6,Klamath,40,Desert,9,USFS_nonwild,15300.000000
+6,Klamath,50,Shrubland,1,BLM,587296800.000000
+6,Klamath,50,Shrubland,2,DoD,20549700.000000
+6,Klamath,50,Shrubland,3,Easement,118670400.000000
+6,Klamath,50,Shrubland,4,Local_gov,22534200.000000
+6,Klamath,50,Shrubland,5,NPS,5736600.000000
+6,Klamath,50,Shrubland,6,Other_fed,133254000.000000
+6,Klamath,50,Shrubland,7,Private,3805263000.000000
+6,Klamath,50,Shrubland,8,State_gov,41337900.000000
+6,Klamath,50,Shrubland,9,USFS_nonwild,521276400.000000
+6,Klamath,60,Grassland,1,BLM,337922100.000000
+6,Klamath,60,Grassland,2,DoD,10026000.000000
+6,Klamath,60,Grassland,3,Easement,130185000.000000
+6,Klamath,60,Grassland,4,Local_gov,9104400.000000
+6,Klamath,60,Grassland,5,NPS,30468600.000000
+6,Klamath,60,Grassland,6,Other_fed,847183500.000000
+6,Klamath,60,Grassland,7,Private,4543398900.000000
+6,Klamath,60,Grassland,8,State_gov,96239700.000000
+6,Klamath,60,Grassland,9,USFS_nonwild,1375380000.000000
+6,Klamath,70,Savanna,1,BLM,256682700.000000
+6,Klamath,70,Savanna,2,DoD,6078600.000000
+6,Klamath,70,Savanna,3,Easement,76167000.000000
+6,Klamath,70,Savanna,4,Local_gov,12379500.000000
+6,Klamath,70,Savanna,5,NPS,21932100.000000
+6,Klamath,70,Savanna,6,Other_fed,36080100.000000
+6,Klamath,70,Savanna,7,Private,2439085500.000000
+6,Klamath,70,Savanna,8,State_gov,24934500.000000
+6,Klamath,70,Savanna,9,USFS_nonwild,161497800.000000
+6,Klamath,80,Woodland,1,BLM,361775700.000000
+6,Klamath,80,Woodland,2,DoD,5959800.000000
+6,Klamath,80,Woodland,3,Easement,54920700.000000
+6,Klamath,80,Woodland,4,Local_gov,3924900.000000
+6,Klamath,80,Woodland,5,NPS,29034900.000000
+6,Klamath,80,Woodland,6,Other_fed,1068359400.000000
+6,Klamath,80,Woodland,7,Private,2501856000.000000
+6,Klamath,80,Woodland,8,State_gov,34516800.000000
+6,Klamath,80,Woodland,9,USFS_nonwild,2572101000.000000
+6,Klamath,90,Forest,1,BLM,446508900.000000
+6,Klamath,90,Forest,2,DoD,11566800.000000
+6,Klamath,90,Forest,3,Easement,114589800.000000
+6,Klamath,90,Forest,4,Local_gov,837900.000000
+6,Klamath,90,Forest,5,NPS,65979000.000000
+6,Klamath,90,Forest,6,Other_fed,3618752400.000000
+6,Klamath,90,Forest,7,Private,5496076800.000000
+6,Klamath,90,Forest,8,State_gov,83811600.000000
+6,Klamath,90,Forest,9,USFS_nonwild,10059538500.000000
+6,Klamath,100,Meadow,1,BLM,46800.000000
+6,Klamath,100,Meadow,3,Easement,41400.000000
+6,Klamath,100,Meadow,6,Other_fed,1346400.000000
+6,Klamath,100,Meadow,7,Private,9207000.000000
+6,Klamath,100,Meadow,8,State_gov,9900.000000
+6,Klamath,100,Meadow,9,USFS_nonwild,1592100.000000
+6,Klamath,110,Coastal_marsh,3,Easement,1800.000000
+6,Klamath,110,Coastal_marsh,7,Private,83700.000000
+6,Klamath,130,Cultivated,1,BLM,846000.000000
+6,Klamath,130,Cultivated,2,DoD,1347300.000000
+6,Klamath,130,Cultivated,3,Easement,11754000.000000
+6,Klamath,130,Cultivated,4,Local_gov,410400.000000
+6,Klamath,130,Cultivated,5,NPS,900.000000
+6,Klamath,130,Cultivated,6,Other_fed,5164200.000000
+6,Klamath,130,Cultivated,7,Private,956102400.000000
+6,Klamath,130,Cultivated,8,State_gov,2897100.000000
+6,Klamath,130,Cultivated,9,USFS_nonwild,2109600.000000
+6,Klamath,160,Developed_all,1,BLM,26644500.000000
+6,Klamath,160,Developed_all,2,DoD,1676700.000000
+6,Klamath,160,Developed_all,3,Easement,9236700.000000
+6,Klamath,160,Developed_all,4,Local_gov,4398300.000000
+6,Klamath,160,Developed_all,5,NPS,5198400.000000
+6,Klamath,160,Developed_all,6,Other_fed,26186400.000000
+6,Klamath,160,Developed_all,7,Private,981251100.000000
+6,Klamath,160,Developed_all,8,State_gov,4063500.000000
+6,Klamath,160,Developed_all,9,USFS_nonwild,236869200.000000
+7,North_Coast,0,Water,1,BLM,1993500.000000
+7,North_Coast,0,Water,2,DoD,6798600.000000
+7,North_Coast,0,Water,3,Easement,7175700.000000
+7,North_Coast,0,Water,4,Local_gov,14475600.000000
+7,North_Coast,0,Water,5,NPS,6672600.000000
+7,North_Coast,0,Water,6,Other_fed,4280400.000000
+7,North_Coast,0,Water,7,Private,215159400.000000
+7,North_Coast,0,Water,8,State_gov,73846800.000000
+7,North_Coast,0,Water,9,USFS_nonwild,350100.000000
+7,North_Coast,20,Barren,1,BLM,3372300.000000
+7,North_Coast,20,Barren,2,DoD,215100.000000
+7,North_Coast,20,Barren,3,Easement,656100.000000
+7,North_Coast,20,Barren,4,Local_gov,1791900.000000
+7,North_Coast,20,Barren,5,NPS,3206700.000000
+7,North_Coast,20,Barren,6,Other_fed,1835100.000000
+7,North_Coast,20,Barren,7,Private,45419400.000000
+7,North_Coast,20,Barren,8,State_gov,11647800.000000
+7,North_Coast,20,Barren,9,USFS_nonwild,144000.000000
+7,North_Coast,30,Sparse,1,BLM,3297600.000000
+7,North_Coast,30,Sparse,2,DoD,346500.000000
+7,North_Coast,30,Sparse,3,Easement,1626300.000000
+7,North_Coast,30,Sparse,4,Local_gov,1089900.000000
+7,North_Coast,30,Sparse,5,NPS,1717200.000000
+7,North_Coast,30,Sparse,6,Other_fed,324900.000000
+7,North_Coast,30,Sparse,7,Private,18839700.000000
+7,North_Coast,30,Sparse,8,State_gov,5616000.000000
+7,North_Coast,30,Sparse,9,USFS_nonwild,147600.000000
+7,North_Coast,40,Desert,1,BLM,2499300.000000
+7,North_Coast,40,Desert,2,DoD,59400.000000
+7,North_Coast,40,Desert,3,Easement,54156600.000000
+7,North_Coast,40,Desert,4,Local_gov,6420600.000000
+7,North_Coast,40,Desert,5,NPS,154499400.000000
+7,North_Coast,40,Desert,6,Other_fed,1709100.000000
+7,North_Coast,40,Desert,7,Private,138609900.000000
+7,North_Coast,40,Desert,8,State_gov,13896000.000000
+7,North_Coast,40,Desert,9,USFS_nonwild,32400.000000
+7,North_Coast,50,Shrubland,1,BLM,18753300.000000
+7,North_Coast,50,Shrubland,2,DoD,6939900.000000
+7,North_Coast,50,Shrubland,3,Easement,220181400.000000
+7,North_Coast,50,Shrubland,4,Local_gov,53390700.000000
+7,North_Coast,50,Shrubland,5,NPS,30240000.000000
+7,North_Coast,50,Shrubland,6,Other_fed,6981300.000000
+7,North_Coast,50,Shrubland,7,Private,1200673800.000000
+7,North_Coast,50,Shrubland,8,State_gov,76046400.000000
+7,North_Coast,50,Shrubland,9,USFS_nonwild,97200.000000
+7,North_Coast,60,Grassland,1,BLM,30311100.000000
+7,North_Coast,60,Grassland,2,DoD,3146400.000000
+7,North_Coast,60,Grassland,3,Easement,92027700.000000
+7,North_Coast,60,Grassland,4,Local_gov,14944500.000000
+7,North_Coast,60,Grassland,5,NPS,17244900.000000
+7,North_Coast,60,Grassland,6,Other_fed,4030200.000000
+7,North_Coast,60,Grassland,7,Private,1103875200.000000
+7,North_Coast,60,Grassland,8,State_gov,31044600.000000
+7,North_Coast,60,Grassland,9,USFS_nonwild,2568600.000000
+7,North_Coast,70,Savanna,1,BLM,1242900.000000
+7,North_Coast,70,Savanna,2,DoD,1108800.000000
+7,North_Coast,70,Savanna,3,Easement,34582500.000000
+7,North_Coast,70,Savanna,4,Local_gov,18348300.000000
+7,North_Coast,70,Savanna,5,NPS,2102400.000000
+7,North_Coast,70,Savanna,6,Other_fed,1053900.000000
+7,North_Coast,70,Savanna,7,Private,348680700.000000
+7,North_Coast,70,Savanna,8,State_gov,29316600.000000
+7,North_Coast,70,Savanna,9,USFS_nonwild,422100.000000
+7,North_Coast,80,Woodland,1,BLM,60339600.000000
+7,North_Coast,80,Woodland,2,DoD,5771700.000000
+7,North_Coast,80,Woodland,3,Easement,130310100.000000
+7,North_Coast,80,Woodland,4,Local_gov,21032100.000000
+7,North_Coast,80,Woodland,5,NPS,22693500.000000
+7,North_Coast,80,Woodland,6,Other_fed,6909300.000000
+7,North_Coast,80,Woodland,7,Private,877121100.000000
+7,North_Coast,80,Woodland,8,State_gov,63909900.000000
+7,North_Coast,80,Woodland,9,USFS_nonwild,3188700.000000
+7,North_Coast,90,Forest,1,BLM,363711600.000000
+7,North_Coast,90,Forest,2,DoD,8064000.000000
+7,North_Coast,90,Forest,3,Easement,806768100.000000
+7,North_Coast,90,Forest,4,Local_gov,103606200.000000
+7,North_Coast,90,Forest,5,NPS,377034300.000000
+7,North_Coast,90,Forest,6,Other_fed,35358300.000000
+7,North_Coast,90,Forest,7,Private,7630434000.000000
+7,North_Coast,90,Forest,8,State_gov,836449200.000000
+7,North_Coast,90,Forest,9,USFS_nonwild,60482700.000000
+7,North_Coast,110,Coastal_marsh,1,BLM,635400.000000
+7,North_Coast,110,Coastal_marsh,2,DoD,181800.000000
+7,North_Coast,110,Coastal_marsh,3,Easement,9248400.000000
+7,North_Coast,110,Coastal_marsh,4,Local_gov,2799900.000000
+7,North_Coast,110,Coastal_marsh,5,NPS,847800.000000
+7,North_Coast,110,Coastal_marsh,6,Other_fed,5982300.000000
+7,North_Coast,110,Coastal_marsh,7,Private,56666700.000000
+7,North_Coast,110,Coastal_marsh,8,State_gov,17712000.000000
+7,North_Coast,130,Cultivated,1,BLM,53100.000000
+7,North_Coast,130,Cultivated,2,DoD,34200.000000
+7,North_Coast,130,Cultivated,3,Easement,14777100.000000
+7,North_Coast,130,Cultivated,4,Local_gov,4141800.000000
+7,North_Coast,130,Cultivated,5,NPS,26100.000000
+7,North_Coast,130,Cultivated,6,Other_fed,4258800.000000
+7,North_Coast,130,Cultivated,7,Private,320084100.000000
+7,North_Coast,130,Cultivated,8,State_gov,14079600.000000
+7,North_Coast,160,Developed_all,1,BLM,3779100.000000
+7,North_Coast,160,Developed_all,2,DoD,1736100.000000
+7,North_Coast,160,Developed_all,3,Easement,29750400.000000
+7,North_Coast,160,Developed_all,4,Local_gov,29296800.000000
+7,North_Coast,160,Developed_all,5,NPS,16749000.000000
+7,North_Coast,160,Developed_all,6,Other_fed,6110100.000000
+7,North_Coast,160,Developed_all,7,Private,1072781100.000000
+7,North_Coast,160,Developed_all,8,State_gov,45733500.000000
+7,North_Coast,160,Developed_all,9,USFS_nonwild,1111500.000000
+8,Sierra_Cascades,0,Water,1,BLM,30492000.000000
+8,Sierra_Cascades,0,Water,2,DoD,22196700.000000
+8,Sierra_Cascades,0,Water,3,Easement,9038700.000000
+8,Sierra_Cascades,0,Water,4,Local_gov,57714300.000000
+8,Sierra_Cascades,0,Water,5,NPS,87819300.000000
+8,Sierra_Cascades,0,Water,6,Other_fed,180995400.000000
+8,Sierra_Cascades,0,Water,7,Private,705830400.000000
+8,Sierra_Cascades,0,Water,8,State_gov,53117100.000000
+8,Sierra_Cascades,0,Water,9,USFS_nonwild,210987900.000000
+8,Sierra_Cascades,10,Ice,3,Easement,32400.000000
+8,Sierra_Cascades,10,Ice,5,NPS,12465900.000000
+8,Sierra_Cascades,10,Ice,6,Other_fed,30090600.000000
+8,Sierra_Cascades,10,Ice,7,Private,28800.000000
+8,Sierra_Cascades,10,Ice,9,USFS_nonwild,1938600.000000
+8,Sierra_Cascades,20,Barren,1,BLM,29761200.000000
+8,Sierra_Cascades,20,Barren,2,DoD,945900.000000
+8,Sierra_Cascades,20,Barren,3,Easement,14979600.000000
+8,Sierra_Cascades,20,Barren,4,Local_gov,513900.000000
+8,Sierra_Cascades,20,Barren,5,NPS,1637382600.000000
+8,Sierra_Cascades,20,Barren,6,Other_fed,1525938300.000000
+8,Sierra_Cascades,20,Barren,7,Private,90053100.000000
+8,Sierra_Cascades,20,Barren,8,State_gov,14508900.000000
+8,Sierra_Cascades,20,Barren,9,USFS_nonwild,336066300.000000
+8,Sierra_Cascades,30,Sparse,1,BLM,464275800.000000
+8,Sierra_Cascades,30,Sparse,2,DoD,1705500.000000
+8,Sierra_Cascades,30,Sparse,3,Easement,18293400.000000
+8,Sierra_Cascades,30,Sparse,4,Local_gov,4457700.000000
+8,Sierra_Cascades,30,Sparse,5,NPS,611439300.000000
+8,Sierra_Cascades,30,Sparse,6,Other_fed,1167786000.000000
+8,Sierra_Cascades,30,Sparse,7,Private,403470900.000000
+8,Sierra_Cascades,30,Sparse,8,State_gov,22841100.000000
+8,Sierra_Cascades,30,Sparse,9,USFS_nonwild,831195000.000000
+8,Sierra_Cascades,40,Desert,1,BLM,490063500.000000
+8,Sierra_Cascades,40,Desert,2,DoD,211500.000000
+8,Sierra_Cascades,40,Desert,3,Easement,17406000.000000
+8,Sierra_Cascades,40,Desert,4,Local_gov,16229700.000000
+8,Sierra_Cascades,40,Desert,6,Other_fed,28546200.000000
+8,Sierra_Cascades,40,Desert,7,Private,245308500.000000
+8,Sierra_Cascades,40,Desert,8,State_gov,5208300.000000
+8,Sierra_Cascades,40,Desert,9,USFS_nonwild,46404000.000000
+8,Sierra_Cascades,50,Shrubland,1,BLM,843907500.000000
+8,Sierra_Cascades,50,Shrubland,2,DoD,34072200.000000
+8,Sierra_Cascades,50,Shrubland,3,Easement,562073400.000000
+8,Sierra_Cascades,50,Shrubland,4,Local_gov,55605600.000000
+8,Sierra_Cascades,50,Shrubland,5,NPS,207780300.000000
+8,Sierra_Cascades,50,Shrubland,6,Other_fed,664123500.000000
+8,Sierra_Cascades,50,Shrubland,7,Private,6646917600.000000
+8,Sierra_Cascades,50,Shrubland,8,State_gov,249562800.000000
+8,Sierra_Cascades,50,Shrubland,9,USFS_nonwild,1810087200.000000
+8,Sierra_Cascades,60,Grassland,1,BLM,116773200.000000
+8,Sierra_Cascades,60,Grassland,2,DoD,3361500.000000
+8,Sierra_Cascades,60,Grassland,3,Easement,96592500.000000
+8,Sierra_Cascades,60,Grassland,4,Local_gov,7307100.000000
+8,Sierra_Cascades,60,Grassland,5,NPS,219405600.000000
+8,Sierra_Cascades,60,Grassland,6,Other_fed,232648200.000000
+8,Sierra_Cascades,60,Grassland,7,Private,721080900.000000
+8,Sierra_Cascades,60,Grassland,8,State_gov,50295600.000000
+8,Sierra_Cascades,60,Grassland,9,USFS_nonwild,670860000.000000
+8,Sierra_Cascades,70,Savanna,1,BLM,631912500.000000
+8,Sierra_Cascades,70,Savanna,2,DoD,9714600.000000
+8,Sierra_Cascades,70,Savanna,3,Easement,389541600.000000
+8,Sierra_Cascades,70,Savanna,4,Local_gov,55661400.000000
+8,Sierra_Cascades,70,Savanna,5,NPS,36456300.000000
+8,Sierra_Cascades,70,Savanna,6,Other_fed,272325600.000000
+8,Sierra_Cascades,70,Savanna,7,Private,7801749900.000000
+8,Sierra_Cascades,70,Savanna,8,State_gov,236108700.000000
+8,Sierra_Cascades,70,Savanna,9,USFS_nonwild,1691271000.000000
+8,Sierra_Cascades,80,Woodland,1,BLM,875871900.000000
+8,Sierra_Cascades,80,Woodland,2,DoD,9850500.000000
+8,Sierra_Cascades,80,Woodland,3,Easement,298437300.000000
+8,Sierra_Cascades,80,Woodland,4,Local_gov,30424500.000000
+8,Sierra_Cascades,80,Woodland,5,NPS,1245281400.000000
+8,Sierra_Cascades,80,Woodland,6,Other_fed,2302500600.000000
+8,Sierra_Cascades,80,Woodland,7,Private,6109805700.000000
+8,Sierra_Cascades,80,Woodland,8,State_gov,163734300.000000
+8,Sierra_Cascades,80,Woodland,9,USFS_nonwild,8446255200.000000
+8,Sierra_Cascades,90,Forest,1,BLM,299712600.000000
+8,Sierra_Cascades,90,Forest,2,DoD,106200.000000
+8,Sierra_Cascades,90,Forest,3,Easement,222823800.000000
+8,Sierra_Cascades,90,Forest,4,Local_gov,13229100.000000
+8,Sierra_Cascades,90,Forest,5,NPS,2675467800.000000
+8,Sierra_Cascades,90,Forest,6,Other_fed,2990445300.000000
+8,Sierra_Cascades,90,Forest,7,Private,8832979800.000000
+8,Sierra_Cascades,90,Forest,8,State_gov,185508900.000000
+8,Sierra_Cascades,90,Forest,9,USFS_nonwild,15082244100.000000
+8,Sierra_Cascades,100,Meadow,1,BLM,1299600.000000
+8,Sierra_Cascades,100,Meadow,3,Easement,4595400.000000
+8,Sierra_Cascades,100,Meadow,4,Local_gov,1163700.000000
+8,Sierra_Cascades,100,Meadow,5,NPS,378663300.000000
+8,Sierra_Cascades,100,Meadow,6,Other_fed,332662500.000000
+8,Sierra_Cascades,100,Meadow,7,Private,37485000.000000
+8,Sierra_Cascades,100,Meadow,8,State_gov,318600.000000
+8,Sierra_Cascades,100,Meadow,9,USFS_nonwild,66165300.000000
+8,Sierra_Cascades,110,Coastal_marsh,7,Private,900.000000
+8,Sierra_Cascades,130,Cultivated,1,BLM,3063600.000000
+8,Sierra_Cascades,130,Cultivated,2,DoD,771300.000000
+8,Sierra_Cascades,130,Cultivated,3,Easement,45913500.000000
+8,Sierra_Cascades,130,Cultivated,4,Local_gov,1499400.000000
+8,Sierra_Cascades,130,Cultivated,5,NPS,168300.000000
+8,Sierra_Cascades,130,Cultivated,6,Other_fed,3322800.000000
+8,Sierra_Cascades,130,Cultivated,7,Private,848597400.000000
+8,Sierra_Cascades,130,Cultivated,8,State_gov,12273300.000000
+8,Sierra_Cascades,130,Cultivated,9,USFS_nonwild,20099700.000000
+8,Sierra_Cascades,160,Developed_all,1,BLM,18171900.000000
+8,Sierra_Cascades,160,Developed_all,2,DoD,3585600.000000
+8,Sierra_Cascades,160,Developed_all,3,Easement,29113200.000000
+8,Sierra_Cascades,160,Developed_all,4,Local_gov,13394700.000000
+8,Sierra_Cascades,160,Developed_all,5,NPS,25485300.000000
+8,Sierra_Cascades,160,Developed_all,6,Other_fed,10743300.000000
+8,Sierra_Cascades,160,Developed_all,7,Private,1216547100.000000
+8,Sierra_Cascades,160,Developed_all,8,State_gov,33880500.000000
+8,Sierra_Cascades,160,Developed_all,9,USFS_nonwild,170787600.000000
+9,South_Coast,0,Water,1,BLM,412200.000000
+9,South_Coast,0,Water,2,DoD,5787900.000000
+9,South_Coast,0,Water,3,Easement,1418400.000000
+9,South_Coast,0,Water,4,Local_gov,54985500.000000
+9,South_Coast,0,Water,5,NPS,772200.000000
+9,South_Coast,0,Water,6,Other_fed,23201100.000000
+9,South_Coast,0,Water,7,Private,103950000.000000
+9,South_Coast,0,Water,8,State_gov,29538000.000000
+9,South_Coast,0,Water,9,USFS_nonwild,8563500.000000
+9,South_Coast,20,Barren,1,BLM,211622400.000000
+9,South_Coast,20,Barren,2,DoD,24210000.000000
+9,South_Coast,20,Barren,3,Easement,17523900.000000
+9,South_Coast,20,Barren,4,Local_gov,8806500.000000
+9,South_Coast,20,Barren,5,NPS,6635700.000000
+9,South_Coast,20,Barren,6,Other_fed,47031300.000000
+9,South_Coast,20,Barren,7,Private,143151300.000000
+9,South_Coast,20,Barren,8,State_gov,406629900.000000
+9,South_Coast,20,Barren,9,USFS_nonwild,52896600.000000
+9,South_Coast,30,Sparse,1,BLM,114676200.000000
+9,South_Coast,30,Sparse,2,DoD,5671800.000000
+9,South_Coast,30,Sparse,3,Easement,9444600.000000
+9,South_Coast,30,Sparse,4,Local_gov,4331700.000000
+9,South_Coast,30,Sparse,5,NPS,89170200.000000
+9,South_Coast,30,Sparse,6,Other_fed,58442400.000000
+9,South_Coast,30,Sparse,7,Private,86407200.000000
+9,South_Coast,30,Sparse,8,State_gov,88099200.000000
+9,South_Coast,30,Sparse,9,USFS_nonwild,46737900.000000
+9,South_Coast,40,Desert,1,BLM,862785900.000000
+9,South_Coast,40,Desert,2,DoD,344035800.000000
+9,South_Coast,40,Desert,3,Easement,271014300.000000
+9,South_Coast,40,Desert,4,Local_gov,255131100.000000
+9,South_Coast,40,Desert,5,NPS,598289400.000000
+9,South_Coast,40,Desert,6,Other_fed,264838500.000000
+9,South_Coast,40,Desert,7,Private,2165188500.000000
+9,South_Coast,40,Desert,8,State_gov,553689000.000000
+9,South_Coast,40,Desert,9,USFS_nonwild,280233900.000000
+9,South_Coast,50,Shrubland,1,BLM,438711300.000000
+9,South_Coast,50,Shrubland,2,DoD,120282300.000000
+9,South_Coast,50,Shrubland,3,Easement,135977400.000000
+9,South_Coast,50,Shrubland,4,Local_gov,217747800.000000
+9,South_Coast,50,Shrubland,5,NPS,50669100.000000
+9,South_Coast,50,Shrubland,6,Other_fed,961443900.000000
+9,South_Coast,50,Shrubland,7,Private,2092009500.000000
+9,South_Coast,50,Shrubland,8,State_gov,510093900.000000
+9,South_Coast,50,Shrubland,9,USFS_nonwild,2101870800.000000
+9,South_Coast,60,Grassland,1,BLM,554211900.000000
+9,South_Coast,60,Grassland,2,DoD,493178400.000000
+9,South_Coast,60,Grassland,3,Easement,243738000.000000
+9,South_Coast,60,Grassland,4,Local_gov,613480500.000000
+9,South_Coast,60,Grassland,5,NPS,131902200.000000
+9,South_Coast,60,Grassland,6,Other_fed,1467449100.000000
+9,South_Coast,60,Grassland,7,Private,3982860000.000000
+9,South_Coast,60,Grassland,8,State_gov,909468900.000000
+9,South_Coast,60,Grassland,9,USFS_nonwild,2335488300.000000
+9,South_Coast,70,Savanna,1,BLM,19186200.000000
+9,South_Coast,70,Savanna,2,DoD,51400800.000000
+9,South_Coast,70,Savanna,3,Easement,29228400.000000
+9,South_Coast,70,Savanna,4,Local_gov,88933500.000000
+9,South_Coast,70,Savanna,5,NPS,12623400.000000
+9,South_Coast,70,Savanna,6,Other_fed,182783700.000000
+9,South_Coast,70,Savanna,7,Private,573141600.000000
+9,South_Coast,70,Savanna,8,State_gov,53008200.000000
+9,South_Coast,70,Savanna,9,USFS_nonwild,311107500.000000
+9,South_Coast,80,Woodland,1,BLM,54811800.000000
+9,South_Coast,80,Woodland,2,DoD,54534600.000000
+9,South_Coast,80,Woodland,3,Easement,50285700.000000
+9,South_Coast,80,Woodland,4,Local_gov,56312100.000000
+9,South_Coast,80,Woodland,5,NPS,7509600.000000
+9,South_Coast,80,Woodland,6,Other_fed,794692800.000000
+9,South_Coast,80,Woodland,7,Private,819886500.000000
+9,South_Coast,80,Woodland,8,State_gov,72673200.000000
+9,South_Coast,80,Woodland,9,USFS_nonwild,1691281800.000000
+9,South_Coast,90,Forest,1,BLM,19791900.000000
+9,South_Coast,90,Forest,2,DoD,1448100.000000
+9,South_Coast,90,Forest,3,Easement,9724500.000000
+9,South_Coast,90,Forest,4,Local_gov,7458300.000000
+9,South_Coast,90,Forest,5,NPS,383400.000000
+9,South_Coast,90,Forest,6,Other_fed,522311400.000000
+9,South_Coast,90,Forest,7,Private,147903300.000000
+9,South_Coast,90,Forest,8,State_gov,42112800.000000
+9,South_Coast,90,Forest,9,USFS_nonwild,772888500.000000
+9,South_Coast,100,Meadow,1,BLM,170100.000000
+9,South_Coast,100,Meadow,2,DoD,7801200.000000
+9,South_Coast,100,Meadow,3,Easement,622800.000000
+9,South_Coast,100,Meadow,4,Local_gov,2083500.000000
+9,South_Coast,100,Meadow,5,NPS,112500.000000
+9,South_Coast,100,Meadow,6,Other_fed,108000.000000
+9,South_Coast,100,Meadow,7,Private,16650000.000000
+9,South_Coast,100,Meadow,8,State_gov,880200.000000
+9,South_Coast,100,Meadow,9,USFS_nonwild,108900.000000
+9,South_Coast,110,Coastal_marsh,2,DoD,3516300.000000
+9,South_Coast,110,Coastal_marsh,3,Easement,521100.000000
+9,South_Coast,110,Coastal_marsh,4,Local_gov,617400.000000
+9,South_Coast,110,Coastal_marsh,5,NPS,57600.000000
+9,South_Coast,110,Coastal_marsh,6,Other_fed,1880100.000000
+9,South_Coast,110,Coastal_marsh,7,Private,1903500.000000
+9,South_Coast,110,Coastal_marsh,8,State_gov,3339000.000000
+9,South_Coast,130,Cultivated,1,BLM,243000.000000
+9,South_Coast,130,Cultivated,2,DoD,20356200.000000
+9,South_Coast,130,Cultivated,3,Easement,7212600.000000
+9,South_Coast,130,Cultivated,4,Local_gov,16295400.000000
+9,South_Coast,130,Cultivated,5,NPS,37800.000000
+9,South_Coast,130,Cultivated,6,Other_fed,8775900.000000
+9,South_Coast,130,Cultivated,7,Private,1075254300.000000
+9,South_Coast,130,Cultivated,8,State_gov,16019100.000000
+9,South_Coast,130,Cultivated,9,USFS_nonwild,621900.000000
+9,South_Coast,160,Developed_all,1,BLM,22637700.000000
+9,South_Coast,160,Developed_all,2,DoD,230760000.000000
+9,South_Coast,160,Developed_all,3,Easement,28236600.000000
+9,South_Coast,160,Developed_all,4,Local_gov,376876800.000000
+9,South_Coast,160,Developed_all,5,NPS,6979500.000000
+9,South_Coast,160,Developed_all,6,Other_fed,52312500.000000
+9,South_Coast,160,Developed_all,7,Private,8812146600.000000
+9,South_Coast,160,Developed_all,8,State_gov,82549800.000000
+9,South_Coast,160,Developed_all,9,USFS_nonwild,182728800.000000
+9,South_Coast,*,no data,6,Other_fed,900.000000
+*,no data,0,Water,1,BLM,2486700.000000
+*,no data,0,Water,2,DoD,3145500.000000
+*,no data,0,Water,3,Easement,3129300.000000
+*,no data,0,Water,4,Local_gov,17109900.000000
+*,no data,0,Water,5,NPS,3672000.000000
+*,no data,0,Water,6,Other_fed,11933100.000000
+*,no data,0,Water,7,Private,911196000.000000
+*,no data,0,Water,8,State_gov,92342700.000000
+*,no data,0,Water,9,USFS_nonwild,99900.000000
+*,no data,0,Water,*,no data,11169999900.000000
+*,no data,10,Ice,*,no data,121500.000000
+*,no data,20,Barren,1,BLM,4466700.000000
+*,no data,20,Barren,2,DoD,3032100.000000
+*,no data,20,Barren,3,Easement,930600.000000
+*,no data,20,Barren,4,Local_gov,990000.000000
+*,no data,20,Barren,5,NPS,2727000.000000
+*,no data,20,Barren,6,Other_fed,1134000.000000
+*,no data,20,Barren,7,Private,7319700.000000
+*,no data,20,Barren,8,State_gov,5743800.000000
+*,no data,20,Barren,9,USFS_nonwild,321300.000000
+*,no data,20,Barren,*,no data,204157800.000000
+*,no data,30,Sparse,1,BLM,1038600.000000
+*,no data,30,Sparse,2,DoD,299700.000000
+*,no data,30,Sparse,3,Easement,635400.000000
+*,no data,30,Sparse,4,Local_gov,77400.000000
+*,no data,30,Sparse,5,NPS,887400.000000
+*,no data,30,Sparse,6,Other_fed,427500.000000
+*,no data,30,Sparse,7,Private,1278000.000000
+*,no data,30,Sparse,8,State_gov,1071900.000000
+*,no data,30,Sparse,9,USFS_nonwild,383400.000000
+*,no data,30,Sparse,*,no data,387778500.000000
+*,no data,40,Desert,1,BLM,2706300.000000
+*,no data,40,Desert,2,DoD,1704600.000000
+*,no data,40,Desert,3,Easement,2787300.000000
+*,no data,40,Desert,4,Local_gov,293400.000000
+*,no data,40,Desert,5,NPS,3261600.000000
+*,no data,40,Desert,6,Other_fed,2008800.000000
+*,no data,40,Desert,7,Private,4320900.000000
+*,no data,40,Desert,8,State_gov,2925000.000000
+*,no data,40,Desert,9,USFS_nonwild,379800.000000
+*,no data,40,Desert,*,no data,2443453200.000000
+*,no data,50,Shrubland,1,BLM,4566600.000000
+*,no data,50,Shrubland,2,DoD,267300.000000
+*,no data,50,Shrubland,3,Easement,725400.000000
+*,no data,50,Shrubland,4,Local_gov,603000.000000
+*,no data,50,Shrubland,5,NPS,864000.000000
+*,no data,50,Shrubland,6,Other_fed,6926400.000000
+*,no data,50,Shrubland,7,Private,6626700.000000
+*,no data,50,Shrubland,8,State_gov,9884700.000000
+*,no data,50,Shrubland,9,USFS_nonwild,5975100.000000
+*,no data,50,Shrubland,*,no data,1694087100.000000
+*,no data,60,Grassland,1,BLM,1962900.000000
+*,no data,60,Grassland,2,DoD,1148400.000000
+*,no data,60,Grassland,3,Easement,1073700.000000
+*,no data,60,Grassland,4,Local_gov,1297800.000000
+*,no data,60,Grassland,5,NPS,162000.000000
+*,no data,60,Grassland,6,Other_fed,308700.000000
+*,no data,60,Grassland,7,Private,3014100.000000
+*,no data,60,Grassland,8,State_gov,1271700.000000
+*,no data,60,Grassland,9,USFS_nonwild,312300.000000
+*,no data,60,Grassland,*,no data,178471800.000000
+*,no data,70,Savanna,1,BLM,56700.000000
+*,no data,70,Savanna,2,DoD,104400.000000
+*,no data,70,Savanna,3,Easement,125100.000000
+*,no data,70,Savanna,4,Local_gov,85500.000000
+*,no data,70,Savanna,5,NPS,19800.000000
+*,no data,70,Savanna,6,Other_fed,21600.000000
+*,no data,70,Savanna,7,Private,366300.000000
+*,no data,70,Savanna,8,State_gov,179100.000000
+*,no data,70,Savanna,9,USFS_nonwild,375300.000000
+*,no data,70,Savanna,*,no data,156357000.000000
+*,no data,80,Woodland,1,BLM,1737900.000000
+*,no data,80,Woodland,2,DoD,9900.000000
+*,no data,80,Woodland,3,Easement,293400.000000
+*,no data,80,Woodland,4,Local_gov,602100.000000
+*,no data,80,Woodland,5,NPS,166500.000000
+*,no data,80,Woodland,6,Other_fed,5706000.000000
+*,no data,80,Woodland,7,Private,3254400.000000
+*,no data,80,Woodland,8,State_gov,2718000.000000
+*,no data,80,Woodland,9,USFS_nonwild,15384600.000000
+*,no data,80,Woodland,*,no data,1026216900.000000
+*,no data,90,Forest,1,BLM,143100.000000
+*,no data,90,Forest,3,Easement,99000.000000
+*,no data,90,Forest,4,Local_gov,86400.000000
+*,no data,90,Forest,5,NPS,568800.000000
+*,no data,90,Forest,6,Other_fed,166500.000000
+*,no data,90,Forest,7,Private,2259900.000000
+*,no data,90,Forest,8,State_gov,1132200.000000
+*,no data,90,Forest,9,USFS_nonwild,804600.000000
+*,no data,90,Forest,*,no data,943669800.000000
+*,no data,100,Meadow,1,BLM,26100.000000
+*,no data,100,Meadow,2,DoD,80100.000000
+*,no data,100,Meadow,3,Easement,18000.000000
+*,no data,100,Meadow,4,Local_gov,11700.000000
+*,no data,100,Meadow,5,NPS,14400.000000
+*,no data,100,Meadow,6,Other_fed,22500.000000
+*,no data,100,Meadow,7,Private,162900.000000
+*,no data,100,Meadow,8,State_gov,23400.000000
+*,no data,100,Meadow,9,USFS_nonwild,45900.000000
+*,no data,100,Meadow,*,no data,26027100.000000
+*,no data,110,Coastal_marsh,1,BLM,6300.000000
+*,no data,110,Coastal_marsh,2,DoD,861300.000000
+*,no data,110,Coastal_marsh,3,Easement,38700.000000
+*,no data,110,Coastal_marsh,4,Local_gov,308700.000000
+*,no data,110,Coastal_marsh,5,NPS,16200.000000
+*,no data,110,Coastal_marsh,6,Other_fed,603900.000000
+*,no data,110,Coastal_marsh,7,Private,1348200.000000
+*,no data,110,Coastal_marsh,8,State_gov,909900.000000
+*,no data,110,Coastal_marsh,*,no data,63900.000000
+*,no data,130,Cultivated,1,BLM,299700.000000
+*,no data,130,Cultivated,2,DoD,230400.000000
+*,no data,130,Cultivated,3,Easement,53100.000000
+*,no data,130,Cultivated,4,Local_gov,21600.000000
+*,no data,130,Cultivated,6,Other_fed,806400.000000
+*,no data,130,Cultivated,7,Private,844200.000000
+*,no data,130,Cultivated,8,State_gov,897300.000000
+*,no data,130,Cultivated,9,USFS_nonwild,7200.000000
+*,no data,130,Cultivated,*,no data,785502000.000000
+*,no data,160,Developed_all,1,BLM,360900.000000
+*,no data,160,Developed_all,2,DoD,2913300.000000
+*,no data,160,Developed_all,3,Easement,1342800.000000
+*,no data,160,Developed_all,4,Local_gov,4729500.000000
+*,no data,160,Developed_all,5,NPS,324000.000000
+*,no data,160,Developed_all,6,Other_fed,781200.000000
+*,no data,160,Developed_all,7,Private,53015400.000000
+*,no data,160,Developed_all,8,State_gov,7378200.000000
+*,no data,160,Developed_all,9,USFS_nonwild,342900.000000
+*,no data,160,Developed_all,*,no data,303826500.000000
+*,no data,*,no data,1,BLM,556200.000000
+*,no data,*,no data,4,Local_gov,13500.000000
+*,no data,*,no data,6,Other_fed,144900.000000
+*,no data,*,no data,7,Private,331200.000000
+*,no data,*,no data,8,State_gov,3600.000000
+*,no data,*,no data,*,no data,933073870500.000000
