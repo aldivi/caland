@@ -1672,7 +1672,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       conv_col_names <- unique(conv_own$Land_Type)
       num_conv_col_names <- length(conv_col_names)
       # first need to adjust the baseline change rates and calculate the new area
-      
       # the seagrass adjustment is separate
       if (current_region_ID == "Ocean") {
         conv_own$base_change_adjust[conv_own$Land_Type == "Seagrass" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 
@@ -1852,6 +1851,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         # recalc the new_area for all
         conv_own$new_area <- conv_own$area_change + conv_own$tot_area
       }
+      # check if there is any land left to do land conversions in the first place
+      if (sum(conv_own$tot_area[conv_own$Land_Type == "Coastal_marsh" | conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow"]) == 
+          sum(conv_own$tot_area)) { 
+        # if all the area is in potential restored areas, then set all area_change == 0 to avoid round-off error
+        conv_own$area_change <- 0.00
+        }
       #if (any(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])) {
        
        # inds_too_small <- which(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])
