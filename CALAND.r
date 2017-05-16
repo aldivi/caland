@@ -2106,8 +2106,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                     lt_conv[lt_conv[,conv_col_names[l]] > 0, cind] / lt_conv$tot_area[l]
                 }
               } # end else underground
-              # else for land types losing area....
-            } else if (sum(lt_conv[,conv_col_names[l]]) < 0) {
+              # else for land types losing area or for a static scenatio where nothing changes....
+            } else if (sum(lt_conv[,conv_col_names[l]]) =< 0) {
               # to-from
               # only operate where the "from" area is < 0
               # to ag and dev already have removed carbon based on clearing above
@@ -2164,7 +2164,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                             lt_conv$Land_Type != "Cultivated" & lt_conv$Land_Type != "Developed_all", cind] / lt_conv$tot_area[l]
                 # send above ground lost carbon to the atmosphere if necessary
                 # operate only where to-from diff is negative
-                # adding the case where the values are 0
+                # including the case where the values are 0
                 # 2atmos = "to" minus "from" diff * "from-to" area / "from" total area
                 # this value ends up positive, consistent with the removed transfers above
                 atmosname = paste0(out_density_sheets[c],"2Atmos")
