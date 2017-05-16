@@ -2107,7 +2107,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                 }
               } # end else underground
               # else for land types losing area or for a static scenatio where nothing changes....
-            } else if (sum(lt_conv[,conv_col_names[l]]) =< 0) {
+            } else if (sum(lt_conv[,conv_col_names[l]]) <= 0) {
               # to-from
               # only operate where the "from" area is < 0
               # to ag and dev already have removed carbon based on clearing above
