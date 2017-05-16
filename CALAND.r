@@ -617,9 +617,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # Afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
     # Calc cumulative management areas: man_area_sum$man_area_sum = 0 + man_area for current year 
     man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
-    # merge df's man_area_sum & tot_area_df, and assign to man_area_sum dataframe (essentially, add additional 
-    # tot_area column to man_area_sum), excludes any land types from tot_area that are not in man_area_sum
-    man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
     # sort man_area_sum dataframe by Land_Type_ID, then by Manage_ID 
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     # (1) aggregate cumulative areas (man_area_sum) for all management except afforestation & restoration...
