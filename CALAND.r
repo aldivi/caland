@@ -2107,7 +2107,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                 }
               } # end else underground
               # else for land types losing area....
-            } else if(sum(lt_conv[,conv_col_names[l]]) < 0) {
+            } else if (sum(lt_conv[,conv_col_names[l]]) < 0) {
               # to-from
               # only operate where the "from" area is < 0
               # to ag and dev already have removed carbon based on clearing above
@@ -2164,15 +2164,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                             lt_conv$Land_Type != "Cultivated" & lt_conv$Land_Type != "Developed_all", cind] / lt_conv$tot_area[l]
                 # send above ground lost carbon to the atmosphere if necessary
                 # operate only where to-from diff is negative
+                # adding the case where the values are 0
                 # 2atmos = "to" minus "from" diff * "from-to" area / "from" total area
                 # this value ends up positive, consistent with the removed transfers above
                 atmosname = paste0(out_density_sheets[c],"2Atmos")
                 lt_conv[,atmosname] = 0
-                lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & 
+                lt_conv[(lt_conv[,diffname] <= 0 & lt_conv[,conv_col_names[l]] <= 0 & 
                            lt_conv$Land_Type != "Cultivated" & lt_conv$Land_Type != "Developed_all"), atmosname] = 
-                  lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & 
+                  lt_conv[(lt_conv[,diffname] <= 0 & lt_conv[,conv_col_names[l]] <= 0 & 
                              lt_conv$Land_Type != "Cultivated" & lt_conv$Land_Type != "Developed_all"),diffname] * 
-                  lt_conv[(lt_conv[,diffname] < 0 & lt_conv[,conv_col_names[l]] < 0 & lt_conv$Land_Type != "Cultivated" & 
+                  lt_conv[(lt_conv[,diffname] <= 0 & lt_conv[,conv_col_names[l]] <= 0 & lt_conv$Land_Type != "Cultivated" & 
                              lt_conv$Land_Type != "Developed_all"), conv_col_names[l]] / lt_conv$tot_area[l]
                 # sum all C come out of 'from' land type going to atmosphere
                 conv_own[conv_own$Land_Cat_ID == lt_conv$Land_Cat_ID[l],atmosname] = sum(lt_conv[,atmosname])
@@ -2181,10 +2182,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                 conv_own[,atmosname] = replace(conv_own[,atmosname], is.nan(conv_own[,atmosname]), 0.0)
                 conv_own[,atmosname] = replace(conv_own[,atmosname], conv_own[,atmosname] == Inf, 0.0)
               } # end else above ground for to-from
-            } else if ((sum(lt_conv[,conv_col_names[l]]) >= 0)) { # end else to-from  and do another else for case where LCC is static
-              atmosname = paste0(out_density_sheets[c],"2Atmos")
-              lt_conv[,atmosname] = 0
-            } # end else all land categories are static
+            } # end else to-from
             
             # sum amount of C either lost or gained for each land type
             conv_own[conv_own$Land_Cat_ID == lt_conv$Land_Cat_ID[l],chname] = sum(lt_conv[,chname])
