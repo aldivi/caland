@@ -1,4 +1,5 @@
 # exclude the outputs directory
+local_files/
 outputs/
 .DS_Store
 .Rapp.history
