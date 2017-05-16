@@ -561,21 +561,55 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # determine the managed areas for this year from target years
     # linear interpolation between target years
     # if the year is past the final target year than use the final target year
+    
+    # man_targetyears (man_targetyears: 2010, 2020, 2021, 2050), 
+    # assign the index of the management years (1:4) that are on or before the current year loop to 'linds'
     linds = which(man_targetyears <= year)
+    # assign the index of the management years that are on or later to current year in loop to 'hinds'.
     hinds = which(man_targetyears >= year)
+    # assign the most recent target year to prev_targetyear
     prev_targetyear = max(man_targetyears[linds])
+    # assign the next closest target year to next_targetyear
     next_targetyear = min(man_targetyears[hinds])
+    # assign the index of the most previous target year to pind
     pind = which(man_targetyears == prev_targetyear)
+    # assign the index of the next target year to nind
     nind = which(man_targetyears == next_targetyear)
+    # assign the previous label ("2010_ha" "2020_ha" "2021_ha" "2050_ha")
     pcol = man_targetyear_labels[pind]
+    # assign the next label ("2010_ha" "2020_ha" "2021_ha" "2050_ha")
     ncol = man_targetyear_labels[nind]
     
+    # if the current year is on the last management target year or there are no more target years ahead,
     if (prev_targetyear == next_targetyear | length(hinds) == 0) {
+      # assign the the previous/current label "2050_ha" to man_area column in man_area_sum df
       man_area_sum$man_area = man_target_df[,pcol]
     } else {
+      # otherwise assign man_area = (previous/current target area) + (# years since last target) * 
+                        # (difference in areas between target years)/(# years between target years)
       man_area_sum$man_area = man_target_df[,pcol] + (year - prev_targetyear) * (man_target_df[,ncol] - 
                                                                                    man_target_df[,pcol]) / (next_targetyear - prev_targetyear)
     }
+    # Check that the sum of man_area is not > tot_area
+    man_area_agg_pre = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
+                                                                           man_area_sum$Management != "Restoration",], FUN=sum)
+    # update aggregated column name (man_area) to man_area_agg_extra_pre
+    names(man_area_agg_pre)[ncol(man_area_agg_pre)] <- "man_area_agg_pre"
+    # merge df's man_area_sum & tot_area_df, and assign to man_area_sum dataframe (essentially, add additional 
+    # tot_area column to man_area_sum), excludes any land types from tot_area that are not in man_area_sum
+    man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+    # merge man_area_sum & man_area_agg_pre dataframes by Land_Type_ID
+    man_area_sum = merge(man_area_sum, man_area_agg_pre, by = "Land_Cat_ID", all.x = TRUE)
+    # add new column "excess_area", which is equal to the aggregated areas minus total land type areas 
+    man_area_sum$excess_area_pre = man_area_sum$man_area_agg_pre - man_area_sum$tot_area
+    # if excess_area > 0, assign the index to excess_area_inds
+    excess_area_pre_inds = which(man_area_sum$excess_area_pre > 0)
+    # trim the manaagement areas: subtract out a proportional amount of any excess from each man_area
+    man_area_sum$man_area[excess_area_pre_inds] = man_area_sum$man_area[excess_area_pre_inds] - 
+      man_area_sum$excess_area[excess_area_pre_inds] * man_area_sum$man_area[excess_area_pre_inds] / 
+      man_area_sum$man_area_agg_pre[excess_area_pre_inds]
+    # replace NaN (not a number) values in man_area with 0's 
+    man_area_sum$man_area = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
     
     # the developed practices are independent of each other and so they don't use the aggregate sums
     #  they use their individual practice sums
