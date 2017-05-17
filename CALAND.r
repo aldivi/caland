@@ -1915,7 +1915,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       }
       
       # check if sum(new_area) > sum(tot_area)  
-      if (sum(conv_own$new_area) > sum(conv_own$tot_area)) {
+      if ((sum(conv_own$new_area) > sum(conv_own$tot_area)) & conv_own$Region != "Ocean") {
         # get sum of area deficit
         new_area_deficit <- sum(conv_own$new_area) - sum(conv_own$tot_area)
         # get sum of postive area changes
