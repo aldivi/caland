@@ -686,7 +686,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     man_area_sum$man_area_sum_agg = replace(man_area_sum$man_area_sum_agg, is.na(man_area_sum$man_area_sum_agg), 0)
     # sort man_area_sum by land type, then management ID 
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
-    # (5) don't use man_area_sum_agg for Developed_all: replace (trimmed & aggregated) man_area_sum_agg column with individual (untrimmed) man_area_sum 
+    # (5) don't use man_area_sum_agg for Developed_all: replace (trimmed & aggregated) man_area_sum_agg column with individual (trimmed) man_area_sum 
+    ############### is this still working properly now that man_area steps moved above??  ################
     man_area_sum$man_area_sum_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
     
     ########## moved to before man-area_sum corrections ##########
