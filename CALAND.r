@@ -591,6 +591,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                                                                                    man_target_df[,pcol]) / (next_targetyear - prev_targetyear)
     }
     
+    # check if any man_area <0 that are != Growth  ### use this later after checking all scenatio files ###
+    # man_area_sum$man_area[man_area_sum$man_area < 0 & man_area_sum$Management != Growth] <- 0
+    man_area_sum$man_area[man_area_sum$man_area < 0 & (man_area_sum$Management == "Dead_removal" | man_area_sum$Management == "Urban_forest")] <- 0
+    
     ######## New:  check for excess man_area before man_area_sum ######## 
     # Check that the sum of man_area is not > tot_area
     man_area_agg_pre = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
@@ -607,13 +611,15 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # sort the man_area_sum df by land cat ID and management 
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     
-    # (7) don't use (untrimmed) aggregated areas for Developed_all: replace man_area_agg_pre column with individual man_area 
+    
+    # (7) don't use (untrimmed) aggregated areas for Developed_all: replace man_area_agg_pre column with individual man_area (dead removal in Dev_all = tot_area; urban_forest = fraction of tot_area that's urban forest)
     man_area_sum$man_area_agg_pre[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
     # (8) assign 0's to aggregate (untrimmed) areas for afforestation and restoration 
     man_area_sum$man_area_agg_pre[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
     
-    # add new column "excess_area", which is equal to the aggregated areas minus total land type areas 
+    
+     # add new column "excess_area", which is equal to the aggregated areas minus total land type areas 
     man_area_sum$excess_area_pre = man_area_sum$man_area_agg_pre - man_area_sum$tot_area
     # if excess_area > 0, assign the index to excess_area_inds
     excess_area_pre_inds = which(man_area_sum$excess_area_pre > 0)
@@ -625,7 +631,24 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     man_area_sum$man_area = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
     # replace Inf values in man_area_sum with 0's 
     man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
-    ############# end pre man_area check #############
+    # replace neg values in man_area_sum with 0's 
+    man_area_sum$man_area[man_area_sum$Management != "Growth"] = replace(man_area_sum$man_area[man_area_sum$Management != "Growth"], man_area_sum$man_area[man_area_sum$Management != "Growth"] < 0, 0)   
+    # (9) create a _trimmed_ aggregated (current year) areas dataframe (man_area_agg2): aggregate and sum man_area vector by Land_Cat_ID for all management activities 
+    # _except_ afforestation and restoration areas
+    man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
+    # rename header of _trimmed_ aggregate (current year) areas to "man_area_agg" in man_area_agg2 dataframe
+    names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
+    # (10) add column of _trimmed_ aggregated current areas called "man_area_agg" (Developed_all = _untrimmed_ agg areas, & afforestation and restoration excluded)
+    # merge man_area_sum & man_area_agg2 dataframes by Land_Cat_ID
+    man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Cat_ID", all.x =TRUE)
+    # replace NA's in the man_area_agg column with 0's
+    man_area_sum$man_area_agg = replace(man_area_sum$man_area_agg, is.na(man_area_sum$man_area_agg), 0)
+    # sort man_area_sum by land cat ID, then management 
+    man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
+    # (11) don't use trimmed aggregated current year areas for Developed_all: replace man_area_agg column with individual man_area 
+    man_area_sum$man_area_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
+    
+     ############# end pre man_area check #############
     
     # the developed practices are independent of each other and so they don't use the aggregate sums
     #  they use their individual practice sums
@@ -669,8 +692,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       man_area_sum$man_area_sum_agg_extra[excess_sum_area_inds]
     # replace NaN (not a number) values in man_area_sum with 0's 
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, is.nan(man_area_sum$man_area_sum), 0)
-    # man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum < 0, 0)  ########### wait before doing this because there 
-    # are lots of neg values
+    # replace neg values in man_area_sum with 0's 
+    man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum < 0, 0)   
     # replace Infinite values in man_area_sum with 0's 
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
     # create a _trimmed_ aggregated man_area_sum df (man_area_sum_agg2): aggregate sum man_area_sum vector by Land_Cat_ID 
@@ -687,7 +710,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # sort man_area_sum by land type, then management ID 
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     # (5) don't use man_area_sum_agg for Developed_all: replace (trimmed & aggregated) man_area_sum_agg column with individual (trimmed) man_area_sum 
-    ############### is this still working properly now that man_area steps moved above??  ################
     man_area_sum$man_area_sum_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
     
     ########## moved to before man-area_sum corrections ##########
@@ -723,18 +745,18 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
     # (9) create a _trimmed_ aggregated (current year) areas dataframe (man_area_agg2): aggregate and sum man_area vector by Land_Cat_ID for all management activities 
     # _except_ afforestation and restoration areas
-    man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
+   # man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
     # rename header of _trimmed_ aggregate (current year) areas to "man_area_agg" in man_area_agg2 dataframe
-    names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
+   # names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
     # (10) add column of _trimmed_ aggregated current areas called "man_area_agg" (Developed_all = _untrimmed_ agg areas, & afforestation and restoration excluded)
     # merge man_area_sum & man_area_agg2 dataframes by Land_Cat_ID
-    man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Cat_ID", all.x =TRUE)
+  #  man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Cat_ID", all.x =TRUE)
     # replace NA's in the man_area_agg column with 0's
-    man_area_sum$man_area_agg = replace(man_area_sum$man_area_agg, is.na(man_area_sum$man_area_agg), 0)
+  #  man_area_sum$man_area_agg = replace(man_area_sum$man_area_agg, is.na(man_area_sum$man_area_agg), 0)
     # sort man_area_sum by land cat ID, then management 
-    man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
+  #  man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     # (11) don't use trimmed aggregated current year areas for Developed_all: replace man_area_agg column with individual man_area 
-    man_area_sum$man_area_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
+   # man_area_sum$man_area_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
     
     # build some useful data frames
     all_c_flux = tot_area_df
