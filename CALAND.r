@@ -42,8 +42,8 @@
 #	c_file			name of the carbon parameter input file; assumed to be in caland/inputs/
 #	start_year		simulation begins at the beginning of this year
 #	end_year		simulation ends at the beginning of this year (so the simulation goes through the end of end_year - 1)
-#	value_col		select which carbon density and accumulation values to use; 4 = min, 5 = max, 6 = mean, 7 = std dev
-#	ADD				for use with value_col==7: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
+#	value_col		select which carbon density and accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev, 9 = std error
+#	ADD				for use with value_col==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
 #	WRITE_OUT_FILE	TRUE= write the output file; FALSE= do not write the output file
 
 # notes:
@@ -103,7 +103,7 @@ GET.NAMES <- function(df, new.name) {
 }
 
 
-CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 6, ADD = TRUE, WRITE_OUT_FILE = TRUE) {
+CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col = 7, ADD = TRUE, WRITE_OUT_FILE = TRUE) {
   
   cat("Start CALAND at", date(), "\n")
   # this enables java to use up to 4GB of memory for reading and writing excel files
@@ -112,7 +112,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # to do: separate the selection of c density and accumulation non-mean values values
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
-  ftag = c("", "", "", "min", "max", "mean", "sd")
+  ftag = c("", "", "", "", "min", "max", "mean", "sd", "se")
   
   inputdir = "inputs/"
   outputdir = "outputs/"
@@ -170,7 +170,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   OX = 0.1
   
   
-  if (value_col != 7) {
+  if (value_col != 8) {
     out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xls")
   }else {
     if(ADD) {
@@ -357,6 +357,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   if (any(!((cat_ID_man) %in% cat_ID_exist))) {
     stop("Error: each land category in the management area table must exist in the initial area table")
   }
+  
   for (i in 5:5) { # annual mortality fraction
     scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
   }
@@ -408,7 +409,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   mortality_target_df[,c(5:ncol(mortality_target_df))] <- apply(mortality_target_df[,c(5:ncol(mortality_target_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
   
   # get the correct values for the accum tables if value is std dev
-  if(value_col == 7) { # std dev as value
+  if(value_col == 8) { # std dev as value
     if(ADD) {
       vegc_uptake_df$vegc_uptake_val = vegc_uptake_df$vegc_uptake_val + vegc_uptake_df$Mean_Mg_ha_yr
       soilc_accum_df$soilc_accum_val = soilc_accum_df$soilc_accum_val + soilc_accum_df$Mean_Mg_ha_yr
@@ -457,7 +458,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col)]
     # out_density_df_list now has 5 columns for each sheet/C pool (Land_Cat_ID, Region, Land_Type, Ownership, Mean or Stdev)
     names(out_density_df_list[[i]])[ncol(out_density_df_list[[i]])] <- as.character(start_density_label)
-    if(value_col == 7) { # if std dev as value
+    if(value_col == 8) { # if std dev as value
       # this will not be the same as the sum of the components, so update it later
       if(ADD) {
         # if we want +stddev, then C_density = std_dev + mean
@@ -858,7 +859,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
     # aggregate sum veg C uptake across Land_Cat_ID + Region + Land_Type + Ownership (CHECK THIS IS WHERE ROWS =25)
     man_vegflux_agg = aggregate(vegcfluxXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
-    # merge aggregate sums with all_c_flux (management areas and total areas) (ROWS =46)  
+    # merge aggregate sums with all_c_flux (management areas and total areas) 
     man_vegflux_agg = merge(all_c_flux, man_vegflux_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     
     # clean up vegcfluxXarea values
@@ -1186,6 +1187,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       # first calc the carbon not subtracted because it sends density negative
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list eco" , i, "are", neginds, "\n")
+      cat("total areas for neginds out_density_df_list eco" , i, "are", out_area_df_list[[1]][neginds, cur_area_label], "\n")
       sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                         out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
@@ -2431,6 +2433,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       # correction and diagnostic
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list lcc" , i, "are", neginds, "\n")
+      cat("total areas for neginds out_density_df_list lcc" , i, "are", all_c_flux[neginds, "new_area"], "\n")
+      sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+                                        out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       # sum all negative
       sum_neg_conv = sum_neg_conv + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                           out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
@@ -2704,11 +2709,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   Fresh_marsh_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type == "Fresh_marsh", ]
   # get the other land types 
   Other_Cum_Eco_C <- out_atmos_df_list[[1]][out_atmos_df_list[[1]]$Land_Type != "Fresh_marsh", ]
-  for (i in 5:ncol(Eco_CumGain_C_stock)) { # outer i loop by column (46 total)
+  for (i in 5:ncol(Eco_CumGain_C_stock)) { # outer i loop by column 
     # calc fresh march CO2-C (negative frac because it's net C sequestration based on flux tower measurement by Knox et al (2015)
     Fresh_marsh_Cum_Eco_C[,i] <- Fresh_marsh_Cum_Eco_C[[i]] * marsh_CO2_C_frac 
     # for other land type Eco CO2-C,
-    for (r in 1:nrow(Other_Cum_Eco_C)) { # inner row loop (934 total)
+    for (r in 1:nrow(Other_Cum_Eco_C)) { # inner row loop 
       if (Other_Cum_Eco_C[,i][r] < 0) {
         # change sign of negative Eco C values to positive CO2-C emissions 
         Other_Cum_Eco_C[,i][r] <- abs(Other_Cum_Eco_C[,i][r])
@@ -3214,11 +3219,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     new.df[["LCCEnergy_CumCH4eq"]][,i] + new.df[["LCCEnergy_CumBCeq"]][,i] + new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] +
     new.df[["Wildfire_CumBCeq"]][,i] 
   }
-  # sum total non-burned CO2eq (eco + manage + lcc + wood)  
+  # sum total non-burned CO2eq (eco + manage + lcc)  *Wood decay not included
   TotalNonBurn_CumCO2eq_all <- Total_CumCO2
   for (i in 5:ncol(TotalNonBurn_CumCO2eq_all)) {
-    TotalBurn_CumCO2eq_all[,i] <- new.df[["Eco_CumCO2"]][,i] + new.df[["Eco_CumCH4eq"]][,i] + new.df[["ManNonBurn_CumCO2"]][,i] +
-      new.df[["LCCNonBurn_CumCO2"]][,i] + new.df[["Wood_CumCO2"]][,i] + new.df[["Wood_CumCH4eq"]][,i]
+    TotalNonBurn_CumCO2eq_all[,i] <- new.df[["Eco_CumCO2"]][,i] + new.df[["Eco_CumCH4eq"]][,i] + new.df[["ManNonBurn_CumCO2"]][,i] +
+      new.df[["LCCNonBurn_CumCO2"]][,i] 
   }
   ### annual ###
   # sum total burned CO2eq (manage energy + manage fire + lcc energy + wildfire)
@@ -3229,11 +3234,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       new.df[["LCCEnergy_AnnCH4eq"]][,i] + new.df[["LCCEnergy_AnnBCeq"]][,i] + new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] +
       new.df[["Wildfire_AnnBCeq"]][,i]
   }
-  # sum total non-burned CO2eq (eco + manage + lcc + wood)
+  # sum total non-burned CO2eq (eco + manage + lcc) *Wood decay not included
   TotalNonBurn_AnnCO2eq_all <- Total_AnnCO2
   for (i in 5:ncol(TotalNonBurn_AnnCO2eq_all)) {
-    TotalBurn_AnnCO2eq_all[,i] <- new.df[["Eco_AnnCO2"]][,i] + new.df[["Eco_AnnCH4eq"]][,i] + new.df[["ManNonBurn_AnnCO2"]][,i] +
-      new.df[["LCCNonBurn_AnnCO2"]][,i] + new.df[["Wood_AnnCO2"]][,i] + new.df[["Wood_AnnCH4eq"]][,i]
+    TotalNonBurn_AnnCO2eq_all[,i] <- new.df[["Eco_AnnCO2"]][,i] + new.df[["Eco_AnnCH4eq"]][,i] + new.df[["ManNonBurn_AnnCO2"]][,i] +
+      new.df[["LCCNonBurn_AnnCO2"]][,i] 
   }
   
   # sum total energy CO2eq (manage energy + lcc energy) and total fire CO2eq (manage fire + wildfire) 
@@ -3308,67 +3313,313 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # but this checks to be true
   all(zero_test[5:ncol(zero_test)] < 0.001 & zero_test[5:ncol(zero_test)] > -0.001) 
   
-  # Calculate some changes and totals
+  ###############################  Calculate some changes and totals  ###############################  
   # also round everything to integer ha, MgC and MgC/ha places for realistic precision
   cat("Starting change/total calcs...\n")
+  # create columns in each section below for changes between initial and final year (final - initial) for all rows
   
-  # create columns for all the changes between initial and final year (final - initial)
-  # area: add column of total land/ocean area change for each land-type - ownership combination (46 total)
+  ######### (1) TOTAL AREA  ######### 
+  # add column of total land/ocean area change for each land-type - ownership combination###### area ######
   out_area_df_list[[1]][, "Change_ha"] = out_area_df_list[[1]][,end_area_label] - out_area_df_list[[1]][,start_area_label]
+  
+  # (1a) Do each landtype
+  # add rows for aggregate sums by landtype:
+  # get names of landtypes
+  landtype_names <- unique(out_area_df_list[[1]][,"Land_Type"])
+  # create df to store all the landtype sums in the following loop
+  all_landtype_sums <- out_area_df_list[[1]][1:length(landtype_names),]
+  for (l in 1:length(landtype_names)) {
+    # get current landtype name
+    landtype_name <- landtype_names[l]
+    # name the landtype cell accordingly
+    all_landtype_sums[l,c(1:4)] <- c(-1, "All_region", landtype_names[l], "All_own")
+    # subset landtype-specific df
+    landtype_df_temp <- out_area_df_list[[1]][out_area_df_list[[1]][,"Land_Type"] == landtype_name,] 
+    # aggregate sum areas of landtype-specific areas for each column year
+    all_landtype_sums[l,c(5:ncol(all_landtype_sums))] <- apply(landtype_df_temp[,c(5:ncol(landtype_df_temp))], 2, sum)
+  }
+  # add the aggregated landtype rows to out_area_df_list[[1]]
+  out_area_df_list[[1]] <- rbind(out_area_df_list[[1]], all_landtype_sums)
+  
+  # (1b) Do each region (Excludes Ocean)
+  # add rows for aggregate sums by region:
+  # get names of regions
+  region_names <- unique(out_area_df_list[[1]][,"Region"])
+  # remove "All_region" from region_names
+  region_names <- region_names[!region_names %in% c("All_region","Ocean")]
+  # create df to store all the region sums in the following loop
+  all_region_sums <- out_area_df_list[[1]][1:length(region_names),]
+  for (r in 1:length(region_names)) {
+    # get current region name
+    region_name <- region_names[r]
+    # name the region cell accordingly
+    all_region_sums[r,c(1:4)] <- c(-1, region_names[r], "All_land", "All_own")
+    # subset region-specific df
+    region_df_temp <- out_area_df_list[[1]][out_area_df_list[[1]][,"Region"] == region_name,] 
+    # aggregate sum areas of region-specific areas for each column year
+    all_region_sums[r,c(5:ncol(all_region_sums))] <- apply(region_df_temp[,c(5:ncol(region_df_temp))], 2, sum)
+  }
+  # add the aggregated region rows to out_area_df_list[[1]]
+  out_area_df_list[[1]] = rbind(out_area_df_list[[1]], all_region_sums)
+  
+  # (1c) Do all California land (Excludes Ocean)
+  # create single row for it
   sum_row = out_area_df_list[[1]][1,]
-  # sum_row is a row of all land 
   sum_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
   sum_row[,c(5:ncol(sum_row))] = 
-    apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Ownership"] != "Ocean", c(5:ncol(out_area_df_list[[1]]))], 2 , sum)
+    apply(out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Type"] == "All_land", c(5:ncol(out_area_df_list[[1]]))], 2 , sum)
   out_area_df_list[[1]] = rbind(out_area_df_list[[1]], sum_row)
+  # do a another subtraction for change column
+  out_area_df_list[[1]][,ncol(out_area_df_list[[1]])]<-out_area_df_list[[1]][,end_area_label] - out_area_df_list[[1]][,start_area_label]
+  # round
   out_area_df_list[[1]][,c(5:ncol(out_area_df_list[[1]]))] = round(out_area_df_list[[1]][,c(5:ncol(out_area_df_list[[1]]))], 0)
-  # for managed area and wildfire area
+ 
+  ######### (2) MANAGED & WILFIRE AREA  ######### 
   for (i in 2:num_out_area_sheets) {
     end_label = ncol(out_area_df_list[[i]])
     out_area_df_list[[i]][, "Change_ha"] = out_area_df_list[[i]][,end_label] - out_area_df_list[[i]][,start_area_label]
+    # (2a) do each landtype within the current df in out_area_df_list
+    landtype_names <- unique(out_area_df_list[[i]][,"Land_Type"])
+    # create df to store all the landtype sums in the following loop for current df in out_area_df_list
+    all_landtype_sums <- out_area_df_list[[i]][1:length(landtype_names),]
+    for (l in 1:length(landtype_names)) {
+      # get current landtype name
+      landtype_name <- landtype_names[l]
+      # name the landtype cell accordingly
+      all_landtype_sums[l,c(1:5)] <- c(-1, "All_region", landtype_names[l], "All_own", "All")
+      # subset landtype-specific df
+      landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name,] 
+      # aggregate sum areas of landtype-specific areas for each column year
+      all_landtype_sums[l,c(6:ncol(all_landtype_sums))] <- apply(landtype_df_temp[,c(6:ncol(landtype_df_temp))], 2, sum)
+    }
+    # add the aggregated landtype rows to out_area_df_list[[i]]
+    out_area_df_list[[i]] <- rbind(out_area_df_list[[i]], all_landtype_sums)
+    
+    # (2b) do each region within the current df in out_area_df_list (Excludes Ocean)
+    region_names <- unique(out_area_df_list[[i]][,"Region"])
+    # remove "All_region" from region_names
+    region_names <- region_names[!region_names %in% c("All_region","Ocean")]
+    # create df to store all the region sums in the following loop for current df in out_area_df_list
+    all_region_sums <- out_area_df_list[[i]][1:length(region_names),]
+    for (r in 1:length(region_names)) {
+      # get current region name
+      region_name <- region_names[r]
+      # name the region cell accordingly
+      all_region_sums[r,c(1:5)] <- c(-1, region_names[r], "All_land", "All_own", "All")
+      # subset region-specific df
+      region_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Region"] == region_name,] 
+      # aggregate sum areas of region-specific areas for each column year
+      all_region_sums[r,c(6:ncol(all_region_sums))] <- apply(region_df_temp[,c(6:ncol(region_df_temp))], 2, sum)
+    }
+    # add the aggregated region rows to out_area_df_list[[i]]
+    out_area_df_list[[i]] = rbind(out_area_df_list[[i]], all_region_sums)
+    
+    # (2c) do all California land for the current df in out_area_df_list (Excludes Ocean)
     sum_row = out_area_df_list[[i]][1,]
     sum_row[,c(1:5)] = c(-1, "All_region", "All_land", "All_own", "All")
-    sum_row[,c(6:ncol(sum_row))] = 
-      apply(out_area_df_list[[i]][out_area_df_list[[i]][, "Ownership"] != "Ocean", c(6:ncol(out_area_df_list[[i]]))], 2 , sum)
+    sum_row[,c(6:ncol(sum_row))] = apply(out_area_df_list[[i]][out_area_df_list[[i]][, "Land_Type"] == "All_land", 
+                                    c(6:ncol(out_area_df_list[[i]]))], 2 , sum)
     out_area_df_list[[i]] = rbind(out_area_df_list[[i]], sum_row)
+    # do a another subtraction for change column
+    out_area_df_list[[i]][,ncol(out_area_df_list[[i]])]<-out_area_df_list[[i]][,end_label] - out_area_df_list[[i]][,start_area_label]
+    # round
     out_area_df_list[[i]][,c(6:ncol(out_area_df_list[[i]]))] = round(out_area_df_list[[i]][,c(6:ncol(out_area_df_list[[i]]))], 0)
   }
   
-  # density
+  ######### (3) DENSITY ######### 
   for (i in 1:num_out_density_sheets) {
-    out_density_df_list[[i]][, "Change_Mg_ha"] = out_density_df_list[[i]][,end_density_label] - out_density_df_list[[i]][,start_density_label]
+    out_density_df_list[[i]][, "Change_Mg_ha"] <- out_density_df_list[[i]][,end_density_label] - out_density_df_list[[i]][,start_density_label]
+    
+    # (3a) do each landtype within the current df in out_density_df_list
+    landtype_names <- unique(out_density_df_list[[i]][,"Land_Type"]) 
+    # create df to store all the landtype averages in the following loop for current df in out_density_df_list
+    all_landtype_avg <- out_density_df_list[[i]][1:length(landtype_names),]
+    for (l in 1:length(landtype_names)) { 
+      # get current landtype name
+      landtype_name <- landtype_names[l]
+      # name the landtype cell accordingly
+      all_landtype_avg[l,c(1:4)] <- c(-1, "All_region", landtype_names[l], "All_own")
+      # subset landtype-specific density df
+      landtype_df_dens_temp <- out_density_df_list[[i]][out_density_df_list[[i]][,"Land_Type"] == landtype_name,] 
+      # subset landtype-specific area df (landtype_names already excludes Seagrass)
+      landtype_df_area_temp <- out_area_df_list[[1]][out_area_df_list[[1]][,"Land_Type"] == landtype_name,] 
+      # delete last row to exclude the All_region row
+      landtype_df_area_temp <- landtype_df_area_temp[landtype_df_area_temp$Region != "All_region",]
+      # get total C for current landtype: aggregate landtype-specific densities*areas by each column year (excluding Seagrass)
+      all_landtype_avg[l,c(5:ncol(all_landtype_avg))] <- 
+        apply(landtype_df_dens_temp[,c(5:ncol(landtype_df_dens_temp))] * landtype_df_area_temp[,c(5:ncol(landtype_df_area_temp))],  
+              2, sum)
+      # get total area for current landtype: aggregate landtype-specific
+      landtype_tot_area <- out_area_df_list[[1]][(out_area_df_list[[1]][, "Land_Type"] == landtype_name) &
+                              (out_area_df_list[[1]][, "Region"] == "All_region"),]
+      # get avg C density for current landtype (excluding last column for Change), divide total Mg C by total area (get original density?)
+      all_landtype_avg[l,c(5:ncol(all_landtype_avg))] <- all_landtype_avg[l, c(5:ncol(all_landtype_avg))] / 
+        landtype_tot_area[, c(5:ncol(landtype_tot_area))]
+    }
+    # add the aggregated landtype rows to out_density_df_list[[i]]
+    out_density_df_list[[i]] = rbind(out_density_df_list[[i]], all_landtype_avg)
+    
+    # (3b) do each region within the current df in out_density_df_list (Excluded Ocean)
+    region_names <- unique(out_density_df_list[[i]][,"Region"])
+    # remove Ocean & All_region 
+    region_names <- region_names[!region_names %in% c("Ocean","All_region")]
+    # create df to store all the region averages in the following loop for current df in out_density_df_list
+    all_region_avg <- out_density_df_list[[i]][1:length(region_names),]
+    for (r in 1:length(region_names)) { 
+      # get current region name
+      region_name <- region_names[r]
+      # name the region cell accordingly
+      all_region_avg[r,c(1:4)] <- c(-1, region_names[r], "All_land", "All_own")
+      # subset region-specific density df
+      region_df_dens_temp <- out_density_df_list[[i]][out_density_df_list[[i]][,"Region"] == region_name,] 
+      # delete last row to exclude the All_landtype row
+      region_df_dens_temp <- region_df_dens_temp[region_df_dens_temp$Land_Type != "All_land",]
+      # subset region-specific area df 
+      region_df_area_temp <- out_area_df_list[[1]][out_area_df_list[[1]][,"Region"] == region_name,] 
+      # delete last row to exclude the All_landtype row
+      region_df_area_temp <- region_df_area_temp[region_df_area_temp$Land_Type != "All_land",]
+      # get total C for current region: aggregate region-specific densities*areas by each column year (excluding Seagrass)
+      all_region_avg[r,c(5:ncol(all_region_avg))] <- 
+        apply(region_df_dens_temp[,c(5:ncol(region_df_dens_temp))] * region_df_area_temp[,c(5:ncol(region_df_area_temp))],  
+              2, sum)
+      # get total area for current region: aggregate region-specific
+      region_tot_area <- out_area_df_list[[1]][(out_area_df_list[[1]][, "Region"] == region_name) &
+                                                   (out_area_df_list[[1]][, "Land_Type"] == "All_land"),]
+      # get avg C density for current region (excluding last column for Change), divide total Mg C by total area (get original density?)
+      all_region_avg[r,c(5:ncol(all_region_avg))] <- all_region_avg[r, c(5:ncol(all_region_avg))] / 
+        region_tot_area[, c(5:ncol(region_tot_area))]
+    }
+    # add the aggregated region rows to out_density_df_list[[i]]
+    out_density_df_list[[i]] = rbind(out_density_df_list[[i]], all_region_avg)
+    
+    # (3c) Do all California land for the current df in out_density_df_list (Excludes Ocean)
     avg_row = out_density_df_list[[i]][1,]
     avg_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
+    # calc all California land total C for each year
     avg_row[,c(5:ncol(avg_row))] = 
-      apply(out_density_df_list[[i]][1:45, c(5:ncol(out_density_df_list[[i]]))] * 
-              out_area_df_list[[1]][1:45, c(5:ncol(out_area_df_list[[1]]))], 2, sum)
+      apply(out_density_df_list[[i]][out_density_df_list[[i]][, "Land_Type"] == "All_land", c(5:ncol(out_density_df_list[[i]]))] *   
+              out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Type"] == "All_land" & out_area_df_list[[1]][, "Region"] != "All_region", 
+                                    c(5:ncol(out_area_df_list[[1]]))], 2, sum)
+    # calc all California land area-weighted avg C density for each year
     avg_row[1,c(5:(ncol(avg_row)-1))] = avg_row[1,c(5:(ncol(avg_row)-1))] / 
-      out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Cat_ID"] == -1, c(5:(ncol(out_area_df_list[[1]])-1))]
-    avg_row[1,ncol(avg_row)] = avg_row[1,ncol(avg_row)] / 
-      out_area_df_list[[1]][out_area_df_list[[1]][, "Land_Cat_ID"] == -1, ncol(out_area_df_list[[1]])-1]
+      out_area_df_list[[1]][out_area_df_list[[1]][, "Region"] == "All_region" & out_area_df_list[[1]][, "Land_Type"] == "All_land", 
+                            c(5:(ncol(out_area_df_list[[1]])-1))]
     out_density_df_list[[i]] = rbind(out_density_df_list[[i]], avg_row)
+    # final - initial 
+    out_density_df_list[[i]][,ncol(out_density_df_list[[i]])] <- out_density_df_list[[i]][,end_density_label] - out_density_df_list[[i]][,start_density_label]
+    # round
     out_density_df_list[[i]][,c(5:ncol(out_density_df_list[[i]]))] = round(out_density_df_list[[i]][,c(5:ncol(out_density_df_list[[i]]))], 0)
   }
   
-  # stock
+  ######### (4) C STOCK ######### 
   for (i in 1:num_out_stock_sheets) {
     out_stock_df_list[[i]][, "Change_Mg"] = out_stock_df_list[[i]][,end_stock_label] - out_stock_df_list[[i]][,start_stock_label]
+    
+    # (4a) do each landtype within the current df in out_stock_df_list
+    landtype_names <- unique(out_stock_df_list[[i]][,"Land_Type"]) 
+    # create df to store all the landtype averages in the following loop for current df in out_stock_df_list
+    all_landtype_stock <- out_stock_df_list[[i]][1:length(landtype_names),]
+    for (l in 1:length(landtype_names)) { 
+      # get current landtype name
+      landtype_name <- landtype_names[l]
+      # name the landtype cell accordingly
+      all_landtype_stock[l,c(1:4)] <- c(-1, "All_region", landtype_names[l], "All_own")
+      # subset landtype-specific stock df
+      landtype_df_stock_temp <- out_stock_df_list[[i]][out_stock_df_list[[i]][,"Land_Type"] == landtype_name,] 
+      # aggregate sum stock of landtype-specific areas for each column year
+      all_landtype_stock[l,c(5:ncol(all_landtype_stock))] <- apply(landtype_df_stock_temp[,c(5:ncol(landtype_df_stock_temp))], 2, sum)
+    }
+    # add the aggregated landtype rows to out_stock_df_list[[i]]
+    out_stock_df_list[[i]] = rbind(out_stock_df_list[[i]], all_landtype_stock)
+    
+    # (4b) do each region (Excludes Ocean)
+    region_names <- unique(out_stock_df_list[[i]][,"Region"])
+    # remove All_region 
+    region_names <- region_names[!region_names %in% "All_region"]
+    # remove "All_region" from region_names
+    region_names <- region_names[!region_names %in% c("All_region","Ocean")]
+    # create df to store all the region averages in the following loop for current df in out_stock_df_list
+    all_region_stock <- out_stock_df_list[[i]][1:length(region_names),]
+    for (r in 1:length(region_names)) { 
+      # get current region name
+      region_name <- region_names[r]
+      # name the region cell accordingly
+      all_region_stock[r,c(1:4)] <- c(-1, region_names[r], "All_land", "All_own")
+      # subset region-specific stock df
+      region_df_stock_temp <- out_stock_df_list[[i]][out_stock_df_list[[i]][,"Region"] == region_name,] 
+      # delete the All_land row
+      region_df_stock_temp <- region_df_stock_temp[region_df_stock_temp$Land_Type != "All_land",]
+      # aggregate sum stock of region-specific areas for each column year
+      all_region_stock[r,c(5:ncol(all_region_stock))] <- apply(region_df_stock_temp[,c(5:ncol(region_df_stock_temp))], 2, sum)
+    }
+      # add the aggregated landtype rows to out_stock_df_list[[i]]
+      out_stock_df_list[[i]] = rbind(out_stock_df_list[[i]], all_region_stock)
+      
+    # (4c) do all Calif land (Excludes Ocean)
     sum_row = out_stock_df_list[[i]][1,]
     sum_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
-    sum_row[,c(5:ncol(sum_row))] = apply(out_stock_df_list[[i]][1:45, c(5:ncol(out_stock_df_list[[i]]))], 2, sum)
+    sum_row[,c(5:ncol(sum_row))] = apply(out_stock_df_list[[i]][out_stock_df_list[[i]][, "Land_Type"] == "All_land", 
+                                                                c(5:ncol(out_stock_df_list[[i]]))], 2, sum)
     out_stock_df_list[[i]] = rbind(out_stock_df_list[[i]], sum_row)
+    # subtract final-intial again now that all the sections are done
+    out_stock_df_list[[i]][, "Change_Mg"] = out_stock_df_list[[i]][,end_stock_label] - out_stock_df_list[[i]][,start_stock_label]
+    # round 
     out_stock_df_list[[i]][,c(5:ncol(out_stock_df_list[[i]]))] = round(out_stock_df_list[[i]][,c(5:ncol(out_stock_df_list[[i]]))], 0)
   }
   
-  # wood
+  ######### (5) WOOD ######### 
   for (i in 1:num_out_wood_sheets) {
     end_label = ncol(out_wood_df_list[[i]])
     out_wood_df_list[[i]][, "Change_Mg"] = out_wood_df_list[[i]][,end_label] - out_wood_df_list[[i]][,start_wood_label]
+    # (5a) do all land types 
+    landtype_names <- unique(out_wood_df_list[[i]][,"Land_Type"]) 
+    # create df to store all the landtype averages in the following loop for current df in out_wood_df_list
+    all_landtype_wood <- out_wood_df_list[[i]][1:length(landtype_names),]
+    for (l in 1:length(landtype_names)) { 
+      # get current landtype name
+      landtype_name <- landtype_names[l]
+      # name the landtype cell accordingly
+      all_landtype_wood[l,c(1:4)] <- c(-1, "All_region", landtype_names[l], "All_own")
+      # subset landtype-specific wood df
+      landtype_df_wood_temp <- out_wood_df_list[[i]][out_wood_df_list[[i]][,"Land_Type"] == landtype_name,] 
+      # aggregate sum wood of landtype-specific areas for each column year
+      all_landtype_wood[l,c(5:ncol(all_landtype_wood))] <- apply(landtype_df_wood_temp[,c(5:ncol(landtype_df_wood_temp))], 2, sum)
+    }
+    # add the aggregated landtype rows to out_wood_df_list[[i]]
+    out_wood_df_list[[i]] = rbind(out_wood_df_list[[i]], all_landtype_wood)
+    
+    # (5b) do all Regions (Excludes Ocean)
+    region_names <- unique(out_wood_df_list[[i]][,"Region"])
+    # remove All_region 
+    region_names <- region_names[!region_names %in% "All_region"]
+    # remove "All_region" from region_names
+    region_names <- region_names[!region_names %in% c("All_region","Ocean")]
+    # create df to store all the region averages in the following loop for current df in out_wood_df_list
+    all_region_wood <- out_wood_df_list[[i]][1:length(region_names),]
+    for (r in 1:length(region_names)) { 
+      # get current region name
+      region_name <- region_names[r]
+      # name the region cell accordingly
+      all_region_wood[r,c(1:4)] <- c(-1, region_names[r], "All_land", "All_own")
+      # subset region-specific wood df
+      region_df_wood_temp <- out_wood_df_list[[i]][out_wood_df_list[[i]][,"Region"] == region_name,] 
+      # delete the All_land row
+      region_df_wood_temp <- region_df_wood_temp[region_df_wood_temp$Land_Type != "All_land",]
+      # aggregate sum wood of region-specific areas for each column year
+      all_region_wood[r,c(5:ncol(all_region_wood))] <- apply(region_df_wood_temp[,c(5:ncol(region_df_wood_temp))], 2, sum)
+    }
+    # add the aggregated landtype rows to out_wood_df_list[[i]]
+    out_wood_df_list[[i]] = rbind(out_wood_df_list[[i]], all_region_wood)
+    
+    # (5c) do all California land (excludes Ocean)
     sum_row = out_wood_df_list[[i]][1,]
     sum_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
-    sum_row[,c(5:ncol(sum_row))] = 
-      apply(out_wood_df_list[[i]][out_wood_df_list[[i]][, "Ownership"] != "Ocean", c(5:ncol(out_wood_df_list[[i]]))], 2 , sum)
+    sum_row[,c(5:ncol(sum_row))] <- apply(out_wood_df_list[[i]][out_wood_df_list[[i]][, "Land_Type"] == "All_land", 
+                                                                c(5:ncol(out_wood_df_list[[i]]))], 2, sum)
     out_wood_df_list[[i]] = rbind(out_wood_df_list[[i]], sum_row)
+    # subtract final-intial again now that all the sections are done
+    out_wood_df_list[[i]][, "Change_Mg"] = out_wood_df_list[[i]][,end_label] - out_wood_df_list[[i]][,start_wood_label]
+    # round 
     out_wood_df_list[[i]][,c(5:ncol(out_wood_df_list[[i]]))] = round(out_wood_df_list[[i]][,c(5:ncol(out_wood_df_list[[i]]))], 0)
   }
   
@@ -3380,14 +3631,59 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   names(out_atmos_df_list[["Eco_CumCO2"]]) = colnames_Cum
   names(out_atmos_df_list[["Eco_CumCH4eq"]]) = colnames_Cum
   
-  # atmosphere
+  ######### (6) ATMOSHPHERE #########
   for (i in 1:length(out_atmos_df_list)) {
     end_label = ncol(out_atmos_df_list[[i]])
     out_atmos_df_list[[i]][, "Change_Mg"] = out_atmos_df_list[[i]][,end_label] - out_atmos_df_list[[i]][,start_atmos_label]
+    # (6a) do each landtype
+    landtype_names <- unique(out_atmos_df_list[[i]][,"Land_Type"]) 
+    # create df to store all the landtype averages in the following loop for current df in out_atmos_df_list
+    all_landtype_atmos <- out_atmos_df_list[[i]][1:length(landtype_names),]
+    for (l in 1:length(landtype_names)) { 
+      # get current landtype name
+      landtype_name <- landtype_names[l]
+      # name the landtype cell accordingly
+      all_landtype_atmos[l,c(1:4)] <- c(-1, "All_region", landtype_names[l], "All_own")
+      # subset landtype-specific atmos df
+      landtype_df_atmos_temp <- out_atmos_df_list[[i]][out_atmos_df_list[[i]][,"Land_Type"] == landtype_name,] 
+      # aggregate sum atmos of landtype-specific areas for each column year
+      all_landtype_atmos[l,c(5:ncol(all_landtype_atmos))] <- apply(landtype_df_atmos_temp[,c(5:ncol(landtype_df_atmos_temp))], 2, sum)
+    }
+    # add the aggregated landtype rows to out_atmos_df_list[[i]]
+    out_atmos_df_list[[i]] = rbind(out_atmos_df_list[[i]], all_landtype_atmos)
+    
+    # (6b) do each region (excludes Ocean)
+    region_names <- unique(out_atmos_df_list[[i]][,"Region"])
+    # remove All_region 
+    region_names <- region_names[!region_names %in% "All_region"]
+    # remove "All_region" from region_names
+    region_names <- region_names[!region_names %in% c("All_region","Ocean")]
+    # create df to store all the region averages in the following loop for current df in out_atmos_df_list
+    all_region_atmos <- out_atmos_df_list[[i]][1:length(region_names),]
+    for (r in 1:length(region_names)) { 
+      # get current region name
+      region_name <- region_names[r]
+      # name the region cell accordingly
+      all_region_atmos[r,c(1:4)] <- c(-1, region_names[r], "All_land", "All_own")
+      # subset region-specific atmos df
+      region_df_atmos_temp <- out_atmos_df_list[[i]][out_atmos_df_list[[i]][,"Region"] == region_name,] 
+      # delete the All_land row
+      region_df_atmos_temp <- region_df_atmos_temp[region_df_atmos_temp$Land_Type != "All_land",]
+      # aggregate sum atmos of region-specific areas for each column year
+      all_region_atmos[r,c(5:ncol(all_region_atmos))] <- apply(region_df_atmos_temp[,c(5:ncol(region_df_atmos_temp))], 2, sum)
+    }
+    # add the aggregated landtype rows to out_atmos_df_list[[i]]
+    out_atmos_df_list[[i]] = rbind(out_atmos_df_list[[i]], all_region_atmos)
+    
+    # (6c) do all California (excludes Ocean)
     sum_row = out_atmos_df_list[[i]][1,]
     sum_row[,c(1:4)] = c(-1, "All_region", "All_land", "All_own")
-    sum_row[,c(5:ncol(sum_row))] = apply(out_atmos_df_list[[i]][1:45, c(5:ncol(out_atmos_df_list[[i]]))], 2, sum)
+    sum_row[,c(5:ncol(sum_row))] <- apply(out_atmos_df_list[[i]][out_atmos_df_list[[i]][, "Land_Type"] == "All_land", 
+                                  c(5:ncol(out_atmos_df_list[[i]]))], 2, sum)
     out_atmos_df_list[[i]] = rbind(out_atmos_df_list[[i]], sum_row)
+    # subtract final-intial again now that all the sections are done
+    out_atmos_df_list[[i]][, "Change_Mg"] = out_atmos_df_list[[i]][,end_label] - out_atmos_df_list[[i]][,start_atmos_label]
+    # round
     out_atmos_df_list[[i]][,c(5:ncol(out_atmos_df_list[[i]]))] = round(out_atmos_df_list[[i]][,c(5:ncol(out_atmos_df_list[[i]]))], 0)
   }
   
