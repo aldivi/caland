@@ -2593,12 +2593,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # non-burned: "LCC_Atmos_AnnGain_NonBurnEnerC" = - "Land2Atmos_c_stock_conv"
     out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
-    # loop over the out_atmos_df_list df's and replace any NaN with ==> ONLY DO THIS AFTER CONFIRMING WHERE NaN's come from
-    #for (d in 1:length(out_atmos_df_list)){
-      # set NAN or INF desities to 0
-     # out_atmos_df_list[[d]][, next_atmos_label] <- replace(out_atmos_df_list[[d]][, next_atmos_label], 
-                                                           #   is.nan(out_atmos_df_list[[d]][, next_atmos_label]), 0.00)
-  #  }
   } # end loop over calculation years
   
   # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
