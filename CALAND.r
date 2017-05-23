@@ -798,7 +798,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df (ROWS = 85)
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Land_Cat_ID, man_veg_df$Management),] 
-    # omit all records for Dead_removal and limited_Growth managements or with management activity = NA (ROWS = 79)
+    # omit all records for Dead_removal and limited_Growth managements or with management activity = NA 
     man_veg_df = man_veg_df[(man_veg_df$Management != "Dead_removal" & man_veg_df$Management != "Growth") | is.na(man_veg_df$Management),]
     
     ################ First, calc MANAGED AREA VEG C UPTAKE [MgC/y]  (vegcfluxXarea) #############################
@@ -806,12 +806,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # calc managed area's total veg C uptake for all landtypes using cumulative areas: 
     # vegcfluxXarea = cumulative_management_area x VegCuptake_frac x vegc_uptake_val (LENGTH = 79)
     man_veg_df$vegcfluxXarea = man_veg_df$man_area_sum * man_veg_df$VegCuptake_frac * man_veg_df$vegc_uptake_val
-    # special calc for managed area's total veg C uptake in developed landtype using total area (managed + unmanaged)   (LENGTH = 79)
+    # special calc for managed area's total veg C uptake in developed landtype using total area (managed + unmanaged)   
     man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = 
       man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
       man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * 
       man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
-    # aggregate sum veg C uptake across Land_Cat_ID + Region + Land_Type + Ownership (CHECK THIS IS WHERE ROWS =25)
+    # aggregate sum veg C uptake across Land_Cat_ID + Region + Land_Type + Ownership 
     man_vegflux_agg = aggregate(vegcfluxXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
     # merge aggregate sums with all_c_flux (management areas and total areas) 
     man_vegflux_agg = merge(all_c_flux, man_vegflux_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
@@ -820,11 +820,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     na_inds = which(is.na(man_vegflux_agg$vegcfluxXarea))
     man_vegflux_agg$vegcfluxXarea[na_inds] = 0
     
-    # merge "vegc_uptake_val" (baseline veg c flux) column to man_vegflux_agg dataframe (ROWS= 47)
+    # merge "vegc_uptake_val" (baseline veg c flux) column to man_vegflux_agg dataframe 
     man_vegflux_agg = merge(man_vegflux_agg, man_veg_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "vegc_uptake_val")], 
                             by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"))
     man_vegflux_agg = man_vegflux_agg[order(man_vegflux_agg$Land_Cat_ID),]
-    man_vegflux_agg = unique(man_vegflux_agg) # (ROWS= 44) **deleted 3. Missing Developed_all Private & USFS**
+    man_vegflux_agg = unique(man_vegflux_agg) 
     na_inds = which(is.na(man_vegflux_agg$vegc_uptake_val))
     man_vegflux_agg[na_inds, "vegc_uptake_val"] = 0
     
@@ -1888,54 +1888,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         # if all the area is in potential restored areas, then set all area_change == 0 to avoid round-off error
         conv_own$area_change <- 0.00
         }
-      #if (any(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])) {
-       
-       # inds_too_small <- which(abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0])
-       # conv_own[abs(conv_own$area_change[conv_own$area_change < 0]) > conv_own$tot_area[conv_own$area_change < 0],]
-       # inds_not_too_small <- which(abs(conv_own$area_change[conv_own$area_change < 0]) <= conv_own$tot_area[conv_own$area_change < 0])
-        # sum the excess neg area which will need to be taken from the other land types that still have positive area
-        #sum_excess_neg <- conv_own$tot_area[inds_too_small,] 
-        # sum the total areas that are not going negative
-        #sum_pos_tot_area <- conv_own$tot_area[inds_not_too_small,] 
-        # set the area_change equal to the negative total area so that these land types will equal 0 total area (not negative).
-        #conv_own$area_change[inds_too_small,] <- -1 * sum_excess_neg
-        # adjust the area change again for land types that still have positive area by subtracting a fraction of the sum_excess_neg in proportion to tot_area
-        #conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
-         #                      conv_own$Land_Type != "Coastal_marsh"] = 
-          #conv_own$area_change[conv_own$area_change > 0 & 
-        #                         conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
-         # sum_excess_new * conv_own$tot_area[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
-        #                                       conv_own$Land_Type != "Coastal_marsh"] / sum_pos_tot_area
-        
-      #}
-      
-      # Do additional correction for any new areas that went negative from the above calculation (tot_area + area_change)
-      # get row indices for all rows with new_area <0 
-      #neg_new_inds <- which(conv_own$new_area < 0)
-      # reset these area changes by adding back the magnitude of the negative area to the area_change: area_change = area_change - new_area
-      #conv_own[neg_new_inds, conv_own$area_change] <- conv_own[neg_new_inds, conv_own$area_change] - conv_own[neg_new_inds, conv_own$new_area] 
-      # add up all the negated area loss: sum_neg_new = sum <0 new_area  (negative value)
-      #sum_neg_new <- sum(conv_own[neg_new_inds, conv_own$new_area])
-      # new_area = 0 (don't recalc to avoid roundoff error)
-     # conv_own[neg_new_inds, conv_own$new_area] <- 0
-      # for new areas >0 & != marsh & != meadow, get proportion of new areas to make new adjustments (reduction_factor = each new area/sum of all)
-      #pos_new_inds <- which(conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh")
-      #sum_pos_new <- sum(conv_own[pos_new_inds, conv_own$new_area])
-      #reduction_factor <- conv_own[pos_new_inds, conv_own$new_area / sum_pos_new] 
-      #  calc the proportial (negative) area change that will to be applied to new_area and area_change (magnitude subtracted from both)
-      #extra_area_adjust <- reduction_factor * sum_pos_new
-      # new_area = extra_area_adjust + new_area
-      #conv_own[pos_new_inds, conv_own$new_area] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$new_area] 
-      # area_change = extra_area_adj + area_change 
-      #conv_own[pos_new_inds, conv_own$area_change] <- extra_area_adjust + conv_own[pos_new_inds, conv_own$area_change] 
-      # check again all new_area > 0, end loop
-      # check if non-restored area > 0, repeat loop 
-      # end loop
-      
-      # if sill negative new areas, then reduce restoration new areas and update area change. The reduction should be no larger than assigned restoration values (i.e. no area change)
-      
-      
-      
+    
       ######################################## NOW AREA CHANGES & NEW AREAS ARE CORRECT ######################################## 
       
       ################################ CALC SPECIFIC FROM/TO and TO/FROM AREA CONVERSIONS ######################################
