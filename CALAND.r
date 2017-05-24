@@ -38,12 +38,15 @@
 
 # CALAND is now a function!
 # 7 arguments:
-#	scen_file		name of the scenario file; assumed to be in caland/inptus/
-#	c_file			name of the carbon parameter input file; assumed to be in caland/inputs/
-#	start_year		simulation begins at the beginning of this year
-#	end_year		simulation ends at the beginning of this year (so the simulation goes through the end of end_year - 1)
-#	value_col		select which carbon density and accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev, 9 = std error
-#	ADD				for use with value_col==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
+#	scen_file		    name of the scenario file; assumed to be in caland/inptus/
+#	c_file			    name of the carbon parameter input file; assumed to be in caland/inputs/
+#	start_year		  simulation begins at the beginning of this year
+#	end_year		    simulation ends at the beginning of this year (so the simulation goes through the end of end_year - 1)
+#	value_col_dens	select which carbon density values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev, 9 = std error
+# value_col_accum select which carbon accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev, 9 = std error
+#	ADD_dens				for use with value_col_dens ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
+#	ADD_accum				for use with value_col_accum ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
+
 #	WRITE_OUT_FILE	TRUE= write the output file; FALSE= do not write the output file
 
 # notes:
