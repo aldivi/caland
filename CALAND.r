@@ -522,11 +522,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       if(ADD_dens) {
         # if we want +stddev, then C_density = std_dev + mean
         out_density_df_list[[i]][,5] = out_density_df_list[[i]][,5] + c_df_list[[i]][,"Mean_Mg_ha"]
-        colnames(out_density_df_list[[i]])[5] <- "Mean+SD_Mg_ha"
       } else {
         # if we want -stddev, then C_density = mean - stdev
         out_density_df_list[[i]][,5] = c_df_list[[i]][,"Mean_Mg_ha"] - out_density_df_list[[i]][,5]
-        colnames(out_density_df_list[[i]])[5] <- "Mean-SD_Mg_ha"
       }
     }
     out_density_df_list[[i]][is.na(out_density_df_list[[i]])] <- 0.0
