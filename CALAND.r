@@ -512,7 +512,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # c density
   # update the all c and bio c sums using the components, mainly because the std dev input values will not be consistent
   # c_df_list(9 density sheets): totalC, totalbiomass, mainC, root, under, deadstand, deaddown, litter, SOC
-  for ( i in 1:num_out_density_sheets) {
+  for (i in 1:num_out_density_sheets) {
     # populate out_density_df_list with the first 4 columns from each of the 9 C density sheets and either mean or +/-stdev
     out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col_dens)]
     # out_density_df_list now has 5 columns for each sheet/C pool (Land_Cat_ID, Region, Land_Type, Ownership, Mean or Stdev)
@@ -522,9 +522,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       if(ADD_dens) {
         # if we want +stddev, then C_density = std_dev + mean
         out_density_df_list[[i]][,5] = out_density_df_list[[i]][,5] + c_df_list[[i]][,"Mean_Mg_ha"]
+        colnames(out_density_df_list[[i]])[5] <- "Mean+SD_Mg_ha"
       } else {
         # if we want -stddev, then C_density = mean - stdev
         out_density_df_list[[i]][,5] = c_df_list[[i]][,"Mean_Mg_ha"] - out_density_df_list[[i]][,5]
+        colnames(out_density_df_list[[i]])[5] <- "Mean-SD_Mg_ha"
       }
     }
     out_density_df_list[[i]][is.na(out_density_df_list[[i]])] <- 0.0
