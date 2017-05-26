@@ -107,7 +107,6 @@ GET.NAMES <- function(df, new.name) {
 
 
 CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
-  
   cat("Start CALAND at", date(), "\n")
   # this enables java to use up to 4GB of memory for reading and writing excel files
   options(java.parameters = "-Xmx4g" )
@@ -172,16 +171,73 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # default CH4 oxidation factor in landfill cover (ARB 2016 GHG inventoty technical support)
   OX = 0.1
   
-  
-  if (value_col != 8) {
-    out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col], ".xls")
-  }else {
-    if(ADD) {
-      out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_add", ".xls")
-    }else {
-      out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col], "_sub", ".xls")
+  ######### Determine output file names based on arguments in CALAND() that specify which input statistics are used for c density ######### 
+  ##################################################### and c accumulation ################################################################
+  # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6),mean (7), std_dev (8), or se (9)
+  if (value_col_dens == value_col_accum) {
+    # same but not std_dev
+    if (value_col_dens != 8) {
+    # out_file is labeled by the statisitic without specifying density or accumulation
+      out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], ".xls")
+      # otherwise they are both std_dev so attach "add" or "sub"
+      } else { 
+          # same sign
+          if(ADD_dens == ADD_accum) {
+            # both std_dev add
+            if (ADD_dens) { 
+              out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_add", ".xls")
+            } else { 
+              # both std_dev subtract
+                out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_sub", ".xls") }
+            # otherwise both std_dev but different sign
+          } else { 
+          # dens add and accum subtract
+              if (ADD_dens) {
+                out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_add_" , "dens_", ftag[value_col_accum], 
+                                  "_sub_", "accum", ".xls")
+              } else { 
+                  # dens sub and accum add
+                  out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_sub_" , "dens_", ftag[value_col_accum], 
+                                    "_add_", "accum", ".xls") 
+              }
+          }
+      }
+  # otherwise they are _not_ same statisitic
+  } else { 
+    # first case: neither is std_dev
+    if (!(value_col_dens != 8 & value_col_accum == 8) & !(value_col_dens == 8 & value_col_accum != 8)) {
+      out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_accum", ".xls")
+      # second case, one is std_dev and accum is something else
+    } else {
+      # std_dev dens and accum something else
+      if (value_col_dens == 8) {
+        # std_dev add dens
+        if (ADD_dens) { 
+          out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_add_" , "dens_", ftag[value_col_accum], 
+                            "_accum", ".xls")
+          # std_dev sub dens
+        } else { 
+          out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_sub_" , "dens_", ftag[value_col_accum], 
+                            "_accum", ".xls")
+        }
+          # third case, std_dev accum and dens something else  
+      } else { 
+          if (value_col_accum == 8) { 
+            # label them each 
+            # std_dev add accum
+            if (ADD_accum) { 
+              out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_add_" ,
+                                "accum", ".xls")
+            # std_dev sub accum
+            } else { 
+              out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_sub_", 
+                                "accum", ".xls")
+            }
+          }
+      }
     }
   }
+  #########################################################################################################################################
   
   # assign 100 yr global warming potential of CO2, CH4, and black C (BC)
   gwp_CO2 <- 1
@@ -394,10 +450,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   conv_area_df = scen_df_list[[2]]
   names(conv_area_df)[ncol(conv_area_df)] = "base_area_change"
   vegc_uptake_df = c_df_list[[10]]
-  vegc_uptake_df$vegc_uptake_val = vegc_uptake_df[,value_col]
+  vegc_uptake_df$vegc_uptake_val = vegc_uptake_df[,value_col_accum]
   deadc_frac_df = c_df_list[[3]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership")]
   soilc_accum_df = c_df_list[[11]]
-  soilc_accum_df$soilc_accum_val = soilc_accum_df[,value_col]
+  soilc_accum_df$soilc_accum_val = soilc_accum_df[,value_col_accum]
   conv_df = c_df_list[[12]]
   man_forest_df = c_df_list[[13]]
   forest_soilcaccumfrac_colind = which(names(man_forest_df) == "SoilCaccum_frac")
@@ -412,8 +468,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   mortality_target_df[,c(5:ncol(mortality_target_df))] <- apply(mortality_target_df[,c(5:ncol(mortality_target_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
   
   # get the correct values for the accum tables if value is std dev
-  if(value_col == 8) { # std dev as value
-    if(ADD) {
+  if(value_col_accum == 8) { # std dev as value
+    if(ADD_accum) {
       vegc_uptake_df$vegc_uptake_val = vegc_uptake_df$vegc_uptake_val + vegc_uptake_df$Mean_Mg_ha_yr
       soilc_accum_df$soilc_accum_val = soilc_accum_df$soilc_accum_val + soilc_accum_df$Mean_Mg_ha_yr
     } else {
@@ -458,12 +514,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # c_df_list(9 density sheets): totalC, totalbiomass, mainC, root, under, deadstand, deaddown, litter, SOC
   for ( i in 1:num_out_density_sheets) {
     # populate out_density_df_list with the first 4 columns from each of the 9 C density sheets and either mean or +/-stdev
-    out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col)]
+    out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col_dens)]
     # out_density_df_list now has 5 columns for each sheet/C pool (Land_Cat_ID, Region, Land_Type, Ownership, Mean or Stdev)
     names(out_density_df_list[[i]])[ncol(out_density_df_list[[i]])] <- as.character(start_density_label)
-    if(value_col == 8) { # if std dev as value
+    if(value_col_dens == 8) { # if std dev as value
       # this will not be the same as the sum of the components, so update it later
-      if(ADD) {
+      if(ADD_dens) {
         # if we want +stddev, then C_density = std_dev + mean
         out_density_df_list[[i]][,5] = out_density_df_list[[i]][,5] + c_df_list[[i]][,"Mean_Mg_ha"]
       } else {
