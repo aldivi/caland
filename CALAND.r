@@ -537,7 +537,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
  #   out_density_df_list[[1]][, start_density_label] = out_density_df_list[[1]][, start_density_label] + 
  #     out_density_df_list[[i]][, start_density_label]
  # }
-  
+  # add up the total org c pool density
+  # out_density_df_list[[1]][, 6] = 0
+  # for (i in 3:num_out_density_sheets) {
+   #  out_density_df_list[[1]][, 6] = out_density_df_list[[1]][, 6] + 
+  #     out_density_df_list[[i]][, start_density_label]
+ #  }
   # add up the biomass c pool density (all non-decomposed veg material; i.e. all non-soil c)
 #  out_density_df_list[[2]][, start_density_label] = 0
 #  for (i in 3:(num_out_density_sheets-1)) {
