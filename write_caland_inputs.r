@@ -1,7 +1,7 @@
 # write_caland_inputs.r
 
 # generate the two caland input files based on the gis stats and parameters from the literature
-#	make .xls files
+#	make .xlsx files
 #	the columns widths are not properly adjusted when written, so this should be done by hand
 
 # this script defines function write_caland_inputs() for writing the intput files
@@ -73,6 +73,20 @@
 
 # carbon file
 
+# this enables java to use up to 4GB of memory for reading and writing excel files
+options(java.parameters = "-Xmx4g" )
+
+# Load all the required packages
+libs <- c( "XLConnect" )
+for( i in libs ) {
+    if( !require( i, character.only=T ) ) {
+        cat( "Couldn't load", i, "\n" )
+        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
+              for local user if you do not have root access\n" )
+    }
+    library( i, character.only=T )
+}
+
 ########### set these here so that I can work without running the function
 scen_tag = "frst2Xmort_fire"
 c_file = "carbon_input.xlsx"
@@ -94,20 +108,6 @@ num_c_in_files = length(carbon_gis_files)
 ref_year = 2001
 diff_years = start_year - ref_year
 scen_end_year = end_year - 1
-	
-# this enables java to use up to 4GB of memory for reading and writing excel files
-options(java.parameters = "-Xmx4g" )
-
-# Load all the required packages
-libs <- c( "XLConnect" )
-for( i in libs ) {
-    if( !require( i, character.only=T ) ) {
-        cat( "Couldn't load", i, "\n" )
-        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
-              for local user if you do not have root access\n" )
-    }
-    library( i, character.only=T )
-}
 
 in_dir = "raw_data/"
 out_dir = "inputs/"
@@ -516,7 +516,7 @@ for (i in 1:2) { # vegc_uptake and soilc_accum
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
 }
-for (i in 3:3) { # conversion2ar_urban
+for (i in 3:3) { # conversion2ag_urban
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
 }
@@ -631,7 +631,7 @@ for (s in 1:num_scenin_sheets) {
 	
 	# get the necessary years for columns (note that the start_year column already exists)
 	# years immediately before start years and immediately after end years need to be added (unless they are beyond the year range)
-	# first years - includes the prior year (within start_year to scen_end_year)
+	# first years: includes the prior year (within start_year to scen_end_year)
 	man_first = sort(unique(manage$start_year))
 	man_last = sort(unique(manage$end_year))
 	add_years = NULL
@@ -642,7 +642,7 @@ for (s in 1:num_scenin_sheets) {
 	man_first = sort(unique(man_first))
 	man_first_labels = paste0(man_first, "_ha")
 	num_man_first = length(man_first)
-	# last years - includes the next year (within start_year to scen_end_year)
+	# last years: includes the next year (within start_year to scen_end_year)
 	add_years = NULL
 	for (y in 1:length(man_last)) {
 		if (man_last[y] < scen_end_year) {add_years = c(add_years, man_last[y] + 1)}
@@ -702,7 +702,10 @@ for (s in 1:num_scenin_sheets) {
 		
 		# fraction input; the values set are annual area; these fractions are directly applied to the correct area
 		# Dead_removal and Urban_forest input values are fractions of Developed_area in year
-		# Growth input values are fraction of initial growth rate
+		# Growth input values are fractions of the initial growth rate
+		# The values set for Dead_removal and Urban_Forest can be negative if Developed_all runs out of area
+		#	this is ok because these values are used to calculate intermediate-year values, which may not be negative
+		#	these negative values are dealt with in CALAND
 
 		# growth
 		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth",year_lab] = (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"] + (year - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"]) * (manage_fracin$end_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"] - manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"]) / (manage_fracin$end_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"] - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"])) * manage_fracin$Area_change_ha[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"]
@@ -730,7 +733,7 @@ for (s in 1:num_scenin_sheets) {
 			} # end for p loop over previous year columns
 		} # end if not start year
 		# now multiply the area by the fraction
-		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] * manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab]
+		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] + (year - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")]) * (manage_fracin$end_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] - manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")]) / (manage_fracin$end_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")])) * manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab]
 		
 		## process years after last years
 		
@@ -767,7 +770,7 @@ for (s in 1:num_scenin_sheets) {
 	out_scen_df_list[[3]] = manage_out
 
 	# write the scenario file
-	# modify some of the input headers and write the headers also
+	# write the headers also
 	
 	out_file = paste0(out_dir, scenin_name, "_", scen_tag, xltag)
 	# put the output tables in a workbook
@@ -775,7 +778,7 @@ for (s in 1:num_scenin_sheets) {
 	createSheet(out_wrkbk, name = out_scen_sheets)
 	clearSheet(out_wrkbk, sheet = out_scen_sheets)
 	writeWorksheet(out_wrkbk, data = scen_head_df_list, sheet = out_scen_sheets, startRow = 1, header = FALSE)
-	writeWorksheet(out_wrkbk, data = out_scen_df_list, sheet = out_scen_sheets, startRow = start_row, header = TRUE)
+	writeWorksheet(out_wrkbk, data = out_scen_df_list, sheet = out_scen_sheets, startRow = start_row, header = TRUE)	
 	# write the workbook
 	saveWorkbook(out_wrkbk)
 
