@@ -508,10 +508,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     out_area_df_list[[i]][is.na(out_area_df_list[[i]])] <- 0.0
   }
   
-  
   # c density
-  # update the all c and bio c sums using the components, mainly because the std dev input values will not be consistent
-  # c_df_list(9 density sheets): totalC, totalbiomass, mainC, root, under, deadstand, deaddown, litter, SOC
+  # assign input c density values to out_density c_df_list(9 density sheets): 
+  # totalC, totalbiomass, mainC, root, under, deadstand, deaddown, litter, SOC
+  # note: missing values for totalC and totalbiomass is due to missing c pools for some of the land categories 
   for (i in 1:num_out_density_sheets) {
     # populate out_density_df_list with the first 4 columns from each of the 9 C density sheets and either mean or +/-stdev
     out_density_df_list[[i]] <- c_df_list[[i]][,c(1,2,3,4,value_col_dens)]
@@ -531,25 +531,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     out_density_df_list[[i]][,5] <- replace(out_density_df_list[[i]][,5], out_density_df_list[[i]][,5] < 0, 0.00)
   }
   names(out_density_df_list) <- out_density_sheets
-  # add up the total org c pool density
- # out_density_df_list[[1]][, start_density_label] = 0
- # for (i in 3:num_out_density_sheets) {
- #   out_density_df_list[[1]][, start_density_label] = out_density_df_list[[1]][, start_density_label] + 
- #     out_density_df_list[[i]][, start_density_label]
- # }
-  # add up the total org c pool density
-  # out_density_df_list[[1]][, 6] = 0
-  # for (i in 3:num_out_density_sheets) {
-   #  out_density_df_list[[1]][, 6] = out_density_df_list[[1]][, 6] + 
-  #     out_density_df_list[[i]][, start_density_label]
- #  }
-  # add up the biomass c pool density (all non-decomposed veg material; i.e. all non-soil c)
-#  out_density_df_list[[2]][, start_density_label] = 0
-#  for (i in 3:(num_out_density_sheets-1)) {
-#    out_density_df_list[[2]][, start_density_label] = out_density_df_list[[2]][, start_density_label] + 
-#      out_density_df_list[[i]][, start_density_label]
-#  }
-  
+
   # c stock
   for (i in 1:num_out_stock_sheets) {
     out_stock_df_list[[i]] <- out_density_df_list[[1]]
@@ -1915,27 +1897,35 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       while (any(conv_own$new_area < 0)) {
         # subset any land categories that have negative new areas and add them up to get the area needed to be offset to avoid negative new area
         sum_neg_new_area <- sum(conv_own$new_area[conv_own$new_area < 0])
-        # subset any land categories except for fresh_marsh, meadow and coastal_marsh, that have postive new areas and add them up
-        sum_pos_new_area <- sum(conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
-                                                    conv_own$Land_Type != "Coastal_marsh"])
-        # update area_change for for land categories with positive new_area by subtracting the area offset (sum_neg_new_area) proportionally (w.r.t. new_area) 
-        # from the area_change (except for fresh_marsh, meadow and coastal_marsh (i.e. don't change restored areas)
-        conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] <-
-          conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] +
-          sum_neg_new_area * conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != 
-                                                 "Coastal_marsh"] / sum_pos_new_area
+        # create temporary column for new_area: new_area_temp_df$new_area
+        new_area_temp_df <- conv_own
+        # replace new_area_temp with any excess new_area > man_area_sum for fresh_marsh, meadow and coastal_marsh
+        new_area_temp_df$new_area[new_area_temp_df$new_area > new_area_temp_df$man_area_sum & new_area_temp_df$Land_Type == "Fresh_marsh" | 
+                                    new_area_temp_df$Land_Type == "Meadow" | new_area_temp_df$Land_Type == "Coastal_marsh"] <-
+          new_area_temp_df$new_area[new_area_temp_df$new_area > new_area_temp_df$man_area_sum & new_area_temp_df$Land_Type == "Fresh_marsh" | 
+                                      new_area_temp_df$Land_Type == "Meadow" | new_area_temp_df$Land_Type == "Coastal_marsh"] -
+          new_area_temp_df$man_area_sum[new_area_temp_df$new_area > new_area_temp_df$man_area_sum & new_area_temp_df$Land_Type == "Fresh_marsh" | 
+                                      new_area_temp_df$Land_Type == "Meadow" | new_area_temp_df$Land_Type == "Coastal_marsh"]
+        # sum all the positive new areas, which may include partial amount of new area for the protected land types
+        sum_pos_new_area <- sum(new_area_temp_df$new_area[new_area_temp_df$new_area > 0]) 
+        # update area_change for land categories with positive new_area by subtracting the area offset (sum_neg_new_area) proportionally (w.r.t. new_area) 
+        # from the area_change 
+        new_area_temp_df$area_change[new_area_temp_df$new_area > 0] <- new_area_temp_df$area_change[new_area_temp_df$new_area > 0] +
+           sum_neg_new_area * new_area_temp_df$new_area[new_area_temp_df$new_area > 0] / sum_pos_new_area
         # update area_change for land categories with negative new_area by subtracting their negative new_area from it (effectively zeroing new area)
-        conv_own$area_change[conv_own$new_area < 0] <- conv_own$area_change[conv_own$new_area < 0] - conv_own$new_area[conv_own$new_area < 0]
+        new_area_temp_df$area_change[new_area_temp_df$new_area < 0] <- new_area_temp_df$area_change[new_area_temp_df$new_area < 0] - 
+          new_area_temp_df$new_area[new_area_temp_df$new_area < 0]
         # update new_area for negative new_areas by assigning 0 to them to avoid roundoff errors
-        conv_own$new_area[conv_own$new_area < 0] <- 0
-        # update new_area for positive new area land categories not marsh & not meadow by adding the adjusted area_change to the tot_area
-        conv_own$new_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] = 
-          conv_own$tot_area[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
-          conv_own$area_change[conv_own$new_area > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"]
+        new_area_temp_df$new_area[new_area_temp_df$new_area < 0] <- 0
+        # update new_area for positive new area land categories by adding the adjusted area_change to the tot_area
+        new_area_temp_df$new_area[new_area_temp_df$new_area > 0] = new_area_temp_df$tot_area[new_area_temp_df$new_area > 0] + 
+          new_area_temp_df$area_change[new_area_temp_df$new_area > 0]
+        # replace conv_own with new_area_temp_df which has the corrected new_area and area_change
+        conv_own <- new_area_temp_df
       }
       
       # check if sum(new_area) > sum(tot_area)  
-      if ((sum(conv_own$new_area) > sum(conv_own$tot_area)) & conv_own$Region != "Ocean") {
+      if (all((sum(conv_own$new_area) > sum(conv_own$tot_area)) & conv_own$Region != "Ocean")) {
         # get sum of area deficit
         new_area_deficit <- sum(conv_own$new_area) - sum(conv_own$tot_area)
         # get sum of postive area changes
