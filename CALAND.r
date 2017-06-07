@@ -173,7 +173,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   
   ######### Determine output file names based on arguments in CALAND() that specify which input statistics are used for c density ######### 
   ##################################################### and c accumulation ################################################################
-  # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6),mean (7), std_dev (8), or se (9)
+  # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6), mean (7), std_dev (8), or se (9)
   if (value_col_dens == value_col_accum) {
     # same but not std_dev
     if (value_col_dens != 8) {
@@ -409,6 +409,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   for (i in 3:4) { # annual managed area and annual wildfire area
     scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
   }
+  
   # Check that all management areas in scen_df_list[[3]] have corresponding initial 2010 areas scen_df_list[[1]] 
   # get all category ID's for the managed areas and initial areas
   cat_ID_man <- scen_df_list[[3]][,1]
@@ -531,7 +532,22 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     out_density_df_list[[i]][,5] <- replace(out_density_df_list[[i]][,5], out_density_df_list[[i]][,5] < 0, 0.00)
   }
   names(out_density_df_list) <- out_density_sheets
-
+  
+  # sum the total c pool density
+  out_density_df_list[[1]][, start_density_label] = 0  
+  # sum the following for each corresponding row: 
+  ## totalC = Above_main_C_den + Below_main_C_den + Understory_C_den + StandDead_C_den + DownDead_C_den + Litter_C_den + Soil_orgC_den
+  for (i in 3:num_out_density_sheets) {
+    out_density_df_list[[1]][, start_density_label] = out_density_df_list[[1]][, start_density_label] + out_density_df_list[[i]][, start_density_label] 
+  }
+  
+  # sum the biomass c pool density (all non-decomposed veg material; i.e. all non-soil c)
+  out_density_df_list[[2]][, start_density_label] = 0  
+  # All_biomass_C = Above_main_C_den + Below_main_C_den + Understory_C_den + StandDead_C_den + DownDead_C_den + Litter_C_den 
+  for (i in 3:(num_out_density_sheets-1)) {
+    out_density_df_list[[2]][, start_density_label] = out_density_df_list[[2]][, start_density_label] + out_density_df_list[[i]][, start_density_label]
+  }
+  
   # c stock
   for (i in 1:num_out_stock_sheets) {
     out_stock_df_list[[i]] <- out_density_df_list[[1]]
@@ -570,6 +586,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   man_area_sum = out_area_df_list[[2]]
   names(man_area_sum)[ncol(man_area_sum)] <- "man_area"
   man_area_sum$man_area_sum = 0.0
+  
+  # set sum neginds eco to 0
+  out_cum_neginds_eco_tot <- 0
   
   # loop over the years
   for (year in start_year:(end_year-1)) {
@@ -659,7 +678,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     
     
-    # (7) don't use (untrimmed) aggregated areas for Developed_all: replace man_area_agg_pre column with individual man_area (dead removal in Dev_all = tot_area; urban_forest = fraction of tot_area that's urban forest)
+    # (7) don't use (untrimmed) aggregated areas for Developed_all: replace man_area_agg_pre column with individual man_area 
+    # (note: dead removal in Dev_all = tot_area; urban_forest = fraction of tot_area that's urban forest)
     man_area_sum$man_area_agg_pre[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
     # (8) assign 0's to aggregate (untrimmed) areas for afforestation and restoration 
@@ -1186,8 +1206,32 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       out_density_df_list[[i]][, next_density_label] = out_density_df_list[[i]][, next_density_label] + all_c_flux[, egnames[i-2]]
       # first calc the carbon not subtracted because it sends density negative
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
+      # print out the indices that have negative c
       cat("neginds for out_density_df_list eco" , i, "are", neginds, "\n")
+      # print out the areas for land categries that have negative c (if greater than 0 then land category us running out of c, which may be due to a particular case of land conversions, i.e. land 
+      # category x has negative c accumulation and is gaining area from land category y with lower c density, which can dilute the c density lower than the annual c loss sending the c density negative. 
+      # Otherwise, if the area == 0 and there is negative c density, it can solely be due to the land cateogry running out of area and having a negative c accumulation rate.)
       cat("total areas for neginds out_density_df_list eco" , i, "are", out_area_df_list[[1]][neginds, cur_area_label], "\n")
+      # check if any of the negative c density land categories have area > 0 (note: this only works if soil c density (i=9) is the only pool with negative values, as this is re-saved for each i loop)
+      if (any((out_area_df_list[[1]][neginds, cur_area_label])>0)) {
+        # if so, subset the rows from the out_area_df_list associated with all neginds and assign to area_neginds_df
+        area_neginds_df <- out_area_df_list[[1]][neginds,]
+        # add column to area_neginds_df that says which c pool ran out of c
+        area_neginds_df$neg_c_density_pool <- rep(out_density_sheets[i],nrow(area_neginds_df)) 
+        # add column that says which year it is
+        area_neginds_df$Year <- rep(year,nrow(area_neginds_df)) 
+        # print the land category ID's that have neginds _and_ area >0
+        cat("Land_Cat_ID with neginds for", out_density_sheets[i], "& non-zero area are", unlist(area_neginds_df[out_area_df_list[[1]][neginds,cur_area_label]>0, c("Land_Cat_ID","Region","Ownership","Land_Type")]), "\n")
+        # subset rows from from area_neginds_df with area >0, and assign to out_neginds_eco_df_pre
+        out_neginds_eco_df_pre <- area_neginds_df[out_area_df_list[[1]][neginds,cur_area_label]>0, c("Land_Cat_ID","Region","Ownership","Land_Type","Year",cur_area_label,"neg_c_density_pool")]
+        # rename the area column to generic name so rbind() for out_neginds_eco_df_pre & out_neginds_eco_df will work each year 
+        colnames(out_neginds_eco_df_pre)[6] <- "Area_ha"
+        # get the c density from next_density_label column in out_density_df_list[[i]] that are <0 (neginds) and have tot_area >0, and add column to area_neginds_df
+        out_neginds_eco_df_pre$neg_density <- out_density_df_list[[i]][out_density_df_list[[i]]$Land_Cat_ID %in% out_neginds_eco_df_pre$Land_Cat_ID, next_density_label]
+        # turn on check that this exists
+        area_neginds_exist <- TRUE
+      } else {area_neginds_exist <- FALSE}
+      # sum of all negative c cleared = tot_area * c density
       sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                         out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
@@ -1195,7 +1239,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     } # end loop over out densities for updating due to eco fluxes
     cat("eco carbon change is", sum_change, "\n")
     cat("eco negative carbon cleared is", sum_neg_eco, "\n")
+    # add this year's neg sum to cumulative so we get a total negative c cleared at end of annual loop (out_neginds_eco is set to 0 before annual loop is started)
+    out_cum_neginds_eco_tot <- sum_neg_eco + out_cum_neginds_eco_tot 
     
+    # join the out_neginds_eco_df_pre below the last row of the previous year in out_neginds_eco_df
+    if (area_neginds_exist & exists("out_neginds_eco_df")) {
+        out_neginds_eco_df <- rbind(out_neginds_eco_df, out_neginds_eco_df_pre)
+    } else { if (area_neginds_exist) {
+        out_neginds_eco_df <- out_neginds_eco_df_pre
+        }
+    }
     ######
     ######
     # apply the transfer (non-eco, non-accum) flux management to the carbon pools (current year area and updated carbon)
@@ -2648,6 +2701,17 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
     
   } # end loop over calculation years
+  
+  if (exists("out_neginds_eco_df")) { 
+  # print sum of negative eco c cleared
+  cat("sum of eco negative carbon cleared is", out_cum_neginds_eco_tot, "\n")
+  # round to whole number for saving in file
+  out_cum_neginds_eco_tot <- round(out_cum_neginds_eco_tot, digits=0)
+  # assign file name for .csv file that tracks the land categories that ran out of soil C
+  out_file_csv <- substr(out_file,1,nchar(out_file)-4)
+  # write .csv file showing all land categories that ran out of soil C but still had area (i.e. neginds eco 9 and tot_area > 0)
+  write.csv(out_neginds_eco_df, file = paste0(out_file_csv, "_land_cats_depleted_of_soil_c_&_sum_neg_cleared", out_cum_neginds_eco_tot, ".csv"))
+  }
   
   # Calculate CO2-C & CH4-C emissions from fresh marshland based on output table (Eco_CumGain_C_stock & Eco_AnnGain_C_stock). Note that 
   # the CO2 portion of Eco C is actually C uptake (negative value), and it's CO2-eq will later be added to CO2-eq of CH4 to determine net GWP. 
