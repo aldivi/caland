@@ -1734,12 +1734,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # need to adjust historical baseline by the management targets
     # managed adjustments are assumed to be independent of each other so the net adjustments are calculated
     # these initial annual rates are assumed to be included in the baseline annual change numbers:
-    #  Afforestation, Growth
+    #  Growth (Afforestation was removed from this assumption in v2 and is now treated like a direct prescribed annual change)
     #  so the adjustment is based on a difference between the target annual change and the baseline annual change
     #  the baseline annual change is the year 2010 for these management types
     # urban forest is only tracked internally to determine the carbon accumulation rate,
     #  it is not used here in the context of land type converison
-    # Restoration is an annual addition of a land type
+    # Restoration & Afforestation is an annual addition of a land type
     # assume that these entries do not need aggregation with other similar management activities within land type id
     #  in other words, there is only one area-changing management per land type id and each is dealt with uniquely
     
@@ -1826,13 +1826,29 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] - 
           sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] / 
           sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"])
-        
+##############################################################################################################################
+##############################################################################################################################       
+############################################################################################################################## 
+############ DELETE THIS SECTION & TREAT AFFORESTATION LIKE RESTORATION FOR MEADOW AND MARSHES ###############################      
         # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
         # calc area adjustment for Afforestation (temp_adjust) [ha] = current year Afforestation area - initial Afforestation area
-        temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
-          conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+     #   temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
+     #     conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
         # add the difference in Afforestation area since 2010 to the column for base_change_adjust because it's assumed Afforestation is 
         # included in the initial baseline area changes
+     #   conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 
+     #     conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
+        # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
+        # for Afforestation (temp_adjust) in shrubland and grassland
+      #  conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
+      #    conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
+      #    conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
+      #    sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
+##############################################################################################################################
+        # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
+        # calc area adjustment for Afforestation (temp_adjust) [ha] = current year Afforestation area 
+        temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] 
+        # add the prescribed Afforestation area to the column for base_change_adjust 
         conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 
           conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
         # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
@@ -1841,7 +1857,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
           conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
           sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
-        
+##############################################################################################################################       
+##############################################################################################################################       
         # coastal marsh restoration will come out of _agriculture_ land only
         # get area adjustment for COASTAL MARSH RESTORATION (temp_adjust) [ha] = current year management area 
         temp_adjust = conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
