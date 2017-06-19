@@ -657,7 +657,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                                                                                    man_target_df[,pcol]) / (next_targetyear - prev_targetyear)
     }
     
-    # check if any man_area <0 that are != Growth  ### use this later after checking all scenatio files ###
+    # check if any man_area <0 that are != Growth  ### use this later after checking all scenario files ###
     # man_area_sum$man_area[man_area_sum$man_area < 0 & man_area_sum$Management != Growth] <- 0
     man_area_sum$man_area[man_area_sum$man_area < 0 & (man_area_sum$Management == "Dead_removal" | man_area_sum$Management == "Urban_forest")] <- 0
     
@@ -1826,25 +1826,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] - 
           sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"] / 
           sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh"])
-##############################################################################################################################
-##############################################################################################################################       
-############################################################################################################################## 
-############ DELETE THIS SECTION & TREAT AFFORESTATION LIKE RESTORATION FOR MEADOW AND MARSHES ###############################      
-        # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
-        # calc area adjustment for Afforestation (temp_adjust) [ha] = current year Afforestation area - initial Afforestation area
-     #   temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
-     #     conv_own$initial_man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
-        # add the difference in Afforestation area since 2010 to the column for base_change_adjust because it's assumed Afforestation is 
-        # included in the initial baseline area changes
-     #   conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 
-     #     conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
-        # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
-        # for Afforestation (temp_adjust) in shrubland and grassland
-      #  conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
-      #    conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
-      #    conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
-      #    sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
-##############################################################################################################################
+##################################  AFFORESTATION  #####################################################
         # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
         # calc area adjustment for Afforestation (temp_adjust) [ha] = current year Afforestation area 
         temp_adjust = conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] 
@@ -1857,8 +1839,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
           conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - sum(temp_adjust) * 
           conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
           sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
-##############################################################################################################################       
-##############################################################################################################################       
+#################################  RESTORATION  ########################################################      
         # coastal marsh restoration will come out of _agriculture_ land only
         # get area adjustment for COASTAL MARSH RESTORATION (temp_adjust) [ha] = current year management area 
         temp_adjust = conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
@@ -1909,57 +1890,67 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
       conv_own$area_change = conv_own$base_area_change + conv_own$base_change_adjust
       # and recalc NEW AREA [ha] = LANDTYPE AREA + (adjusted) AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
-      ################################## PROTECT RESTORED MARSH & MEADOW AREA VIA AREA CHANGE ADJUSTMENT ################################  
-      # first adjust the new area and area change to account for the protection of restored fresh marsh and restored meadow and restored coastal 
+      
+      ######################## ENSURE PROTECTION OF AFFORESTED AREA & RESTORED MARSH & MEADOW AREA VIA AREA CHANGE ADJUSTMENT ########################  
+      # first adjust the new area and area change to account for the protection of afforested area & restored fresh marsh, meadow and coastal 
       # marsh
       # this also accounts for new area going negative
-      # new area should always be greater than the cumulative restored management area so there is no loss of protected area over time.
-      # thus, for fresh or coastal marsh, or meadow, if new area < cumulative management area, do the following two steps: 
-      # (1) recalculate AREA CHANGE by adding the deficit area to the area change
-      # (2) AREA CHANGE [ha] = AREA CHANGE + CUMULATIVE MANAGEMENT AREA - NEW AREA
-      conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & 
-                             (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = 
-        conv_own$area_change[conv_own$new_area < conv_own$man_area_sum & 
-                               (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] + 
-        (conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
-                                 (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] - 
-           conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
-                               (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")])
-      # sum_restored_neg = -1 * ( (aggregate sum all the above cumulative management areas > new areas) + new area )
-      sum_restored_neg = -sum(conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
-                                                      (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
-                                                         conv_own$Land_Type == "Coastal_marsh")] - 
-                                conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
-                                                    (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
-                                                       conv_own$Land_Type == "Coastal_marsh")])
-      # second, for these cases, set the NEW AREA equal to CUMULATIVE MANAGEMENT AREA 
-      conv_own$new_area[conv_own$new_area < conv_own$man_area_sum & 
-                          (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")] = 
-        conv_own$man_area_sum[conv_own$new_area < conv_own$man_area_sum & 
-                                (conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")]
+      # new area should always be greater than the cumulative afforested & restored management area so there is no loss of protected area over time.
+      # thus, for forest afforestation, fresh or coastal marsh, or meadow, if new area < cumulative management area, do the following two steps: 
+      # (1) CORRECT "AREA CHANGE" for PROTECTED AREA by adding the deficit area to the area change
+      # get indices for land cateogires that don't have at least new area equal to the cumulative protected area
+      protected_deficit_inds <- which((conv_own$new_area < conv_own$man_area_sum) & 
+                                        ((conv_own$Management == "Afforestation" & !is.na(conv_own$Management)) | conv_own$Land_Type == "Fresh_marsh" | 
+                                           conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh")) 
+      # if these indices exist, then
+      if (length(protected_deficit_inds)>0) { 
+      # add the deficit to the area change (effectively will set new_area = man_area_sum)  
+        conv_own$area_change[protected_deficit_inds] <- conv_own$area_change[protected_deficit_inds] + (conv_own$man_area_sum[protected_deficit_inds] - 
+          conv_own$new_area[protected_deficit_inds])
+      # (2) SUM PROTECTED AREA DEFICIT 
+      # sum_restored_neg = -1 * ( (aggregate sum all the above cumulative management areas > new areas) - new area )
+      sum_restored_neg = -sum(conv_own$man_area_sum[protected_deficit_inds] - conv_own$new_area[protected_deficit_inds])
+      # (3) CORRECT "NEW AREA" for PROTECTED AREA 
+      # NEW AREA = CUMULATIVE MANAGEMENT AREA 
+      conv_own$new_area[protected_deficit_inds] = conv_own$man_area_sum[protected_deficit_inds]
+      } else {sum_restored_neg <- 0}
       
+      # (4) CORRECT "AREA CHANGE" FOR NEGATIVE NEW AREAS
       # if new area is negative, add the magnitude of the negative area to the area_change and subtract the difference proportionally from the 
-      # positive area changes (except for fresh marsh and meadow and coastal marsh), then calc new area again
-      # restored fresh marsh and meadow and coastal marsh are protected, so make sure that these restored areas are not negated by this adjustment
-      # correct NEGATIVE new areas:
+      # positive area changes (except from protected forest, fresh marsh, coastal marsh, and meadow - make sure not negated by changes), then calc 
+      # new area again
       # AREA CHANGE = AREA CHANGE - NEW AREA (this later sets new area to 0)
       conv_own$area_change[conv_own$new_area < 0] = conv_own$area_change[conv_own$new_area < 0] - conv_own$new_area[conv_own$new_area < 0]
-      # sum_neg_new = SUM NEGATIVE NEW AREAS + sum_restored_neg
+      
+      # (5) SUM NEGATIVE NEW AREAS + PROTECTED AREA DEFICIT (i.e. total restored area)
+      # sum_neg_new = SUM NEGATIVE NEW AREAS + PROTECTED AREA DEFICIT
       sum_neg_new = sum(conv_own$new_area[conv_own$new_area < 0]) + sum_restored_neg
-      #  For all expanding landtypes (_except_ FRESH & COASTAL marsh, and MEADOW), set area changes:
-      # first, sum the expanding land type area 
-      # sum_pos_change = SUM POSITIVE AREA CHANGES
-      sum_pos_change = sum(conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
-                                                  conv_own$Land_Type != "Coastal_marsh"])
-      # second, adjust AREA CHANGE by subtracting the proportional sum of negative new areas from the positive area changes: 
+     
+      # (6) From expanding forest (with afforestation), meadow and marsh, where new_area >= man_area_sum & man_area_sum >= tot_area, temporarily set aside whatever 
+      # area is required for: (new_area - area_change >= man_area_sum), so that these cases can have the unprotected portion of area_change adjusted, and what is 
+      # excluded from adjustments and changes
+      area_change_protect_inds <- which((conv_own$new_area >= conv_own$man_area_sum) & (conv_own$man_area_sum >= conv_own$tot_area) & (conv_own$area_change > 0) & 
+                                          ((conv_own$Management == "Afforestation" & !is.na(conv_own$Management)) | 
+                                             conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
+                                             conv_own$Land_Type == "Coastal_marsh"))
+      conv_own$area_change[area_change_protect_inds] <- conv_own$area_change[area_change_protect_inds] - (conv_own$man_area_sum[area_change_protect_inds] - 
+                                                                                                            conv_own$tot_area[area_change_protect_inds]) 
+     
+      # (7) SUM EXPANDING AREAS, INCLUDING UNPROTECTED AREA in FOREST, FRESH & COASTAL MARSH, and MEADOW (excludes protected land categories with no unprotected area)
+      # sum_pos_change = SUM EXPANDING AREAS
+      sum_pos_change = sum(conv_own$area_change[conv_own$area_change > 0 & !(conv_own$area_change %in% conv_own$area_change[protected_deficit_inds])])
+      # (8) CORRECT "AREA CHANGE" of all EXPANDING UNPROTECTED areas (includes unprotected area in forest, marshes and meadow) by
+      # subtracting the proportional sum of negative new areas from the positive area changes: 
       # AREA CHANGE = AREA CHANGE + (sum_neg_new * area change / sum_pos_change)
-      conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
-                             conv_own$Land_Type != "Coastal_marsh"] = 
-        conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & conv_own$Land_Type != "Coastal_marsh"] + 
-        sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Meadow" & 
-                                             conv_own$Land_Type != "Coastal_marsh"] / sum_pos_change
-      # For all landtypes:
-      ## update new area by adding adjusted area changes to the total areas for each landtype-ownership-region combination: 
+      conv_own$area_change[conv_own$area_change > 0 & !(conv_own$area_change %in% conv_own$area_change[protected_deficit_inds])] <- 
+        conv_own$area_change[conv_own$area_change > 0 & !(conv_own$area_change %in% conv_own$area_change[protected_deficit_inds])] + 
+        sum_neg_new * conv_own$area_change[conv_own$area_change > 0 & !(conv_own$area_change %in% conv_own$area_change[protected_deficit_inds])] / 
+        sum_pos_change
+      # (9) Add back the protected area that was temporarily subtracted from area_change to the adjusted area change 
+      conv_own$area_change[area_change_protect_inds] <- conv_own$area_change[area_change_protect_inds] + 
+        (conv_own$man_area_sum[area_change_protect_inds] - conv_own$tot_area[area_change_protect_inds]) 
+      
+      # (10) update new area by adding adjusted area changes to the total areas for each landtype-ownership-region combination: 
       # NEW AREA [ha] = TOTAL AREA + AREA CHANGE
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
       
@@ -1969,27 +1960,36 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
         sum_neg_new_area <- sum(conv_own$new_area[conv_own$new_area < 0])
         # create temporary column for new_area: new_area_temp_df$new_area
         new_area_temp_df <- conv_own
-        # replace new_area_temp with any excess new_area > man_area_sum for fresh_marsh, meadow and coastal_marsh
-        new_area_temp_df$new_area[new_area_temp_df$new_area > new_area_temp_df$man_area_sum & new_area_temp_df$Land_Type == "Fresh_marsh" | 
-                                    new_area_temp_df$Land_Type == "Meadow" | new_area_temp_df$Land_Type == "Coastal_marsh"] <-
-          new_area_temp_df$new_area[new_area_temp_df$new_area > new_area_temp_df$man_area_sum & new_area_temp_df$Land_Type == "Fresh_marsh" | 
-                                      new_area_temp_df$Land_Type == "Meadow" | new_area_temp_df$Land_Type == "Coastal_marsh"] -
-          new_area_temp_df$man_area_sum[new_area_temp_df$new_area > new_area_temp_df$man_area_sum & new_area_temp_df$Land_Type == "Fresh_marsh" | 
-                                      new_area_temp_df$Land_Type == "Meadow" | new_area_temp_df$Land_Type == "Coastal_marsh"]
-        # sum all the positive new areas, which may include partial amount of new area for the protected land types
-        sum_pos_new_area <- sum(new_area_temp_df$new_area[new_area_temp_df$new_area > 0]) 
-        # update area_change for land categories with positive new_area by subtracting the area offset (sum_neg_new_area) proportionally (w.r.t. new_area) 
-        # from the area_change 
-        new_area_temp_df$area_change[new_area_temp_df$new_area > 0] <- new_area_temp_df$area_change[new_area_temp_df$new_area > 0] +
-           sum_neg_new_area * new_area_temp_df$new_area[new_area_temp_df$new_area > 0] / sum_pos_new_area
-        # update area_change for land categories with negative new_area by subtracting their negative new_area from it (effectively zeroing new area)
+        # get row indices for land categories with protected area and additional unprotected area
+        unprotected_inds <- which((new_area_temp_df$new_area > new_area_temp_df$man_area_sum) & 
+                                    ((new_area_temp_df$Management == "Afforestation" & !is.na(new_area_temp_df$Management)) |
+                                    new_area_temp_df$Land_Type == "Fresh_marsh" | new_area_temp_df$Land_Type == "Meadow" | 
+                                    new_area_temp_df$Land_Type == "Coastal_marsh")) 
+        # get row indices to exclude from area correction because they are fully protected
+        exclude_inds <- which((conv_own$new_area == conv_own$man_area_sum) & ((conv_own$Management == "Afforestation" & !is.na(conv_own$Management)) | 
+                                                                                conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
+                                                                                conv_own$Land_Type == "Coastal_marsh"))
+        # temporarily replace new_area with the excess unprotected area (man_area_sum - new_area) for forest/afforestation & fresh_marsh, meadow and coastal_marsh
+        new_area_temp_df$new_area[unprotected_inds] <- new_area_temp_df$new_area[unprotected_inds] - new_area_temp_df$man_area_sum[unprotected_inds]
+        # sum all the positive new areas, excluding protected area
+        sum_pos_new_area <- sum(new_area_temp_df$new_area[new_area_temp_df$new_area > 0 & 
+                                                            !(new_area_temp_df$new_area %in% new_area_temp_df$new_area[exclude_inds])]) 
+        # ADJUST "AREA CHANGE" for all postive new_area land categories (for the negative new areas) by adding the negative area offset (sum_neg_new_area) 
+        # proportionally (w.r.t. new_area) from the area_change (lose more from contracting lands, and gain less for expanding lands)
+        new_area_temp_df$area_change[new_area_temp_df$new_area > 0 & !(new_area_temp_df$new_area %in% new_area_temp_df$new_area[exclude_inds])] <- 
+          new_area_temp_df$area_change[new_area_temp_df$new_area > 0 & !(new_area_temp_df$new_area %in% new_area_temp_df$new_area[exclude_inds])] +
+           sum_neg_new_area * new_area_temp_df$new_area[new_area_temp_df$new_area > 0 & 
+                                                          !(new_area_temp_df$new_area %in% new_area_temp_df$new_area[exclude_inds])] / sum_pos_new_area
+        # CORRECT "AREA CHANGE" for all negative new_area land categories by subtracting their negative new_area from it (effectively 0's it)
         new_area_temp_df$area_change[new_area_temp_df$new_area < 0] <- new_area_temp_df$area_change[new_area_temp_df$new_area < 0] - 
-          new_area_temp_df$new_area[new_area_temp_df$new_area < 0]
-        # update new_area for negative new_areas by assigning 0 to them to avoid roundoff errors
+          new_area_temp_df$new_area[new_area_temp_df$new_area < 0] 
+        # CORRECT "NEW AREA" for negative new area land categories by assigning 0 to them to avoid roundoff errors
         new_area_temp_df$new_area[new_area_temp_df$new_area < 0] <- 0
-        # update new_area for positive new area land categories by adding the adjusted area_change to the tot_area
+        # CORRECT "NEW AREA" for postive new area land categories by adding the adjusted area_change to the tot_area
         new_area_temp_df$new_area[new_area_temp_df$new_area > 0] = new_area_temp_df$tot_area[new_area_temp_df$new_area > 0] + 
           new_area_temp_df$area_change[new_area_temp_df$new_area > 0]
+        # add back the protected portion of new areas to thte rows it was subtracted from (unprotected_inds)
+        new_area_temp_df$new_area[unprotected_inds] <- new_area_temp_df$new_area[unprotected_inds] + new_area_temp_df$man_area_sum[unprotected_inds]
         # replace conv_own with new_area_temp_df which has the corrected new_area and area_change
         conv_own <- new_area_temp_df
       }
