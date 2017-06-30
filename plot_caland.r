@@ -43,7 +43,8 @@ libs <- c( "XLConnect", "ggplot2", "grid", "RColorBrewer" )
 for( i in libs ) {
     if( !require( i, character.only=T ) ) {
         cat( "Couldn't load", i, "\n" )
-        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it for local user if you do not have root access\n" )
+        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it for 
+            local user if you do not have root access\n" )
     }
     library( i, character.only=T )
 }
@@ -62,15 +63,22 @@ a_lab = "kha"
 # these are the sheets for plotting summary data
 stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Soil_orgC_stock", "Total_Wood_C_stock", "Total_Atmos_CumGain_C_stock")
 num_stock_sheets = length(stock_sheets)
-ann_sheets = c("Total_Wood_AnnGain_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock")
+ann_sheets = c("Total_Wood_AnnGain_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", 
+               "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnCO2", 
+               "Total_AnnCH4eq", "Total_AnnBCeq", "Total_AnnCO2eq_all")
 num_ann_sheets = length(ann_sheets)
-cum_sheets = c("Total_Wood_CumGain_C_stock", "Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock")
+cum_sheets = c("Total_Wood_CumGain_C_stock", "Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", 
+               "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_CumCO2",
+               "Total_CumCH4eq", "Total_CumBCeq", "Total_CumCO2eq_all")
 num_cum_sheets = length(cum_sheets)
 area_sheets = c("Area", "Managed_area", "Wildfire_area")
 num_area_sheets = length(area_sheets)
-den_sheets = c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", "StandDead_C_den", "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
+den_sheets = c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", "StandDead_C_den", 
+               "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
 num_den_sheets = length(den_sheets)
-bar_plot_labels = c("Wood_Gain_from_Eco", "Ecosystem_Gain_from_Atmos", "Total_Atmosphere_Gain", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_Fire", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Wood")
+bar_plot_labels = c("Wood_Gain_from_Eco", "Ecosystem_Gain_from_Atmos", "Total_Atmosphere_Gain", "Loss_to_Atmos_from_Manage", 
+                    "Loss_to_Atmos_from_Fire", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Wood", "Net_GWP_CO2_Emissions",
+                    "Net_GWP_CH4_Emissions", "Net_GWP_BC_Emissions", "Net_GWP_All")
 
 # loop over the land types
 for (l in 1:num_lt) {
@@ -294,7 +302,8 @@ for(s in 1:num_scen_names) {
 			
 			# land
 			if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab,startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-				val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab,startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+				val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+				                                                    lt_lab,startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
 			} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab,startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
 				val_col = ha2kha * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab,startcol:(ncol(scen_df_list[[i]])-1)])
 			} else {
@@ -565,9 +574,11 @@ if (lt_lab != "Seagrass") {
 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
 out_file = paste0(out_dir, lt_lab, "_cumulative_component_output.pdf")
 plot_df = cum_comp_df[(cum_comp_df$Year == 2020 | cum_comp_df$Year == 2030 | cum_comp_df$Year == 2040 | cum_comp_df$Year == 2050),]
-plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 plot_df$Component[is.na(plot_df$Component)] = "Ecosystem_Gain_minus_NWG"
-plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
+plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
 plot_df_pos = plot_df[plot_df$Value >= 0,]
 plot_df_pos = plot_df_pos[order(plot_df_pos$Component),]
 plot_df_neg = plot_df[plot_df$Value < 0,]
@@ -599,9 +610,11 @@ write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
 out_file = paste0(out_dir, lt_lab, "_cumulative_component_diff_output.pdf")
 temp_df = cum_comp_df[(cum_comp_df$Year == 2020 | cum_comp_df$Year == 2030 | cum_comp_df$Year == 2040 | cum_comp_df$Year == 2050),]
-temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
 for (s in 2:num_scen_names) {
 	diff_df = temp_df[temp_df$Scenario == scen_snames[s],]
@@ -642,9 +655,11 @@ write.csv(cum_comp_df, out_file, quote=FALSE, row.names=FALSE)
 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
 out_file = paste0(out_dir, lt_lab, "_annual_component_output.pdf")
 plot_df = ann_comp_df[(ann_comp_df$Year == 2020 | ann_comp_df$Year == 2030 | ann_comp_df$Year == 2040 | ann_comp_df$Year == 2050),]
-plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 plot_df$Component[is.na(plot_df$Component)] = "Ecosystem_Gain_minus_NWG"
-plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
+plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
 plot_df_pos = plot_df[plot_df$Value >= 0,]
 plot_df_pos = plot_df_pos[order(plot_df_pos$Component),]
 plot_df_neg = plot_df[plot_df$Value < 0,]
@@ -676,9 +691,11 @@ write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
 out_file = paste0(out_dir, lt_lab, "_annual_component_diff_output.pdf")
 temp_df = ann_comp_df[(ann_comp_df$Year == 2020 | ann_comp_df$Year == 2030 | ann_comp_df$Year == 2040 | ann_comp_df$Year == 2050),]
-temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
 for (s in 2:num_scen_names) {
 	diff_df = temp_df[temp_df$Scenario == scen_snames[s],]
@@ -724,9 +741,11 @@ write.csv(ann_comp_df, out_file, quote=FALSE, row.names=FALSE)
 # net cumulative change line graph
 out_file = paste0(out_dir, lt_lab, "_cumulative_change_output.pdf")
 temp_df = cum_comp_df
-temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
 plot_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
 plot_df = plot_df[order(plot_df$Scenario),]
 p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
@@ -746,9 +765,11 @@ write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
 # net cumulative change, difference from baseline line graph
 out_file = paste0(out_dir, lt_lab, "_cumulative_change_diff_output.pdf")
 temp_df = cum_comp_df
-temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
 temp_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
 for (s in 2:num_scen_names) {
@@ -775,9 +796,11 @@ write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
 # net annual retention line graph
 out_file = paste0(out_dir, lt_lab, "_annual_retain_output.pdf")
 temp_df = ann_comp_df
-temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
 plot_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
 plot_df = plot_df[order(plot_df$Scenario),]
 p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
@@ -797,9 +820,11 @@ write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
 # net annual retention, difference from baseline line graph
 out_file = paste0(out_dir, lt_lab, "_annual_retain_diff_output.pdf")
 temp_df = ann_comp_df
-temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
 temp_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
 for (s in 2:num_scen_names) {
