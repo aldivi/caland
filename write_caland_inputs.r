@@ -1,7 +1,7 @@
 # write_caland_inputs.r
 
 # generate the two caland input files based on the gis stats and parameters from the literature
-#	make .xls files
+#	make .xlsx files
 #	the columns widths are not properly adjusted when written, so this should be done by hand
 
 # this script defines function write_caland_inputs() for writing the intput files
@@ -73,6 +73,22 @@
 
 # carbon file
 
+#setwd("/Users/adivi/projects/cnra_carbon/caland")
+
+# this enables java to use up to 4GB of memory for reading and writing excel files
+options(java.parameters = "-Xmx4g" )
+
+# Load all the required packages
+libs <- c( "XLConnect" )
+for( i in libs ) {
+    if( !require( i, character.only=T ) ) {
+        cat( "Couldn't load", i, "\n" )
+        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
+              for local user if you do not have root access\n" )
+    }
+    library( i, character.only=T )
+}
+
 ########### set these here so that I can work without running the function
 scen_tag = "frst2Xmort_fire"
 c_file = "carbon_input.xlsx"
@@ -94,20 +110,6 @@ num_c_in_files = length(carbon_gis_files)
 ref_year = 2001
 diff_years = start_year - ref_year
 scen_end_year = end_year - 1
-	
-# this enables java to use up to 4GB of memory for reading and writing excel files
-options(java.parameters = "-Xmx4g" )
-
-# Load all the required packages
-libs <- c( "XLConnect" )
-for( i in libs ) {
-    if( !require( i, character.only=T ) ) {
-        cat( "Couldn't load", i, "\n" )
-        stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
-              for local user if you do not have root access\n" )
-    }
-    library( i, character.only=T )
-}
 
 in_dir = "raw_data/"
 out_dir = "inputs/"
@@ -115,6 +117,7 @@ out_dir = "inputs/"
 xltag = ".xlsx"
 
 c_file_out = paste0(out_dir, c_file)
+c_map_file_out = "local_files/carbon_density_map_source.xlsx"
 
 scen_head_file = paste0(in_dir, "scenario_headers.xlsx")
 param_head_file = paste0(in_dir, "parameter_headers.xlsx")
@@ -516,7 +519,7 @@ for (i in 1:2) { # vegc_uptake and soilc_accum
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
 }
-for (i in 3:3) { # conversion2ar_urban
+for (i in 3:3) { # conversion2ag_urban
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
 }
@@ -631,7 +634,7 @@ for (s in 1:num_scenin_sheets) {
 	
 	# get the necessary years for columns (note that the start_year column already exists)
 	# years immediately before start years and immediately after end years need to be added (unless they are beyond the year range)
-	# first years - includes the prior year (within start_year to scen_end_year)
+	# first years: includes the prior year (within start_year to scen_end_year)
 	man_first = sort(unique(manage$start_year))
 	man_last = sort(unique(manage$end_year))
 	add_years = NULL
@@ -642,7 +645,7 @@ for (s in 1:num_scenin_sheets) {
 	man_first = sort(unique(man_first))
 	man_first_labels = paste0(man_first, "_ha")
 	num_man_first = length(man_first)
-	# last years - includes the next year (within start_year to scen_end_year)
+	# last years: includes the next year (within start_year to scen_end_year)
 	add_years = NULL
 	for (y in 1:length(man_last)) {
 		if (man_last[y] < scen_end_year) {add_years = c(add_years, man_last[y] + 1)}
@@ -702,7 +705,10 @@ for (s in 1:num_scenin_sheets) {
 		
 		# fraction input; the values set are annual area; these fractions are directly applied to the correct area
 		# Dead_removal and Urban_forest input values are fractions of Developed_area in year
-		# Growth input values are fraction of initial growth rate
+		# Growth input values are fractions of the initial growth rate
+		# The values set for Dead_removal and Urban_Forest can be negative if Developed_all runs out of area
+		#	this is ok because these values are used to calculate intermediate-year values, which may not be negative
+		#	these negative values are dealt with in CALAND
 
 		# growth
 		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth",year_lab] = (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"] + (year - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"]) * (manage_fracin$end_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"] - manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"]) / (manage_fracin$end_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"] - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"])) * manage_fracin$Area_change_ha[manage_fracin$start_year <= year & manage_fracin$end_year >= year & manage_fracin$Management == "Growth"]
@@ -730,7 +736,7 @@ for (s in 1:num_scenin_sheets) {
 			} # end for p loop over previous year columns
 		} # end if not start year
 		# now multiply the area by the fraction
-		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] * manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab]
+		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] + (year - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")]) * (manage_fracin$end_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] - manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")]) / (manage_fracin$end_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")])) * manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab]
 		
 		## process years after last years
 		
@@ -767,7 +773,7 @@ for (s in 1:num_scenin_sheets) {
 	out_scen_df_list[[3]] = manage_out
 
 	# write the scenario file
-	# modify some of the input headers and write the headers also
+	# write the headers also
 	
 	out_file = paste0(out_dir, scenin_name, "_", scen_tag, xltag)
 	# put the output tables in a workbook
@@ -775,7 +781,7 @@ for (s in 1:num_scenin_sheets) {
 	createSheet(out_wrkbk, name = out_scen_sheets)
 	clearSheet(out_wrkbk, sheet = out_scen_sheets)
 	writeWorksheet(out_wrkbk, data = scen_head_df_list, sheet = out_scen_sheets, startRow = 1, header = FALSE)
-	writeWorksheet(out_wrkbk, data = out_scen_df_list, sheet = out_scen_sheets, startRow = start_row, header = TRUE)
+	writeWorksheet(out_wrkbk, data = out_scen_df_list, sheet = out_scen_sheets, startRow = start_row, header = TRUE)	
 	# write the workbook
 	saveWorkbook(out_wrkbk)
 
@@ -961,12 +967,32 @@ for (p in cpool_start:cpool_end) {
 } # end p loop over the carbon pools
 
 # make the 2 aggregate carbon tables
+# but do it two different ways
+
+# first way, for mapping: aggregate all categories, even if component pools are missing (Cultivated and Developed_all and Fresh_marsh and Seagrass)
+# second way, for input files: if component pools are missing, let the sums go to NA
+# the same loops for both
+
+############### make a separate file for mapping the carbon
+# here the totals will be summed for all types, even if some component pools are missing (Cultivated and Developed_all and Fresh_marsh and Seagrass)
+
+out_c_map_df_list = out_c_df_list
+
+############### the input files will reflect where there are missing components (Cultivated and Developed_all and Fresh_marsh and Seagrass)
+# here the totals for land categories with missing components will revert to NA
 
 # all organic c
+
 out_c_df_list[[allc_ind]] = out_c_df_list[[cpool_start]]
 out_c_df_list[[allc_ind]][,5:10] = 0
 # don't propagate the SE stddev to the sums
 out_c_df_list[[allc_ind]]$Stddev_SE_Mg_ha = NA
+
+out_c_map_df_list[[allc_ind]] = out_c_map_df_list[[cpool_start]]
+out_c_map_df_list[[allc_ind]][,5:10] = 0
+# don't propagate the SE stddev to the sums
+out_c_map_df_list[[allc_ind]]$Stddev_SE_Mg_ha = NA
+
 # loop through all c dens pools and add to new column
 for (i in cpool_start:cpool_end) {
 	out_c_df_list[[allc_ind]]$Min_Mg_ha = out_c_df_list[[allc_ind]]$Min_Mg_ha + out_c_df_list[[i]]$Min_Mg_ha
@@ -974,15 +1000,46 @@ for (i in cpool_start:cpool_end) {
 	out_c_df_list[[allc_ind]]$Mean_Mg_ha = out_c_df_list[[allc_ind]]$Mean_Mg_ha + out_c_df_list[[i]]$Mean_Mg_ha
 	out_c_df_list[[allc_ind]]$Stddev_Mg_ha = out_c_df_list[[allc_ind]]$Stddev_Mg_ha + out_c_df_list[[i]]$Stddev_Mg_ha * out_c_df_list[[i]]$Stddev_Mg_ha
 	out_c_df_list[[allc_ind]]$Mean_SE_Mg_ha = out_c_df_list[[allc_ind]]$Mean_SE_Mg_ha + out_c_df_list[[i]]$Mean_SE_Mg_ha * out_c_df_list[[i]]$Mean_SE_Mg_ha
+	
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Min_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Min_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[allc_ind]]$Min_Mg_ha = out_c_map_df_list[[allc_ind]]$Min_Mg_ha + add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Max_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Max_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[allc_ind]]$Max_Mg_ha = out_c_map_df_list[[allc_ind]]$Max_Mg_ha + add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Mean_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Mean_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[allc_ind]]$Mean_Mg_ha = out_c_map_df_list[[allc_ind]]$Mean_Mg_ha + add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Stddev_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Stddev_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[allc_ind]]$Stddev_Mg_ha = out_c_map_df_list[[allc_ind]]$Stddev_Mg_ha + add_vals * add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Mean_SE_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Mean_SE_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[allc_ind]]$Mean_SE_Mg_ha = out_c_map_df_list[[allc_ind]]$Mean_SE_Mg_ha + add_vals * add_vals
 }
 out_c_df_list[[allc_ind]]$Stddev_Mg_ha = sqrt(out_c_df_list[[allc_ind]]$Stddev_Mg_ha)
 out_c_df_list[[allc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_df_list[[allc_ind]]$Mean_SE_Mg_ha)
 
+out_c_map_df_list[[allc_ind]]$Stddev_Mg_ha = sqrt(out_c_map_df_list[[allc_ind]]$Stddev_Mg_ha)
+out_c_map_df_list[[allc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_map_df_list[[allc_ind]]$Mean_SE_Mg_ha)
+
 # biomass c (non-soil c)
+
 out_c_df_list[[biomassc_ind]] = out_c_df_list[[allc_ind]]
 out_c_df_list[[biomassc_ind]][,5:10] = 0
 # don't propagate the SE stddev to the sums
 out_c_df_list[[biomassc_ind]]$Stddev_SE_Mg_ha = NA
+
+out_c_map_df_list[[biomassc_ind]] = out_c_map_df_list[[allc_ind]]
+out_c_map_df_list[[biomassc_ind]][,5:10] = 0
+# don't propagate the SE stddev to the sums
+out_c_map_df_list[[biomassc_ind]]$Stddev_SE_Mg_ha = NA
+
 # loop through all c dens pools and add to new column
 for (i in cpool_start:(cpool_end-1)) {
 	out_c_df_list[[biomassc_ind]]$Min_Mg_ha = out_c_df_list[[biomassc_ind]]$Min_Mg_ha + out_c_df_list[[i]]$Min_Mg_ha
@@ -990,9 +1047,34 @@ for (i in cpool_start:(cpool_end-1)) {
 	out_c_df_list[[biomassc_ind]]$Mean_Mg_ha = out_c_df_list[[biomassc_ind]]$Mean_Mg_ha + out_c_df_list[[i]]$Mean_Mg_ha
 	out_c_df_list[[biomassc_ind]]$Stddev_Mg_ha = out_c_df_list[[biomassc_ind]]$Stddev_Mg_ha + out_c_df_list[[i]]$Stddev_Mg_ha * out_c_df_list[[i]]$Stddev_Mg_ha
 	out_c_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = out_c_df_list[[biomassc_ind]]$Mean_SE_Mg_ha + out_c_df_list[[i]]$Mean_SE_Mg_ha * out_c_df_list[[i]]$Mean_SE_Mg_ha
+	
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Min_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Min_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[biomassc_ind]]$Min_Mg_ha = out_c_map_df_list[[biomassc_ind]]$Min_Mg_ha + add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Max_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Max_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[biomassc_ind]]$Max_Mg_ha = out_c_map_df_list[[biomassc_ind]]$Max_Mg_ha + add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Mean_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Mean_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[biomassc_ind]]$Mean_Mg_ha = out_c_map_df_list[[biomassc_ind]]$Mean_Mg_ha + add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Stddev_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Stddev_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[biomassc_ind]]$Stddev_Mg_ha = out_c_map_df_list[[biomassc_ind]]$Stddev_Mg_ha + add_vals * add_vals
+	na_inds = which(is.na(out_c_map_df_list[[i]]$Mean_SE_Mg_ha))
+	add_vals = out_c_map_df_list[[i]]$Mean_SE_Mg_ha
+	add_vals[na_inds] = 0
+	out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha + add_vals * add_vals
 }
 out_c_df_list[[biomassc_ind]]$Stddev_Mg_ha = sqrt(out_c_df_list[[biomassc_ind]]$Stddev_Mg_ha)
 out_c_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_df_list[[biomassc_ind]]$Mean_SE_Mg_ha)
+
+out_c_map_df_list[[biomassc_ind]]$Stddev_Mg_ha = sqrt(out_c_map_df_list[[biomassc_ind]]$Stddev_Mg_ha)
+out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha)
+
 
 ############### make the conversion/management parameter tables
 # the vegetation c uptake table is distributed then Forest is adjusted by region
@@ -1132,6 +1214,17 @@ createSheet(out_wrkbk, name = out_c_sheets)
 clearSheet(out_wrkbk, sheet = out_c_sheets)
 writeWorksheet(out_wrkbk, data = param_head_df_list, sheet = out_c_sheets, startRow = 1, header = FALSE)
 writeWorksheet(out_wrkbk, data = out_c_df_list, sheet = out_c_sheets, startRow = start_row, header = TRUE)
+# write the workbook
+saveWorkbook(out_wrkbk)
+
+# write the carbon mapping file
+out_file = c_map_file_out
+# put the output tables in a workbook
+out_wrkbk =  loadWorkbook(out_file, create = TRUE)
+createSheet(out_wrkbk, name = out_c_sheets[1: cpool_end])
+clearSheet(out_wrkbk, sheet = out_c_sheets[1: cpool_end])
+writeWorksheet(out_wrkbk, data = param_head_df_list[1: cpool_end], sheet = out_c_sheets[1: cpool_end], startRow = 1, header = FALSE)
+writeWorksheet(out_wrkbk, data = out_c_map_df_list[1: cpool_end], sheet = out_c_sheets[1: cpool_end], startRow = start_row, header = TRUE)
 # write the workbook
 saveWorkbook(out_wrkbk)
 
