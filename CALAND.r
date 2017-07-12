@@ -111,8 +111,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # this enables java to use up to 4GB of memory for reading and writing excel files
   options(java.parameters = "-Xmx4g" )
   
-  # to do: separate the selection of c density and accumulation non-mean values values
-  
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd", "mean_se", "sd_se")
   
