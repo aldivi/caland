@@ -1301,29 +1301,29 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # store the names for aggregation below
     agg_names = NULL
     # above
-    # add column called "Above_main_C_den_gain_man":  above main C density = -(above removed C) -(above to standing dead C)
+    # add column called "Above_main_C_den_gain_man":  above main C density = -(above harvested C) -(above to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[3], "_gain_man"))
-    man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_removed_c - man_adjust_df$Above2StandDead_c
+    man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_harvested_c - man_adjust_df$Above2StandDead_c
     # below
     # add column called "Below_main_C_den_gain_man": root C density = -(root to soil C) -(root to atmos C)
     agg_names = c(agg_names, paste0(out_density_sheets[4], "_gain_man"))
     man_adjust_df[,agg_names[2]] = -man_adjust_df$Below2Soil_c - man_adjust_df$Below2Atmos_c
     # understory
-    # add column called "Understory_C_den_gain_man": understory C density = -(understory to atmos C) -(understory to down dead C)
+    # add column called "Understory_C_den_gain_man": understory C density = -(understory to slash C) -(understory to down dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[5], "_gain_man"))
-    man_adjust_df[,agg_names[3]] = -man_adjust_df$Understory2Atmos_c - man_adjust_df$Understory2DownDead_c
+    man_adjust_df[,agg_names[3]] = -man_adjust_df$Understory2Slash_c - man_adjust_df$Understory2DownDead_c
     # standing dead
-    # add column called "StandDead_C_den_gain_man": standing dead C density = -(removed standing dead C) + (above main to standing dead C)
+    # add column called "StandDead_C_den_gain_man": standing dead C density = -(harvested standing dead C) + (above main to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[6], "_gain_man"))
-    man_adjust_df[,agg_names[4]] = -man_adjust_df$StandDead_removed_c + man_adjust_df$Above2StandDead_c
+    man_adjust_df[,agg_names[4]] = -man_adjust_df$StandDead_harvested_c + man_adjust_df$Above2StandDead_c
     # down dead
-    # add column called "DownDead_C_den_gain_man": down dead C density = -(down dead to atmos C) + (understory to down dead C)
+    # add column called "DownDead_C_den_gain_man": down dead C density = -(down dead to slash C) + (understory to down dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[7], "_gain_man"))
-    man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2DownDead_c
+    man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Slash_c + man_adjust_df$Understory2DownDead_c
     # litter
-    # add column called "Litter_C_den_gain_man": litter C density = -(litter to atmos C)
+    # add column called "Litter_C_den_gain_man": litter C density = -(litter to slash C)
     agg_names = c(agg_names, paste0(out_density_sheets[8], "_gain_man"))
-    man_adjust_df[,agg_names[6]] = -man_adjust_df$Litter2Atmos_c
+    man_adjust_df[,agg_names[6]] = -man_adjust_df$Litter2Slash_c
     # soil
     # add column called "Soil_orgC_C_den_gain_man": soil C density = -(soil to atmos C) + (root to soil C)
     agg_names = c(agg_names, paste0(out_density_sheets[9], "_gain_man"))
