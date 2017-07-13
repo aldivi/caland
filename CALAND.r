@@ -285,45 +285,45 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   
   # do lit search regarding slash burning in logging and thinning practices to get fractions below:
   # forest clearcut and above-main removed to atmos
-  clrcut_mainremoved_burn <- 0.25
+  # clrcut_mainremoved_burn <- 0.25
   # forest partial_cut and above-main removed  to atmos
-  parcut_mainremoved_burn <- 0.25
+  # parcut_mainremoved_burn <- 0.25
   # forest fuel_reduction and above-main removed  to atmos
-  fuelred_mainremoved_burn <- 0.25
+  # fuelred_mainremoved_burn <- 0.25
   # forest Prescribed_burn and above-main removed  to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
-  prescrburn_mainremoved_burn <- 1
+  # prescrburn_mainremoved_burn <- 1
   # forest Weed_treatment and above-main removed to atmos
-  weedtrt_mainremoved_burn <- 0.25
+  # weedtrt_mainremoved_burn <- 0.25
   # forest clearcut and understory to atmos
-  clrcut_under_burn <- 0.25
+  # clrcut_under_burn <- 0.25
   # forest partial_cut and understory to atmos
-  parcut_under_burn <- 0.25
+  # parcut_under_burn <- 0.25
   # forest fuel_reduction and understory to atmos
-  fuelred_under_burn <- 0.25
+  # fuelred_under_burn <- 0.25
   # forest Prescribed_burn and understory to atmos
-  prescrburn_under_burn <- 1
+  # prescrburn_under_burn <- 1
   # forest weed_treatment and understory removed to atmos
-  weedtrt_under_burn <- 0.25
+  # weedtrt_under_burn <- 0.25
   # forest clearcut and down dead to atmos
-  clrcut_down_burn <- 0.25
+  # clrcut_down_burn <- 0.25
   # forest partial_cut and down dead to atmos
-  parcut_down_burn <- 0.25
+  # parcut_down_burn <- 0.25
   # forest fuel_reduction and down dead to atmos
-  fuelred_down_burn <- 0.25
+  #fuelred_down_burn <- 0.25
   # forest Prescribed_burn and down dead to atmos
-  prescrburn_down_burn <- 1
+  # prescrburn_down_burn <- 1
   # forest Weed_treatment and down dead removed to atmos
-  weedtrt_down_burn <- 0.25
+  # weedtrt_down_burn <- 0.25
   # forest clearcut and litter to atmos
-  clrcut_litter_burn <- 0.25
+  # clrcut_litter_burn <- 0.25
   # forest partial_cut and litter to atmos
-  parcut_litter_burn <- 0.25
+  # parcut_litter_burn <- 0.25
   # forest fuel_reduction and litter to atmos
-  fuelred_litter_burn <- 0.25
+  # fuelred_litter_burn <- 0.25
   # forest Prescribed_burn and litter to atmos
-  prescrburn_litter_burn <- 1
+  # prescrburn_litter_burn <- 1
   # forest weed_treatment and litter removed to atmos
-  weedtrt_litter_burn <- 0.25 
+  # weedtrt_litter_burn <- 0.25 
   
   # output tables
   out_area_sheets = c("Area", "Managed_area", "Wildfire_area")
