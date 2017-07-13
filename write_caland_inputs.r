@@ -117,7 +117,7 @@ out_dir = "inputs/"
 xltag = ".xlsx"
 
 c_file_out = paste0(out_dir, c_file)
-c_map_file_out = "local_files/carbon_density_map_source.xlsx"
+# c_map_file_out = "local_files/carbon_density_map_source.xlsx" 
 
 scen_head_file = paste0(in_dir, "scenario_headers.xlsx")
 param_head_file = paste0(in_dir, "parameter_headers.xlsx")
@@ -1218,15 +1218,15 @@ writeWorksheet(out_wrkbk, data = out_c_df_list, sheet = out_c_sheets, startRow =
 saveWorkbook(out_wrkbk)
 
 # write the carbon mapping file
-out_file = c_map_file_out
+# out_file = c_map_file_out 
 # put the output tables in a workbook
-out_wrkbk =  loadWorkbook(out_file, create = TRUE)
-createSheet(out_wrkbk, name = out_c_sheets[1: cpool_end])
-clearSheet(out_wrkbk, sheet = out_c_sheets[1: cpool_end])
-writeWorksheet(out_wrkbk, data = param_head_df_list[1: cpool_end], sheet = out_c_sheets[1: cpool_end], startRow = 1, header = FALSE)
-writeWorksheet(out_wrkbk, data = out_c_map_df_list[1: cpool_end], sheet = out_c_sheets[1: cpool_end], startRow = start_row, header = TRUE)
+# out_wrkbk =  loadWorkbook(out_file, create = TRUE)
+# createSheet(out_wrkbk, name = out_c_sheets[1: cpool_end])
+# clearSheet(out_wrkbk, sheet = out_c_sheets[1: cpool_end])
+# writeWorksheet(out_wrkbk, data = param_head_df_list[1: cpool_end], sheet = out_c_sheets[1: cpool_end], startRow = 1, header = FALSE)
+# writeWorksheet(out_wrkbk, data = out_c_map_df_list[1: cpool_end], sheet = out_c_sheets[1: cpool_end], startRow = start_row, header = TRUE)
 # write the workbook
-saveWorkbook(out_wrkbk)
+# saveWorkbook(out_wrkbk)
 
 cat("Finish write_caland_inputs at", date(), "\n")
 }
