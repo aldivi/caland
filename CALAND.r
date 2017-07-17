@@ -1357,20 +1357,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # add column called "Soil_orgC_C_den_gain_man": soil C density = -(soil to atmos C) + (root to soil C)
     agg_names = c(agg_names, paste0(out_density_sheets[9], "_gain_man"))
     man_adjust_df[,agg_names[7]] = -man_adjust_df$Soil2Atmos_c + man_adjust_df$Below2Soil_c
-    # slash
-    # add column called "Slash_C_den_gain_man": slash C density = Harvested C to slash + Understory to slash + Downed dead to slash + Litter to slash
-    agg_names = c(agg_names, "Slash_C_den_gain_man")
-    man_adjust_df[,agg_names[8]] = man_adjust_df$Harvested2Slash_c + man_adjust_df$Harvested2Slash_c
     
     # to get the carbon must multiply these by the tot_area
     
-    #### all C to atmos ####
+    #### C to atmos via 3 pathways (decay or root respiration, burn, energy) which determine proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
     #  "Land2Decay_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
     #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
     agg_names = c(agg_names, paste0("Land2Decay_c_stock_man"))
     man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Harvested2SawmillDecay_c + 
                                                                 man_adjust_df$Slash2Decay_c + man_adjust_df$Below2Atmos_c)
-    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha] + 
+    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
     agg_names = c(agg_names, paste0("Land2Burn_c_stock_man"))
     man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * (man_adjust_df$Slash2Burn_c)
   
