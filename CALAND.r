@@ -1275,65 +1275,49 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c", "Under2Slash_c", 
                       "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
                       "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
-    #c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", 
-    #                  "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", 
-    #                 "Below2Soil_c")
     # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
     # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
     # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
-    manage_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, 5, 9, 3, 4, 4)
-    # manage_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 3, 4, 4)
-    #manage_density_inds = c(3 (above), 6 (standdead), -1, -1, -1, -1, 5 (under), 7 (down), 8 (litter), -2 (slash2energy), -2 (slash2burn), -2 (slash2decay), 5 (under2down), 9 (soil), 3 (above2stand), 4 (below), 4 (below))
+    # manage_density_inds = c(3 [i=1], 6 [i=2], -1 [i=3], -1 [i=4], -1 [i=5], -1 [i=6], 5 [i=7], 7 [i=8], 8 [i=9], -2 [i=10], -2 [i=11], -2 [i=12], 5 [i=13], 9 [i=14], 3 [i=15], 4 [i=16], 4 [i=17])
+    # manage_density_inds = c(3 (above), 6 (standdead), -1, -1, -1, -1 (Harvested2slash), 5 (under2slash), 7 (down2slash), 8 (litter2slash), -2 (slash2energy), -2 (slash2burn), -2 (slash2decay), 5 (under2down), 9 (soil), 3 (above2stand), 4 (below), 4 (below))
     # out_density_sheets = c("All_orgC_den" (1), "All_biomass_C_den" (2), "Above_main_C_den" (3), "Below_main_C_den" (4), "Understory_C_den" (5), "StandDead_C_den" (6), 
     #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
+    # req'd order of operations: (1) Calc Harvested C (from above and stand dead), (2) Calc harvested 2slash, 2energy, 2decay (3) Calc other transfers 2slash (under, downdead, litter) (4) all others
+    # for i in 1:17
     for (i in 1:num_manfrac_cols){
       # the removed values are calculated first, so this will work
-      # if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns
-      # if manage_density_inds[i] == -2 the the source is the slash pool; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
+      # if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns 
       if (manage_density_inds[i] == -1 | manage_density_inds[i] == -2) {
+        # when i = 3, 4, 5, or 6
         if (manage_density_inds[i] == -1) {
           # (Harvested2Wood_c, Harvested2Energy_c, Harvested2Decay_c, Harvested2Slash_c) [Mg/ha] = (Above_harvested_c + StandDead_harvested_c) * 
-                                                                              # (Harvested2Wood_frac, Harvested2Energy_frac, Harvested2Decay_frac, Harvested2Slash_frac)
+                                                                                   # (Harvested2Wood_frac, Harvested2Energy_frac, Harvested2Decay_frac, Harvested2Slash_frac)
           man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[1]] + man_adjust_df[,c_trans_names[2]]) * man_adjust_df[,man_frac_names[i]]
         } else {
-          # else manage_density_inds[i] == -2
-          # (Under2Slash_c, DownDead2Slash_c, Litter2Slash_c) [Mg/ha] = (Under_dens, DownDead_dens, Litter_dens) * (Under2Slash_frac, DownDead2Slash_frac, Litter2Slash_frac)
-            man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[6]] + man_adjust_df[,c_trans_names[7]]) * man_adjust_df[,man_frac_names[i]]
+          # else manage_density_inds[i] == -2 (when i = 10, 11, or 12)
+          # if manage_density_inds[i] == -2 the source is the slash pool; take the sum of c trans columns 6, 7, 8 & 9 (Harvest2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c)
+          # (slash2energy_c, slash2burn_c, slash2decay_c) [Mg/ha] = (Harvested2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c) * 
+                                                                     # (Harvested2Slsash_frac, Under2Slash_frac, DownDead2Slash_frac, Litter2Slash_frac)
+            man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[6]] + man_adjust_df[,c_trans_names[7]] + man_adjust_df[,c_trans_names[8]] +
+                                                man_adjust_df[,c_trans_names[9]]) * man_adjust_df[,man_frac_names[i]]
         }
+        # when i = 1(above2harvest), 2 (downdead2harvest), 7 (under2slash), 8 (downdead2slash), 9 (litter2slash), 13, 14, 15, 16, or 17, so use the C densities
       } else {
+        # if any of the C density columns are not already one of the headers in man_adjust_df
         if (!out_density_sheets[manage_density_inds[i]] %in% colnames(man_adjust_df)) {
+          # subset next year's C density from corresponding c pool's density dataframe and merge with the man_adjust_df
           man_adjust_df = merge(man_adjust_df, 
                                 out_density_df_list[[manage_density_inds[i]]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", next_density_label)], 
                                 by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+          # subset next year's corresponding C density header from the man_adjust_df, and assign to it the corresponding name of the c pool's density 
           names(man_adjust_df)[names(man_adjust_df) == next_density_label] = out_density_sheets[manage_density_inds[i]]
         }
+        # calc C transfer = C density [mgC/ha] * (management transfer fraction) * current year managed area [ha] / total area [ha]
         man_adjust_df[,c_trans_names[i]] = man_adjust_df[,out_density_sheets[manage_density_inds[i]]] * man_adjust_df[,man_frac_names[i]] * 
           man_adjust_df$man_area / man_adjust_df$tot_area
       }
     } # end for i loop over the managed transfer fractions for calcuting the transfer carbon
-    for (i in 1:num_manfrac_cols){
-      # the removed values are calculated first, so this will work
-      # if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns
-      # if manage_density_inds[i] == -2 then the source is the slash pool; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
-      if (manage_density_inds[i] == -1) {
-          # (Harvested2Wood_c, Harvested2Energy_c, Harvested2Decay_c) [Mg/ha] = (Above_harvested_c + StandDead_harvested_c) * 
-                                                                                # (Harvested2Wood_frac, Harvested2Energy_frac, Harvested2Decay_frac)
-          man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[1]] + man_adjust_df[,c_trans_names[2]]) * man_adjust_df[,man_frac_names[i]]
-      } else {
-        
-        
-        
-        
-        if (!out_density_sheets[manage_density_inds[i]] %in% colnames(man_adjust_df)) {
-          man_adjust_df = merge(man_adjust_df, 
-                                out_density_df_list[[manage_density_inds[i]]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", next_density_label)], 
-                                by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
-          names(man_adjust_df)[names(man_adjust_df) == next_density_label] = out_density_sheets[manage_density_inds[i]]
-        }
-        man_adjust_df[,c_trans_names[i]] = man_adjust_df[,out_density_sheets[manage_density_inds[i]]] * man_adjust_df[,man_frac_names[i]] * 
-          man_adjust_df$man_area / man_adjust_df$tot_area
-      }
-    } # end for i loop over the managed transfer fractions for calcuting the transfer carbon
+  
     man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Cat_ID),]
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
@@ -1342,9 +1326,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # now consolidate the c density transfers to the pools
     # convert these to gains for consistency: all terrestrial gains are positive, losses are negative
     # store the names for aggregation below
+    # out_density_sheets = c("All_orgC_den" (1), "All_biomass_C_den" (2), "Above_main_C_den" (3), "Below_main_C_den" (4), "Understory_C_den" (5), "StandDead_C_den" (6), 
+    #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
     agg_names = NULL
     # above
-    # add column called "Above_main_C_den_gain_man":  above main C density = -(above harvested C) -(above to standing dead C)
+    # add column called "Above_main_C_den_gain_man":  above main C density = -(+above harvested C) -(+above to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[3], "_gain_man"))
     man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_harvested_c - man_adjust_df$Above2StandDead_c
     # below
@@ -1354,7 +1340,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # understory
     # add column called "Understory_C_den_gain_man": understory C density = -(understory to slash C) -(understory to down dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[5], "_gain_man"))
-    man_adjust_df[,agg_names[3]] = -man_adjust_df$Understory2Slash_c - man_adjust_df$Understory2DownDead_c
+    man_adjust_df[,agg_names[3]] = -man_adjust_df$Under2Slash_c - man_adjust_df$Under2DownDead_c
     # standing dead
     # add column called "StandDead_C_den_gain_man": standing dead C density = -(harvested standing dead C) + (above main to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[6], "_gain_man"))
@@ -1362,7 +1348,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # down dead
     # add column called "DownDead_C_den_gain_man": down dead C density = -(down dead to slash C) + (understory to down dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[7], "_gain_man"))
-    man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Slash_c + man_adjust_df$Understory2DownDead_c
+    man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Slash_c + man_adjust_df$Under2DownDead_c
     # litter
     # add column called "Litter_C_den_gain_man": litter C density = -(litter to slash C)
     agg_names = c(agg_names, paste0(out_density_sheets[8], "_gain_man"))
@@ -1371,20 +1357,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # add column called "Soil_orgC_C_den_gain_man": soil C density = -(soil to atmos C) + (root to soil C)
     agg_names = c(agg_names, paste0(out_density_sheets[9], "_gain_man"))
     man_adjust_df[,agg_names[7]] = -man_adjust_df$Soil2Atmos_c + man_adjust_df$Below2Soil_c
-    # slash
-    # add column called "Slash_C_den_gain_man": slash C density = Harvested C to slash + Understory to slash + Downed dead to slash + Litter to slash
-    agg_names = c(agg_names, "Slash_C_den_gain_man")
-    man_adjust_df[,agg_names[8]] = man_adjust_df$Harvested2Slash_c + man_adjust_df$Harvested2Slash_c
     
     # to get the carbon must multiply these by the tot_area
     
-    #### all C to atmos ####
+    #### C to atmos via 3 pathways (decay or root respiration, burn, energy) which determine proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
     #  "Land2Decay_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
     #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
     agg_names = c(agg_names, paste0("Land2Decay_c_stock_man"))
     man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Harvested2SawmillDecay_c + 
                                                                 man_adjust_df$Slash2Decay_c + man_adjust_df$Below2Atmos_c)
-    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha] + 
+    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
     agg_names = c(agg_names, paste0("Land2Burn_c_stock_man"))
     man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * (man_adjust_df$Slash2Burn_c)
   
