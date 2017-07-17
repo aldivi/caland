@@ -2574,35 +2574,43 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     }
     
     ##### CUMULATIVE FLUXES ##### 
-    
+    ### Net Ecosystem Flux (i.e. baseline) ###
     # "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
     out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
     
-    # "Manage_Atmos_CumGain_C_stock" based on biomass removal and energy (note: actually adding terms because they are negative)
-    # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Atmos_c_stock_man_agg" -
-    # "Land2Energy_c_stock_man_agg"  
-    out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - 
-      all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    ### Management C Emissions ###
+    # "Manage_Atmos_CumGain_C_stock" based on biomass removal, managed burns and energy (note: actually adding terms because they are negative)
+    # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Decay_c_stock_man_agg" -
+                                      # "Land2Burn_c_stock_man_agg" - "Land2Energy_c_stock_man_agg"  
+    out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Decay_c_stock_man_agg"] - 
+     - all_c_flux[,"Land2Burn_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
     
+    ### Wildfire C Emissions ###
     # "Fire_Atmos_CumGain_C_stock"
     out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
     
+    ### Land Cover Change C Emissions ###
     # "LCC_Atmos_CumGain_C_stock" based on land cover change with associated biomass removal and energy
     out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
       all_c_flux[,"Land2Energy_c_stock_conv"]
     
+    ### Wood C Emissions ###
     # "Wood_Atmos_CumGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[6]][, next_atmos_label] = out_wood_df_list[[3]][,next_wood_label]
     
+    ### Total Energy C Emissions ### 
     # "Total_Energy2Atmos_C_stock" just to compare it with the total cum atmos c
     out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
       all_c_flux[,"Land2Energy_c_stock_conv"]
-    
+
+    ### Total C Emissions (all sources and pathways) ### THIS ONE DID NOT INCLUDE NET ECOSYSTEM FLUXES PRIOR TO 7/17/17
     # "Total_Atmos_CumGain_C_stock" the total release of land and wood product and energy c to the atmosphere
     # the energy release is inluded in the manage and lcc releases
-    out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
-      out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
+    # out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
+                                                  # out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
+    out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[1]][,next_atmos_label] + out_atmos_df_list[[3]][,next_atmos_label] + 
+      out_atmos_df_list[[4]][,next_atmos_label] + out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
     
     ##### ANNUAL FLUXES	#####
     
