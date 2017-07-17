@@ -1372,11 +1372,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     #### C to atmos via 3 pathways (decay or root respiration, burn, energy) which determine proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
     #  "Land2Decay_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
     #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
-    agg_names = c(agg_names, paste0("Land2Decay_c_stock_man"))
+    agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
     man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Harvested2SawmillDecay_c + 
                                                                 man_adjust_df$Slash2Decay_c + man_adjust_df$Below2Atmos_c)
     #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
-    agg_names = c(agg_names, paste0("Land2Burn_c_stock_man"))
+    agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
     man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * (man_adjust_df$Slash2Burn_c)
   
     # "Land2Energy_c_stock_man") = -(total area [ha]) * (Harvested C removed for energy [MgC/ha] + slash removal for energy [MgC/ha])
@@ -1387,18 +1387,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # wood - this decays with a half-life
     agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
     man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * man_adjust_df$Harvested2Wood_c
-
-    
-    agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
-    # create man_adjust_df$Land2Atmos_burnedC_stock_man (note: does not include bioenergy)
-    man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Burned_litter_c + man_adjust_df$Burned_downdead_c +
-                                                                 man_adjust_df$Burned_under_c + man_adjust_df$Burned_mainremoved_c)
-    agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
-    # create man_adjust_df$Land2Atmos_nonburnedC_stock_man  = "Land2Atmos_c_stock_man" - "Land2Atmos_burnedC_stock_man"
-    man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
-    
-    # checks true that management Land2Atmos c flux equals the sum of burned and non-burned c in man_adjust_df 
-    identical(man_adjust_df[,agg_names[8]], man_adjust_df[,agg_names[11]] + man_adjust_df[,agg_names[12]])
     
     # now aggregate to land type by summing the management options
     # these c density values are the direct changes to the overall c density
