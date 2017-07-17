@@ -1378,59 +1378,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # wood - this decays with a half-life
     agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
     man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * man_adjust_df$Harvested2Wood_c
-    
-    # Before partioning the Land2Atmos_c_stock_man into total burned and total non-burned C emissions, partition the 
-    # individual above-ground pools within it.
-    # Soil c and root c are assumed to not burn, so 100% of 2Atmos c from these pools will be CO2.
-    # First, calculate burned litter c using default fractions  of 2Atmos pools set in beginning
-    man_adjust_df[,"Burned_litter_c"] = 0
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
-    man_adjust_df[,"Burned_downdead_c"] = 0
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    # Third, calculate burned understory c using default fractions of 2Atmos pools set in beginning
-    man_adjust_df[,"Burned_under_c"] = 0
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    # Fourth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
-    # doesn't include removed 2 energy
-    man_adjust_df[,"Burned_mainremoved_c"] = 0
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+
     
     agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
     # create man_adjust_df$Land2Atmos_burnedC_stock_man (note: does not include bioenergy)
