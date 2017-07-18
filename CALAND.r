@@ -2565,8 +2565,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     }
     
     ##### CUMULATIVE FLUXES ##### 
+<<<<<<< HEAD
 
     ### Net Ecosystem Flux (i.e. baseline) ###
+=======
+    ### Net Ecosystem Flux ###
+>>>>>>> reverted back to the original calculations of Total_Atmos_CumGain_C_stock and Total_Atmos_AnnGain_C_stock, which do not include the Eco Flux. Alan wants to keep these 2 C fluxes distinct for comparison. So we have Atmos_Cum(Ann)Gain (management, wood, LCC, wildfire) and Eco_Cum(Ann)Gain (which is a net release to atmosphere in some cases).  The sum of these to C fluxes gives net C exchange.
     # "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
     out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
