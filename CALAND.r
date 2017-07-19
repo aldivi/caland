@@ -33,20 +33,21 @@
 #	Open R by opening this R script, or set the working the directory to caland/
 # setwd("<your_path>/caland/")
 
-# The input excel files are in caland/inputs/
-# Output excel file is written to caland/outputs/
+# The input excel files are in caland/inputs/ (unless <indir> is specified as different from the default of "")
+# Output excel file is written to caland/outputs/<outdir> (unless <outdir> is specified as different from the default of "")
 
 # CALAND is now a function!
-# 7 arguments:
-#	scen_file		    name of the scenario file; assumed to be in caland/inptus/
-#	c_file			    name of the carbon parameter input file; assumed to be in caland/inputs/
-#	start_year		  simulation begins at the beginning of this year
+# 11  arguments (see function definition for default values):
+#	scen_file		    name of the scenario file; assumed to be in caland/inptus/<indir>
+#	c_file			    name of the carbon parameter input file; assumed to be in caland/inputs/<outdir>
+#	indir				name only of directory in caland/inputs/ that contains scen_file and c_file; do not include "/" character at the end
+#	outdir				name only of directory in caland/outputs/ that contains scen_file and c_file; do not include "/" character at the end
+#	start_year		  	simulation begins at the beginning of this year
 #	end_year		    simulation ends at the beginning of this year (so the simulation goes through the end of end_year - 1)
-#	value_col_dens	select which carbon density values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev, 9 = std error
-# value_col_accum select which carbon accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev, 9 = std error
-#	ADD_dens				for use with value_col_dens ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
-#	ADD_accum				for use with value_col_accum ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
-
+#	value_col_dens		select which carbon density values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev
+# 	value_col_accum 	select which carbon accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev
+#	ADD_dens			for use with value_col_dens ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
+#	ADD_accum			for use with value_col_accum ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
 #	WRITE_OUT_FILE	TRUE= write the output file; FALSE= do not write the output file
 
 # notes:
@@ -56,9 +57,25 @@
 # accumulation values are stats of literature values
 
 # How to use CALAND for beginners in R:
-# (1) Run all 3 functions (CALC.GWP, GET.NAMES, CALAND) by highlighting everything below and clicking "Run".
+# (1) Load the libraries and all 3 functions (CALC.GWP, GET.NAMES, CALAND) by selecting "Source Document" from the Edit menu
+#	Or type source("CALAND.R") on the R command line
+#	Or by highlighting everything below and selecting clicking "Run," if that button exists
 # (2) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
 # the scen_file (e.g. CALAND(scen_file = "Baseline_frst2Xmort_fire.xls")).
+
+  # this enables java to use up to 4GB of memory for reading and writing excel files
+  options(java.parameters = "-Xmx4g" )
+
+# Load all the required packages
+ libs <- c( "XLConnect" )
+ for( i in libs ) {
+   if( !require( i, character.only=T ) ) {
+     cat( "Couldn't load", i, "\n" )
+     stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
+           for local user if you do not have root access\n" )
+   }
+   library( i, character.only=T )
+}
 
 #####################################################################################################################
 
@@ -106,18 +123,18 @@ GET.NAMES <- function(df, new.name) {
 }
 
 
-CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
+CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
-  # this enables java to use up to 4GB of memory for reading and writing excel files
-  options(java.parameters = "-Xmx4g" )
   
   # to do: separate the selection of c density and accumulation non-mean values values
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd", "mean_se", "sd_se")
   
-  inputdir = "inputs/"
-  outputdir = "outputs/"
+  inputdir = paste0("inputs/", indir)
+  if(substr(inputdir,nchar(inputdir), nchar(inputdir)) != "/") { inputdir = paste0(inputdir, "/") }
+  outputdir = paste0("outputs/", outdir)
+  if(substr(outputdir,nchar(outputdir), nchar(outputdir)) != "/") { outputdir = paste0(outputdir, "/") }
   dir.create(outputdir, recursive=TRUE)
   
   # get scenario name as file name without extension
@@ -173,7 +190,15 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   
   ######### Determine output file names based on arguments in CALAND() that specify which input statistics are used for c density ######### 
   ##################################################### and c accumulation ################################################################
-  # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6), mean (7), std_dev (8), or se (9)
+  
+  # first check to make sure that the val cols are valid (min, max, mean, std dev)
+  #		so the numbers have to be 5 - 8
+  if ( value_col_dens < 5 | value_col_dens > 8 | value_col_accum < 5 | value_col_accum > 8) {
+  	cat( "Invalid value column for value_col_dens or value_col_accum\n" )
+    stop( "Please make sure that both these arguemnts are one of the following:\nmin (5), max (6), mean (7), std_dev (8)\n" )
+  }
+  
+  # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6), mean (7), std_dev (8)
   if (value_col_dens == value_col_accum) {
     # same but not std_dev
     if (value_col_dens != 8) {
@@ -199,9 +224,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
                   # dens sub and accum add
                   out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_sub_" , "dens_", ftag[value_col_accum], 
                                     "_add_", "accum", ".xls") 
-              }
-          }
-      }
+              } # end else sub
+          } # end else not same sign
+      } # end else value_col_dens == 8 (std_dev)
   # otherwise they are _not_ same statisitic
   } else { 
     # first case: neither is std_dev
@@ -232,11 +257,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
             } else { 
               out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_sub_", 
                                 "accum", ".xls")
-            }
-          }
-      }
-    }
-  }
+            } # end else sub accum
+          } # end if accum is std dev
+      } # end else accum is std dev
+    } # end else one val col is 8 (std_dev)
+  } # end else dens and accum have different stat
   #########################################################################################################################################
   
   # assign 100 yr global warming potential of CO2, CH4, and black C (BC)
@@ -362,17 +387,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
   # indices of the appropriate density source df for the conversion frac to c calcs; corresponds with out_density_sheets above
   # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
   conv_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 4, 4)
-  
-  # Load all the required packages
-  libs <- c( "XLConnect" )
-  for( i in libs ) {
-    if( !require( i, character.only=T ) ) {
-      cat( "Couldn't load", i, "\n" )
-      stop( "Use install.packages() to download this library\nOr use the GUI Package Installer\nInclude dependencies, and install it 
-            for local user if you do not have root access\n" )
-    }
-    library( i, character.only=T )
-    }
   
   # Load the input files
   c_wrkbk = loadWorkbook(c_file)
@@ -973,13 +987,13 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     
     # forest above main accum needs net foliage and branches/bark accums added to it based on estimated component fractions
     # forest downed dead and litter accum are estimated from the added above c based on mort:vegc flux ratio - this goes from above to downed 
-    # dead and litter - and this value is also a net value
+    #  dead and litter - and this value is also a net value
     # forest dead standing is subtracted from above main
     # forest below main accum and understory accum need to calculated based on ratio of these existing densities to the above densities
     # forest understory mortality uses a 1% default value (so it is not directly affected by prescribed tree mortality) - this is added to 
-    # downed dead and litter - as the additional veg c uptake is a net values, this accumulation is also a net value
+    #  downed dead and litter - as the additional veg c uptake is a net value, this accumulation is also a net value
     # forest below mortality is estimated based upon standing dead accum to vegc uptake ratio - this is only subtracted from below as soil c is 
-    # a net value
+    #  a net value
     
     # savanna/woodland veg uptake is net above and below (sans mortality) - so split it based on existing ratios
     # savanna/woodland has net eco exchange flux based on the tree uptake and the soil accum so don't add any other flux unless it cancels out
@@ -1039,24 +1053,27 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     #  so store the initial below ground mortality flux
     # assume that the other soil fluxes do not change (litter input rates and emissions) because I don't have enough info to change these
     #  basically, the litter input would change based on its density, and the emissions may increase with additional soil c
-    below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * 
-      out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Forest", cur_density_label]
-    if (year == start_year) { below2dead_flux_initial_forest = below2dead_flux_vals }
-    # first calculate the net root biomass increase
     below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Forest", cur_density_label]
+    below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * below_vals
+    if (year == start_year) { initial_deadc_frac_forest = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] }
+    	# { below2dead_flux_initial_forest = below2dead_flux_vals }
+    # first calculate the net root biomass increase
+    
     rootfrac = below_vals / above_vals
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[2]] = rootfrac * vegc_flux_vals / stemfrac - below2dead_flux_vals
     
     # soil
     # need to add the difference due to chnages from default/initial mortality
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[7]] = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Forest"] + 
-      (below2dead_flux_vals - below2dead_flux_initial_forest)
+      (below2dead_flux_vals - initial_deadc_frac_forest * below_vals)
+      #(below2dead_flux_vals - below2dead_flux_initial_forest)
     
     # savanna/woodland
     
     # above and below main
     # root loss has to go to soil c because the veg gain is tree nee, and the soil flux is ground nee, together they are the net flux
     #  so here changing mortality is already accounted for with respect to additions to soil carbon
+    # but these additions to the dead pools and soil c may be overestimated because the flux measurements do not include mortality
     # transfer above loss proportionally to standing, down, and litter pools
     # leave understory c static because the available data are for a grass understory, which has no long-term veg accumulation
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Savanna" | out_density_df_list[[3]]$Land_Type == "Woodland", 
@@ -1100,10 +1117,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     
     # the rest
     # assume vegc flux is all standing net density change, sans mortality
-    # assume above an understory deadc flux is all mort density change - take from above and distribute among stand, down, and litter
+    # assume above and understory deadc flux is all mort density change - take from above and distribute among stand, down, and litter
     # use mortality only if there is veg c accum due to growth
-    # assume soilc flux is net density change - so the below is simply a net root density change, and the calculated mortality implicitly goes 
-    # to soil
+    # assume soilc flux is net density change - so the below is simply a net root density change,
+    #	and the calculated or implicit mortality implicitly goes to soil
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type != "Savanna" & out_density_df_list[[3]]$Land_Type != "Woodland" & 
                                             out_density_df_list[[3]]$Land_Type != "Forest", cur_density_label]
     below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type != "Savanna" & out_density_df_list[[4]]$Land_Type != "Woodland" & 
@@ -1124,27 +1141,21 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     below_flux_vals = above_flux_vals * below_vals / above_vals
     naninds = which(is.nan(below_flux_vals))
     below_flux_vals[naninds] = above_flux_vals[naninds] * default_below2above_frac
-    #deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & 
-    # man_deadfrac_agg$Land_Type != "Forest"]
     soilc_flux_vals = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland" & 
                                                          man_soilflux_agg$Land_Type != "Forest"]
-    above2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & 
-                                                             man_deadfrac_agg$Land_Type != "Forest"] * above_vals
-    #zinds = which(above2dead_flux_vals == 0 & above_flux_vals > 0)
-    #above2dead_flux_vals[zinds] = default_mort_frac * above_vals[zinds]
-    #deadc2vegc_ratios = above2dead_flux_vals / above_flux_vals
     # recall that the input historical soil c fluxes are net, so the default historical mortality here implicitly goes to the soil
     #  but any change from the default mortality needs to be added to the soil
     #  so store the initial below ground mortality flux
     # assume that the other soil fluxes do not change (litter input rates and emissions) because I don't have enough info to change these
     #  basically, the litter input would change based on its density, and the emissions may increase with additional soil c
-    below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" & 
-                                                             man_deadfrac_agg$Land_Type != "Forest"] * below_vals
-    if (year == start_year) { below2dead_flux_initial_rest = below2dead_flux_vals }
-    #naninds = which(is.nan(below2dead_flux_vals) & below_flux_vals > 0)
-    #below2dead_flux_vals[naninds] = default_mort_frac * below_vals[naninds]
-    #naninds = which(is.nan(below2dead_flux_vals))
-    #below2dead_flux_vals[naninds] = 0
+    # also, if there is no veg c accum, then mortality is zero, even for understory, because only net soil c changes                                                    
+    deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" &
+    		man_deadfrac_agg$Land_Type != "Forest"]
+    deadc_flux_vals[is.na(above_flux_vals) | above_flux_vals <= 0] = 0.0
+    above2dead_flux_vals = deadc_flux_vals * above_vals
+    below2dead_flux_vals = deadc_flux_vals * below_vals
+    if (year == start_year) { initial_deadc_frac_rest = deadc_flux_vals }
+    	#{ below2dead_flux_initial_rest = below2dead_flux_vals }
     
     # above
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[1]] = 
@@ -1159,14 +1170,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     underc_flux_vals = underfrac * above_flux_vals
     naninds = which(is.nan(underc_flux_vals))
     underc_flux_vals[naninds] = default_under_frac * above_flux_vals[naninds]
-    under2dead_flux_vals = default_mort_frac * out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & 
+    under_mort_frac = deadc_flux_vals
+    under_mort_frac[!is.na(above_flux_vals) & above_flux_vals > 0] = default_mort_frac
+    under2dead_flux_vals = under_mort_frac * out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & 
                                                                           out_density_df_list[[5]]$Land_Type != "Woodland" & 
                                                                           out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
-    #under2dead_flux_vals = deadc2vegc_ratios * underc_flux_vals
-    #naninds = which(is.nan(under2dead_flux_vals) & underc_flux_vals > 0)
-    #under2dead_flux_vals[naninds] = default_mort_frac * under_vals[naninds]
-    #naninds = which(is.nan(under2dead_flux_vals))
-    #under2dead_flux_vals[naninds] = 0
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[3]] = 
       underc_flux_vals - under2dead_flux_vals
     
@@ -1190,7 +1198,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", start_year = 2010, e
     # soil
     # add any c due to changes from default/initial mortality
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[7]] = 
-      soilc_flux_vals + (below2dead_flux_vals - below2dead_flux_initial_rest)
+      soilc_flux_vals + (below2dead_flux_vals - initial_deadc_frac_rest * below_vals)
+      #(below2dead_flux_vals - below2dead_flux_initial_rest)
     
     # clean up numerical errors
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.na(x), 0.00)})

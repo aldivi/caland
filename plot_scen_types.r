@@ -1,6 +1,6 @@
 # plot_scen_types.r
 
-# put a variable for specified land types within a region on the same plot, for a specified scenario
+# put a variable for specified land types within a region and ownership on the same plot, for a specified scenario
 
 # this script reads the csv files produced by plot_caland()
 
@@ -8,8 +8,8 @@
 #	scen_lname		name of scenario as given in plot_caland(scen_lnames)
 #	varname			name of variable to plot (see the outputs from plot_caland)
 #						this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
-#	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
 #	ylabel			y label for the plot; this indicates the units and whether it is a difference from baseline
+#	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
 #	reg				array of region names to plot (see below)
 #	lt				array of land types to plot; can be any number of available types (all but Seagrass are below as default; All_land is excluded)
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
@@ -21,10 +21,11 @@
 # Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
 
 # Note: Seagrass has only a subset of the output files, so if including for All_region make sure that the desired varname is available
+#	Seagrass is not in the default land type list
 
 # make sure that the working directory is caland/
-# the csv files are assumed to be in <figdir>, in the appropriate region and land type directories
-# resulting output will go directly into <figdir>/<region>, which should be the same as used in plot_caland()
+# the csv files are assumed to be in <data_dir>/<figdir>, in the appropriate region and land type and ownership directories
+# resulting output will go directly into <data_dir>/<figdir>/<region>/<own>, which should be the same as used in plot_caland()
 # setwd("<your_path>/caland/")
 setwd("./")
 
@@ -45,6 +46,9 @@ lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "
 own = c("All_own")
 figdir = "test_diags"
 
+  # this enables java to use up to 4GB of memory for reading and writing excel files
+  options(java.parameters = "-Xmx4g" )
+
 # Load all the required packages
 libs <- c( "ggplot2", "grid", "RColorBrewer" )
 for( i in libs ) {
@@ -55,7 +59,7 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
-plot_scen_types <- function(scen_lname, varname, ylabel, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "test_diags") {
+plot_scen_types <- function(scen_lname, varname, ylabel, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures") {
 
 outputdir = paste0(data_dir, "/")
 

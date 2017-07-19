@@ -9,7 +9,7 @@
 # get only the year columns (not the change column)
 
 # the model output files for plotting are in caland/<data_dir>/
-# the plots are put into caland/<data_dir>/<figdir>/ with each land type having its own directory
+# the plots are put into caland/<data_dir>/<figdir>/ within each region, land type, and ownership directory
 #	where <data_dir> and <figdir> are arguments to the function
 
 # plot_caland() has 8 arguments:
@@ -37,7 +37,7 @@
 
 #### the output files do not include the carbon transfered into and out of a land category due to lcc
 #### so the component diagnostics include only land-atmosphere c exchange
-#### the carbon going between land categories is not represented in these diagnostics 
+#### which means that the carbon going between land categories is not represented in these diagnostics 
 
 # make sure that the working directory is caland/
 # This R script is in the caland directory, which should be the working directory
@@ -68,11 +68,11 @@ reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klam
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 own = c("All_own")
-figdir = "test_diags"
+figdir = "figures"
 
 ############# main function
 
-plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land"), own = c("All_own"), figdir = "test_diags") {
+plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land"), own = c("All_own"), figdir = "figures") {
 
 cat("Start plot_caland() at", date(), "\n")
 
@@ -1135,7 +1135,8 @@ for (r in 1:num_reg){
             ymin = min(plot_df_neg$Value)
             amax = max(abs(ymax),abs(ymin))
             p <- ( ggplot()
-                + geom_bar(data=plot_df, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                + geom_bar(data=plot_df_neg, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                + geom_bar(data=plot_df_pos, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
                 + facet_grid(~Year)
                 + ylab(paste("MMT CO2-eq per year"))
                 + ggtitle(paste(reg_lab, lt_lab, own_lab, ": Annual GWP"))
@@ -1174,7 +1175,8 @@ for (r in 1:num_reg){
             ymin = min(plot_df_neg$Value)
             amax = max(abs(ymax),abs(ymin))
             p <- ( ggplot()
-                + geom_bar(data=plot_df, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                + geom_bar(data=plot_df_neg, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                + geom_bar(data=plot_df_pos, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
                 + facet_grid(~Year)
                 + ylab(paste("MMT CO2-eq"))
                 + ggtitle(paste(reg_lab, lt_lab, own_lab, ": Cumulative GWP"))

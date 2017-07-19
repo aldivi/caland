@@ -1,6 +1,6 @@
 # write_caland_inputs.r
 
-# generate the two caland input files based on the gis stats and parameters from the literature
+# generate the caland input files based on the gis stats and parameters from the literature
 #	make .xlsx files
 #	the columns widths are not properly adjusted when written, so this should be done by hand
 
@@ -65,13 +65,10 @@
 # meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, savanna, and woodland, 
 
 # output files
-# areas are in ha
-# densities are in Mg C per ha (t C per ha)
-# factors are fractions
-
-# scenario file
-
-# carbon file
+# areas are in ha (scenario files)
+# carbon file:
+#  densities are in Mg C per ha (t C per ha)
+#  factors are fractions
 
 #setwd("/Users/adivi/projects/cnra_carbon/caland")
 
