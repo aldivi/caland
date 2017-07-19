@@ -383,17 +383,17 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   fire_density_inds = c(3, 6, 5, 7, 8, 3, 5, 4, 9)
   
   # column names from the conversion to ag/urban table to calculate conversion to ag/urban carbon adjustments
-  conv_frac_names = c("Above_removed_conv_frac", "StandDead_removed_conv_frac", "Removed2Wood_conv_frac", "Removed2Energy_conv_frac", 
-                      "Removed2Atmos_conv_frac", "Understory2Atmos_conv_frac", "DownDead2Atmos_conv_frac", "Litter2Atmos_conv_frac", 
-                      "Soil2Atmos_conv_frac", "Understory2DownDead_conv_frac", "Below2Atmos_conv_frac", "Below2Soil_conv_frac")
+  conv_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
+                        "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", 
+                        "Slash2Decay_frac", "Under2DownDead_frac", "Soil2Atmos_frac", "Below2Atmos_frac", "Below2Soil_frac")
   num_convfrac_cols = length(conv_frac_names)
   # new c trans column names matching the conversion frac names
-  convc_trans_names = c("Above_removed_conv_c", "StandDead_removed_conv_c", "Removed2Wood_conv_c", "Removed2Energy_conv_c", 
-                        "Removed2Atmos_conv_c", "Understory2Atmos_conv_c", "DownDead2Atmos_conv_c", "Litter2Atmos_conv_c", 
-                        "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below2Atmos_conv_c", "Below2Soil_conv_c")
+  convc_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c",
+                        "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
+                        "Below2Atmos_c", "Below2Soil_c")
   # indices of the appropriate density source df for the conversion frac to c calcs; corresponds with out_density_sheets above
   # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
-  conv_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 4, 4)
+  conv_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, 5, 9, 4, 4)
   
   # Load the input files
   c_wrkbk = loadWorkbook(c_file)
@@ -1275,6 +1275,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ############################################################################################################
     #################### Do management C transfers [MgC/y] for forest & developed areas ########################
     ############################################################################################################
+<<<<<<< HEAD
+=======
+   # man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
+   #                    "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
+   #                    "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+    
+   # c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c", "Under2Slash_c", 
+   #                   "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
+   #                   "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
+>>>>>>> updated conversion frac, trans and inds names to reflect new c_input file and the slash structure. The same values for Harvest2wood, Harvest2energy, Harvested2SawmillDecay_frac, Harvested2slash, Slash2Energy, Slash2Burn, Slash2Decay in clearcut forest management are used in conversion2ag_urban for forests. Note there is no column for above to down dead. Corrected equation for Manage_Atmos_CumGain_C_stock (double minus), and Manage_Atmos_AnnGain_C_stock which had the minus in the wrong location. Edited comments about “partitioning C emissions” as that is unnecessary as there are already separate pathways due to the new c_input file. This also was applied to the equations that calculated management burns, energy, and non-burned (i.e. value taken directly from all_c_flux without having to subtract the other pathways). Also changed the checks to reflect this update. Now the checks simply add up the annual or cumulative C emissions from out_atmos_df_list and compare to the total.
     # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
     # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
     # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
@@ -1330,7 +1340,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
     agg_names = NULL
     # above
-    # add column called "Above_main_C_den_gain_man":  above main C density = -(+above harvested C) -(+above to standing dead C)
+    # add column called "Above_main_C_den_gain_man":  above main C density = -(above harvested C) -(above to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[3], "_gain_man"))
     man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_harvested_c - man_adjust_df$Above2StandDead_c
     # below
@@ -2580,7 +2590,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Decay_c_stock_man_agg" -
                                       # "Land2Burn_c_stock_man_agg" - "Land2Energy_c_stock_man_agg"  
     out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Decay_c_stock_man_agg"] - 
-     - all_c_flux[,"Land2Burn_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+      all_c_flux[,"Land2Burn_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
     
     ### Wildfire C Emissions ###
     # "Fire_Atmos_CumGain_C_stock"
@@ -2619,8 +2629,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     ### Management C Emissions ###
     # "Manage_Atmos_AnnGain_C_stock" based on biomass removal & energy from biomass 
-    out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Decay_c_stock_man_agg"] - all_c_flux[,"Land2Burn_c_stock_man_agg"] 
-      - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Decay_c_stock_man_agg"] - all_c_flux[,"Land2Burn_c_stock_man_agg"] -
+       all_c_flux[,"Land2Energy_c_stock_man_agg"]
     
     ### Wildfire C Emissions ###
     # "Fire_Atmos_AnnGain_C_stock" based on fire
@@ -2646,32 +2656,23 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     ### cumulative (again) ### 
     
-    # Partition the "Manage_Atmos_CumGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
+    # Get C emissions from individual pathways: CONTROLLED FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
     
-    # FIRE: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_burnedC_stock_man_agg" -
-    # "Land2Energy_c_stock_man_agg" (note: Land2Atmos_burnedC_stock_man_agg does not include bioenergy)
-    out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
+    # CONTROLLED BURN: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Burn_c_stock_man_agg" 
+    out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Burn_c_stock_man_agg"] 
     # ENERGY: "Manage_Atmos_CumGain_EnergyC" = (current year "Manage_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_man_agg" 
     out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # NON-BURNED: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
-    out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+    # NON-BURNED (Decay): "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Decay_C_stock_man_agg"
+    out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Decay_c_stock_man_agg"]  
     
-    # checks true:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
-    identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]], all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
-    # Also checks true that the difference is <0.5 and >-0.5 (in case rounding error)
-    all((- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) < 0.5 & 
-          (- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) > -0.5)
-    
-    # checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos - current year's Land2Energy
-    identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
-                all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
-    
-    # checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos_burned - current year Land2Atmos_nonburned - 
-    # current year land2energy
-    identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
-                all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
-    # recall that: all_c_flux[["Land2Atmos_c_stock_man_agg"]] == all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] 
-    # all_c_flux[["Land2Energy_c_stock_man_agg"]] is separate, and added up in the out_atmos_df_list
+    # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
+    all(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] == out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
+          out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
+    # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
+    all(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
+           out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label]) < 0.5 & 
+          (out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
+              out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])) > -0.5)
     
     # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
@@ -2700,6 +2701,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
     # non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
     out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+    
+    # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+          out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])
+    # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+             out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
+          (out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+                  out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
+    
     
     # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
