@@ -125,6 +125,10 @@ GET.NAMES <- function(df, new.name) {
 
 CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
+
+  # this enables java to use up to 4GB of memory for reading and writing excel files
+  options(java.parameters = "-Xmx4g" )
+
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd", "mean_se", "sd_se")
@@ -1277,6 +1281,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ############################################################################################################
     #################### Do management C transfers [MgC/y] for forest & developed areas ########################
     ############################################################################################################
+
    # man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
    #                    "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
    #                    "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
@@ -1339,6 +1344,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
     agg_names = NULL
     # above
+
     # add column called "Above_main_C_den_gain_man":  above main C density = -(above harvested C) -(above to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[3], "_gain_man"))
     man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_harvested_c - man_adjust_df$Above2StandDead_c
