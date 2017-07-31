@@ -352,8 +352,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   
   # column names from the management table to calculate non-accum manage carbon adjustments
   man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
-                     "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", 
-                      "Slash2Decay_frac", "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+                     "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Wood_frac",
+                     "Slash2Burn_frac", "Slash2Decay_frac", "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
   #man_frac_names = c("Above_removed_frac", "StandDead_removed_frac", "Removed2Wood_frac", "Removed2Energy_frac", "Removed2Atmos_frac", 
   #                   "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Soil2Atmos_frac", "Understory2DownDead_frac", 
   #                   "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
@@ -361,14 +361,23 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   num_manfrac_cols = length(man_frac_names)
   # new c trans column names matching the non-accum manage frac names
   c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c",
+<<<<<<< HEAD
                     "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
                     "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
+=======
+                    "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Wood_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", 
+                    "Soil2Atmos_c", "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
+  #c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", 
+  #                  "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", 
+  #                 "Below2Soil_c")
+>>>>>>> Added slash to wood factor in the Forest management sheet in the c input file and to CALAND’s corresponding man_frac_names, c_trans_names, manage_density_inds. The equation for forest management’s C to wood transfer was updated to include both harvested wood and slash wood… Updated the conversion to ag/urban sheet in the c input file to follow same structure as Forest management, as well as CALAND’s conv_frac_names, conv_trans_names, conv_density_inds… Updated the loops that do C transfers for forest management & conversion to ag or urban with the new names for variables and indices for calculating the source of the transferred C… Within the big LCC loop, updated the loop that checks each LCC ownership df within the current region's list (own_conv_df_list_pre) that replaces any missing land type columns. Previously it hard-wired the column index number to start counting from, but now it has extra columns due to the new slash structure. Now it defines the column index using the which() command to get the number following the name of the last leading column (own_gain_sum). Within this loop, also updated the names of the sequence of columns that should be at the end of own_conv_df_list_pre. After big LCC loop, updated the columns names (as needed) in equations that calculated C density gains/losses in land conversions with ag/urban.
   # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
   # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
   # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
-  manage_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, 5, 9, 3, 4, 4)
+  manage_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, -2, 5, 9, 3, 4, 4)
   # manage_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 3, 4, 4)
-  #manage_density_inds = c(3 (above), 6 (standdead), -1, -1, -1, 5 (under), 7 (down), 8 (litter), -2 (slash2energy), -2 (slash2burn), -2 (slash2decay), 5 (under2down), 9 (soil), 3 (above2stand), 4 (below), 4 (below))
+  #manage_density_inds = c(3 (above), 6 (standdead), -1, -1, -1, 5 (under), 7 (down), 8 (litter), -2 (slash2energy), -2 (slash2wood), -2 (slash2burn), -2 (slash2decay), 5 (under2down),
+                              # 9 (soil), 3 (above2stand), 4 (below), 4 (below))
   # out_density_sheets = c("All_orgC_den" (1), "All_biomass_C_den" (2), "Above_main_C_den" (3), "Below_main_C_den" (4), "Understory_C_den" (5), "StandDead_C_den" (6), 
   #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
   
@@ -383,17 +392,19 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   fire_density_inds = c(3, 6, 5, 7, 8, 3, 5, 4, 9)
   
   # column names from the conversion to ag/urban table to calculate conversion to ag/urban carbon adjustments
-  conv_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
-                        "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", 
-                        "Slash2Decay_frac", "Under2DownDead_frac", "Soil2Atmos_frac", "Below2Atmos_frac", "Below2Soil_frac")
+  conv_frac_names = c("Above_harvested_conv_frac", "StandDead_harvested_conv_frac", "Harvested2Wood_conv_frac", "Harvested2Energy_conv_frac", 
+                      "Harvested2SawmillDecay_conv_frac", "Harvested2Slash_conv_frac", "Under2Slash_conv_frac", "DownDead2Slash_conv_frac", 
+                      "Litter2Slash_conv_frac", "Slash2Energy_conv_frac", "Slash2Wood_conv_frac", "Slash2Burn_conv_frac", "Slash2Decay_conv_frac", 
+                      "Under2DownDead_conv_frac", "Soil2Atmos_conv_frac", "Below2Atmos_conv_frac", "Below2Soil_conv_frac")
   num_convfrac_cols = length(conv_frac_names)
   # new c trans column names matching the conversion frac names
-  convc_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c",
-                        "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
-                        "Below2Atmos_c", "Below2Soil_c")
+  convc_trans_names = c("Above_harvested_conv_c", "StandDead_harvested_conv_c", "Harvested2Wood_conv_c", "Harvested2Energy_conv_c", 
+                        "Harvested2SawmillDecay_conv_c", "Harvested2Slash_conv_c", "Under2Slash_conv_c", "DownDead2Slash_conv_c", 
+                        "Litter2Slash_conv_c", "Slash2Energy_conv_c", "Slash2Wood_conv_c", "Slash2Burn_conv_c", "Slash2Decay_conv_c", 
+                        "Under2DownDead_conv_c", "Soil2Atmos_conv_c", "Below2Atmos_conv_c", "Below2Soil_conv_c")
   # indices of the appropriate density source df for the conversion frac to c calcs; corresponds with out_density_sheets above
   # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
-  conv_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, 5, 9, 4, 4)
+  conv_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, -2, 5, 9, 4, 4)
   
   # Load the input files
   c_wrkbk = loadWorkbook(c_file)
@@ -1306,7 +1317,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
         } else {
           # else manage_density_inds[i] == -2 (when i = 10, 11, or 12)
           # if manage_density_inds[i] == -2 the source is the slash pool; take the sum of c trans columns 6, 7, 8 & 9 (Harvest2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c)
-          # (slash2energy_c, slash2burn_c, slash2decay_c) [Mg/ha] = (Harvested2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c) * 
+          # (slash2energy_c, slash2wood_c, slash2burn_c, slash2decay_c) [Mg/ha] = (Harvested2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c) * 
                                                                      # (Harvested2Slsash_frac, Under2Slash_frac, DownDead2Slash_frac, Litter2Slash_frac)
             man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[6]] + man_adjust_df[,c_trans_names[7]] + man_adjust_df[,c_trans_names[8]] +
                                                 man_adjust_df[,c_trans_names[9]]) * man_adjust_df[,man_frac_names[i]]
@@ -1371,23 +1382,23 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # to get the carbon must multiply these by the tot_area
     
     #### C to atmos via 3 pathways (decay or root respiration, burn, energy) which determine proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
-    #  "Land2Decay_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
+    #  "Land2Atmos_DecayC_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
     #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
-    agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
+    agg_names = c(agg_names, paste0("Land2Atmos_DecayC_stock_man"))
     man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Harvested2SawmillDecay_c + 
                                                                 man_adjust_df$Slash2Decay_c + man_adjust_df$Below2Atmos_c)
-    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
-    agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
+    #  "Land2Atmos_SlashBurnC_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
+    agg_names = c(agg_names, paste0("Land2Atmos_BurnC_stock_man"))
     man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * (man_adjust_df$Slash2Burn_c)
   
-    # "Land2Energy_c_stock_man") = -(total area [ha]) * (Harvested C removed for energy [MgC/ha] + slash removal for energy [MgC/ha])
-    agg_names = c(agg_names, paste0("Land2Energy_c_stock_man"))
+    # "Land2Atmos_EnergyC_stock_man") = -(total area [ha]) * (Harvested C removed for energy [MgC/ha] + slash removal for energy [MgC/ha])
+    agg_names = c(agg_names, paste0("Land2Atmos_EnergyC_stock_man"))
     man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * (man_adjust_df$Harvested2Energy_c + man_adjust_df$Slash2Energy_c)
     
     #### C to wood ####
     # wood - this decays with a half-life
     agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
-    man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * man_adjust_df$Harvested2Wood_c
+    man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Harvested2Wood_c + man_adjust_df$Slash2Wood_c)
     
     # now aggregate to land type by summing the management options
     # these c density values are the direct changes to the overall c density
@@ -2054,14 +2065,26 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
         # probably should deal with the remaining c transfer here, rather than below, so that all transfers are included
         
         # calculate all the c losses from landtypes that convert to ag or urban
-        for (f in 1:num_convfrac_cols){
+        for (f in 1:num_convfrac_cols) {
           # the removed values are calculated first, so this will work
-          # if conv_density_inds[f] == -1, then the source is the removed pool; use the sum of the first two c trans columns
-          if (conv_density_inds[f] == -1) {
-            # C removed [MgC/ha] =  (removed above C + removed standing dead C) * removed frac.... ("Removed2Wood_conv_frac", "Removed2Energy_conv_frac", 
-            # or "Removed2Atmos_conv_frac"
+          # if conv_density_inds[f] == -1 or -2, then the source is the harvested pool or slash pool, so use the sum of its components respectively
+          if (conv_density_inds[f] == -1 | conv_density_inds[f] == -2) {
+            # FROM HARVESTED POOL
+            if (conv_density_inds[f] == -1) { 
+             # Harvested2Wood_conv_c, Harvested2Energy_conv_c, Harvested2Decay_conv_c, Harvested2Slash_conv_c) [Mg/ha] = (Above_harvested_conv_c + 
+              # StandDead_harvested_conv_c) * (Harvested2Wood_conv_frac, Harvested2Energy_conv_frac, Harvested2Decay_conv_frac, Harvested2Slash_conv_frac)
             conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[1]] + conv_own[,convc_trans_names[2]]) * conv_own[,conv_frac_names[f]]
-          } else {
+            } else {
+            # FROM SLASH POOL
+            # else conv_density_inds[f] == -2 (when f = 10, 11, 12, 13)
+            # sum c trans columns 6, 7, 8 & 9 (Harvest2Slash_conv_c + Under2Slash_conv_c + DownDead2Slash_conv_c + Litter2Slash_conv_c)
+            # (slash2energy_conv_c, slash2wood_conv_c, slash2burn_conv_c, slash2decay_conv_c) [Mg/ha] = (Harvested2Slash_conv_c + Under2Slash_conv_c + 
+            # DownDead2Slash_conv_c + Litter2Slash_conv_c) * (Harvested2Slsash_conv_frac, Under2Slash_conv_frac, DownDead2Slash_conv_frac, Litter2Slash_conv_frac)
+            conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[6]] + conv_own[,convc_trans_names[7]] + conv_own[,convc_trans_names[8]] +
+                                                 conv_own[,convc_trans_names[9]]) * conv_own[,conv_frac_names[f]]
+            }
+        } else {
+            # FROM C DENSITY POOL
             # get all the C pool densities for each C fraction 
             if (!out_density_sheets[conv_density_inds[f]] %in% names(conv_own)) {
               conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
@@ -2083,7 +2106,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
               conv_own[conv_own$Developed_all > 0,conv_frac_names[f]] * conv_own$Developed_all[conv_own$Developed_all > 0] / 
               conv_own$tot_area[conv_own$Developed_all > 0]
           } # end if removed source else density source
-        } # end for f loop over the managed transfer fractions for calcuting the transfer carbon
+        } # end for f loop over the conversion transfer fractions for calculating the transfer carbon
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.na(x), 0.00)})
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, x == Inf, 0.00)})
@@ -2323,6 +2346,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
       } # end if land own else ocean/seagrass
       own_conv_df_list_pre[[i]] = conv_own 
+      # get column number of last column before all the land types - this attempts to make the following routine more generic to allow changes to 
+      # the c_input file structure without updatingthe for loop below.
+      last_column <- which(names(own_conv_df_list_pre[[i]])=="own_gain_sum")
     } # end i loop over ownership for calculating land conversion c adjustments
       # after all the ownership loops within a given region rbind all the ownership tables into one 
       # first, get the complete list of land type names 
@@ -2341,24 +2367,25 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
           # get length of new complete df (=73)
           full_length <- length(own_conv_df_list_pre[[g]])
           # get columns preceding the land type columns
-          begin_set_cols <- own_conv_df_list_pre[[g]][,c(1:26)]
+          begin_set_cols <- own_conv_df_list_pre[[g]][,c(1:last_column)]
           # get full set of landtype columns in order
           all_16landtype_cols <- own_conv_df_list_pre[[g]][,c(conv_col_names_all)]
           # get number of _not_ missing column names 
           numb_not_missing <- length(conv_col_names_all) - length(missing_names)
           # get column index to start on for end set of columns
-          end_start_ind <- 26 + numb_not_missing + 1
+          end_start_ind <- last_column + numb_not_missing + 1
           # get column index to end on for end set of columns
           end_end_ind <- full_length - length(missing_names)
           # subset the columns following the original landtype columns and before the ones that were added to the end
           # order the sequence of columns in the last chunk
-          end_set_cols <- own_conv_df_list_pre[[g]][,c("Above_main_C_den", "Above_removed_conv_c", "StandDead_C_den", "StandDead_removed_conv_c", 
-                                          "Removed2Wood_conv_c", "Removed2Energy_conv_c", "Removed2Atmos_conv_c", "Understory_C_den",           
-                                          "Understory2Atmos_conv_c", "DownDead_C_den", "DownDead2Atmos_conv_c", "Litter_C_den", "Litter2Atmos_conv_c",
-                                          "Soil_orgC_den", "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below_main_C_den","Below2Atmos_conv_c",        
-                                          "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", "Understory_C_den_change",
+          end_set_cols <- own_conv_df_list_pre[[g]][,c("Above_main_C_den", "Above_harvested_conv_c", "StandDead_C_den", "StandDead_harvested_conv_c", 
+                                          "Harvested2Wood_conv_c", "Harvested2Energy_conv_c", "Harvested2SawmillDecay_conv_c", "Harvested2Slash_conv_c",
+                                          "Understory_C_den", "Under2Slash_conv_c", "DownDead_C_den", "DownDead2Slash_conv_c", "Litter_C_den", 
+                                          "Litter2Slash_conv_c", "Slash2Energy_frac", "Slash2Wood_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
+                                          "Soil_orgC_den", "Soil2Atmos_conv_c", "Under2DownDead_conv_c", "Below_main_C_den", "Below2Atmos_conv_c", 
+                                          "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", "Understory_C_den_change", 
                                           "StandDead_C_den_change", "DownDead_C_den_change", "Litter_C_den_change", "Soil_orgC_den_change", 
-                                          "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", "DownDead_C_den2Atmos",      
+                                          "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", "DownDead_C_den2Atmos", 
                                           "Litter_C_den2Atmos")]
           # merge the subsets of columns back together. They're in proper order now to rbind below
           own_conv_df_list_pre[[g]] <- cbind(begin_set_cols, all_16landtype_cols, end_set_cols) }
@@ -2404,22 +2431,22 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     cgnames = c(cgnames, paste0(out_density_sheets[3],"_gain_conv"))
     # c lost from any landtype going to ag/urban - c loss (emissions) if changing land area from hi to lo c density + 
     # c density gain if going to low to hi c density 
-    all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_removed_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
+    all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_Harvested_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
       conv_adjust_df$Above_main_C_den_change
     # below
     cgnames = c(cgnames, paste0(out_density_sheets[4],"_gain_conv"))
     all_c_flux[,cgnames[2]] = - conv_adjust_df$Below2Atmos_conv_c + conv_adjust_df$Below_main_C_den_change
     # understory
     cgnames = c(cgnames, paste0(out_density_sheets[5],"_gain_conv"))
-    all_c_flux[,cgnames[3]] = - conv_adjust_df$Understory2Atmos_conv_c - conv_adjust_df$Understory2DownDead_conv_c - 
+    all_c_flux[,cgnames[3]] = - conv_adjust_df$Understory2Atmos_conv_c - conv_adjust_df$Under2DownDead_conv_c - 
       conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$Understory_C_den_change
     # standing dead
     cgnames = c(cgnames, paste0(out_density_sheets[6],"_gain_conv"))
-    all_c_flux[,cgnames[4]] = - conv_adjust_df$StandDead_removed_conv_c - conv_adjust_df$StandDead_C_den2Atmos + 
+    all_c_flux[,cgnames[4]] = - conv_adjust_df$StandDead_Harvested_conv_c - conv_adjust_df$StandDead_C_den2Atmos + 
       conv_adjust_df$StandDead_C_den_change
     # down dead
     cgnames = c(cgnames, paste0(out_density_sheets[7],"_gain_conv"))
-    all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Understory2DownDead_conv_c - 
+    all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Under2DownDead_conv_c - 
       conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$DownDead_C_den_change
     # litter
     cgnames = c(cgnames, paste0(out_density_sheets[8],"_gain_conv"))
@@ -2465,18 +2492,22 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                                                                 out_density_df_list[[i]][, next_density_label] == Inf, 0.00)
     } # end loop over out densities for updating due to conversion
     
-    # to get the carbon must multiply these by the tot_area
-    # atmos: assumed none of this is burned
-    # getting stocks of total c emissions (assumed to be CO2) 
-    all_c_flux[,"Land2Atmos_c_stock_conv"] = -conv_adjust_df$tot_area * 
-      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Litter2Atmos_conv_c + conv_adjust_df$DownDead2Atmos_conv_c + 
-         conv_adjust_df$Understory2Atmos_conv_c + conv_adjust_df$Removed2Atmos_conv_c + conv_adjust_df$Below2Atmos_conv_c + 
+    # Get C lost to atmosphere 3 potential flux pathways by the tot_area
+    # DECAY
+    all_c_flux[,"Land2Atmos_DecayC_stock_conv"] = -conv_adjust_df$tot_area * 
+      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Slash2Decay_conv_c + conv_adjust_df$Harvested2SawmillDecay_conv_c + 
+         conv_adjust_df$Below2Atmos_conv_c + 
          conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$StandDead_C_den2Atmos + 
          conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$Litter_C_den2Atmos)
-    # energy - this is assumed to go to the atmosphere immediately
-    all_c_flux[,"Land2Energy_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Removed2Energy_conv_c)
-    # wood - this decays with a half-life
-    all_c_flux[,"Land2Wood_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Removed2Wood_conv_c)
+    # MANAGED BURN - currently assumed this is 0
+    all_c_flux[,"Land2Atmos_BurnC_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Slash2Burn_conv_c)
+    # ENERGY - this is assumed to go to the atmosphere immediately
+    all_c_flux[,"Land2Atmos_EnergyC_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Harvested2Energy_conv_c + 
+                                                                                 conv_adjust_df$Slash2Energy_conv_c)
+    # Get C lost to wood 
+    # WOOD - this decays with a half-life
+    all_c_flux[,"Land2Wood_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Harvested2Wood_conv_c + 
+                                                                          conv_adjust_df$Slash2Wood_conv_c)
     
     cat("lcc carbon change is ", sum_change, "\n")
     cat("lcc net carbon transfer to other land types is ", sum_change2, "\n")
