@@ -2667,7 +2667,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     ### Land Cover Change C Emissions ###
     # "LCC_Atmos_AnnGain_C_stock" based on land cover change with associated biomass removal, includes energy from biomass
-    out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"] - all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"] - all_c_flux[,"Land2Atmos_EnergyC_stock_conv"] -
+      all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
     
     ### Wood C Emissions ###
     # "Wood_Atmos_AnnGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
