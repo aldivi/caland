@@ -2725,12 +2725,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     # Partition the "Manage_Atmos_AnnGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
     
-    # FIRE: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_burnedC_stock_man_agg" 
-    out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
-    # ENERGY: "Manage_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_man_agg"
-    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
-    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+    # FIRE: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_BurnC_stock_man_agg" 
+    out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
+    # ENERGY: "Manage_Atmos_AnnGain_EnergyC" = - "Land2Atmos_EnergyC_stock_man_agg"
+    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
+    # non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_DecayC_stock_man_agg"
+    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
     
     # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
     all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
