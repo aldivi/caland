@@ -2688,8 +2688,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     # Get C emissions from individual pathways: CONTROLLED FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
     
-    # CONTROLLED BURN: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Burn_c_stock_man_agg" 
-    out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Burn_c_stock_man_agg"] 
+    # CONTROLLED BURN (LCC + Manage): "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Burn_c_stock_man_agg" 
+    out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] -
+      all_c_flux[,"Land2Atmos_BurnC_stock_conv"] 
     # ENERGY: "Manage_Atmos_CumGain_EnergyC" = (current year "Manage_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_man_agg" 
     out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
     # NON-BURNED (Decay): "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Decay_C_stock_man_agg"
