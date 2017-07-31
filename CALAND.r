@@ -2643,8 +2643,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ### Total C Emissions (all sources and pathways except Net Eco Flux) ###
     # "Total_Atmos_CumGain_C_stock" the total release of land and wood product and energy c to the atmosphere
     # the energy release is inluded in the manage and lcc releases
-    # out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
-                                                  # out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
+    # Total cum C emissions (less Eco) = Management + Wildfire + LCC + Wood
     out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
       out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
     
@@ -2659,8 +2658,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     ### Management C Emissions ###
     # "Manage_Atmos_AnnGain_C_stock" based on biomass removal & energy from biomass 
-    out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Decay_c_stock_man_agg"] - all_c_flux[,"Land2Burn_c_stock_man_agg"] -
-       all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] -
+       all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
     
     ### Wildfire C Emissions ###
     # "Fire_Atmos_AnnGain_C_stock" based on fire
