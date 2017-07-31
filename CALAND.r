@@ -2619,8 +2619,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # "Manage_Atmos_CumGain_C_stock" based on biomass removal, managed burns and energy (note: actually adding terms because they are negative)
     # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Decay_c_stock_man_agg" -
                                       # "Land2Burn_c_stock_man_agg" - "Land2Energy_c_stock_man_agg"  
-    out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Decay_c_stock_man_agg"] - 
-      all_c_flux[,"Land2Burn_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - 
+      all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
     
     ### Wildfire C Emissions ###
     # "Fire_Atmos_CumGain_C_stock"
