@@ -2381,12 +2381,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
           end_set_cols <- own_conv_df_list_pre[[g]][,c("Above_main_C_den", "Above_harvested_conv_c", "StandDead_C_den", "StandDead_harvested_conv_c", 
                                           "Harvested2Wood_conv_c", "Harvested2Energy_conv_c", "Harvested2SawmillDecay_conv_c", "Harvested2Slash_conv_c",
                                           "Understory_C_den", "Under2Slash_conv_c", "DownDead_C_den", "DownDead2Slash_conv_c", "Litter_C_den", 
-                                          "Litter2Slash_conv_c", "Slash2Energy_frac", "Slash2Wood_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
-                                          "Soil_orgC_den", "Soil2Atmos_conv_c", "Under2DownDead_conv_c", "Below_main_C_den", "Below2Atmos_conv_c", 
-                                          "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", "Understory_C_den_change", 
-                                          "StandDead_C_den_change", "DownDead_C_den_change", "Litter_C_den_change", "Soil_orgC_den_change", 
-                                          "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", "DownDead_C_den2Atmos", 
-                                          "Litter_C_den2Atmos")]
+                                          "Litter2Slash_conv_c", "Slash2Energy_conv_c", "Slash2Wood_conv_c", "Slash2Burn_conv_c", 
+                                          "Slash2Decay_conv_c", "Under2DownDead_conv_c", "Soil_orgC_den", "Soil2Atmos_conv_c", "Below_main_C_den", 
+                                          "Below2Atmos_conv_c", "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", 
+                                          "Understory_C_den_change", "StandDead_C_den_change", "DownDead_C_den_change", "Litter_C_den_change", 
+                                          "Soil_orgC_den_change", "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", 
+                                          "DownDead_C_den2Atmos", "Litter_C_den2Atmos")]
           # merge the subsets of columns back together. They're in proper order now to rbind below
           own_conv_df_list_pre[[g]] <- cbind(begin_set_cols, all_16landtype_cols, end_set_cols) }
       }
