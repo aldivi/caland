@@ -2438,7 +2438,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     all_c_flux[,cgnames[2]] = - conv_adjust_df$Below2Atmos_conv_c + conv_adjust_df$Below_main_C_den_change
     # understory
     cgnames = c(cgnames, paste0(out_density_sheets[5],"_gain_conv"))
-    all_c_flux[,cgnames[3]] = - conv_adjust_df$Understory2Atmos_conv_c - conv_adjust_df$Under2DownDead_conv_c - 
+    all_c_flux[,cgnames[3]] = - conv_adjust_df$Under2Slash_conv_c - conv_adjust_df$Under2DownDead_conv_c - 
       conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$Understory_C_den_change
     # standing dead
     cgnames = c(cgnames, paste0(out_density_sheets[6],"_gain_conv"))
