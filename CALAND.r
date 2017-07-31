@@ -2637,8 +2637,8 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     ### Total Energy C Emissions ### 
     # "Total_Energy2Atmos_C_stock" just to compare it with the total cum atmos c
-    out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
-      all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"] - 
+      all_c_flux[,"Land2Atmos_EnergyC_stock_conv"]
 
     ### Total C Emissions (all sources and pathways except Net Eco Flux) ###
     # "Total_Atmos_CumGain_C_stock" the total release of land and wood product and energy c to the atmosphere
