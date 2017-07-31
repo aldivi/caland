@@ -2431,7 +2431,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     cgnames = c(cgnames, paste0(out_density_sheets[3],"_gain_conv"))
     # c lost from any landtype going to ag/urban - c loss (emissions) if changing land area from hi to lo c density + 
     # c density gain if going to low to hi c density 
-    all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_Harvested_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
+    all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_harvested_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
       conv_adjust_df$Above_main_C_den_change
     # below
     cgnames = c(cgnames, paste0(out_density_sheets[4],"_gain_conv"))
