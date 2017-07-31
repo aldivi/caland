@@ -2450,13 +2450,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
       conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$DownDead_C_den_change
     # litter
     cgnames = c(cgnames, paste0(out_density_sheets[8],"_gain_conv"))
-    all_c_flux[,cgnames[6]] = - conv_adjust_df$Litter2Atmos_conv_c - conv_adjust_df$Litter_C_den2Atmos + conv_adjust_df$Litter_C_den_change
+    all_c_flux[,cgnames[6]] = - conv_adjust_df$Litter2Slash_conv_c - conv_adjust_df$Litter_C_den2Atmos + conv_adjust_df$Litter_C_den_change
     # soil
     cgnames = c(cgnames, paste0(out_density_sheets[9],"_gain_conv"))
     all_c_flux[,cgnames[7]] = - conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Soil_orgC_den_change
     
-    
-    # loop over the relevant out density tables to update the carbon pools based on the conversion fluxes
+    # loop over the relevant out density tables to update the C pools based on the conversion fluxes
     # carbon cannot go below zero
     sum_change = 0
     sum_change2 = 0
@@ -2492,16 +2491,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                                                                 out_density_df_list[[i]][, next_density_label] == Inf, 0.00)
     } # end loop over out densities for updating due to conversion
     
-    # Get C lost to atmosphere 3 potential flux pathways by the tot_area
-    # DECAY
+    # Get total C lost to atmosphere from LCC via 3 potential flux pathways by the tot_area
+    # (1) DECAY
     all_c_flux[,"Land2Atmos_DecayC_stock_conv"] = -conv_adjust_df$tot_area * 
       (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Slash2Decay_conv_c + conv_adjust_df$Harvested2SawmillDecay_conv_c + 
          conv_adjust_df$Below2Atmos_conv_c + 
          conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$StandDead_C_den2Atmos + 
          conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$Litter_C_den2Atmos)
-    # MANAGED BURN - currently assumed this is 0
+    # (2) MANAGED BURNS - currently assumed this is 0
     all_c_flux[,"Land2Atmos_BurnC_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Slash2Burn_conv_c)
-    # ENERGY - this is assumed to go to the atmosphere immediately
+    # (3) ENERGY - this is assumed to go to the atmosphere immediately
     all_c_flux[,"Land2Atmos_EnergyC_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Harvested2Energy_conv_c + 
                                                                                  conv_adjust_df$Slash2Energy_conv_c)
     # Get C lost to wood 
