@@ -2446,7 +2446,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
       conv_adjust_df$StandDead_C_den_change
     # down dead
     cgnames = c(cgnames, paste0(out_density_sheets[7],"_gain_conv"))
-    all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Under2DownDead_conv_c - 
+    all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Slash_conv_c + conv_adjust_df$Under2DownDead_conv_c - 
       conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$DownDead_C_den_change
     # litter
     cgnames = c(cgnames, paste0(out_density_sheets[8],"_gain_conv"))
