@@ -2892,15 +2892,15 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   LCC_CumFireC <- out_atmos_df_list[["LCC_Atmos_CumGain_FireC"]]
   LCC_Fire_CumCO2C <- LCC_CumFireC
   for (i in 5:ncol(LCC_CumFireC)) {
-    LCCFire_CumCO2C[,i] <- CO2C_Fire_frac * LCC_CumFireC[,i]
+    LCC_Fire_CumCO2C[,i] <- CO2C_fire_frac * LCC_CumFireC[,i]
   }
-  LCCFire_CumCH4C <- LCC_CumFireC
+  LCC_Fire_CumCH4C <- LCC_CumFireC
   for (i in 5:ncol(LCC_CumFireC)) {
-    LCCFire_CumCH4C[,i] <- CH4C_Fire_frac * LCC_CumFireC[,i]
+    LCC_Fire_CumCH4C[,i] <- CH4C_fire_frac * LCC_CumFireC[,i]
   }
-  LCCFire_CumBCC <- LCC_CumFireC
+  LCC_Fire_CumBCC <- LCC_CumFireC
   for (i in 5:ncol(LCC_CumFireC)) {
-    LCCFire_CumBCC[,i] <- BCC_Fire_frac * LCC_CumFireC[,i]
+    LCC_Fire_CumBCC[,i] <- BCC_fire_frac * LCC_CumFireC[,i]
   }
   
   # LCC ENERGY
