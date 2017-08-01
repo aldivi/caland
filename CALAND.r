@@ -2973,6 +2973,22 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ManEnergy_AnnBCC[,i] <- BCC_energy_frac * Manage_AnnEnergyC[,i]
   }
   
+  # LCC FIRE
+  
+  LCC_AnnFireC <- out_atmos_df_list[["LCC_Atmos_AnnGain_FireC"]]
+  LCC_Fire_AnnCO2C <- LCC_AnnFireC
+  for (i in 5:ncol(LCC_AnnFireC)) {
+    LCC_Fire_AnnCO2C[,i] <- CO2C_fire_frac * LCC_AnnFireC[,i]
+  }
+  LCC_Fire_AnnCH4C <- LCC_AnnFireC
+  for (i in 5:ncol(LCC_AnnFireC)) {
+    LCC_Fire_AnnCH4C[,i] <- CH4C_fire_frac * LCC_AnnFireC[,i]
+  }
+  LCC_Fire_AnnBCC <- LCC_AnnFireC
+  for (i in 5:ncol(LCC_AnnFireC)) {
+    LCC_Fire_AnnBCC[,i] <- BCC_fire_frac * LCC_AnnFireC[,i]
+  }
+  
   # LCC ENERGY
   LCC_AnnEnergyC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC"]]
   LCCEnergy_AnnCO2C <- LCC_AnnEnergyC
