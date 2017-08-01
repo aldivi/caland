@@ -2974,7 +2974,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   }
   
   # LCC FIRE
-  
   LCC_AnnFireC <- out_atmos_df_list[["LCC_Atmos_AnnGain_FireC"]]
   LCC_Fire_AnnCO2C <- LCC_AnnFireC
   for (i in 5:ncol(LCC_AnnFireC)) {
@@ -3018,6 +3017,14 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   for (i in 5:ncol(Wildfire_AnnBurnedC)) {
     Wildfire_AnnBCC[,i] <- BCC_fire_frac * Wildfire_AnnBurnedC[,i]
   }
+  
+  # TOTAL Controlled Fires CO2-C, CH4-C, and BC-C 
+  TotalFire_AnnCO2C <- LCC_Fire_AnnCO2C
+  TotalFire_AnnCO2C[,5:ncol(LCC_Fire_AnnCO2C)] <- LCC_Fire_AnnCO2C[,5:ncol(LCC_Fire_AnnCO2C)] + Manage_Fire_AnnCO2C[,5:ncol(LCC_Fire_AnnCO2C)]
+  TotalFire_AnnCH4C <- LCC_Fire_AnnCH4C
+  TotalFire_AnnCH4C[,5:ncol(LCC_Fire_AnnCH4C)] <- LCC_Fire_AnnCH4C[,5:ncol(LCC_Fire_AnnCH4C)] + Manage_Fire_AnnCH4C[,5:ncol(LCC_Fire_AnnCH4C)]
+  TotalFire_AnnBCC <- LCC_Fire_AnnBCC
+  TotalFire_AnnBCC[,5:ncol(LCC_Fire_AnnBCC)] <- LCC_Fire_AnnBCC[,5:ncol(LCC_Fire_AnnBCC)] + Manage_Fire_AnnBCC[,5:ncol(LCC_Fire_AnnBCC)]
   
   # TOTAL ENERGY CO2-C, CH4-C, and BC-C 
   TotalEnergy_AnnCO2C <- LCCEnergy_AnnCO2C
