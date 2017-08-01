@@ -339,10 +339,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                        "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", 
                        "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
                        "Manage_Atmos_CumGain_FireC", "Manage_Atmos_CumGain_EnergyC", "Manage_Atmos_CumGain_NonBurnedC", 
-                       "Fire_Atmos_CumGain_BurnedC", "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_EnergyC", 
-                       "LCC_Atmos_CumGain_NonBurnEnerC","Manage_Atmos_AnnGain_FireC", "Manage_Atmos_AnnGain_EnergyC", 
-                       "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", "Fire_Atmos_AnnGain_NonBurnedC", 
-                       "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonBurnEnerC")
+                       "Fire_Atmos_CumGain_BurnedC", "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_FireC", 
+                       "LCC_Atmos_CumGain_EnergyC", "LCC_Atmos_CumGain_NonBurnedC", "Manage_Atmos_AnnGain_FireC", 
+                       "Manage_Atmos_AnnGain_EnergyC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", 
+                       "Fire_Atmos_AnnGain_NonBurnedC", "LCC_Atmos_AnnGain_FireC", "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonBurnedC")
   num_out_atmos_sheets = length(out_atmos_sheets)
   out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
                       "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", 
@@ -2657,7 +2657,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
     
     ### Management C Emissions ###
-    # "Manage_Atmos_AnnGain_C_stock" based on biomass removal & energy from biomass 
+    # "Manage_Atmos_AnnGain_C_stock" = decay + burn + energy
     out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] -
        all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
     
@@ -2716,21 +2716,23 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
     # is released as CO2 (decomposition) and not burned
     
-    # LCC Energy: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_EnergyC_stock_conv"
-    out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_EnergyC_stock_conv"]
-    # LCC non-burned: "LCC_Atmos_CumGain_NonBurnEnerC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
-    out_atmos_df_list[[21]][, next_atmos_label] = out_atmos_df_list[[21]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
+    # LCC BURN: "LCC_Atmos_CumGain_FireC" = (current year "LCC_Atmos_CumGain_FireC") - "Land2Atmos_BurnC_stock_conv"
+    out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
+    # LCC ENERGY: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_EnergyC_stock_conv"
+    out_atmos_df_list[[21]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_EnergyC_stock_conv"]
+    # LCC DECAY: "LCC_Atmos_CumGain_NonBurnedC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
+    out_atmos_df_list[[22]][, next_atmos_label] = out_atmos_df_list[[21]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
     
     ### annual (again) ###
     
     # Partition the "Manage_Atmos_AnnGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
     
     # FIRE: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_BurnC_stock_man_agg" 
-    out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
+    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
     # ENERGY: "Manage_Atmos_AnnGain_EnergyC" = - "Land2Atmos_EnergyC_stock_man_agg"
-    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
+    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
     # non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_DecayC_stock_man_agg"
-    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
+    out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
     
     # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
     all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
@@ -2745,17 +2747,17 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
     # burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
-    out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+    out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
     # non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-    out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+    out_atmos_df_list[[27]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
     
-    # Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
-    # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
-    # is released as CO2 (decomposition) and not burned
-    # burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Atmos_EnergyC_stock_conv"
-    out_atmos_df_list[[27]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_EnergyC_stock_conv"]
-    # non-burned: "LCC_Atmos_AnnGain_NonBurnEnerC" = - "Land2Atmos_DecayC_stock_conv"
-    out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
+    # Partition the "LCC_Atmos_AnnGain_C_stock" into burned (fire + energy) and non-burned (decay) C sources 
+    # FIRE: "LCC_Atmos_AnnGain_FireC" = - "Land2Atmos_BurnC_stock_conv"
+    out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
+    # ENERGY: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Atmos_EnergyC_stock_conv"
+    out_atmos_df_list[[29]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_EnergyC_stock_conv"]
+    # non-burned: "LCC_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_DecayC_stock_conv"
+    out_atmos_df_list[[30]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
     
   } # end loop over calculation years
   
