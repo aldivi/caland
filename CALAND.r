@@ -2854,7 +2854,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   Eco_AnnCH4C <- transform(Eco_AnnCH4C, Land_Cat_ID = as.numeric(Land_Cat_ID))
   Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Cat_ID),]
   
-  # Partition all the appropriate burned (fire + energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
+  # Partition all the C emitted from controlled burn & bioenergy in out_atmos_df_list into CO2C, CH4C and BC-C.
   
   ########## Cumulative ########## 
   
@@ -2886,6 +2886,21 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   ManEnergy_CumBCC <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
     ManEnergy_CumBCC[,i] <- BCC_energy_frac * Manage_CumEnergyC[,i]
+  }
+  
+  # LCC FIRE
+  LCC_CumFireC <- out_atmos_df_list[["LCC_Atmos_CumGain_FireC"]]
+  LCC_Fire_CumCO2C <- LCC_CumFireC
+  for (i in 5:ncol(LCC_CumFireC)) {
+    LCCFire_CumCO2C[,i] <- CO2C_Fire_frac * LCC_CumFireC[,i]
+  }
+  LCCFire_CumCH4C <- LCC_CumFireC
+  for (i in 5:ncol(LCC_CumFireC)) {
+    LCCFire_CumCH4C[,i] <- CH4C_Fire_frac * LCC_CumFireC[,i]
+  }
+  LCCFire_CumBCC <- LCC_CumFireC
+  for (i in 5:ncol(LCC_CumFireC)) {
+    LCCFire_CumBCC[,i] <- BCC_Fire_frac * LCC_CumFireC[,i]
   }
   
   # LCC ENERGY
