@@ -338,10 +338,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                        "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", 
                        "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", 
                        "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
-                       "Manage_Atmos_CumGain_FireC", "Manage_Atmos_CumGain_EnergyC", "Manage_Atmos_CumGain_NonBurnedC", 
+                       "Manage_Atmos_CumGain_FireC", "Manage_Atmos_CumGain_TotEnergyC", "Manage_Atmos_CumGain_NonBurnedC", 
                        "Fire_Atmos_CumGain_BurnedC", "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_FireC", 
                        "LCC_Atmos_CumGain_EnergyC", "LCC_Atmos_CumGain_NonBurnedC", "Manage_Atmos_AnnGain_FireC", 
-                       "Manage_Atmos_AnnGain_EnergyC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", 
+                       "Manage_Atmos_AnnGain_TotEnergyC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", 
                        "Fire_Atmos_AnnGain_NonBurnedC", "LCC_Atmos_AnnGain_FireC", "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonBurnedC")
   num_out_atmos_sheets = length(out_atmos_sheets)
   out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
@@ -2691,19 +2691,19 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     # Manage BURN: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_BurnC_stock_man_agg" 
     out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
-    # Manage ENERGY: "Manage_Atmos_CumGain_EnergyC" = (current year "Manage_Atmos_CumGain_EnergyC") - "Land2Atmos_EnergyC_stock_man_agg" 
+    # Manage ENERGY: "Manage_Atmos_CumGain_TotEnergyC" = (current year "Manage_Atmos_CumGain_TotEnergyC") - "Land2Atmos_EnergyC_stock_man_agg" 
     out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
     # Manage DECAY: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_DecayC_stock_man_agg"
     out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
     
     # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
     all(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] == out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
-          out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
+          out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
     # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
     all(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
-           out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label]) < 0.5 & 
+           out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label]) < 0.5 & 
           (out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
-              out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])) > -0.5)
+              out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])) > -0.5)
     
     # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
@@ -2730,19 +2730,19 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     # Manage BURN: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_BurnC_stock_man_agg" 
     out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
-    # Manage ENERGY: "Manage_Atmos_AnnGain_EnergyC" = - "Land2Atmos_EnergyC_stock_man_agg"
+    # Manage ENERGY: "Manage_Atmos_AnnGain_TotEnergyC" = - "Land2Atmos_EnergyC_stock_man_agg"
     out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_EnergyC_stock_man_agg"]
     # Manage non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_DecayC_stock_man_agg"
     out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
     
     # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
     all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
-          out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])
+          out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])
     # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
     all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
-             out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
+             out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
           (out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
-                  out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
+                  out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
     
     # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
@@ -2874,7 +2874,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   }
   
   # MANAGE ENERGY
-  Manage_CumEnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]]  
+  Manage_CumEnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]]  
   ManEnergy_CumCO2C <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
     ManEnergy_CumCO2C[,i] <- CO2C_energy_frac * Manage_CumEnergyC[,i]
@@ -2967,7 +2967,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   }
   
   # MANAGE ENERGY
-  Manage_AnnEnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]]  
+  Manage_AnnEnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]]  
   ManEnergy_AnnCO2C <- Manage_AnnEnergyC
   for (i in 5:ncol(Manage_AnnEnergyC)) {
     ManEnergy_AnnCO2C[,i] <- CO2C_energy_frac * Manage_AnnEnergyC[,i]
