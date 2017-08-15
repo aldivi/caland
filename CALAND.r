@@ -354,6 +354,10 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
                      "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", 
                       "Slash2Decay_frac", "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+  #man_frac_names = c("Above_removed_frac", "StandDead_removed_frac", "Removed2Wood_frac", "Removed2Energy_frac", "Removed2Atmos_frac", 
+  #                   "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Soil2Atmos_frac", "Understory2DownDead_frac", 
+  #                   "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+
   num_manfrac_cols = length(man_frac_names)
   # new c trans column names matching the non-accum manage frac names
   c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c",
@@ -1271,13 +1275,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ############################################################################################################
     #################### Do management C transfers [MgC/y] for forest & developed areas ########################
     ############################################################################################################
-    man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
-                       "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
-                       "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
-    
-    c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c", "Under2Slash_c", 
-                      "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
-                      "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
     # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
     # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
     # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
@@ -1360,17 +1357,21 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # add column called "Soil_orgC_C_den_gain_man": soil C density = -(soil to atmos C) + (root to soil C)
     agg_names = c(agg_names, paste0(out_density_sheets[9], "_gain_man"))
     man_adjust_df[,agg_names[7]] = -man_adjust_df$Soil2Atmos_c + man_adjust_df$Below2Soil_c
+    # slash
+    # add column called "Slash_C_den_gain_man": slash C density = Harvested C to slash + Understory to slash + Downed dead to slash + Litter to slash
+    agg_names = c(agg_names, "Slash_C_den_gain_man")
+    man_adjust_df[,agg_names[8]] = man_adjust_df$Harvested2Slash_c + man_adjust_df$Harvested2Slash_c
     
     # to get the carbon must multiply these by the tot_area
     
-    #### C to atmos via 3 pathways (decay or root respiration, burn, energy) which determine proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
+    #### all C to atmos ####
     #  "Land2Decay_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
     #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
-    agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
+    agg_names = c(agg_names, paste0("Land2Decay_c_stock_man"))
     man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Harvested2SawmillDecay_c + 
                                                                 man_adjust_df$Slash2Decay_c + man_adjust_df$Below2Atmos_c)
-    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
-    agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
+    #  "Land2Burn_c_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha] + 
+    agg_names = c(agg_names, paste0("Land2Burn_c_stock_man"))
     man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * (man_adjust_df$Slash2Burn_c)
   
     # "Land2Energy_c_stock_man") = -(total area [ha]) * (Harvested C removed for energy [MgC/ha] + slash removal for energy [MgC/ha])
@@ -1381,6 +1382,70 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # wood - this decays with a half-life
     agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
     man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * man_adjust_df$Harvested2Wood_c
+    
+    # Before partioning the Land2Atmos_c_stock_man into total burned and total non-burned C emissions, partition the 
+    # individual above-ground pools within it.
+    # Soil c and root c are assumed to not burn, so 100% of 2Atmos c from these pools will be CO2.
+    # First, calculate burned litter c using default fractions  of 2Atmos pools set in beginning
+    man_adjust_df[,"Burned_litter_c"] = 0
+    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_litter_burn * 
+      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_litter_burn * 
+      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_litter_burn * 
+      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_litter_burn * 
+      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_litter_burn * 
+      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+    # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
+    man_adjust_df[,"Burned_downdead_c"] = 0
+    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
+      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
+      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_down_burn * 
+      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_down_burn * 
+      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_down_burn * 
+      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+    # Third, calculate burned understory c using default fractions of 2Atmos pools set in beginning
+    man_adjust_df[,"Burned_under_c"] = 0
+    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
+      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_under_burn * 
+      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_under_burn * 
+      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
+      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_under_burn * 
+      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+    # Fourth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
+    # doesn't include removed 2 energy
+    man_adjust_df[,"Burned_mainremoved_c"] = 0
+    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_mainremoved_burn * 
+      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Clearcut"]
+    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_mainremoved_burn * 
+      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
+    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_mainremoved_burn * 
+      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
+    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_mainremoved_burn * 
+      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
+    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_mainremoved_burn * 
+      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
+    
+    agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
+    # create man_adjust_df$Land2Atmos_burnedC_stock_man (note: does not include bioenergy)
+    man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Burned_litter_c + man_adjust_df$Burned_downdead_c +
+                                                                 man_adjust_df$Burned_under_c + man_adjust_df$Burned_mainremoved_c)
+    agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
+    # create man_adjust_df$Land2Atmos_nonburnedC_stock_man  = "Land2Atmos_c_stock_man" - "Land2Atmos_burnedC_stock_man"
+    man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
+    
+    # checks true that management Land2Atmos c flux equals the sum of burned and non-burned c in man_adjust_df 
+    identical(man_adjust_df[,agg_names[8]], man_adjust_df[,agg_names[11]] + man_adjust_df[,agg_names[12]])
     
     # now aggregate to land type by summing the management options
     # these c density values are the direct changes to the overall c density
