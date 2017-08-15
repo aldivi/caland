@@ -125,6 +125,9 @@ GET.NAMES <- function(df, new.name) {
 
 CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
+
+  # this enables java to use up to 4GB of memory for reading and writing excel files
+  options(java.parameters = "-Xmx4g" )
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd", "mean_se", "sd_se")
@@ -367,16 +370,11 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   num_manfrac_cols = length(man_frac_names)
   # new c trans column names matching the non-accum manage frac names
   c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c",
-<<<<<<< HEAD
-                    "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
-                    "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
-=======
                     "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Wood_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", 
                     "Soil2Atmos_c", "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
   #c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", 
   #                  "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", 
   #                 "Below2Soil_c")
->>>>>>> Added slash to wood factor in the Forest management sheet in the c input file and to CALAND’s corresponding man_frac_names, c_trans_names, manage_density_inds. The equation for forest management’s C to wood transfer was updated to include both harvested wood and slash wood… Updated the conversion to ag/urban sheet in the c input file to follow same structure as Forest management, as well as CALAND’s conv_frac_names, conv_trans_names, conv_density_inds… Updated the loops that do C transfers for forest management & conversion to ag or urban with the new names for variables and indices for calculating the source of the transferred C… Within the big LCC loop, updated the loop that checks each LCC ownership df within the current region's list (own_conv_df_list_pre) that replaces any missing land type columns. Previously it hard-wired the column index number to start counting from, but now it has extra columns due to the new slash structure. Now it defines the column index using the which() command to get the number following the name of the last leading column (own_gain_sum). Within this loop, also updated the names of the sequence of columns that should be at the end of own_conv_df_list_pre. After big LCC loop, updated the columns names (as needed) in equations that calculated C density gains/losses in land conversions with ag/urban.
   # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
   # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
   # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
@@ -1308,8 +1306,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ############################################################################################################
     #################### Do management C transfers [MgC/y] for forest & developed areas ########################
     ############################################################################################################
-<<<<<<< HEAD
-=======
+
    # man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
    #                    "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
    #                    "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
@@ -1317,7 +1314,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
    # c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c", "Under2Slash_c", 
    #                   "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
    #                   "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
->>>>>>> updated conversion frac, trans and inds names to reflect new c_input file and the slash structure. The same values for Harvest2wood, Harvest2energy, Harvested2SawmillDecay_frac, Harvested2slash, Slash2Energy, Slash2Burn, Slash2Decay in clearcut forest management are used in conversion2ag_urban for forests. Note there is no column for above to down dead. Corrected equation for Manage_Atmos_CumGain_C_stock (double minus), and Manage_Atmos_AnnGain_C_stock which had the minus in the wrong location. Edited comments about “partitioning C emissions” as that is unnecessary as there are already separate pathways due to the new c_input file. This also was applied to the equations that calculated management burns, energy, and non-burned (i.e. value taken directly from all_c_flux without having to subtract the other pathways). Also changed the checks to reflect this update. Now the checks simply add up the annual or cumulative C emissions from out_atmos_df_list and compare to the total.
+
     # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
     # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
     # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
@@ -1339,6 +1336,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
         } else {
           # else manage_density_inds[i] == -2 (when i = 10, 11, or 12)
           # if manage_density_inds[i] == -2 the source is the slash pool; take the sum of c trans columns 6, 7, 8 & 9 (Harvest2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c)
+
           # (slash2energy_c, slash2wood_c, slash2burn_c, slash2decay_c) [Mg/ha] = (Harvested2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c) * 
                                                                      # (Harvested2Slsash_frac, Under2Slash_frac, DownDead2Slash_frac, Litter2Slash_frac)
             man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[6]] + man_adjust_df[,c_trans_names[7]] + man_adjust_df[,c_trans_names[8]] +
@@ -1402,7 +1400,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     man_adjust_df[,agg_names[7]] = -man_adjust_df$Soil2Atmos_c + man_adjust_df$Below2Soil_c
     
     # to get the carbon must multiply these by the tot_area
-    
     #### C to atmos via 4 pathways (wood product decay("Wood"), all other organic matter decay or root respiration ("Decay"), burn, energy) which determine 
     # proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
     #  "Land2Atmos_DecayC_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
@@ -2688,19 +2685,15 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     }
     
     ##### CUMULATIVE FLUXES ##### 
-<<<<<<< HEAD
 
     ### Net Ecosystem Flux (i.e. baseline) ###
-=======
-    ### Net Ecosystem Flux ###
->>>>>>> reverted back to the original calculations of Total_Atmos_CumGain_C_stock and Total_Atmos_AnnGain_C_stock, which do not include the Eco Flux. Alan wants to keep these 2 C fluxes distinct for comparison. So we have Atmos_Cum(Ann)Gain (management, wood, LCC, wildfire) and Eco_Cum(Ann)Gain (which is a net release to atmosphere in some cases).  The sum of these to C fluxes gives net C exchange.
     # "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
     out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
     
     ### Management C Emissions ###
     # "Manage_Atmos_CumGain_C_stock" based on biomass removal, managed burns and energy (note: actually adding terms because they are negative)
-    # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Decay_c_stock_man_agg" 
+    # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Decay_c_stock_man_agg"  -
                                       # "Land2Burn_c_stock_man_agg" - "Land2Energy_c_stock_man_agg"  
     out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - 
       all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"]
@@ -2743,7 +2736,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # "Manage_Atmos_AnnGain_C_stock" = decay + burn + energy
     out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] -
        all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"]
-    
+
     ### Wildfire C Emissions ###
     # "Fire_Atmos_AnnGain_C_stock" based on fire
     out_atmos_df_list[[11]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
@@ -2752,7 +2745,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # "LCC_Atmos_AnnGain_C_stock" based on land cover change with associated biomass removal, includes energy from biomass
     out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"] -
       all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
-    
+
     ### Wood C Emissions ###
     # "Wood_Atmos_AnnGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[13]][, cur_atmos_label] = out_wood_df_list[[5]][,cur_wood_label]
@@ -2770,7 +2763,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ### cumulative (again) ### 
     
     # Get C emissions from individual pathways: CONTROLLED FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
-    
+  
     # Manage BURN: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_BurnC_stock_man_agg" 
     out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
     # Manage TOTAL ENERGY: "Manage_Atmos_CumGain_TotEnergyC" = (current year "Manage_Atmos_CumGain_TotEnergyC") - "Land2Atmos_TotEnergyC_stock_man_agg" 
@@ -2837,6 +2830,16 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
              out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
           (out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
                   out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
+    
+    # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+          out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])
+    # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+             out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
+          (out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+                  out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
+    
     
     # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
