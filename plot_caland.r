@@ -61,18 +61,28 @@ for( i in libs ) {
 
 # set these here so the function does not have to be used
 data_dir = "./outputs"
-scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
+scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls", 
+                "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls", 
+                "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
 scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
 scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
-reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region")
-lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
+reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", 
+        "Ocean", "All_region")
+lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", 
+       "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 own = c("All_own")
 figdir = "figures"
 
 ############# main function
 
-plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land"), own = c("All_own"), figdir = "figures") {
+plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", 
+                                                                                               "Delta", "Deserts", "Eastside", "Klamath", 
+                                                                                               "North_Coast", "Sierra_Cascades", 
+                                                                                               "South_Coast", "Ocean", "All_region"), 
+                        lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", 
+                               "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass", "All_land"), 
+                        own = c("All_own"), figdir = "figures") {
 
 cat("Start plot_caland() at", date(), "\n")
 
@@ -100,13 +110,21 @@ g_lab = "MMT CO2-eq"
 # these are the sheets for plotting C summary data
 stock_sheets = c("All_orgC_stock", "All_biomass_C_stock", "Soil_orgC_stock", "Total_Wood_C_stock", "Total_Atmos_CumGain_C_stock")
 num_stock_sheets = length(stock_sheets)
+#ann_sheets = c("Total_Wood_AnnGain_C_stock", "Man_Harv2Wood_AnnGain_C_stock", "Man_Slash2Wood_AnnGain_C_stock", 
+#               "LCC_Harv2Wood_AnnGain_C_stock", "LCC_Slash2Wood_AnnGain_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", 
+#               "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", 
+#               "Total_AnnCO2", "Total_AnnCH4eq", "Total_AnnBCeq", "Total_AnnCO2eq_all")
 ann_sheets = c("Total_Wood_AnnGain_C_stock", "Eco_AnnGain_C_stock", "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", 
-               "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnCO2", 
-               "Total_AnnCH4eq", "Total_AnnBCeq", "Total_AnnCO2eq_all")
-num_ann_sheets = length(ann_sheets)
+               "Fire_Atmos_AnnGain_C_stock", "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnCO2", "Total_AnnCH4eq", 
+               "Total_AnnBCeq", "Total_AnnCO2eq_all")
+num_ann_sheets = length(ann_sheets)   
+#cum_sheets = c("Total_Wood_CumGain_C_stock", "Man_Harv2Wood_CumGain_C_stock", "Man_Slash2Wood_CumGain_C_stock", 
+#               "LCC_Harv2Wood_CumGain_C_stock", "LCC_Slash2Wood_CumGain_C_stock", "Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", 
+#              "Manage_Atmos_CumGain_C_stock", "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", 
+#             "Total_CumCO2", "Total_CumCH4eq", "Total_CumBCeq", "Total_CumCO2eq_all")
 cum_sheets = c("Total_Wood_CumGain_C_stock", "Eco_CumGain_C_stock", "Total_Atmos_CumGain_C_stock", "Manage_Atmos_CumGain_C_stock", 
-               "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_CumCO2",
-               "Total_CumCH4eq", "Total_CumBCeq", "Total_CumCO2eq_all")
+               "Fire_Atmos_CumGain_C_stock", "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_CumCO2", "Total_CumCH4eq", 
+               "Total_CumBCeq", "Total_CumCO2eq_all")
 num_cum_sheets = length(cum_sheets)
 area_sheets = c("Area", "Managed_area", "Wildfire_area")
 num_area_sheets = length(area_sheets)
@@ -120,12 +138,26 @@ bar_plot_labels = c("Wood_Gain_from_Eco", "Ecosystem_Gain_from_Atmos", "Total_At
 # these are the sheets for reading/plotting GHG summary data
 # do line plots only for the totals
 # do stacked plots for the components by scenario
-ann_ghg_sheets = c("Total_AnnCO2eq_all", "TotalEnergy_AnnCO2eq_all", "TotalFire_AnnCO2eq_all", "TotalNonBurn_AnnCO2eq_all", "TotalWood_AnnCO2eq_all", "Total_AnnCO2", "Total_AnnCH4eq", "Total_AnnBCeq", "Wood_AnnCO2", "Wildfire_AnnCO2", "ManEnergy_AnnCO2", "LCCEnergy_AnnCO2", "Eco_AnnCO2", "ManFire_AnnCO2", "ManNonBurn_AnnCO2", "LCCNonBurn_AnnCO2", "Wood_AnnCH4eq", "Wildfire_AnnCH4eq", "ManEnergy_AnnCH4eq", "LCCEnergy_AnnCH4eq", "Eco_AnnCH4eq", "ManFire_AnnCH4eq", "Wildfire_AnnBCeq", "ManEnergy_AnnBCeq", "LCCEnergy_AnnBCeq", "ManFire_AnnBCeq")
+ann_ghg_sheets = c("Total_AnnCO2eq_all", "TotalEnergy_AnnCO2eq_all", "TotalFire_AnnCO2eq_all", "TotalNonBurn_AnnCO2eq_all", 
+                   "TotalWood_AnnCO2eq_all", "Total_AnnCO2", "Total_AnnCH4eq", "Total_AnnBCeq", "Wood_AnnCO2", "Wildfire_AnnCO2", 
+                   "ManTotEnergy_AnnCO2", "LCCTotEnergy_AnnCO2", "Eco_AnnCO2", "ManFire_AnnCO2", "ManNonBurn_AnnCO2", "LCCFire_AnnCO2", 
+                   "LCCNonBurn_AnnCO2", "Wood_AnnCH4eq", "Wildfire_AnnCH4eq", "ManTotEnergy_AnnCH4eq", "LCCTotEnergy_AnnCH4eq", 
+                   "Eco_AnnCH4eq", "ManFire_AnnCH4eq", "LCCFire_AnnCH4eq","Wildfire_AnnBCeq", "ManTotEnergy_AnnBCeq", "LCCTotEnergy_AnnBCeq", 
+                   "ManFire_AnnBCeq", "LCCFire_AnnBCeq")
 num_ann_ghg_sheets = length(ann_ghg_sheets)
+
+# The numbers below denote that the first 8 names in ann_ghg_sheets are totals for one type of plotting, and that 6-8 are the totals for 
+# the three species. 
+# So in this case the order of names in the sheets does matter.
 num_plot_ann_ghg_sheets = 8
 start_spec_ann = 6
 end_spec_ann = 8
-cum_ghg_sheets = c("Total_CumCO2eq_all", "TotalEnergy_CumCO2eq_all", "TotalFire_CumCO2eq_all", "TotalNonBurn_CumCO2eq_all", "TotalWood_CumCO2eq_all", "Total_CumCO2", "Total_CumCH4eq", "Total_CumBCeq", "Wood_CumCO2", "Wildfire_CumCO2", "ManEnergy_CumCO2", "LCCEnergy_CumCO2", "Eco_CumCO2", "ManFire_CumCO2", "ManNonBurn_CumCO2", "LCCNonBurn_CumCO2", "Wood_CumCH4eq", "Wildfire_CumCH4eq", "ManEnergy_CumCH4eq", "LCCEnergy_CumCH4eq", "Eco_CumCH4eq", "ManFire_CumCH4eq", "Wildfire_CumBCeq", "ManEnergy_CumBCeq", "LCCEnergy_CumBCeq", "ManFire_CumBCeq")
+cum_ghg_sheets = c("Total_CumCO2eq_all", "TotalEnergy_CumCO2eq_all", "TotalFire_CumCO2eq_all", "TotalNonBurn_CumCO2eq_all", 
+                   "TotalWood_CumCO2eq_all", "Total_CumCO2", "Total_CumCH4eq", "Total_CumBCeq", "Wood_CumCO2", "Wildfire_CumCO2", 
+                   "ManTotEnergy_CumCO2", "LCCTotEnergy_CumCO2", "Eco_CumCO2", "ManFire_CumCO2", "ManNonBurn_CumCO2", "LCCFire_CumCO2", 
+                   "LCCNonBurn_CumCO2", "Wood_CumCH4eq", "Wildfire_CumCH4eq", "ManTotEnergy_CumCH4eq", "LCCTotEnergy_CumCH4eq", 
+                   "Eco_CumCH4eq", "ManFire_CumCH4eq", "LCCFire_CumCH4eq", "Wildfire_CumBCeq", "ManTotEnergy_CumBCeq", "LCCTotEnergy_CumBCeq", 
+                   "ManFire_CumBCeq", "LCCFire_CumBCeq")
 num_cum_ghg_sheets = length(cum_ghg_sheets)
 num_plot_cum_ghg_sheets = 8
 start_spec_cum = 6
@@ -145,7 +177,8 @@ for (r in 1:num_reg){
         # All_region has all land types and seagrass
         # The Ocean region has only the Seagrass land type
         
-        if ((reg_lab != "All_region" & reg_lab != "Ocean" & lt_lab != "Seagrass") | (reg_lab == "All_region")  | (reg_lab == "Ocean" & lt_lab == "Seagrass")) {
+        if ((reg_lab != "All_region" & reg_lab != "Ocean" & lt_lab != "Seagrass") | (reg_lab == "All_region")  | 
+            (reg_lab == "Ocean" & lt_lab == "Seagrass")) {
             
             for ( o in 1:num_own) {
             	
@@ -169,25 +202,32 @@ for (r in 1:num_reg){
             out_ann_ghg_df_list <- list()
             out_cum_ghg_df_list <- list()
             for (i in 1:num_stock_sheets) {
-                out_stock_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_stock_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                     Value=NULL)
             }
             for (i in 1:num_ann_sheets) {
-                out_ann_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_ann_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                   Value=NULL)
             }
             for (i in 1:num_cum_sheets) {
-                out_cum_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_cum_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                   Value=NULL)
             }
             for (i in 1:num_area_sheets) {
-                out_area_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_area_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                    Value=NULL)
             }
             for (i in 1:num_den_sheets) {
-                out_den_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_den_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                   Value=NULL)
             }
             for (i in 1: num_ann_ghg_sheets) {
-                out_ann_ghg_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_ann_ghg_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                       Value=NULL)
             }
             for (i in 1: num_cum_ghg_sheets) {
-                out_cum_ghg_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL)
+                out_cum_ghg_df_list[[i]] <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, 
+                                                       Value=NULL)
             }
             names(out_stock_df_list) = stock_sheets
             names(out_ann_df_list) = ann_sheets
@@ -196,16 +236,20 @@ for (r in 1:num_reg){
             names(out_den_df_list) = den_sheets
             names(out_ann_ghg_df_list) = ann_ghg_sheets
             names(out_cum_ghg_df_list) = cum_ghg_sheets
-            cum_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Component=NULL, Units=NULL, Year=NULL, Value=NULL)
-            ann_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Component=NULL, Units=NULL, Year=NULL, Value=NULL)
+            cum_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Component=NULL, Units=NULL, Year=NULL, 
+                                      Value=NULL)
+            ann_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Component=NULL, Units=NULL, Year=NULL, 
+                                      Value=NULL)
             
             # loop over the scenario outputs to read them in and put the data into data frames for plotting
             # aggregate the ownserhips to the land type
             # only get the year columns (not the change column)
             
             for(s in 1:num_scen_names) {
-            	ann_ghg_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL, Diff=NULL, Component = NULL)
-                cum_ghg_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL, Diff=NULL, Component = NULL)
+            	ann_ghg_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL, 
+            	                              Diff=NULL, Component = NULL)
+                cum_ghg_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Units=NULL, Year=NULL, Value=NULL, 
+                                              Diff=NULL, Component = NULL)
                 
                 # Load the data file
                 data_file = paste0(outputdir, scen_fnames[s])
@@ -233,21 +277,31 @@ for (r in 1:num_reg){
                         
                         # All_own
                         if (own_lab == "All_own") {
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                           startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
                             	# aggregate the ownerships
-                            	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                            	                                                    lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                                    reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                        	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
                             	# there is only one ownership
-                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                            	                                              lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                         		# this land type does not exist in this region
                         		val_col = 0
                         	}
                         } else { # single ownership
                         	# only one or zero rows of this ownership in this land type and region
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                        	                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
                             	# there is only one ownership
-                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == 
+                            	                                              own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                            	                                              lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                        	 	} else {
                         		# this ownership does not exist in this land type and region
                         		val_col = 0
@@ -260,7 +314,8 @@ for (r in 1:num_reg){
                         own_col = rep(own_lab, length(val_col))
                         unit_col = rep(c_lab, length(val_col))
                         year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, 
+                                             Year=year_col, Value=val_col)
                         out_stock_df_list[[oind]] = rbind(out_stock_df_list[[oind]],temp_df)
                         
                     } # end get stock data
@@ -277,18 +332,28 @@ for (r in 1:num_reg){
                             
                             # All_own
                             if (own_lab == "All_own") {
-                           		if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                                	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                            	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                           		if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                           		                           reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                                	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                	                                                    lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                                    reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                            	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                	                                              lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                             	} else {
                         		# this land type does not exist in this region
                         		val_col = 0
                         		}
                         	} else { # single ownership
                         		# only one or zero rows of this ownership in this land type and region
-                        		if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        		if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                        		                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == 
+                                	                                              own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                	                                              lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                             	} else {
                         			# this ownership does not exist in this land type and region
                         			val_col = 0
@@ -301,7 +366,8 @@ for (r in 1:num_reg){
                         	own_col = rep(own_lab, length(val_col))
                            	unit_col = rep(c_lab, length(val_col))
                            	year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                           	temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                           	temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, 
+                           	                     Year=year_col, Value=val_col)
                            	out_ann_df_list[[oind]] = rbind(out_ann_df_list[[oind]],temp_df)
                            
                            	# bar graph of annual components
@@ -323,18 +389,24 @@ for (r in 1:num_reg){
                            	            
                            	            # All_own
                             			if (own_lab == "All_own") {
-                           	            	if (nrow(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) > 1) {
-                           	                	val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
-                           	            	} else if (nrow(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) == 1) {
-                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) - val_col
+                           	            	if (nrow(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, 
+                           	            	                 startcol:(ncol(temp_df)-1)]) > 1) {
+                           	                	val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == 
+                           	                	                                          reg_lab, startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
+                           	            	} else if (nrow(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, 
+                           	            	                        startcol:(ncol(temp_df)-1)]) == 1) {
+                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, 
+                           	                	                                  startcol:(ncol(temp_df)-1)]) - val_col
                            	            	} else {
                            	            		# this land type does not exist in this region
                         						val_col = 0
                            	            	}
                            	            } else { # single ownership
                            	            	# only one or zero rows of this ownership in this land type and region
-                           	            	if (nrow(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) == 1) {
-                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) - val_col
+                           	            	if (nrow(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == 
+                           	            	                 reg_lab, startcol:(ncol(temp_df)-1)]) == 1) {
+                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == 
+                           	                	                                    lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) - val_col
                            	            	} else {
                            	            		# this ownership does not exist in this land type and region
                         						val_col = 0
@@ -343,9 +415,11 @@ for (r in 1:num_reg){
                            	            
                            	            ann_comp_col = rep("Net_Wood_Gain", length(val_col))
                            	        } # end if calc net wood stock gain
-                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=ann_comp_col, Units=unit_col, Year=year_col, Value=-val_col)
+                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=ann_comp_col, 
+                           	                             Units=unit_col, Year=year_col, Value=-val_col)
                            	    } else { # end if not eco gain
-                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=ann_comp_col, Units=unit_col, Year=year_col, Value=val_col)
+                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=ann_comp_col, 
+                           	                             Units=unit_col, Year=year_col, Value=val_col)
                            	    } # end else eco gain
                            	    ann_comp_df = rbind(ann_comp_df, temp_df)
                            	} # end if not total atmos gain
@@ -356,18 +430,29 @@ for (r in 1:num_reg){
                             	
                             	# all own
                             	if (own_lab == "All_own") {
-                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                                    	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                                	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
-                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                           reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                                    	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                    	                                                    lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                                    	                                                  startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
+                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                    	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                                    	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                                 	} else {
                            	        	# this land type does not exist in this region
                         				val_col = 0
                            	        }
                                 } else { # single ownership
                                 	# only one or zero rows of this ownership in this land type and region
-                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
-                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                	                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                                	                           startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
+                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == 
+                                    	                                              own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                    	                                              lt_lab & scen_df_list[[i]][,"Region"] == 
+                                    	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                                 	} else {
                            	        	# this ownership does not exist in this land type and region
                         				val_col = 0
@@ -380,7 +465,8 @@ for (r in 1:num_reg){
                         		own_col = rep(own_lab, length(val_col))
                                 unit_col = rep(c_lab, length(val_col))
                                 year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                                temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                                temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, 
+                                                     Year=year_col, Value=val_col)
                                 out_ann_df_list[[oind]] = rbind(out_ann_df_list[[oind]],temp_df)
                             } # end if region ocean and seagrass lt
                         } # end else ocean or seagrass
@@ -399,18 +485,28 @@ for (r in 1:num_reg){
                             
                             # all own
                             if (own_lab == "All_own") {
-                            	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                                	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                            	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                            	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                           reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                                	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                	                                                    lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                                    reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                            	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                                	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                             	} else {
                             		# this land type does not exist in this region
                         			val_col = 0
                         		}
                             } else { # single ownership
                                 # only one or zero rows of this ownership in this land type and region
-                                if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                                if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                                	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == 
+                                	                                              own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                	                                              lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                                 } else {
                             		# this ownership does not exist in this land type and region
                         			val_col = 0
@@ -423,7 +519,8 @@ for (r in 1:num_reg){
                         	own_col = rep(own_lab, length(val_col))
                            	unit_col = rep(c_lab, length(val_col))
                            	year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                           	temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                           	temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, 
+                           	                     Value=val_col)
                            	out_cum_df_list[[oind]] = rbind(out_cum_df_list[[oind]],temp_df)
                             
                            	# bar graph of cumulative components
@@ -446,17 +543,21 @@ for (r in 1:num_reg){
                            	            # all own
                             			if (own_lab == "All_own") {
                            	            	if (nrow(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) > 1) {
-                           	               	val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
+                           	               	val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, 
+                           	               	                                        startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
                            	            	} else if (nrow(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) == 1) {
-                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) - val_col
+                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, 
+                           	                	                                  startcol:(ncol(temp_df)-1)]) - val_col
                            	            	} else {
                            	            		# this land type does not exist in this region
                         						val_col = 0
                            	            	}
                            	            } else { # single ownership
                                 			# only one or zero rows of this ownership in this land type and region
-                                			if (nrow(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) == 1) {
-                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) - val_col
+                                			if (nrow(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == lt_lab & temp_df[,"Region"] == reg_lab, 
+                                			                 startcol:(ncol(temp_df)-1)]) == 1) {
+                           	                	val_col = Mg2MMT * unlist(temp_df[temp_df[,"Ownership"] == own_lab & temp_df[,"Land_Type"] == 
+                           	                	                                    lt_lab & temp_df[,"Region"] == reg_lab, startcol:(ncol(temp_df)-1)]) - val_col
                            	            	} else {
                             					# this ownership does not exist in this land type and region
                         						val_col = 0
@@ -465,9 +566,11 @@ for (r in 1:num_reg){
                            	            
                            	            cum_comp_col = rep("Net_Wood_Gain", length(val_col))
                            	        } # end if calc net wood stock gain
-                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=cum_comp_col, Units=unit_col, Year=year_col, Value=-val_col)
+                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=cum_comp_col, 
+                           	                             Units=unit_col, Year=year_col, Value=-val_col)
                            	    } else { # end if not eco gain
-                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=cum_comp_col, Units=unit_col, Year=year_col, Value=val_col)
+                           	        temp_df = data.frame(Scenario=scen_col2, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Component=cum_comp_col, 
+                           	                             Units=unit_col, Year=year_col, Value=val_col)
                            	    } # end if eco gain
                            	    cum_comp_df = rbind(cum_comp_df, temp_df)
                            	} # end if not total atmos gain
@@ -478,18 +581,26 @@ for (r in 1:num_reg){
                             	
                             	# all own
                             	if (own_lab == "All_own") {
-                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                                    	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                                	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
-                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                                	                           startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                                    	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                                    	                                                    lt_lab & scen_df_list[[i]][,"Region"] == 
+                                    	                                                    reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                                	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
+                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                                    	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                                 	} else {
                                 		# this land type does not exist in this region
                         				val_col = 0
                                 	}
                                 } else { # single ownership
                                 	# only one or zero rows of this ownership in this land type and region
-                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
-                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                                	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                	                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
+                                    	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                    	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                                    	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                                 	} else {
                             			# this ownership does not exist in this land type and region
                         				val_col = 0
@@ -502,7 +613,8 @@ for (r in 1:num_reg){
                         		own_col = rep(own_lab, length(val_col))
                                 unit_col = rep(c_lab, length(val_col))
                                 year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                                temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                                temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, 
+                                                     Value=val_col)
                                 out_cum_df_list[[oind]] = rbind(out_cum_df_list[[oind]],temp_df)
                             } # if ocean region and seagrass lt
                         } # end else ocean or seagrass
@@ -523,22 +635,31 @@ for (r in 1:num_reg){
                         
                         # all own
                         if (own_lab == "All_own") {
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                            	val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                           startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                            	val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                            	                                                    lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                                  startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                             	# store the total area for the density data if All_own
                             	if (scen_sheets[i] == "Area") {
-                            		area_data = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]
+                            		area_data = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            		                              startcol:(ncol(scen_df_list[[i]])-1)]
                             	}
-                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = ha2kha * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                                  startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = ha2kha * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                            	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                         		# this land type does not exist in this region
                             	val_col = 0
                         	}
                         }else { # single ownership
                                 # only one or zero rows of this ownership in this land type and region
-                                if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            		val_col = ha2kha * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                                if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            		val_col = ha2kha * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                            		                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                         		} else {
                             		# this ownership does not exist in this land type and region
                         			val_col = 0
@@ -551,7 +672,8 @@ for (r in 1:num_reg){
                         own_col = rep(own_lab, length(val_col))
                         unit_col = rep(a_lab, length(val_col))
                         year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, 
+                                             Value=val_col)
                         out_area_df_list[[oind]] = rbind(out_area_df_list[[oind]],temp_df)
                     } # end get area data
                     
@@ -563,10 +685,12 @@ for (r in 1:num_reg){
                         
                         # all own
                         if (own_lab == "All_own") {
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                           startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
                         		# need to area weight the density data if more than one ownership
                         		# need to catch the divide by zero
-                        		den_data = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]
+                        		den_data = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        		                             startcol:(ncol(scen_df_list[[i]])-1)]
                         		temp_stock = den_data * area_data
                         		area_sum = unlist(apply(area_data, 2, sum))
                         		val_col = unlist(apply(temp_stock, 2, sum)) / area_sum
@@ -575,16 +699,20 @@ for (r in 1:num_reg){
                         		val_col[nan_inds] = 0
                         		val_col[inf_inds] = 0
                             	#val_col = unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                                  startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                   startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                         		# this land type does not exist in this region
                             	val_col = 0
                             }
                         } else { # single ownership
                         	# only one or zero rows of this ownership in this land type and region
-                            if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                            if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                                                       lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                            	                                     lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                            		# this ownership does not exist in this land type and region
                         		val_col = 0
@@ -597,7 +725,8 @@ for (r in 1:num_reg){
                         own_col = rep(own_lab, length(val_col))
                         unit_col = rep(d_lab, length(val_col))
                         year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, 
+                                             Value=val_col)
                         out_den_df_list[[oind]] = rbind(out_den_df_list[[oind]],temp_df)
                         
                     } # end get density data
@@ -609,18 +738,25 @@ for (r in 1:num_reg){
                         
                         # all own
                         if (own_lab == "All_own") {
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                            	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                           startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                            	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                                    reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                        	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                            	                                              reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                         		# this land type does not exist in this region
                             	val_col = 0
                         	}
                         } else { # single ownership
                         	# only one or zero rows of this ownership in this land type and region
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                        	                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                            	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                            		# this ownership does not exist in this land type and region
                         		val_col = 0
@@ -633,16 +769,21 @@ for (r in 1:num_reg){
                         own_col = rep(own_lab, length(val_col))
                         unit_col = rep(g_lab, length(val_col))
                         year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, 
+                                             Value=val_col)
                         out_ann_ghg_df_list[[oind]] = rbind(out_ann_ghg_df_list[[oind]],temp_df)
                         
                         # fill the stacked line df for this scenario and this region/land type/ownership and the component variables
                         if (oind > num_plot_ann_ghg_sheets & num_plot_ann_ghg_sheets <= num_ann_ghg_sheets) {
                         	# get this scenario data - remove duplicate rows
-            				temp_df = out_ann_ghg_df_list[[oind]][out_ann_ghg_df_list[[oind]]$Scenario == scen_lnames[s] & out_ann_ghg_df_list[[oind]]$Land_Type == lt_lab & out_ann_ghg_df_list[[oind]]$Ownership == own_lab,]
+            				temp_df = out_ann_ghg_df_list[[oind]][out_ann_ghg_df_list[[oind]]$Scenario == scen_lnames[s] & 
+            				                                        out_ann_ghg_df_list[[oind]]$Land_Type == lt_lab & out_ann_ghg_df_list[[oind]]$Ownership == 
+            				                                        own_lab,]
             				temp_df = unique(temp_df)
             				# calculate the difference from the baseline scenario
-            				temp_df$Diff = temp_df$Value - out_ann_ghg_df_list[[oind]][out_ann_ghg_df_list[[oind]]$Scenario == scen_lnames[1] & out_ann_ghg_df_list[[oind]]$Land_Type == lt_lab & out_ann_ghg_df_list[[oind]]$Ownership == own_lab, "Value"]
+            				temp_df$Diff = temp_df$Value - out_ann_ghg_df_list[[oind]][out_ann_ghg_df_list[[oind]]$Scenario == scen_lnames[1] & 
+            				                                                             out_ann_ghg_df_list[[oind]]$Land_Type == lt_lab & 
+            				                                                             out_ann_ghg_df_list[[oind]]$Ownership == own_lab, "Value"]
             				# add the variable label
             				temp_df$Component = ann_ghg_sheets[oind]
             				# add this variable to the plot df
@@ -658,18 +799,28 @@ for (r in 1:num_reg){
                         
                         # all own
                         if (own_lab == "All_own") {
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
-                            	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
-                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                        	                           startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
+                            	val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                            	                                                    lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                                  startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                        	} else if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == 
+                        	                                  reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == 
+                            	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                         		# this land type does not exist in this region
                             	val_col = 0
                         	}
                         } else { # single ownership
                         	# only one or zero rows of this ownership in this land type and region
-                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
-                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)])
+                        	if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == 
+                        	                           lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) == 1){
+                            	val_col = Mg2MMT * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                            	                                              scen_df_list[[i]][,"Land_Type"] == 
+                            	                                              lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
+                            	                                            startcol:(ncol(scen_df_list[[i]])-1)])
                         	} else {
                            		# this ownership does not exist in this land type and region
                         		val_col = 0
@@ -683,16 +834,21 @@ for (r in 1:num_reg){
                         own_col = rep(own_lab, length(val_col))
                         unit_col = rep(g_lab, length(val_col))
                         year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
-                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, Value=val_col)
+                        temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col, 
+                                             Value=val_col)
                         out_cum_ghg_df_list[[oind]] = rbind(out_cum_ghg_df_list[[oind]],temp_df)
                         
                         # fill the stacked line df for this scenario and this region/land type/ownership and the component variables
                         if (oind > num_plot_cum_ghg_sheets & num_plot_cum_ghg_sheets <= num_cum_ghg_sheets) {
                         	# get this scenario data - remove duplicate rows
-            				temp_df = out_cum_ghg_df_list[[oind]][out_cum_ghg_df_list[[oind]]$Scenario == scen_lnames[s] & out_cum_ghg_df_list[[oind]]$Land_Type == lt_lab & out_cum_ghg_df_list[[oind]]$Ownership == own_lab,]
+            				temp_df = out_cum_ghg_df_list[[oind]][out_cum_ghg_df_list[[oind]]$Scenario == scen_lnames[s] & 
+            				                                        out_cum_ghg_df_list[[oind]]$Land_Type == lt_lab & 
+            				                                        out_cum_ghg_df_list[[oind]]$Ownership == own_lab,]
             				temp_df = unique(temp_df)
             				# calculate the difference from the baseline scenario
-            				temp_df$Diff = temp_df$Value - out_cum_ghg_df_list[[oind]][out_cum_ghg_df_list[[oind]]$Scenario == scen_lnames[1] & out_cum_ghg_df_list[[oind]]$Land_Type == lt_lab & out_cum_ghg_df_list[[oind]]$Ownership == own_lab, "Value"]
+            				temp_df$Diff = temp_df$Value - out_cum_ghg_df_list[[oind]][out_cum_ghg_df_list[[oind]]$Scenario == 
+            				                                                             scen_lnames[1] & out_cum_ghg_df_list[[oind]]$Land_Type == 
+            				                                                             lt_lab & out_cum_ghg_df_list[[oind]]$Ownership == own_lab, "Value"]
             				# add the variable label
             				temp_df$Component = cum_ghg_sheets[oind]
             				# add this variable to the plot df
@@ -706,7 +862,9 @@ for (r in 1:num_reg){
                 
               	# plot the ghg components as stacked line graphs, by scenario and by ann/cum
 
-				# "Wood_AnnCO2", "Wildfire_AnnCO2", "ManEnergy_AnnCO2", "LCCEnergy_AnnCO2", "Eco_AnnCO2", "ManFire_AnnCO2", "ManNonBurn_AnnCO2", "LCCNonBurn_AnnCO2", "Wood_AnnCH4eq", "Wildfire_AnnCH4eq", "ManEnergy_AnnCH4eq", "LCCEnergy_AnnCH4eq", "Eco_AnnCH4eq", "ManFire_AnnCH4eq", "Wildfire_AnnBCeq", "ManEnergy_AnnBCeq", "LCCEnergy_AnnBCeq", "ManFire_AnnBCeq"
+				# "Wood_AnnCO2", "Wildfire_AnnCO2", "ManTotEnergy_AnnCO2", "LCCTotEnergy_AnnCO2", "Eco_AnnCO2", "ManFire_AnnCO2", "ManNonBurn_AnnCO2", 
+                # "LCCNonBurn_AnnCO2", "Wood_AnnCH4eq", "Wildfire_AnnCH4eq", "ManTotEnergy_AnnCH4eq", "LCCTotEnergy_AnnCH4eq", "Eco_AnnCH4eq", 
+                # "ManFire_AnnCH4eq", "Wildfire_AnnBCeq", "ManTotEnergy_AnnBCeq", "LCCTotEnergy_AnnBCeq", "ManFire_AnnBCeq"
 
             	# annual ghg components
             	
@@ -716,8 +874,15 @@ for (r in 1:num_reg){
           	  	brew_ch4 <- c(brewer.pal(9, "Blues"))
           	  	brew_co2 <- c(brewer.pal(9, "Greys"))
           	  	brew_bc <- c(brewer.pal(9, "Reds"))
-          	  	ghg_colors = c(Eco_AnnCH4eq  = brew_ch4[2], Eco_AnnCO2  = brew_co2[2], LCCEnergy_AnnBCeq = brew_bc[2], LCCEnergy_AnnCH4eq = brew_ch4[4], LCCEnergy_AnnCO2 = brew_co2[3], LCCNonBurn_AnnCO2 = brew_co2[4], ManEnergy_AnnBCeq = brew_bc[4], ManEnergy_AnnCH4eq = brew_ch4[6], ManEnergy_AnnCO2 = brew_co2[5], ManFire_AnnBCeq = brew_bc[6], ManFire_AnnCH4eq = brew_ch4[8], ManFire_AnnCO2 = brew_co2[6], ManNonBurn_AnnCO2 = brew_co2[7], Wildfire_AnnBCeq = brew_bc[8], Wildfire_AnnCH4eq = brew_ch4[9], Wildfire_AnnCO2 = brew_co2[8], Wood_AnnCH4eq = brew_ch4[9], Wood_AnnCO2 = brew_co2[9])
-          	  	#ghg_colors = c(brew_ch4[2], brew_co2[2], brew_bc[2], brew_ch4[4], brew_co2[3], brew_co2[4], brew_bc[4], brew_ch4[6], brew_co2[5], brew_bc[6], brew_ch4[8], brew_co2[6], brew_co2[7], brew_bc[8], brew_ch4[9], brew_co2[8], brew_ch4[9], brew_co2[9])
+          	  	ghg_colors = c(Eco_AnnCH4eq  = brew_ch4[2], Eco_AnnCO2  = brew_co2[2], LCCTotEnergy_AnnBCeq = brew_bc[2], 
+          	  	               LCCTotEnergy_AnnCH4eq = brew_ch4[4], LCCTotEnergy_AnnCO2 = brew_co2[3], LCCNonBurn_AnnCO2 = brew_co2[4], 
+          	  	               ManTotEnergy_AnnBCeq = brew_bc[4], ManTotEnergy_AnnCH4eq = brew_ch4[6], ManTotEnergy_AnnCO2 = brew_co2[5], 
+          	  	               ManFire_AnnBCeq = brew_bc[6], ManFire_AnnCH4eq = brew_ch4[8], ManFire_AnnCO2 = brew_co2[6], 
+          	  	               ManNonBurn_AnnCO2 = brew_co2[7], Wildfire_AnnBCeq = brew_bc[8], Wildfire_AnnCH4eq = brew_ch4[9], 
+          	  	               Wildfire_AnnCO2 = brew_co2[8], Wood_AnnCH4eq = brew_ch4[9], Wood_AnnCO2 = brew_co2[9])
+          	  	#ghg_colors = c(brew_ch4[2], brew_co2[2], brew_bc[2], brew_ch4[4], brew_co2[3], brew_co2[4], brew_bc[4], brew_ch4[6], 
+          	  	# brew_co2[5], brew_bc[6], brew_ch4[8], brew_co2[6], brew_co2[7], brew_bc[8], brew_ch4[9], brew_co2[8], brew_ch4[9], 
+          	  	# brew_co2[9])
             	ann_ghg_comp_df = na.omit(ann_ghg_comp_df[order(c(ann_ghg_comp_df$Component, ann_ghg_comp_df$Year)),])
             	
             	# absolute values
@@ -762,7 +927,12 @@ for (r in 1:num_reg){
           	  	brew_ch4 <- c(brewer.pal(9, "Blues"))
           	  	brew_co2 <- c(brewer.pal(9, "Greys"))
           	  	brew_bc <- c(brewer.pal(9, "Reds"))
-          	  	ghg_colors = c(Eco_CumCH4eq  = brew_ch4[2], Eco_CumCO2  = brew_co2[2], LCCEnergy_CumBCeq = brew_bc[2], LCCEnergy_CumCH4eq = brew_ch4[4], LCCEnergy_CumCO2 = brew_co2[3], LCCNonBurn_CumCO2 = brew_co2[4], ManEnergy_CumBCeq = brew_bc[4], ManEnergy_CumCH4eq = brew_ch4[6], ManEnergy_CumCO2 = brew_co2[5], ManFire_CumBCeq = brew_bc[6], ManFire_CumCH4eq = brew_ch4[8], ManFire_CumCO2 = brew_co2[6], ManNonBurn_CumCO2 = brew_co2[7], Wildfire_CumBCeq = brew_bc[8], Wildfire_CumCH4eq = brew_ch4[9], Wildfire_CumCO2 = brew_co2[8], Wood_CumCH4eq = brew_ch4[9], Wood_CumCO2 = brew_co2[9])
+          	  	ghg_colors = c(Eco_CumCH4eq  = brew_ch4[2], Eco_CumCO2  = brew_co2[2], LCCTotEnergy_CumBCeq = brew_bc[2], 
+          	  	               LCCTotEnergy_CumCH4eq = brew_ch4[4], LCCTotEnergy_CumCO2 = brew_co2[3], LCCNonBurn_CumCO2 = brew_co2[4], 
+          	  	               ManTotEnergy_CumBCeq = brew_bc[4], ManTotEnergy_CumCH4eq = brew_ch4[6], ManTotEnergy_CumCO2 = brew_co2[5], 
+          	  	               ManFire_CumBCeq = brew_bc[6], ManFire_CumCH4eq = brew_ch4[8], ManFire_CumCO2 = brew_co2[6], 
+          	  	               ManNonBurn_CumCO2 = brew_co2[7], Wildfire_CumBCeq = brew_bc[8], Wildfire_CumCH4eq = brew_ch4[9], 
+          	  	               Wildfire_CumCO2 = brew_co2[8], Wood_CumCH4eq = brew_ch4[9], Wood_CumCO2 = brew_co2[9])
             	cum_ghg_comp_df = na.omit(cum_ghg_comp_df[order(c(cum_ghg_comp_df$Component, cum_ghg_comp_df$Year)),])
             	
             	# absolute values
@@ -1113,10 +1283,12 @@ for (r in 1:num_reg){
             # plot the annual ghg species bar graphs
             
             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", "ann_ghg_species_output.pdf")
-            plot_df = out_ann_ghg_df_list[[start_spec_ann]][out_ann_ghg_df_list[[start_spec_ann]][,"Land_Type"] == lt_lab & out_ann_ghg_df_list[[start_spec_ann]][,"Ownership"] == own_lab,]
+            plot_df = out_ann_ghg_df_list[[start_spec_ann]][out_ann_ghg_df_list[[start_spec_ann]][,"Land_Type"] == 
+                                                              lt_lab & out_ann_ghg_df_list[[start_spec_ann]][,"Ownership"] == own_lab,]
             plot_df$Component = ann_ghg_sheets[start_spec_ann]
             for (i in (start_spec_ann+1):end_spec_ann) {
-            	temp_df = out_ann_ghg_df_list[[i]][out_ann_ghg_df_list[[i]][,"Land_Type"] == lt_lab & out_ann_ghg_df_list[[i]][,"Ownership"] == own_lab,]
+            	temp_df = out_ann_ghg_df_list[[i]][out_ann_ghg_df_list[[i]][,"Land_Type"] == lt_lab & 
+            	                                     out_ann_ghg_df_list[[i]][,"Ownership"] == own_lab,]
             	temp_df$Component = ann_ghg_sheets[i]
             	plot_df = rbind(plot_df, temp_df)
             }
@@ -1153,10 +1325,12 @@ for (r in 1:num_reg){
           	# plot the cumulative ghg species bar graphs
             
             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", "cum_ghg_species_output.pdf")
-            plot_df = out_cum_ghg_df_list[[start_spec_cum]][out_cum_ghg_df_list[[start_spec_cum]][,"Land_Type"] == lt_lab & out_cum_ghg_df_list[[start_spec_cum]][,"Ownership"] == own_lab,]
+            plot_df = out_cum_ghg_df_list[[start_spec_cum]][out_cum_ghg_df_list[[start_spec_cum]][,"Land_Type"] == 
+                                                              lt_lab & out_cum_ghg_df_list[[start_spec_cum]][,"Ownership"] == own_lab,]
             plot_df$Component = cum_ghg_sheets[start_spec_cum]
             for (i in (start_spec_cum+1):end_spec_cum) {
-            	temp_df = out_cum_ghg_df_list[[i]][out_cum_ghg_df_list[[i]][,"Land_Type"] == lt_lab & out_cum_ghg_df_list[[i]][,"Ownership"] == own_lab,]
+            	temp_df = out_cum_ghg_df_list[[i]][out_cum_ghg_df_list[[i]][,"Land_Type"] == 
+            	                                     lt_lab & out_cum_ghg_df_list[[i]][,"Ownership"] == own_lab,]
             	temp_df$Component = cum_ghg_sheets[i]
             	plot_df = rbind(plot_df, temp_df)
             }
@@ -1198,9 +1372,12 @@ for (r in 1:num_reg){
                 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_cumulative_component_output.pdf")
                 plot_df = cum_comp_df[(cum_comp_df$Year == 2020 | cum_comp_df$Year == 2030 | cum_comp_df$Year == 2040 | cum_comp_df$Year == 2050),]
-                plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", 
+                                                                          "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", 
+                                                                          "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
                 plot_df$Component[is.na(plot_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
+                plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
                 plot_df_pos = plot_df[plot_df$Value >= 0,]
                 plot_df_pos = plot_df_pos[order(plot_df_pos$Component),]
                 plot_df_neg = plot_df[plot_df$Value < 0,]
@@ -1233,9 +1410,12 @@ for (r in 1:num_reg){
                 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_cumulative_component_diff_output.pdf")
                 temp_df = cum_comp_df[(cum_comp_df$Year == 2020 | cum_comp_df$Year == 2030 | cum_comp_df$Year == 2040 | cum_comp_df$Year == 2050),]
-                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
                 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
                 for (s in 2:num_scen_names) {
                     diff_df = temp_df[temp_df$Scenario == scen_snames[s],]
@@ -1277,9 +1457,12 @@ for (r in 1:num_reg){
                 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_annual_component_output.pdf")
                 plot_df = ann_comp_df[(ann_comp_df$Year == 2020 | ann_comp_df$Year == 2030 | ann_comp_df$Year == 2040 | ann_comp_df$Year == 2050),]
-                plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                plot_df$Component <- factor(plot_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 plot_df$Component[is.na(plot_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
+                plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] = plot_df$Value[plot_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  plot_df$Value[plot_df$Component == "Net_Wood_Gain"]
                 plot_df_pos = plot_df[plot_df$Value >= 0,]
                 plot_df_pos = plot_df_pos[order(plot_df_pos$Component),]
                 plot_df_neg = plot_df[plot_df$Value < 0,]
@@ -1312,9 +1495,12 @@ for (r in 1:num_reg){
                 # subtract net wood gain from the ecosystem gain because the wood is now on the positive side
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_annual_component_diff_output.pdf")
                 temp_df = ann_comp_df[(ann_comp_df$Year == 2020 | ann_comp_df$Year == 2030 | ann_comp_df$Year == 2040 | ann_comp_df$Year == 2050),]
-                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
                 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
                 for (s in 2:num_scen_names) {
                     diff_df = temp_df[temp_df$Scenario == scen_snames[s],]
@@ -1361,9 +1547,12 @@ for (r in 1:num_reg){
                 # net cumulative change line graph
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_cumulative_change_output.pdf")
                 temp_df = cum_comp_df
-                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
                 plot_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
                 plot_df = plot_df[order(plot_df$Scenario),]
                 p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
@@ -1383,9 +1572,12 @@ for (r in 1:num_reg){
                 # net cumulative change, difference from baseline line graph
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_cumulative_change_diff_output.pdf")
                 temp_df = cum_comp_df
-                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
                 temp_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
                 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
                 for (s in 2:num_scen_names) {
@@ -1412,9 +1604,12 @@ for (r in 1:num_reg){
                 # net annual retention line graph
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_annual_retain_output.pdf")
                 temp_df = ann_comp_df
-                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
                 plot_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
                 plot_df = plot_df[order(plot_df$Scenario),]
                 p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
@@ -1434,9 +1629,12 @@ for (r in 1:num_reg){
                 # net annual retention, difference from baseline line graph
                 out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_annual_retain_diff_output.pdf")
                 temp_df = ann_comp_df
-                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", "Loss_to_Atmos_from_Fire"))
+                temp_df$Component <- factor(temp_df$Component, levels = c("Ecosystem_Gain_minus_NWG", "Net_Wood_Gain", "Loss_to_Atmos_from_Wood", 
+                                                                          "Loss_to_Atmos_from_Manage", "Loss_to_Atmos_from_LCC", 
+                                                                          "Loss_to_Atmos_from_Fire"))
                 temp_df$Component[is.na(temp_df$Component)] = "Ecosystem_Gain_minus_NWG"
-                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
+                temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] = temp_df$Value[temp_df$Component == "Ecosystem_Gain_minus_NWG"] - 
+                  temp_df$Value[temp_df$Component == "Net_Wood_Gain"]
                 temp_df = aggregate(Value ~ Scenario + Land_Type + Units + Year, data=temp_df, FUN=sum)
                 plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Units=NULL, Year=NULL, Value=NULL)
                 for (s in 2:num_scen_names) {
