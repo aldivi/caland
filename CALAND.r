@@ -125,8 +125,9 @@ GET.NAMES <- function(df, new.name) {
 
 CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
-  
-  # to do: separate the selection of c density and accumulation non-mean values values
+
+  # this enables java to use up to 4GB of memory for reading and writing excel files
+  options(java.parameters = "-Xmx4g" )
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd", "mean_se", "sd_se")
@@ -287,45 +288,45 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   
   # do lit search regarding slash burning in logging and thinning practices to get fractions below:
   # forest clearcut and above-main removed to atmos
-  clrcut_mainremoved_burn <- 0.25
+  # clrcut_mainremoved_burn <- 0.25
   # forest partial_cut and above-main removed  to atmos
-  parcut_mainremoved_burn <- 0.25
+  # parcut_mainremoved_burn <- 0.25
   # forest fuel_reduction and above-main removed  to atmos
-  fuelred_mainremoved_burn <- 0.25
+  # fuelred_mainremoved_burn <- 0.25
   # forest Prescribed_burn and above-main removed  to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
-  prescrburn_mainremoved_burn <- 1
+  # prescrburn_mainremoved_burn <- 1
   # forest Weed_treatment and above-main removed to atmos
-  weedtrt_mainremoved_burn <- 0.25
+  # weedtrt_mainremoved_burn <- 0.25
   # forest clearcut and understory to atmos
-  clrcut_under_burn <- 0.25
+  # clrcut_under_burn <- 0.25
   # forest partial_cut and understory to atmos
-  parcut_under_burn <- 0.25
+  # parcut_under_burn <- 0.25
   # forest fuel_reduction and understory to atmos
-  fuelred_under_burn <- 0.25
+  # fuelred_under_burn <- 0.25
   # forest Prescribed_burn and understory to atmos
-  prescrburn_under_burn <- 1
+  # prescrburn_under_burn <- 1
   # forest weed_treatment and understory removed to atmos
-  weedtrt_under_burn <- 0.25
+  # weedtrt_under_burn <- 0.25
   # forest clearcut and down dead to atmos
-  clrcut_down_burn <- 0.25
+  # clrcut_down_burn <- 0.25
   # forest partial_cut and down dead to atmos
-  parcut_down_burn <- 0.25
+  # parcut_down_burn <- 0.25
   # forest fuel_reduction and down dead to atmos
-  fuelred_down_burn <- 0.25
+  #fuelred_down_burn <- 0.25
   # forest Prescribed_burn and down dead to atmos
-  prescrburn_down_burn <- 1
+  # prescrburn_down_burn <- 1
   # forest Weed_treatment and down dead removed to atmos
-  weedtrt_down_burn <- 0.25
+  # weedtrt_down_burn <- 0.25
   # forest clearcut and litter to atmos
-  clrcut_litter_burn <- 0.25
+  # clrcut_litter_burn <- 0.25
   # forest partial_cut and litter to atmos
-  parcut_litter_burn <- 0.25
+  # parcut_litter_burn <- 0.25
   # forest fuel_reduction and litter to atmos
-  fuelred_litter_burn <- 0.25
+  # fuelred_litter_burn <- 0.25
   # forest Prescribed_burn and litter to atmos
-  prescrburn_litter_burn <- 1
+  # prescrburn_litter_burn <- 1
   # forest weed_treatment and litter removed to atmos
-  weedtrt_litter_burn <- 0.25 
+  # weedtrt_litter_burn <- 0.25 
   
   # output tables
   out_area_sheets = c("Area", "Managed_area", "Wildfire_area")
@@ -340,30 +341,49 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                        "LCC_Atmos_CumGain_C_stock", "Wood_Atmos_CumGain_C_stock", "Total_Energy2Atmos_C_stock", "Eco_AnnGain_C_stock", 
                        "Total_Atmos_AnnGain_C_stock", "Manage_Atmos_AnnGain_C_stock", "Fire_Atmos_AnnGain_C_stock", 
                        "LCC_Atmos_AnnGain_C_stock", "Wood_Atmos_AnnGain_C_stock", "Total_AnnEnergy2Atmos_C_stock", 
-                       "Manage_Atmos_CumGain_FireC", "Manage_Atmos_CumGain_EnergyC", "Manage_Atmos_CumGain_NonBurnedC", 
-                       "Fire_Atmos_CumGain_BurnedC", "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_EnergyC", 
-                       "LCC_Atmos_CumGain_NonBurnEnerC","Manage_Atmos_AnnGain_FireC", "Manage_Atmos_AnnGain_EnergyC", 
-                       "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", "Fire_Atmos_AnnGain_NonBurnedC", 
-                       "LCC_Atmos_AnnGain_EnergyC", "LCC_Atmos_AnnGain_NonBurnEnerC")
+                       "Manage_Atmos_CumGain_FireC", "Manage_Atmos_CumGain_TotEnergyC", "Man_Atmos_CumGain_Harv2EnergyC",
+                       "Man_Atmos_CumGain_Slash2EnergyC", "Manage_Atmos_CumGain_NonBurnedC","Fire_Atmos_CumGain_BurnedC", 
+                       "Fire_Atmos_CumGain_NonBurnedC", "LCC_Atmos_CumGain_FireC", "LCC_Atmos_CumGain_TotEnergyC", 
+                       "LCC_Atmos_CumGain_Harv2EnergyC", "LCC_Atmos_CumGain_Slash2EnergyC", "LCC_Atmos_CumGain_NonBurnedC", 
+                       "Manage_Atmos_AnnGain_FireC", "Manage_Atmos_AnnGain_TotEnergyC", "Man_Atmos_AnnGain_Harv2EnergyC",
+                       "Man_Atmos_AnnGain_Slash2EnergyC", "Manage_Atmos_AnnGain_NonBurnedC", "Fire_Atmos_AnnGain_BurnedC", 
+                       "Fire_Atmos_AnnGain_NonBurnedC", "LCC_Atmos_AnnGain_FireC", "LCC_Atmos_AnnGain_TotEnergyC", 
+                       "LCC_Atmos_AnnGain_Harv2EnergyC", "LCC_Atmos_AnnGain_Slash2EnergyC", "LCC_Atmos_AnnGain_NonBurnedC")
   num_out_atmos_sheets = length(out_atmos_sheets)
   out_wood_sheets = c("Total_Wood_C_stock", "Total_Wood_CumGain_C_stock", "Total_Wood_CumLoss_C_stock", "Total_Wood_AnnGain_C_stock", 
-                      "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", 
-                      "Manage_Wood_AnnGain_C_stock", "Manage_Wood_AnnLoss_C_stock", "LCC_Wood_C_stock", "LCC_Wood_CumGain_C_stock", 
-                      "LCC_Wood_CumLoss_C_stock", "LCC_Wood_AnnGain_C_stock", "LCC_Wood_AnnLoss_C_stock")
+                      "Total_Wood_AnnLoss_C_stock", "Manage_Wood_C_stock", "Manage_Wood_CumGain_C_stock", "Man_Harv2Wood_CumGain_C_stock",
+                      "Man_Slash2Wood_CumGain_C_stock", "Manage_Wood_CumLoss_C_stock", "Manage_Wood_AnnGain_C_stock", 
+                      "Man_Harv2Wood_AnnGain_C_stock",  "Man_Slash2Wood_AnnGain_C_stock", "Manage_Wood_AnnLoss_C_stock", 
+                      "LCC_Wood_C_stock", "LCC_Wood_CumGain_C_stock", "LCC_Harv2Wood_CumGain_C_stock", "LCC_Slash2Wood_CumGain_C_stock",
+                      "LCC_Wood_CumLoss_C_stock", "LCC_Wood_AnnGain_C_stock", "LCC_Harv2Wood_AnnGain_C_stock", "LCC_Slash2Wood_AnnGain_C_stock",
+                      "LCC_Wood_AnnLoss_C_stock")
   num_out_wood_sheets = length(out_wood_sheets)
   
   # column names from the management table to calculate non-accum manage carbon adjustments
-  man_frac_names = c("Above_removed_frac", "StandDead_removed_frac", "Removed2Wood_frac", "Removed2Energy_frac", "Removed2Atmos_frac", 
-                     "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Soil2Atmos_frac", "Understory2DownDead_frac", 
-                     "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+  man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
+                     "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Wood_frac",
+                     "Slash2Burn_frac", "Slash2Decay_frac", "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+  #man_frac_names = c("Above_removed_frac", "StandDead_removed_frac", "Removed2Wood_frac", "Removed2Energy_frac", "Removed2Atmos_frac", 
+  #                   "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", "Soil2Atmos_frac", "Understory2DownDead_frac", 
+  #                   "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
+
   num_manfrac_cols = length(man_frac_names)
   # new c trans column names matching the non-accum manage frac names
-  c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", 
-                    "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", 
-                    "Below2Soil_c")
+  c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c",
+                    "Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Wood_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", 
+                    "Soil2Atmos_c", "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
+  #c_trans_names = c("Above_removed_c", "StandDead_removed_c", "Removed2Wood_c", "Removed2Energy_c", "Removed2Atmos_c", "Understory2Atmos_c", 
+  #                  "DownDead2Atmos_c", "Litter2Atmos_c", "Soil2Atmos_c", "Understory2DownDead_c", "Above2StandDead_c", "Below2Atmos_c", 
+  #                 "Below2Soil_c")
   # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
-  # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
-  manage_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 3, 4, 4)
+  # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
+  # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
+  manage_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, -2, 5, 9, 3, 4, 4)
+  # manage_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 3, 4, 4)
+  #manage_density_inds = c(3 (above), 6 (standdead), -1, -1, -1, 5 (under), 7 (down), 8 (litter), -2 (slash2energy), -2 (slash2wood), -2 (slash2burn), -2 (slash2decay), 5 (under2down),
+                              # 9 (soil), 3 (above2stand), 4 (below), 4 (below))
+  # out_density_sheets = c("All_orgC_den" (1), "All_biomass_C_den" (2), "Above_main_C_den" (3), "Below_main_C_den" (4), "Understory_C_den" (5), "StandDead_C_den" (6), 
+  #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
   
   # column names from the fire table to calculate fire carbon adjustments
   fire_frac_names = c("Above2Atmos_frac", "StandDead2Atmos_frac", "Understory2Atmos_frac", "DownDead2Atmos_frac", "Litter2Atmos_frac", 
@@ -376,17 +396,19 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   fire_density_inds = c(3, 6, 5, 7, 8, 3, 5, 4, 9)
   
   # column names from the conversion to ag/urban table to calculate conversion to ag/urban carbon adjustments
-  conv_frac_names = c("Above_removed_conv_frac", "StandDead_removed_conv_frac", "Removed2Wood_conv_frac", "Removed2Energy_conv_frac", 
-                      "Removed2Atmos_conv_frac", "Understory2Atmos_conv_frac", "DownDead2Atmos_conv_frac", "Litter2Atmos_conv_frac", 
-                      "Soil2Atmos_conv_frac", "Understory2DownDead_conv_frac", "Below2Atmos_conv_frac", "Below2Soil_conv_frac")
+  conv_frac_names = c("Above_harvested_conv_frac", "StandDead_harvested_conv_frac", "Harvested2Wood_conv_frac", "Harvested2Energy_conv_frac", 
+                      "Harvested2SawmillDecay_conv_frac", "Harvested2Slash_conv_frac", "Under2Slash_conv_frac", "DownDead2Slash_conv_frac", 
+                      "Litter2Slash_conv_frac", "Slash2Energy_conv_frac", "Slash2Wood_conv_frac", "Slash2Burn_conv_frac", "Slash2Decay_conv_frac", 
+                      "Under2DownDead_conv_frac", "Soil2Atmos_conv_frac", "Below2Atmos_conv_frac", "Below2Soil_conv_frac")
   num_convfrac_cols = length(conv_frac_names)
   # new c trans column names matching the conversion frac names
-  convc_trans_names = c("Above_removed_conv_c", "StandDead_removed_conv_c", "Removed2Wood_conv_c", "Removed2Energy_conv_c", 
-                        "Removed2Atmos_conv_c", "Understory2Atmos_conv_c", "DownDead2Atmos_conv_c", "Litter2Atmos_conv_c", 
-                        "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below2Atmos_conv_c", "Below2Soil_conv_c")
+  convc_trans_names = c("Above_harvested_conv_c", "StandDead_harvested_conv_c", "Harvested2Wood_conv_c", "Harvested2Energy_conv_c", 
+                        "Harvested2SawmillDecay_conv_c", "Harvested2Slash_conv_c", "Under2Slash_conv_c", "DownDead2Slash_conv_c", 
+                        "Litter2Slash_conv_c", "Slash2Energy_conv_c", "Slash2Wood_conv_c", "Slash2Burn_conv_c", "Slash2Decay_conv_c", 
+                        "Under2DownDead_conv_c", "Soil2Atmos_conv_c", "Below2Atmos_conv_c", "Below2Soil_conv_c")
   # indices of the appropriate density source df for the conversion frac to c calcs; corresponds with out_density_sheets above
   # value == -1 indicates that the source is the removed c; take the sum of the first two c trans columns
-  conv_density_inds = c(3, 6, -1, -1, -1, 5, 7, 8, 9, 5, 4, 4)
+  conv_density_inds = c(3, 6, -1, -1, -1, -1, 5, 7, 8, -2, -2, -2, -2, 5, 9, 4, 4)
   
   # Load the input files
   c_wrkbk = loadWorkbook(c_file)
@@ -430,6 +452,23 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   cat_ID_exist <- scen_df_list[[1]][,1]
   if (any(!((cat_ID_man) %in% cat_ID_exist))) {
     stop("Error: each land category in the management area table must exist in the initial area table")
+  }
+  
+  # Check that all slash2..._frac add to 1
+  columns_1_check <- c_df_list[[12]][,c("Slash2Energy_conv_frac", "Slash2Burn_conv_frac", "Slash2Wood_conv_frac", "Slash2Decay_conv_frac")]
+  sums <- rowSums(columns_1_check)
+  if (any(((sums)!= 1))) {
+    stop("Error: sum of slash pathways (frac) for each land category in the conversion2ag_urban table must equal 1")
+  }
+  columns_2_check <- c_df_list[[13]][,c("Slash2Energy_frac", "Slash2Burn_frac", "Slash2Wood_frac", "Slash2Decay_frac")]
+  sums <- rowSums(columns_2_check)
+  if (any((sums!= 1) & (sums!= 0))) {
+    stop("Error: sum of slash pathways (frac) for each land category in the forest_manage table must equal 1 or 0")
+  }
+  columns_3_check <- c_df_list[[14]][,c("Slash2Energy_frac", "Slash2Burn_frac", "Slash2Wood_frac", "Slash2Decay_frac")]
+  sums <- rowSums(columns_3_check)
+  if (any(((sums)!= 1) & ((sums)!= 0))) {
+    stop("Error: sum of slash pathways (frac) for each land category in the dev_manage table must equal 1")
   }
   
   for (i in 5:5) { # annual mortality fraction
@@ -691,14 +730,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # sort the man_area_sum df by land cat ID and management 
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     
-    
     # (7) don't use (untrimmed) aggregated areas for Developed_all: replace man_area_agg_pre column with individual man_area 
     # (note: dead removal in Dev_all = tot_area; urban_forest = fraction of tot_area that's urban forest)
     man_area_sum$man_area_agg_pre[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
     # (8) assign 0's to aggregate (untrimmed) areas for afforestation and restoration 
     man_area_sum$man_area_agg_pre[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
-    
     
      # add new column "excess_area", which is equal to the aggregated areas minus total land type areas 
     man_area_sum$excess_area_pre = man_area_sum$man_area_agg_pre - man_area_sum$tot_area
@@ -1269,24 +1306,59 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     ############################################################################################################
     #################### Do management C transfers [MgC/y] for forest & developed areas ########################
     ############################################################################################################
+
+   # man_frac_names = c("Above_harvested_frac", "StandDead_harvested_frac", "Harvested2Wood_frac", "Harvested2Energy_frac", "Harvested2SawmillDecay_frac", 
+   #                    "Harvested2Slash_frac", "Under2Slash_frac", "DownDead2Slash_frac", "Litter2Slash_frac", "Slash2Energy_frac", "Slash2Burn_frac", "Slash2Decay_frac", 
+   #                    "Under2DownDead_frac", "Soil2Atmos_frac", "Above2StandDead_frac", "Below2Atmos_frac", "Below2Soil_frac")
     
+   # c_trans_names = c("Above_harvested_c", "StandDead_harvested_c", "Harvested2Wood_c", "Harvested2Energy_c", "Harvested2SawmillDecay_c", "Harvested2Slash_c", "Under2Slash_c", 
+   #                   "DownDead2Slash_c", "Litter2Slash_c", "Slash2Energy_c", "Slash2Burn_c", "Slash2Decay_c", "Under2DownDead_c", "Soil2Atmos_c", 
+   #                   "Above2StandDead_c", "Below2Atmos_c", "Below2Soil_c")
+
+    # indices of the appropriate density source df for the non-accum manage frac to c calcs; corresponds with out_density_sheets above
+    # value == -1 indicates that the source is the harvested c; take the sum of the first two c trans columns
+    # value == -2 indicates that the source is all slash-contributing pools; take the sum of c trans columns 6, 7 and 8 ("Under2Slash_c", "DownDead2Slash_c", "Litter2Slash_c")
+    # manage_density_inds = c(3 [i=1], 6 [i=2], -1 [i=3], -1 [i=4], -1 [i=5], -1 [i=6], 5 [i=7], 7 [i=8], 8 [i=9], -2 [i=10], -2 [i=11], -2 [i=12], 5 [i=13], 9 [i=14], 3 [i=15], 4 [i=16], 4 [i=17])
+    # manage_density_inds = c(3 (above), 6 (standdead), -1, -1, -1, -1 (Harvested2slash), 5 (under2slash), 7 (down2slash), 8 (litter2slash), -2 (slash2energy), -2 (slash2burn), -2 (slash2decay), 5 (under2down), 9 (soil), 3 (above2stand), 4 (below), 4 (below))
+    # out_density_sheets = c("All_orgC_den" (1), "All_biomass_C_den" (2), "Above_main_C_den" (3), "Below_main_C_den" (4), "Understory_C_den" (5), "StandDead_C_den" (6), 
+    #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
+    # req'd order of operations: (1) Calc Harvested C (from above and stand dead), (2) Calc harvested 2slash, 2energy, 2decay (3) Calc other transfers 2slash (under, downdead, litter) (4) all others
+    # for i in 1:17
     for (i in 1:num_manfrac_cols){
       # the removed values are calculated first, so this will work
-      # if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns
-      if (manage_density_inds[i] == -1) {
-        man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[1]] + man_adjust_df[,c_trans_names[2]]) * 
-          man_adjust_df[,man_frac_names[i]]
+      # if manage_density_inds[i] == -1, then the source is the removed pool; use the sum of the first two c trans columns 
+      if (manage_density_inds[i] == -1 | manage_density_inds[i] == -2) {
+        # when i = 3, 4, 5, or 6
+        if (manage_density_inds[i] == -1) {
+          # (Harvested2Wood_c, Harvested2Energy_c, Harvested2Decay_c, Harvested2Slash_c) [Mg/ha] = (Above_harvested_c + StandDead_harvested_c) * 
+                                                                                   # (Harvested2Wood_frac, Harvested2Energy_frac, Harvested2Decay_frac, Harvested2Slash_frac)
+          man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[1]] + man_adjust_df[,c_trans_names[2]]) * man_adjust_df[,man_frac_names[i]]
+        } else {
+          # else manage_density_inds[i] == -2 (when i = 10, 11, or 12)
+          # if manage_density_inds[i] == -2 the source is the slash pool; take the sum of c trans columns 6, 7, 8 & 9 (Harvest2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c)
+
+          # (slash2energy_c, slash2wood_c, slash2burn_c, slash2decay_c) [Mg/ha] = (Harvested2Slash_c + Under2Slash_c + DownDead2Slash_c + Litter2Slash_c) * 
+                                                                     # (Harvested2Slsash_frac, Under2Slash_frac, DownDead2Slash_frac, Litter2Slash_frac)
+            man_adjust_df[,c_trans_names[i]] = (man_adjust_df[,c_trans_names[6]] + man_adjust_df[,c_trans_names[7]] + man_adjust_df[,c_trans_names[8]] +
+                                                man_adjust_df[,c_trans_names[9]]) * man_adjust_df[,man_frac_names[i]]
+        }
+        # when i = 1(above2harvest), 2 (downdead2harvest), 7 (under2slash), 8 (downdead2slash), 9 (litter2slash), 13, 14, 15, 16, or 17, so use the C densities
       } else {
+        # if any of the C density columns are not already one of the headers in man_adjust_df
         if (!out_density_sheets[manage_density_inds[i]] %in% colnames(man_adjust_df)) {
+          # subset next year's C density from corresponding c pool's density dataframe and merge with the man_adjust_df
           man_adjust_df = merge(man_adjust_df, 
                                 out_density_df_list[[manage_density_inds[i]]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", next_density_label)], 
                                 by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+          # subset next year's corresponding C density header from the man_adjust_df, and assign to it the corresponding name of the c pool's density 
           names(man_adjust_df)[names(man_adjust_df) == next_density_label] = out_density_sheets[manage_density_inds[i]]
         }
+        # calc C transfer = C density [mgC/ha] * (management transfer fraction) * current year managed area [ha] / total area [ha]
         man_adjust_df[,c_trans_names[i]] = man_adjust_df[,out_density_sheets[manage_density_inds[i]]] * man_adjust_df[,man_frac_names[i]] * 
           man_adjust_df$man_area / man_adjust_df$tot_area
       }
     } # end for i loop over the managed transfer fractions for calcuting the transfer carbon
+  
     man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Cat_ID),]
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
@@ -1295,119 +1367,80 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # now consolidate the c density transfers to the pools
     # convert these to gains for consistency: all terrestrial gains are positive, losses are negative
     # store the names for aggregation below
+    # out_density_sheets = c("All_orgC_den" (1), "All_biomass_C_den" (2), "Above_main_C_den" (3), "Below_main_C_den" (4), "Understory_C_den" (5), "StandDead_C_den" (6), 
+    #                       "DownDead_C_den" (7), "Litter_C_den" (8), "Soil_orgC_den" (9))
     agg_names = NULL
     # above
-    # add column called "Above_main_C_den_gain_man":  above main C density = -(above removed C) -(above to standing dead C)
+    # add column called "Above_main_C_den_gain_man":  above main C density = -(above harvested C) -(above to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[3], "_gain_man"))
-    man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_removed_c - man_adjust_df$Above2StandDead_c
+    man_adjust_df[,agg_names[1]] = -man_adjust_df$Above_harvested_c - man_adjust_df$Above2StandDead_c
     # below
     # add column called "Below_main_C_den_gain_man": root C density = -(root to soil C) -(root to atmos C)
     agg_names = c(agg_names, paste0(out_density_sheets[4], "_gain_man"))
     man_adjust_df[,agg_names[2]] = -man_adjust_df$Below2Soil_c - man_adjust_df$Below2Atmos_c
     # understory
-    # add column called "Understory_C_den_gain_man": understory C density = -(understory to atmos C) -(understory to down dead C)
+    # add column called "Understory_C_den_gain_man": understory C density = -(understory to slash C) -(understory to down dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[5], "_gain_man"))
-    man_adjust_df[,agg_names[3]] = -man_adjust_df$Understory2Atmos_c - man_adjust_df$Understory2DownDead_c
+    man_adjust_df[,agg_names[3]] = -man_adjust_df$Under2Slash_c - man_adjust_df$Under2DownDead_c
     # standing dead
-    # add column called "StandDead_C_den_gain_man": standing dead C density = -(removed standing dead C) + (above main to standing dead C)
+    # add column called "StandDead_C_den_gain_man": standing dead C density = -(harvested standing dead C) + (above main to standing dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[6], "_gain_man"))
-    man_adjust_df[,agg_names[4]] = -man_adjust_df$StandDead_removed_c + man_adjust_df$Above2StandDead_c
+    man_adjust_df[,agg_names[4]] = -man_adjust_df$StandDead_harvested_c + man_adjust_df$Above2StandDead_c
     # down dead
-    # add column called "DownDead_C_den_gain_man": down dead C density = -(down dead to atmos C) + (understory to down dead C)
+    # add column called "DownDead_C_den_gain_man": down dead C density = -(down dead to slash C) + (understory to down dead C)
     agg_names = c(agg_names, paste0(out_density_sheets[7], "_gain_man"))
-    man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2DownDead_c
+    man_adjust_df[,agg_names[5]] = -man_adjust_df$DownDead2Slash_c + man_adjust_df$Under2DownDead_c
     # litter
-    # add column called "Litter_C_den_gain_man": litter C density = -(litter to atmos C)
+    # add column called "Litter_C_den_gain_man": litter C density = -(litter to slash C)
     agg_names = c(agg_names, paste0(out_density_sheets[8], "_gain_man"))
-    man_adjust_df[,agg_names[6]] = -man_adjust_df$Litter2Atmos_c
+    man_adjust_df[,agg_names[6]] = -man_adjust_df$Litter2Slash_c
     # soil
     # add column called "Soil_orgC_C_den_gain_man": soil C density = -(soil to atmos C) + (root to soil C)
     agg_names = c(agg_names, paste0(out_density_sheets[9], "_gain_man"))
     man_adjust_df[,agg_names[7]] = -man_adjust_df$Soil2Atmos_c + man_adjust_df$Below2Soil_c
     
     # to get the carbon must multiply these by the tot_area
-    # atmos
-    # calc C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_man") 
-    #  "Land2Atmos_c_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
+    #### C to atmos via 4 pathways (wood product decay("Wood"), all other organic matter decay or root respiration ("Decay"), burn, energy) which determine 
+    # proportial fates of gaseous C emissions (CO2-C, CH4-C, BC-C) ####
+    #  "Land2Atmos_DecayC_stock_man" = -(total area [ha]) * (soil emissons [MgC/ha] + litter emissons [Mg/ha] + down dead emissons [Mg/ha] + 
     #   understory emissons [Mg/ha] + removed above-ground emissons [Mg/ha] + root emissions [Mg/ha])
-    agg_names = c(agg_names, paste0("Land2Atmos_c_stock_man"))
-    man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Litter2Atmos_c + 
-                                                                man_adjust_df$DownDead2Atmos_c + man_adjust_df$Understory2Atmos_c + 
-                                                                man_adjust_df$Removed2Atmos_c + man_adjust_df$Below2Atmos_c)
+    agg_names = c(agg_names, paste0("Land2Atmos_DecayC_stock_man"))
+    man_adjust_df[,agg_names[8]] = -man_adjust_df$tot_area * (man_adjust_df$Soil2Atmos_c + man_adjust_df$Harvested2SawmillDecay_c + 
+                                                                man_adjust_df$Slash2Decay_c + man_adjust_df$Below2Atmos_c)
+    #  "Land2Atmos_BurnC_stock_man" = -(total area [ha]) * (slash burn emissions [MgC/ha]) 
+    agg_names = c(agg_names, paste0("Land2Atmos_BurnC_stock_man"))
+    man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * (man_adjust_df$Slash2Burn_c)
     
-    # energy - this is assume to go to the atmosphere immediately
-    # calc C loss to atmosphere [Mg C] ("Land2Energy_c_stock_man") via energy generation (CO2 + CH4 + BC) (assume to go to the atmosphere 
-    # immediately) = -(total area [ha]) * (above-ground C removed for energy [MgC/ha])
-    agg_names = c(agg_names, paste0("Land2Energy_c_stock_man"))
-    man_adjust_df[,agg_names[9]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Energy_c
+    # "Land2Atmos_TotEnergyC_stock_man") = -(total area [ha]) * (Harvested C removed for energy [MgC/ha] + slash removal for energy [MgC/ha])
+    agg_names = c(agg_names, paste0("Land2Atmos_TotEnergyC_stock_man"))
+    man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * (man_adjust_df$Harvested2Energy_c + man_adjust_df$Slash2Energy_c)
     
+    # Get amount of total energy that is from harvest versus slash utilization
+      # Harv2Energy
+    agg_names = c(agg_names, paste0("Land2Atmos_Harv2EnerC_stock_man"))
+    man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * man_adjust_df$Harvested2Energy_c
+      # Slash2Energy
+    agg_names = c(agg_names, paste0("Land2Atmos_Slash2EnerC_stock_man"))
+    man_adjust_df[,agg_names[12]] = -man_adjust_df$tot_area * man_adjust_df$Slash2Energy_c
+    # replace NaN with 0
+    man_adjust_df[,agg_names[11]] <- replace( man_adjust_df[,agg_names[11]], is.nan( man_adjust_df[,agg_names[11]]), 0.0)
+    man_adjust_df[,agg_names[12]] <- replace( man_adjust_df[,agg_names[12]], is.nan( man_adjust_df[,agg_names[12]]), 0.0)
+    
+    #### C to wood ####
     # wood - this decays with a half-life
     agg_names = c(agg_names, paste0("Land2Wood_c_stock_man"))
-    man_adjust_df[,agg_names[10]] = -man_adjust_df$tot_area * man_adjust_df$Removed2Wood_c
+    man_adjust_df[,agg_names[13]] = -man_adjust_df$tot_area * (man_adjust_df$Harvested2Wood_c + man_adjust_df$Slash2Wood_c)
     
-    # Before partioning the Land2Atmos_c_stock_man into total burned and total non-burned C emissions, partition the 
-    # individual above-ground pools within it.
-    # Soil c and root c are assumed to not burn, so 100% of 2Atmos c from these pools will be CO2.
-    # First, calculate burned litter c using default fractions  of 2Atmos pools set in beginning
-    man_adjust_df[,"Burned_litter_c"] = 0
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_litter_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_litter_burn * 
-      man_adjust_df[,"Litter2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    # Second, calculate burned down dead c using default fractions of 2Atmos pools set in beginning
-    man_adjust_df[,"Burned_downdead_c"] = 0
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_downdead_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_down_burn * 
-      man_adjust_df[,"DownDead2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    # Third, calculate burned understory c using default fractions of 2Atmos pools set in beginning
-    man_adjust_df[,"Burned_under_c"] = 0
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_under_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_under_burn * 
-      man_adjust_df[,"Understory2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    # Fourth, calculate burned understory c using default fractions of 2Atmos pools set in beginning
-    # doesn't include removed 2 energy
-    man_adjust_df[,"Burned_mainremoved_c"] = 0
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Clearcut"] <- clrcut_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Clearcut"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Partial_cut"] <- parcut_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Partial_cut"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Fuel_reduction"] <- fuelred_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Fuel_reduction"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Prescribed_burn"] <- prescrburn_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Prescribed_burn"]
-    man_adjust_df[,"Burned_mainremoved_c"][man_adjust_df$Management == "Weed_treatment"] <- weedtrt_mainremoved_burn * 
-      man_adjust_df[,"Removed2Atmos_c"][man_adjust_df$Management == "Weed_treatment"]
-    
-    agg_names = c(agg_names, paste0("Land2Atmos_burnedC_stock_man"))
-    # create man_adjust_df$Land2Atmos_burnedC_stock_man (note: does not include bioenergy)
-    man_adjust_df[,agg_names[11]] = -man_adjust_df$tot_area * (man_adjust_df$Burned_litter_c + man_adjust_df$Burned_downdead_c +
-                                                                 man_adjust_df$Burned_under_c + man_adjust_df$Burned_mainremoved_c)
-    agg_names = c(agg_names, paste0("Land2Atmos_nonburnedC_stock_man"))
-    # create man_adjust_df$Land2Atmos_nonburnedC_stock_man  = "Land2Atmos_c_stock_man" - "Land2Atmos_burnedC_stock_man"
-    man_adjust_df[,agg_names[12]] = man_adjust_df[,agg_names[8]] - man_adjust_df[,agg_names[11]]
-    
-    # checks true that management Land2Atmos c flux equals the sum of burned and non-burned c in man_adjust_df 
-    identical(man_adjust_df[,agg_names[8]], man_adjust_df[,agg_names[11]] + man_adjust_df[,agg_names[12]])
+    # Get amount of total wood that is from harvest versus slash utilization
+    # Harv2Wood
+    agg_names = c(agg_names, paste0("Harv2Wood_c_stock_man"))
+    man_adjust_df[,agg_names[14]] = -man_adjust_df$tot_area * man_adjust_df$Harvested2Wood_c
+    # Slash2Wood
+    agg_names = c(agg_names, paste0("Slash2Wood_c_stock_man"))
+    man_adjust_df[,agg_names[15]] = -man_adjust_df$tot_area * man_adjust_df$Slash2Wood_c
+    # replace NaN with 0
+    man_adjust_df[,agg_names[14]] <- replace( man_adjust_df[,agg_names[14]], is.nan( man_adjust_df[,agg_names[14]]), 0.0)
+    man_adjust_df[,agg_names[15]] <- replace( man_adjust_df[,agg_names[15]], is.nan( man_adjust_df[,agg_names[15]]), 0.0)
     
     # now aggregate to land type by summing the management options
     # these c density values are the direct changes to the overall c density
@@ -1417,7 +1450,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     # and corresponding net cumulative C transfers [Mg C] to atmosphere (via decomp, burning, or energy (also burning)) or to wood 
     agg_cols = array(dim=c(length(man_adjust_df$Land_Cat_ID),length(agg_names)))
     # second, populate the table by applying loop to each row's land type ID  
-    for (i in 1:length(agg_names)) {
+    for (i in 1:length(agg_names)) { # 1 to 15 (extra columns with with new slash pathway)
       # fill columns with corresponding management-caused C transfers from the man_adjust_df
       agg_cols[,i] = man_adjust_df[,agg_names[i]]
     }
@@ -1433,12 +1466,6 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
     
-    # check that management Land2Atmos c flux is equal to sum of burned + non-burned land2atmos c flux in all_c_flux
-    ## this checks true
-    identical(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]], all_c_flux[["Land2Atmos_c_stock_man_agg"]])
-    # this checks true that the difference between total management Land2Atmos c flux and the sum of burned + non-burned land2atmos c flux is minimal (<1 & >-1)
-    all(all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] < 1 &
-          all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_c_stock_man_agg"]] > -1)
     # loop over the out density tables to update the carbon pools based on the management fluxes
     # carbon cannot go below zero
     sum_change = 0
@@ -1485,17 +1512,22 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     #                                   wood_accumulated * ((1 - exp(-log(2)/half-life) / log(2)/half-life) 
     out_wood_df_list[[6]][,next_wood_label] = out_wood_df_list[[6]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
       -all_c_flux$Land2Wood_c_stock_man_agg
-    # Next year's "Manage_Wood_CumGain_C_stock" = Current year's "Manage_Wood_CumGain_C_stock" + wood_accumulated
+    # Next year's "Manage_Wood_CumGain_C_stock" = Current year's "Manage_Wood_CumGain_C_stock" + total wood_accumulated
     out_wood_df_list[[7]][,next_wood_label] = out_wood_df_list[[7]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg
+      # Next year's "Man_Harv2Wood_CumGain_C_stock" = Current year's "Man_Harv2Wood_CumGain_C_stock" + wood_accumulated from harvest
+      out_wood_df_list[[8]][,next_wood_label] = out_wood_df_list[[8]][,cur_wood_label] - all_c_flux$Harv2Wood_c_stock_man_agg
+      # Next year's "Man_Slash2Wood_CumGain_C_stock" = Current year's "Man_Slash2Wood_CumGain_C_stock" + wood_accumulated from slash
+      out_wood_df_list[[9]][,next_wood_label] = out_wood_df_list[[9]][,cur_wood_label] - all_c_flux$Slash2Wood_c_stock_man_agg
     # Current year's "Manage_Wood_AnnGain_C_stock" = wood_accumulated
-    out_wood_df_list[[9]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_man_agg
+    out_wood_df_list[[11]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_man_agg
+      out_wood_df_list[[12]][,cur_wood_label] = -all_c_flux$Harv2Wood_c_stock_man_agg
+      out_wood_df_list[[13]][,cur_wood_label] = -all_c_flux$Slash2Wood_c_stock_man_agg
     # Current year's "Manage_Wood_AnnLoss_C_stock" = Current year's "Manage_Wood_C_stock" + wood_accumulated - Next year's "Manage_Wood_C_stock"  
-    out_wood_df_list[[10]][,cur_wood_label] = out_wood_df_list[[6]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg - 
+    out_wood_df_list[[14]][,cur_wood_label] = out_wood_df_list[[6]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_man_agg - 
       out_wood_df_list[[6]][,next_wood_label]
     # Next year's "Manage_Wood_CumLoss_C_stock" = Current year's "Manage_Wood_CumLoss_C_stock" + Current year's "Manage_Wood_AnnLoss_C_stock"
-    out_wood_df_list[[8]][,next_wood_label] = out_wood_df_list[[8]][,cur_wood_label] + out_wood_df_list[[10]][,cur_wood_label]
-    
-  
+    out_wood_df_list[[10]][,next_wood_label] = out_wood_df_list[[10]][,cur_wood_label] + out_wood_df_list[[14]][,cur_wood_label]
+   
     ############################################################################################################
     ############################################################################################################
     #########################################  Apply FIRE to C pools  ##########################################
@@ -2080,14 +2112,26 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
         # probably should deal with the remaining c transfer here, rather than below, so that all transfers are included
         
         # calculate all the c losses from landtypes that convert to ag or urban
-        for (f in 1:num_convfrac_cols){
+        for (f in 1:num_convfrac_cols) {
           # the removed values are calculated first, so this will work
-          # if conv_density_inds[f] == -1, then the source is the removed pool; use the sum of the first two c trans columns
-          if (conv_density_inds[f] == -1) {
-            # C removed [MgC/ha] =  (removed above C + removed standing dead C) * removed frac.... ("Removed2Wood_conv_frac", "Removed2Energy_conv_frac", 
-            # or "Removed2Atmos_conv_frac"
+          # if conv_density_inds[f] == -1 or -2, then the source is the harvested pool or slash pool, so use the sum of its components respectively
+          if (conv_density_inds[f] == -1 | conv_density_inds[f] == -2) {
+            # FROM HARVESTED POOL
+            if (conv_density_inds[f] == -1) { 
+             # Harvested2Wood_conv_c, Harvested2Energy_conv_c, Harvested2Decay_conv_c, Harvested2Slash_conv_c) [Mg/ha] = (Above_harvested_conv_c + 
+              # StandDead_harvested_conv_c) * (Harvested2Wood_conv_frac, Harvested2Energy_conv_frac, Harvested2Decay_conv_frac, Harvested2Slash_conv_frac)
             conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[1]] + conv_own[,convc_trans_names[2]]) * conv_own[,conv_frac_names[f]]
-          } else {
+            } else {
+            # FROM SLASH POOL
+            # else conv_density_inds[f] == -2 (when f = 10, 11, 12, 13)
+            # sum c trans columns 6, 7, 8 & 9 (Harvest2Slash_conv_c + Under2Slash_conv_c + DownDead2Slash_conv_c + Litter2Slash_conv_c)
+            # (slash2energy_conv_c, slash2wood_conv_c, Burn_conv_c, slash2decay_conv_c) [Mg/ha] = (Harvested2Slash_conv_c + Under2Slash_conv_c + 
+            # DownDead2Slash_conv_c + Litter2Slash_conv_c) * (Harvested2Slash_conv_frac, Under2Slash_conv_frac, DownDead2Slash_conv_frac, Litter2Slash_conv_frac)
+            conv_own[,convc_trans_names[f]] = (conv_own[,convc_trans_names[6]] + conv_own[,convc_trans_names[7]] + conv_own[,convc_trans_names[8]] +
+                                                 conv_own[,convc_trans_names[9]]) * conv_own[,conv_frac_names[f]]
+            }
+        } else {
+            # FROM C DENSITY POOL
             # get all the C pool densities for each C fraction 
             if (!out_density_sheets[conv_density_inds[f]] %in% names(conv_own)) {
               conv_own = merge(conv_own, out_density_df_list[[conv_density_inds[f]]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
@@ -2109,7 +2153,7 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
               conv_own[conv_own$Developed_all > 0,conv_frac_names[f]] * conv_own$Developed_all[conv_own$Developed_all > 0] / 
               conv_own$tot_area[conv_own$Developed_all > 0]
           } # end if removed source else density source
-        } # end for f loop over the managed transfer fractions for calcuting the transfer carbon
+        } # end for f loop over the conversion transfer fractions for calculating the transfer carbon
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.na(x), 0.00)})
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, x == Inf, 0.00)})
@@ -2349,6 +2393,9 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
       } # end if land own else ocean/seagrass
       own_conv_df_list_pre[[i]] = conv_own 
+      # get column number of last column before all the land types - this attempts to make the following routine more generic to allow changes to 
+      # the c_input file structure without updatingthe for loop below.
+      last_column <- which(names(own_conv_df_list_pre[[i]])=="own_gain_sum")
     } # end i loop over ownership for calculating land conversion c adjustments
       # after all the ownership loops within a given region rbind all the ownership tables into one 
       # first, get the complete list of land type names 
@@ -2367,25 +2414,26 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
           # get length of new complete df (=73)
           full_length <- length(own_conv_df_list_pre[[g]])
           # get columns preceding the land type columns
-          begin_set_cols <- own_conv_df_list_pre[[g]][,c(1:26)]
+          begin_set_cols <- own_conv_df_list_pre[[g]][,c(1:last_column)]
           # get full set of landtype columns in order
           all_16landtype_cols <- own_conv_df_list_pre[[g]][,c(conv_col_names_all)]
           # get number of _not_ missing column names 
           numb_not_missing <- length(conv_col_names_all) - length(missing_names)
           # get column index to start on for end set of columns
-          end_start_ind <- 26 + numb_not_missing + 1
+          end_start_ind <- last_column + numb_not_missing + 1
           # get column index to end on for end set of columns
           end_end_ind <- full_length - length(missing_names)
           # subset the columns following the original landtype columns and before the ones that were added to the end
           # order the sequence of columns in the last chunk
-          end_set_cols <- own_conv_df_list_pre[[g]][,c("Above_main_C_den", "Above_removed_conv_c", "StandDead_C_den", "StandDead_removed_conv_c", 
-                                          "Removed2Wood_conv_c", "Removed2Energy_conv_c", "Removed2Atmos_conv_c", "Understory_C_den",           
-                                          "Understory2Atmos_conv_c", "DownDead_C_den", "DownDead2Atmos_conv_c", "Litter_C_den", "Litter2Atmos_conv_c",
-                                          "Soil_orgC_den", "Soil2Atmos_conv_c", "Understory2DownDead_conv_c", "Below_main_C_den","Below2Atmos_conv_c",        
-                                          "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", "Understory_C_den_change",
-                                          "StandDead_C_den_change", "DownDead_C_den_change", "Litter_C_den_change", "Soil_orgC_den_change", 
-                                          "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", "DownDead_C_den2Atmos",      
-                                          "Litter_C_den2Atmos")]
+          end_set_cols <- own_conv_df_list_pre[[g]][,c("Above_main_C_den", "Above_harvested_conv_c", "StandDead_C_den", "StandDead_harvested_conv_c", 
+                                          "Harvested2Wood_conv_c", "Harvested2Energy_conv_c", "Harvested2SawmillDecay_conv_c", "Harvested2Slash_conv_c",
+                                          "Understory_C_den", "Under2Slash_conv_c", "DownDead_C_den", "DownDead2Slash_conv_c", "Litter_C_den", 
+                                          "Litter2Slash_conv_c", "Slash2Energy_conv_c", "Slash2Wood_conv_c", "Slash2Burn_conv_c", 
+                                          "Slash2Decay_conv_c", "Under2DownDead_conv_c", "Soil_orgC_den", "Soil2Atmos_conv_c", "Below_main_C_den", 
+                                          "Below2Atmos_conv_c", "Below2Soil_conv_c", "Above_main_C_den_change", "Below_main_C_den_change", 
+                                          "Understory_C_den_change", "StandDead_C_den_change", "DownDead_C_den_change", "Litter_C_den_change", 
+                                          "Soil_orgC_den_change", "Above_main_C_den2Atmos", "Understory_C_den2Atmos", "StandDead_C_den2Atmos", 
+                                          "DownDead_C_den2Atmos", "Litter_C_den2Atmos")]
           # merge the subsets of columns back together. They're in proper order now to rbind below
           own_conv_df_list_pre[[g]] <- cbind(begin_set_cols, all_16landtype_cols, end_set_cols) }
       }
@@ -2430,32 +2478,31 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     cgnames = c(cgnames, paste0(out_density_sheets[3],"_gain_conv"))
     # c lost from any landtype going to ag/urban - c loss (emissions) if changing land area from hi to lo c density + 
     # c density gain if going to low to hi c density 
-    all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_removed_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
+    all_c_flux[,cgnames[1]] = - conv_adjust_df$Above_harvested_conv_c - conv_adjust_df$Above_main_C_den2Atmos + 
       conv_adjust_df$Above_main_C_den_change
     # below
     cgnames = c(cgnames, paste0(out_density_sheets[4],"_gain_conv"))
     all_c_flux[,cgnames[2]] = - conv_adjust_df$Below2Atmos_conv_c + conv_adjust_df$Below_main_C_den_change
     # understory
     cgnames = c(cgnames, paste0(out_density_sheets[5],"_gain_conv"))
-    all_c_flux[,cgnames[3]] = - conv_adjust_df$Understory2Atmos_conv_c - conv_adjust_df$Understory2DownDead_conv_c - 
+    all_c_flux[,cgnames[3]] = - conv_adjust_df$Under2Slash_conv_c - conv_adjust_df$Under2DownDead_conv_c - 
       conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$Understory_C_den_change
     # standing dead
     cgnames = c(cgnames, paste0(out_density_sheets[6],"_gain_conv"))
-    all_c_flux[,cgnames[4]] = - conv_adjust_df$StandDead_removed_conv_c - conv_adjust_df$StandDead_C_den2Atmos + 
+    all_c_flux[,cgnames[4]] = - conv_adjust_df$StandDead_harvested_conv_c - conv_adjust_df$StandDead_C_den2Atmos + 
       conv_adjust_df$StandDead_C_den_change
     # down dead
     cgnames = c(cgnames, paste0(out_density_sheets[7],"_gain_conv"))
-    all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Atmos_conv_c + conv_adjust_df$Understory2DownDead_conv_c - 
+    all_c_flux[,cgnames[5]] = - conv_adjust_df$DownDead2Slash_conv_c + conv_adjust_df$Under2DownDead_conv_c - 
       conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$DownDead_C_den_change
     # litter
     cgnames = c(cgnames, paste0(out_density_sheets[8],"_gain_conv"))
-    all_c_flux[,cgnames[6]] = - conv_adjust_df$Litter2Atmos_conv_c - conv_adjust_df$Litter_C_den2Atmos + conv_adjust_df$Litter_C_den_change
+    all_c_flux[,cgnames[6]] = - conv_adjust_df$Litter2Slash_conv_c - conv_adjust_df$Litter_C_den2Atmos + conv_adjust_df$Litter_C_den_change
     # soil
     cgnames = c(cgnames, paste0(out_density_sheets[9],"_gain_conv"))
     all_c_flux[,cgnames[7]] = - conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Soil_orgC_den_change
     
-    
-    # loop over the relevant out density tables to update the carbon pools based on the conversion fluxes
+    # loop over the relevant out density tables to update the C pools based on the conversion fluxes
     # carbon cannot go below zero
     sum_change = 0
     sum_change2 = 0
@@ -2491,18 +2538,42 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                                                                 out_density_df_list[[i]][, next_density_label] == Inf, 0.00)
     } # end loop over out densities for updating due to conversion
     
-    # to get the carbon must multiply these by the tot_area
-    # atmos: assumed none of this is burned
-    # getting stocks of total c emissions (assumed to be CO2) 
-    all_c_flux[,"Land2Atmos_c_stock_conv"] = -conv_adjust_df$tot_area * 
-      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Litter2Atmos_conv_c + conv_adjust_df$DownDead2Atmos_conv_c + 
-         conv_adjust_df$Understory2Atmos_conv_c + conv_adjust_df$Removed2Atmos_conv_c + conv_adjust_df$Below2Atmos_conv_c + 
+    # Get total C lost to atmosphere from LCC via 3 potential flux pathways by the tot_area
+    # (1) DECAY
+    all_c_flux[,"Land2Atmos_DecayC_stock_conv"] = -conv_adjust_df$tot_area * 
+      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Slash2Decay_conv_c + conv_adjust_df$Harvested2SawmillDecay_conv_c + 
+         conv_adjust_df$Below2Atmos_conv_c + 
          conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$StandDead_C_den2Atmos + 
          conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$Litter_C_den2Atmos)
-    # energy - this is assumed to go to the atmosphere immediately
-    all_c_flux[,"Land2Energy_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Removed2Energy_conv_c)
-    # wood - this decays with a half-life
-    all_c_flux[,"Land2Wood_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Removed2Wood_conv_c)
+    # (2) MANAGED BURNS - currently assumed this is 0
+    all_c_flux[,"Land2Atmos_BurnC_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Slash2Burn_conv_c)
+    # (3) TOTAL ENERGY - this is assumed to go to the atmosphere immediately
+    all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Harvested2Energy_conv_c + 
+                                                                                 conv_adjust_df$Slash2Energy_conv_c)
+    # Get amount of total LCC energy that is from harvest versus slash utilization
+        # Harv2Energy
+    all_c_flux[,"Land2Atmos_Harv2EnerC_stock_conv"] = -conv_adjust_df$tot_area * conv_adjust_df$Harvested2Energy_conv_c
+        # Slash2Energy
+    all_c_flux[,"Land2Atmos_Slash2EnerC_stock_conv"] = -conv_adjust_df$tot_area * conv_adjust_df$Slash2Energy_conv_c
+    # replace NaN with 0
+    all_c_flux[,"Land2Atmos_Harv2EnerC_stock_conv"] <- replace(all_c_flux[,"Land2Atmos_Harv2EnerC_stock_conv"], 
+                                                                  is.nan( all_c_flux[,"Land2Atmos_Harv2EnerC_stock_conv"]), 0.0)
+    all_c_flux[,"Land2Atmos_Slash2EnerC_stock_conv"] <- replace(all_c_flux[,"Land2Atmos_Slash2EnerC_stock_conv"], 
+                                                                 is.nan(all_c_flux[,"Land2Atmos_Slash2EnerC_stock_conv"]), 0.0)
+    # Get C lost to wood 
+    # WOOD - this decays with a half-life
+    all_c_flux[,"Land2Wood_c_stock_conv"] = -conv_adjust_df$tot_area * (conv_adjust_df$Harvested2Wood_conv_c + 
+                                                                          conv_adjust_df$Slash2Wood_conv_c)
+    # Get amount of total LCC Wood that is from harvest versus slash utilization
+    # Harv2Wood
+    all_c_flux[,"Harv2Wood_c_stock_conv"] = -conv_adjust_df$tot_area * conv_adjust_df$Harvested2Wood_conv_c
+    # Slash2Wood
+    all_c_flux[,"Slash2Wood_c_stock_conv"] = -conv_adjust_df$tot_area * conv_adjust_df$Slash2Wood_conv_c
+    # replace NaN with 0
+    all_c_flux[,"Harv2Wood_c_stock_conv"] <- replace(all_c_flux[,"Harv2Wood_c_stock_conv"], 
+                                                                 is.nan(all_c_flux[,"Harv2Wood_c_stock_conv"]), 0.0)
+    all_c_flux[,"Slash2Wood_c_stock_conv"] <- replace(all_c_flux[,"Slash2Wood_c_stock_conv"], 
+                                                                 is.nan(all_c_flux[,"Slash2Wood_c_stock_conv"]), 0.0)
     
     cat("lcc carbon change is ", sum_change, "\n")
     cat("lcc net carbon transfer to other land types is ", sum_change2, "\n")
@@ -2521,24 +2592,37 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     k = log(2) / wp_half_life
     # next year's "LCC_Wood_C_stock" = current year's "LCC_Wood_C_stock" * decay_term1 + decay_term2 * more_wood
-    out_wood_df_list[[11]][,next_wood_label] = out_wood_df_list[[11]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
+    out_wood_df_list[[15]][,next_wood_label] = out_wood_df_list[[15]][,cur_wood_label] * exp(-k) + ((1 - exp(-k)) / k) * 
       (-all_c_flux$Land2Wood_c_stock_conv)
     # next year's "LCC_Wood_CumGain_C_stock" = current year's "LCC_Wood_CumGain_C_stock" + harvested_wood_conv
-    out_wood_df_list[[12]][,next_wood_label] = out_wood_df_list[[12]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv
-    # current year's "LCC_Wood_AnnGain_C_stock" = harvested_wood_conv
-    out_wood_df_list[[14]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_conv
-    # current year's "LCC_Wood_AnnLoss_C_stock" = current year's "LCC_Wood_C_stock" + harvested_wood_conv - next year's "LCC_Wood_C_stock"
-    out_wood_df_list[[15]][,cur_wood_label] = out_wood_df_list[[11]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv - 
-      out_wood_df_list[[11]][,next_wood_label]
+    out_wood_df_list[[16]][,next_wood_label] = out_wood_df_list[[16]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv
+    # Next year's "LCC_Harv2Wood_CumGain_C_stock" = Current year's "LCC_Harv2Wood_CumGain_C_stock" + wood_accumulated from harvest
+    out_wood_df_list[[17]][,next_wood_label] = out_wood_df_list[[17]][,cur_wood_label] - all_c_flux$Harv2Wood_c_stock_conv
+    # Next year's "LCC_Slash2Wood_CumGain_C_stock" = Current year's "LCC_Slash2Wood_CumGain_C_stock" + wood_accumulated from slash
+    out_wood_df_list[[18]][,next_wood_label] = out_wood_df_list[[18]][,cur_wood_label] - all_c_flux$Slash2Wood_c_stock_conv
+    # current year's "LCC_Wood_AnnGain_C_stock" = total wood accumulated
+    out_wood_df_list[[20]][,cur_wood_label] = -all_c_flux$Land2Wood_c_stock_conv
+    # current year's "LCC_Harv2Wood_AnnGain_C_stock" = total wood accumulated from harvest
+    out_wood_df_list[[21]][,cur_wood_label] = -all_c_flux$Harv2Wood_c_stock_conv
+    # current year's "LCC_Slash2Wood_AnnGain_C_stock" = total wood accumulated from slash utilization
+    out_wood_df_list[[22]][,cur_wood_label] = -all_c_flux$Slash2Wood_c_stock_conv
+    # current year's "LCC_Wood_AnnLoss_C_stock" = current year's "LCC_Wood_C_stock" + total wood accumulated - next year's "LCC_Wood_C_stock"
+    out_wood_df_list[[23]][,cur_wood_label] = out_wood_df_list[[15]][,cur_wood_label] - all_c_flux$Land2Wood_c_stock_conv - 
+      out_wood_df_list[[15]][,next_wood_label]
     # next year's "LCC_Wood_CumLoss_C_stock" = current year's "LCC_Wood_CumLoss_C_stock" + current year's "LCC_Wood_AnnLoss_C_stock" 
-    out_wood_df_list[[13]][,next_wood_label] = out_wood_df_list[[13]][,cur_wood_label] + out_wood_df_list[[15]][,cur_wood_label]
+    out_wood_df_list[[19]][,next_wood_label] = out_wood_df_list[[19]][,cur_wood_label] + out_wood_df_list[[23]][,cur_wood_label]
     
     # update the total wood tables
-    out_wood_df_list[[1]][,next_wood_label] = out_wood_df_list[[6]][,next_wood_label] + out_wood_df_list[[11]][,next_wood_label]
-    out_wood_df_list[[2]][,next_wood_label] = out_wood_df_list[[7]][,next_wood_label] + out_wood_df_list[[12]][,next_wood_label]
-    out_wood_df_list[[3]][,next_wood_label] = out_wood_df_list[[8]][,next_wood_label] + out_wood_df_list[[13]][,next_wood_label]
-    out_wood_df_list[[4]][,cur_wood_label] = out_wood_df_list[[9]][,cur_wood_label] + out_wood_df_list[[14]][,cur_wood_label]
-    out_wood_df_list[[5]][,cur_wood_label] = out_wood_df_list[[10]][,cur_wood_label] + out_wood_df_list[[15]][,cur_wood_label]
+    # total wood C stock = total management wood stock + total lcc wood stock
+    out_wood_df_list[[1]][,next_wood_label] = out_wood_df_list[[6]][,next_wood_label] + out_wood_df_list[[15]][,next_wood_label]
+    # total cumulative wood C gain = total cumulative management wood gain + total cumulative lcc wood gain
+    out_wood_df_list[[2]][,next_wood_label] = out_wood_df_list[[7]][,next_wood_label] + out_wood_df_list[[16]][,next_wood_label]
+    # total cumulative wood C loss = total cumulative management wood loss + total cumulative lcc wood loss
+    out_wood_df_list[[3]][,next_wood_label] = out_wood_df_list[[10]][,next_wood_label] + out_wood_df_list[[19]][,next_wood_label]
+    # total annual wood C gain = total annual management wood gain + total annual lcc wood gain
+    out_wood_df_list[[4]][,cur_wood_label] = out_wood_df_list[[11]][,cur_wood_label] + out_wood_df_list[[20]][,cur_wood_label]
+    # total annual wood C loss = total annual management wood loss + total annual lcc wood loss
+    out_wood_df_list[[5]][,cur_wood_label] = out_wood_df_list[[14]][,cur_wood_label] + out_wood_df_list[[23]][,cur_wood_label]
     
     # set the new tot area
     out_area_df_list[[1]][,next_area_label] = all_c_flux$new_area
@@ -2601,54 +2685,76 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     }
     
     ##### CUMULATIVE FLUXES ##### 
-    
+
+    ### Net Ecosystem Flux (i.e. baseline) ###
     # "Eco_CumGain_C_stock" = current year "Eco_CumGain_C_stock"  + total area * (sum of all changes in c density pools)
     out_atmos_df_list[[1]][, next_atmos_label] = out_atmos_df_list[[1]][, cur_atmos_label] + all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
     
-    # "Manage_Atmos_CumGain_C_stock" based on biomass removal and energy (note: actually adding terms because they are negative)
-    # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Atmos_c_stock_man_agg" -
-    # "Land2Energy_c_stock_man_agg"  
-    out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - 
-      all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    ### Management C Emissions ###
+    # "Manage_Atmos_CumGain_C_stock" based on biomass removal, managed burns and energy (note: actually adding terms because they are negative)
+    # "Manage_Atmos_CumGain_C_stock" = (current year "Manage_Atmos_CumGain_C_stock") - "Land2Decay_c_stock_man_agg"  -
+                                      # "Land2Burn_c_stock_man_agg" - "Land2Energy_c_stock_man_agg"  
+    out_atmos_df_list[[3]][, next_atmos_label] = out_atmos_df_list[[3]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - 
+      all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"]
     
+    ### Wildfire C Emissions ###
     # "Fire_Atmos_CumGain_C_stock"
     out_atmos_df_list[[4]][, next_atmos_label] = out_atmos_df_list[[4]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
     
+    ### Land Cover Change C Emissions ###
     # "LCC_Atmos_CumGain_C_stock" based on land cover change with associated biomass removal and energy
-    out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"] - 
-      all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[5]][, next_atmos_label] = out_atmos_df_list[[5]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_conv"] - 
+      all_c_flux[,"Land2Atmos_BurnC_stock_conv"] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"]
     
+    ### Wood C Emissions ###
     # "Wood_Atmos_CumGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[6]][, next_atmos_label] = out_wood_df_list[[3]][,next_wood_label]
     
+    ### Total Energy C Emissions ### 
     # "Total_Energy2Atmos_C_stock" just to compare it with the total cum atmos c
-    out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"] - 
-      all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[7]][, next_atmos_label] = out_atmos_df_list[[7]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"] - 
+      all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"]
     
+    ### Total C Emissions (all sources and pathways except Net Eco Flux) ###
     # "Total_Atmos_CumGain_C_stock" the total release of land and wood product and energy c to the atmosphere
     # the energy release is inluded in the manage and lcc releases
+    # Total cum C emissions (less Eco) = Management + Wildfire + LCC + Wood
     out_atmos_df_list[[2]][, next_atmos_label] = out_atmos_df_list[[3]][,next_atmos_label] + out_atmos_df_list[[4]][,next_atmos_label] + 
       out_atmos_df_list[[5]][,next_atmos_label] + out_atmos_df_list[[6]][,next_atmos_label]
     
     ##### ANNUAL FLUXES	#####
     
+    ### Net Ecosystem Flux ###
     # "Eco_AnnGain_C_stock" = total area * (Above_main_C_den_gain_eco + Below_main_C_den_gain_eco + Understory_C_den_gain_ec +
     #                                       StandDead_C_den_gain_eco + DownDead_C_den_gain_eco + Litter_C_den_gain_eco +
     #                                       Soil_orgC_den_gain_eco)
     out_atmos_df_list[[8]][, cur_atmos_label] = all_c_flux[,"tot_area"] * 
       (all_c_flux[,11] + all_c_flux[,12] + all_c_flux[,13] + all_c_flux[,14] + all_c_flux[,15] + all_c_flux[,16] + all_c_flux[,17])
-    # "Manage_Atmos_AnnGain_C_stock" based on biomass removal & energy from biomass
-    out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
+    
+    ### Management C Emissions ###
+    # "Manage_Atmos_AnnGain_C_stock" = decay + burn + energy
+    out_atmos_df_list[[10]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] -
+       all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"]
+
+    ### Wildfire C Emissions ###
     # "Fire_Atmos_AnnGain_C_stock" based on fire
     out_atmos_df_list[[11]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]
+    
+    ### Land Cover Change C Emissions ###
     # "LCC_Atmos_AnnGain_C_stock" based on land cover change with associated biomass removal, includes energy from biomass
-    out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"] - all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[12]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"] -
+      all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
+
+    ### Wood C Emissions ###
     # "Wood_Atmos_AnnGain_C_stock" from the wood tables: "Total_Wood_CumLoss_C_stock"
     out_atmos_df_list[[13]][, cur_atmos_label] = out_wood_df_list[[5]][,cur_wood_label]
     
+    ### Total Energy C Emissions ###
     # "Total_AnnEnergy2Atmos_C_stock" just to compare it with the total cum atmos c
-    out_atmos_df_list[[14]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"] - all_c_flux[,"Land2Energy_c_stock_conv"]
+    out_atmos_df_list[[14]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"]
+    
+    ### Total C Emissions (all sources and pathways except Net Eco Flux) ###
     # "Total_Atmos_AnnGain_C_stock" the total release of land and wood product and energy c to the atmosphere
     # the energy release is inluded in the manage and lcc releases
     out_atmos_df_list[[9]][, cur_atmos_label] = out_atmos_df_list[[10]][,cur_atmos_label] + out_atmos_df_list[[11]][,cur_atmos_label] + 
@@ -2656,75 +2762,103 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     
     ### cumulative (again) ### 
     
-    # Partition the "Manage_Atmos_CumGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
+    # Get C emissions from individual pathways: CONTROLLED FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
+  
+    # Manage BURN: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_BurnC_stock_man_agg" 
+    out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
+    # Manage TOTAL ENERGY: "Manage_Atmos_CumGain_TotEnergyC" = (current year "Manage_Atmos_CumGain_TotEnergyC") - "Land2Atmos_TotEnergyC_stock_man_agg" 
+    out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"]
+      # Manage ENERGY FROM HARVEST: 
+    out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_Harv2EnerC_stock_man_agg"]
+      # Manage ENERGY FROM SLASH: 
+    out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_Slash2EnerC_stock_man_agg"]
+    # Manage DECAY: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_DecayC_stock_man_agg"
+    out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
     
-    # FIRE: "Manage_Atmos_CumGain_FireC" = (current year "Manage_Atmos_CumGain_FireC") - "Land2Atmos_burnedC_stock_man_agg" -
-    # "Land2Energy_c_stock_man_agg" (note: Land2Atmos_burnedC_stock_man_agg does not include bioenergy)
-    out_atmos_df_list[[15]][, next_atmos_label] = out_atmos_df_list[[15]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
-    # ENERGY: "Manage_Atmos_CumGain_EnergyC" = (current year "Manage_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_man_agg" 
-    out_atmos_df_list[[16]][, next_atmos_label] = out_atmos_df_list[[16]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # NON-BURNED: "Manage_Atmos_CumGain_NonBurnedC" = (current year "Manage_Atmos_CumGain_NonBurnedC") - "Land2Atmos_nonburnedC_stock_man_agg"
-    out_atmos_df_list[[17]][, next_atmos_label] = out_atmos_df_list[[17]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
-    
-    # checks true:  management land to atmosphere C flux equal to the management burned plus unburned land to atmosphere C flux
-    identical(all_c_flux[["Land2Atmos_c_stock_man_agg"]], all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]])
-    # Also checks true that the difference is <0.5 and >-0.5 (in case rounding error)
-    all((- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) < 0.5 & 
-          (- all_c_flux[["Land2Atmos_c_stock_man_agg"]] + all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]]) > -0.5)
-    
-    # checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos - current year's Land2Energy
-    identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
-                all_c_flux[["Land2Atmos_c_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
-    
-    # checks true: next year's management Land2Atmos cumulative C = current year's Land2Atmos cumulative C - current year Land2Atmos_burned - current year Land2Atmos_nonburned - 
-    # current year land2energy
-    identical(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label], out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, cur_atmos_label] -
-                all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] - all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] - all_c_flux[["Land2Energy_c_stock_man_agg"]])
-    # recall that: all_c_flux[["Land2Atmos_c_stock_man_agg"]] == all_c_flux[["Land2Atmos_burnedC_stock_man_agg"]] + all_c_flux[["Land2Atmos_nonburnedC_stock_man_agg"]] 
-    # all_c_flux[["Land2Energy_c_stock_man_agg"]] is separate, and added up in the out_atmos_df_list
+    # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
+    all(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] == out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
+          out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])
+    # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
+    all(out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
+           out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label]) < 0.5 & 
+          (out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
+              out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])) > -0.5)
     
     # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
     
     # FIRE burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
-    out_atmos_df_list[[18]][, next_atmos_label] = out_atmos_df_list[[18]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+    out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
     # FIRE non-burned: "Fire_Atmos_CumGain_NonBurnedC" = (current year "Fire_Atmos_CumGain_NonBurnedC") - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-    out_atmos_df_list[[19]][, next_atmos_label] = out_atmos_df_list[[19]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+    out_atmos_df_list[[21]][, next_atmos_label] = out_atmos_df_list[[21]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
     
     # Partition the "LCC_Atmos_CumGain_C_stock" into burned (energy only) and non-burned C sources 
     # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
     # is released as CO2 (decomposition) and not burned
     
-    # LCC Energy: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Energy_c_stock_conv"
-    out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # LCC non-burned: "LCC_Atmos_CumGain_NonBurnEnerC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_c_stock_conv"
-    out_atmos_df_list[[21]][, next_atmos_label] = out_atmos_df_list[[21]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_c_stock_conv"]
+    # LCC BURN: "LCC_Atmos_CumGain_FireC" = (current year "LCC_Atmos_CumGain_FireC") - "Land2Atmos_BurnC_stock_conv"
+    out_atmos_df_list[[22]][, next_atmos_label] = out_atmos_df_list[[22]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
+    # LCC TOTAL ENERGY: "LCC_Atmos_CumGain_EnergyC" = (current year "LCC_Atmos_CumGain_EnergyC") - "Land2Atmos_TotEnergyC_stock_conv"
+    out_atmos_df_list[[23]][, next_atmos_label] = out_atmos_df_list[[23]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"]
+      # LCC ENERGY FROM HARVEST: 
+      out_atmos_df_list[[24]][, next_atmos_label] = out_atmos_df_list[[24]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_Harv2EnerC_stock_conv"]
+      # LCC ENERGY FROM SLASH: 
+      out_atmos_df_list[[25]][, next_atmos_label] = out_atmos_df_list[[25]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_Slash2EnerC_stock_conv"]
+    # LCC DECAY
+    out_atmos_df_list[[26]][, next_atmos_label] = out_atmos_df_list[[26]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
     
     ### annual (again) ###
     
     # Partition the "Manage_Atmos_AnnGain_C_stock" into FIRE, ENERGY, and NON-BURNED C fluxes to atmosphere
     
-    # FIRE: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_burnedC_stock_man_agg" 
-    out_atmos_df_list[[22]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_burnedC_stock_man_agg"] 
-    # ENERGY: "Manage_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_man_agg"
-    out_atmos_df_list[[23]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_man_agg"]
-    # non-burned: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_nonburnedC_stock_man_agg"
-    out_atmos_df_list[[24]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_nonburnedC_stock_man_agg"]  
+    # Manage BURN: "Manage_Atmos_AnnGain_FireC" = - "Land2Atmos_BurnC_stock_man_agg" 
+    out_atmos_df_list[[27]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_man_agg"] 
+    # Manage TOTAL ENERGY: "Manage_Atmos_AnnGain_TotEnergyC" = - "Land2Atmos_TotEnergyC_stock_man_agg"
+    out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_TotEnergyC_stock_man_agg"]
+      # Manage ENERGY FROM HARVEST: 
+      out_atmos_df_list[[29]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_Harv2EnerC_stock_man_agg"] 
+      # Manage ENERGY FROM SLASH: 
+      out_atmos_df_list[[30]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_Slash2EnerC_stock_man_agg"]
+    # Manage DECAY: "Manage_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_DecayC_stock_man_agg"
+    out_atmos_df_list[[31]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_man_agg"]  
+    
+    # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+          out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])
+    # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+             out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
+          (out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+                  out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
+    
+    # check that true:  total management land to atmosphere C flux equal to energy + controlled burns + unburned (decay) 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] == out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+          out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])
+    # Due to rounding error this checks true that the difference is <0.5 and >-0.5 
+    all(out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+             out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label]) < 0.5 & 
+          (out_atmos_df_list[["Manage_Atmos_AnnGain_C_stock"]][, cur_atmos_label] - (out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]][, cur_atmos_label] + 
+                  out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
+    
     
     # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
     # including this here in case changes are later made to those input wildfire fractions)
-    # burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
-    out_atmos_df_list[[25]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
-    # non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
-    out_atmos_df_list[[26]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
+    # FIRE burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
+    out_atmos_df_list[[32]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
+    # FIRE non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
+    out_atmos_df_list[[33]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"]
     
-    # Partition the "LCC_Atmos_AnnGain_C_stock" into burned (energy only) and non-burned C sources 
-    # With the exception of removed C to energy, we are currently assuming that all lost above- and below-ground c (except removed2wood) 
-    # is released as CO2 (decomposition) and not burned
-    # burned: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Energy_c_stock_conv"
-    out_atmos_df_list[[27]][, cur_atmos_label] = - all_c_flux[,"Land2Energy_c_stock_conv"]
-    # non-burned: "LCC_Atmos_AnnGain_NonBurnEnerC" = - "Land2Atmos_c_stock_conv"
-    out_atmos_df_list[[28]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_c_stock_conv"]
+    # Partition the "LCC_Atmos_AnnGain_C_stock" into burned (fire + energy) and non-burned (decay) C sources 
+    # LCC FIRE: "LCC_Atmos_AnnGain_FireC" = - "Land2Atmos_BurnC_stock_conv"
+    out_atmos_df_list[[34]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnC_stock_conv"]
+    # LCC TOTAL ENERGY: "LCC_Atmos_AnnGain_EnergyC" = - "Land2Atmos_TotEnergyC_stock_conv"
+    out_atmos_df_list[[35]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_TotEnergyC_stock_conv"]
+      # LCC ENERGY FROM HARVEST: 
+      out_atmos_df_list[[36]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_Harv2EnerC_stock_conv"]
+      # LCC ENERGY FROM SLASH: 
+      out_atmos_df_list[[37]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_Slash2EnerC_stock_conv"]
+    # LCC non-burned: "LCC_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_DecayC_stock_conv"
+    out_atmos_df_list[[38]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
     
   } # end loop over calculation years
   
@@ -2821,53 +2955,128 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   Eco_AnnCH4C <- transform(Eco_AnnCH4C, Land_Cat_ID = as.numeric(Land_Cat_ID))
   Eco_AnnCH4C = Eco_AnnCH4C[order(Eco_AnnCH4C$Land_Cat_ID),]
   
-  # Partition all the appropriate burned (fire + energy) dataframes in out_atmos_df_list into CO2C, CH4C and BC-C.
+  # Partition all the C emitted from controlled burn & bioenergy in out_atmos_df_list into CO2C, CH4C and BC-C.
   
   ########## Cumulative ########## 
   
   # MANAGE FIRE
   Manage_CumFireC <- out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]]
-  Manage_Fire_CumCO2C <- Manage_CumFireC
+  ManFire_CumCO2C <- Manage_CumFireC
   for (i in 5:ncol(Manage_CumFireC)) {
-    Manage_Fire_CumCO2C[,i] <- CO2C_fire_frac * Manage_CumFireC[,i]
+    ManFire_CumCO2C[,i] <- CO2C_fire_frac * Manage_CumFireC[,i]
   }
-  Manage_Fire_CumCH4C <- Manage_CumFireC
+  ManFire_CumCH4C <- Manage_CumFireC
   for (i in 5:ncol(Manage_CumFireC)) {
-    Manage_Fire_CumCH4C[,i] <- CH4C_fire_frac * Manage_CumFireC[,i]
+    ManFire_CumCH4C[,i] <- CH4C_fire_frac * Manage_CumFireC[,i]
   }
-  Manage_Fire_CumBCC <- Manage_CumFireC
+  ManFire_CumBCC <- Manage_CumFireC
   for (i in 5:ncol(Manage_CumFireC)) {
-    Manage_Fire_CumBCC[,i] <- BCC_fire_frac * Manage_CumFireC[,i]
+    ManFire_CumBCC[,i] <- BCC_fire_frac * Manage_CumFireC[,i]
   }
   
-  # MANAGE ENERGY
-  Manage_CumEnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_EnergyC"]]  
-  ManEnergy_CumCO2C <- Manage_CumEnergyC
+  # MANAGE TOTAL ENERGY
+  Manage_CumEnergyC <- out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]]  
+  ManTotEnergy_CumCO2C <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
-    ManEnergy_CumCO2C[,i] <- CO2C_energy_frac * Manage_CumEnergyC[,i]
+    ManTotEnergy_CumCO2C[,i] <- CO2C_energy_frac * Manage_CumEnergyC[,i]
   }
-  ManEnergy_CumCH4C <- Manage_CumEnergyC
+  ManTotEnergy_CumCH4C <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
-    ManEnergy_CumCH4C[,i] <- CH4C_energy_frac * Manage_CumEnergyC[,i]
+    ManTotEnergy_CumCH4C[,i] <- CH4C_energy_frac * Manage_CumEnergyC[,i]
   }
-  ManEnergy_CumBCC <- Manage_CumEnergyC
+  ManTotEnergy_CumBCC <- Manage_CumEnergyC
   for (i in 5:ncol(Manage_CumEnergyC)) {
-    ManEnergy_CumBCC[,i] <- BCC_energy_frac * Manage_CumEnergyC[,i]
+    ManTotEnergy_CumBCC[,i] <- BCC_energy_frac * Manage_CumEnergyC[,i]
   }
   
-  # LCC ENERGY
-  LCC_CumEnergyC <- out_atmos_df_list[["LCC_Atmos_CumGain_EnergyC"]]
-  LCCEnergy_CumCO2C <- LCC_CumEnergyC
-  for (i in 5:ncol(LCC_CumEnergyC)) {
-    LCCEnergy_CumCO2C[,i] <- CO2C_energy_frac * LCC_CumEnergyC[,i]
+  # MANAGE HARVEST 2 ENERGY
+  Manage_CumEnergyC <- out_atmos_df_list[["Man_Atmos_CumGain_Harv2EnergyC"]]  
+  ManHarv2Energy_CumCO2C <- Manage_CumEnergyC
+  for (i in 5:ncol(Manage_CumEnergyC)) {
+    ManHarv2Energy_CumCO2C[,i] <- CO2C_energy_frac * Manage_CumEnergyC[,i]
   }
-  LCCEnergy_CumCH4C <- LCC_CumEnergyC
-  for (i in 5:ncol(LCC_CumEnergyC)) {
-    LCCEnergy_CumCH4C[,i] <- CH4C_energy_frac * LCC_CumEnergyC[,i]
+  ManHarv2Energy_CumCH4C <- Manage_CumEnergyC
+  for (i in 5:ncol(Manage_CumEnergyC)) {
+    ManHarv2Energy_CumCH4C[,i] <- CH4C_energy_frac * Manage_CumEnergyC[,i]
   }
-  LCCEnergy_CumBCC <- LCC_CumEnergyC
+  ManHarv2Energy_CumBCC <- Manage_CumEnergyC
+  for (i in 5:ncol(Manage_CumEnergyC)) {
+    ManHarv2Energy_CumBCC[,i] <- BCC_energy_frac * Manage_CumEnergyC[,i]
+  }
+  
+  # MANAGE SLASH 2 ENERGY
+  Manage_CumEnergyC <- out_atmos_df_list[["Man_Atmos_CumGain_Slash2EnergyC"]]  
+  ManSlash2Energy_CumCO2C <- Manage_CumEnergyC
+  for (i in 5:ncol(Manage_CumEnergyC)) {
+    ManSlash2Energy_CumCO2C[,i] <- CO2C_energy_frac * Manage_CumEnergyC[,i]
+  }
+  ManSlash2Energy_CumCH4C <- Manage_CumEnergyC
+  for (i in 5:ncol(Manage_CumEnergyC)) {
+    ManSlash2Energy_CumCH4C[,i] <- CH4C_energy_frac * Manage_CumEnergyC[,i]
+  }
+  ManSlash2Energy_CumBCC <- Manage_CumEnergyC
+  for (i in 5:ncol(Manage_CumEnergyC)) {
+    ManSlash2Energy_CumBCC[,i] <- BCC_energy_frac * Manage_CumEnergyC[,i]
+  }
+  
+  # LCC FIRE
+  LCC_CumFireC <- out_atmos_df_list[["LCC_Atmos_CumGain_FireC"]]
+  LCCFire_CumCO2C <- LCC_CumFireC
+  for (i in 5:ncol(LCC_CumFireC)) {
+    LCCFire_CumCO2C[,i] <- CO2C_fire_frac * LCC_CumFireC[,i]
+  }
+  LCCFire_CumCH4C <- LCC_CumFireC
+  for (i in 5:ncol(LCC_CumFireC)) {
+    LCCFire_CumCH4C[,i] <- CH4C_fire_frac * LCC_CumFireC[,i]
+  }
+  LCCFire_CumBCC <- LCC_CumFireC
+  for (i in 5:ncol(LCC_CumFireC)) {
+    LCCFire_CumBCC[,i] <- BCC_fire_frac * LCC_CumFireC[,i]
+  }
+  
+  # LCC TOTAL ENERGY
+  LCC_CumEnergyC <- out_atmos_df_list[["LCC_Atmos_CumGain_TotEnergyC"]]
+  LCCTotEnergy_CumCO2C <- LCC_CumEnergyC
   for (i in 5:ncol(LCC_CumEnergyC)) {
-    LCCEnergy_CumBCC[,i] <- BCC_energy_frac * LCC_CumEnergyC[,i]
+    LCCTotEnergy_CumCO2C[,i] <- CO2C_energy_frac * LCC_CumEnergyC[,i]
+  }
+  LCCTotEnergy_CumCH4C <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCTotEnergy_CumCH4C[,i] <- CH4C_energy_frac * LCC_CumEnergyC[,i]
+  }
+  LCCTotEnergy_CumBCC <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCTotEnergy_CumBCC[,i] <- BCC_energy_frac * LCC_CumEnergyC[,i]
+  }
+  
+  # LCC HARVEST 2 ENERGY
+  LCC_CumEnergyC <- out_atmos_df_list[["LCC_Atmos_CumGain_Harv2EnergyC"]]  
+  LCCHarv2Energy_CumCO2C <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCHarv2Energy_CumCO2C[,i] <- CO2C_energy_frac * LCC_CumEnergyC[,i]
+  }
+  LCCHarv2Energy_CumCH4C <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCHarv2Energy_CumCH4C[,i] <- CH4C_energy_frac * LCC_CumEnergyC[,i]
+  }
+  LCCHarv2Energy_CumBCC <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCHarv2Energy_CumBCC[,i] <- BCC_energy_frac * LCC_CumEnergyC[,i]
+  }
+  
+  # LCC SLASH 2 ENERGY
+  LCC_CumEnergyC <- out_atmos_df_list[["LCC_Atmos_CumGain_Slash2EnergyC"]]  
+  LCCSlash2Energy_CumCO2C <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCSlash2Energy_CumCO2C[,i] <- CO2C_energy_frac * LCC_CumEnergyC[,i]
+  }
+  LCCSlash2Energy_CumCH4C <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCSlash2Energy_CumCH4C[,i] <- CH4C_energy_frac * LCC_CumEnergyC[,i]
+  }
+  LCCSlash2Energy_CumBCC <- LCC_CumEnergyC
+  for (i in 5:ncol(LCC_CumEnergyC)) {
+    LCCSlash2Energy_CumBCC[,i] <- BCC_energy_frac * LCC_CumEnergyC[,i]
   }
   
   # WILDFIRE
@@ -2885,59 +3094,142 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     Wildfire_CumBCC[,i] <- BCC_fire_frac * Wildfire_CumBurnedC[,i]
   }
   
-  # TOTAL ENERGY CO2-C, CH4-C, and BC-C 
-  TotalEnergy_CumCO2C <- LCCEnergy_CumCO2C
-  TotalEnergy_CumCO2C[,5:ncol(LCCEnergy_CumCO2C)] <- LCCEnergy_CumCO2C[,5:ncol(LCCEnergy_CumCO2C)] + ManEnergy_CumCO2C[,5:ncol(LCCEnergy_CumCO2C)]
-  TotalEnergy_CumCH4C <- LCCEnergy_CumCH4C
-  TotalEnergy_CumCH4C[,5:ncol(LCCEnergy_CumCH4C)] <- LCCEnergy_CumCH4C[,5:ncol(LCCEnergy_CumCH4C)] + ManEnergy_CumCH4C[,5:ncol(LCCEnergy_CumCH4C)]
-  TotalEnergy_CumBCC <- LCCEnergy_CumBCC
-  TotalEnergy_CumBCC[,5:ncol(LCCEnergy_CumBCC)] <- LCCEnergy_CumBCC[,5:ncol(LCCEnergy_CumBCC)] + ManEnergy_CumBCC[,5:ncol(LCCEnergy_CumBCC)]
+  # TOTAL CUM ENERGY CO2-C, CH4-C, and BC-C 
+  TotalEnergy_CumCO2C <- LCCTotEnergy_CumCO2C
+  TotalEnergy_CumCO2C[,5:ncol(LCCTotEnergy_CumCO2C)] <- LCCTotEnergy_CumCO2C[,5:ncol(LCCTotEnergy_CumCO2C)] + ManTotEnergy_CumCO2C[,5:ncol(LCCTotEnergy_CumCO2C)]
+  TotalEnergy_CumCH4C <- LCCTotEnergy_CumCH4C
+  TotalEnergy_CumCH4C[,5:ncol(LCCTotEnergy_CumCH4C)] <- LCCTotEnergy_CumCH4C[,5:ncol(LCCTotEnergy_CumCH4C)] + ManTotEnergy_CumCH4C[,5:ncol(LCCTotEnergy_CumCH4C)]
+  TotalEnergy_CumBCC <- LCCTotEnergy_CumBCC
+  TotalEnergy_CumBCC[,5:ncol(LCCTotEnergy_CumBCC)] <- LCCTotEnergy_CumBCC[,5:ncol(LCCTotEnergy_CumBCC)] + ManTotEnergy_CumBCC[,5:ncol(LCCTotEnergy_CumBCC)]
+  
+  # TOTAL CUM CONTROLLED BURN CO2-C, CH4-C, and BC-C 
+  TotalCntlFire_CumCO2C <- LCCFire_CumCO2C
+  TotalCntlFire_CumCO2C[,5:ncol(LCCFire_CumCO2C)] <- LCCFire_CumCO2C[,5:ncol(LCCFire_CumCO2C)] + ManFire_CumCO2C[,5:ncol(LCCFire_CumCO2C)]
+  TotalCntlFire_CumCH4C <- LCCFire_CumCH4C
+  TotalCntlFire_CumCH4C[,5:ncol(LCCFire_CumCH4C)] <- LCCFire_CumCH4C[,5:ncol(LCCFire_CumCH4C)] + ManFire_CumCH4C[,5:ncol(LCCFire_CumCH4C)]
+  TotalCntlFire_CumBCC <- LCCFire_CumBCC
+  TotalCntlFire_CumBCC[,5:ncol(LCCFire_CumBCC)] <- LCCFire_CumBCC[,5:ncol(LCCFire_CumBCC)] + ManFire_CumBCC[,5:ncol(LCCFire_CumBCC)]
   
   ########## Annual ########## 
   
   # MANAGE FIRE
   Manage_AnnFireC <- out_atmos_df_list[["Manage_Atmos_AnnGain_FireC"]]
-  Manage_Fire_AnnCO2C <- Manage_AnnFireC
+  ManFire_AnnCO2C <- Manage_AnnFireC
   for (i in 5:ncol(Manage_AnnFireC)) {
-    Manage_Fire_AnnCO2C[,i] <- CO2C_fire_frac * Manage_AnnFireC[,i]
+    ManFire_AnnCO2C[,i] <- CO2C_fire_frac * Manage_AnnFireC[,i]
   }
-  Manage_Fire_AnnCH4C <- Manage_AnnFireC
+  ManFire_AnnCH4C <- Manage_AnnFireC
   for (i in 5:ncol(Manage_AnnFireC)) {
-    Manage_Fire_AnnCH4C[,i] <- CH4C_fire_frac * Manage_AnnFireC[,i]
+    ManFire_AnnCH4C[,i] <- CH4C_fire_frac * Manage_AnnFireC[,i]
   }
-  Manage_Fire_AnnBCC <- Manage_AnnFireC
+  ManFire_AnnBCC <- Manage_AnnFireC
   for (i in 5:ncol(Manage_AnnFireC)) {
-    Manage_Fire_AnnBCC[,i] <- BCC_fire_frac * Manage_AnnFireC[,i]
+    ManFire_AnnBCC[,i] <- BCC_fire_frac * Manage_AnnFireC[,i]
   }
   
-  # MANAGE ENERGY
-  Manage_AnnEnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]]  
-  ManEnergy_AnnCO2C <- Manage_AnnEnergyC
+  # MANAGE TOTAL ENERGY
+  Manage_AnnEnergyC <- out_atmos_df_list[["Manage_Atmos_AnnGain_TotEnergyC"]]  
+  ManTotEnergy_AnnCO2C <- Manage_AnnEnergyC
   for (i in 5:ncol(Manage_AnnEnergyC)) {
-    ManEnergy_AnnCO2C[,i] <- CO2C_energy_frac * Manage_AnnEnergyC[,i]
+    ManTotEnergy_AnnCO2C[,i] <- CO2C_energy_frac * Manage_AnnEnergyC[,i]
   }
-  ManEnergy_AnnCH4C <- Manage_AnnEnergyC
+  ManTotEnergy_AnnCH4C <- Manage_AnnEnergyC
   for (i in 5:ncol(Manage_AnnEnergyC)) {
-    ManEnergy_AnnCH4C[,i] <- CH4C_energy_frac * Manage_AnnEnergyC[,i]
+    ManTotEnergy_AnnCH4C[,i] <- CH4C_energy_frac * Manage_AnnEnergyC[,i]
   }
-  ManEnergy_AnnBCC <- Manage_AnnEnergyC
+  ManTotEnergy_AnnBCC <- Manage_AnnEnergyC
   for (i in 5:ncol(Manage_AnnEnergyC)) {
-    ManEnergy_AnnBCC[,i] <- BCC_energy_frac * Manage_AnnEnergyC[,i]
+    ManTotEnergy_AnnBCC[,i] <- BCC_energy_frac * Manage_AnnEnergyC[,i]
   }
   
-  # LCC ENERGY
-  LCC_AnnEnergyC <- out_atmos_df_list[["LCC_Atmos_AnnGain_EnergyC"]]
-  LCCEnergy_AnnCO2C <- LCC_AnnEnergyC
-  for (i in 5:ncol(LCC_AnnEnergyC)) {
-    LCCEnergy_AnnCO2C[,i] <- CO2C_energy_frac * LCC_AnnEnergyC[,i]
+  # MANAGE HARVEST 2 ENERGY
+  Manage_AnnEnergyC <- out_atmos_df_list[["Man_Atmos_AnnGain_Harv2EnergyC"]]  
+  ManHarv2Energy_AnnCO2C <- Manage_AnnEnergyC
+  for (i in 5:ncol(Manage_AnnEnergyC)) {
+    ManHarv2Energy_AnnCO2C[,i] <- CO2C_energy_frac * Manage_AnnEnergyC[,i]
   }
-  LCCEnergy_AnnCH4C <- LCC_AnnEnergyC
-  for (i in 5:ncol(LCC_AnnEnergyC)) {
-    LCCEnergy_AnnCH4C[,i] <- CH4C_energy_frac * LCC_AnnEnergyC[,i]
+  ManHarv2Energy_AnnCH4C <- Manage_AnnEnergyC
+  for (i in 5:ncol(Manage_AnnEnergyC)) {
+    ManHarv2Energy_AnnCH4C[,i] <- CH4C_energy_frac * Manage_AnnEnergyC[,i]
   }
-  LCCEnergy_AnnBCC <- LCC_AnnEnergyC
+  ManHarv2Energy_AnnBCC <- Manage_AnnEnergyC
+  for (i in 5:ncol(Manage_AnnEnergyC)) {
+    ManHarv2Energy_AnnBCC[,i] <- BCC_energy_frac * Manage_AnnEnergyC[,i]
+  }
+  
+  # MANAGE SLASH 2 ENERGY
+  Manage_AnnEnergyC <- out_atmos_df_list[["Man_Atmos_AnnGain_Slash2EnergyC"]]  
+  ManSlash2Energy_AnnCO2C <- Manage_AnnEnergyC
+  for (i in 5:ncol(Manage_AnnEnergyC)) {
+    ManSlash2Energy_AnnCO2C[,i] <- CO2C_energy_frac * Manage_AnnEnergyC[,i]
+  }
+  ManSlash2Energy_AnnCH4C <- Manage_AnnEnergyC
+  for (i in 5:ncol(Manage_AnnEnergyC)) {
+    ManSlash2Energy_AnnCH4C[,i] <- CH4C_energy_frac * Manage_AnnEnergyC[,i]
+  }
+  ManSlash2Energy_AnnBCC <- Manage_AnnEnergyC
+  for (i in 5:ncol(Manage_AnnEnergyC)) {
+    ManSlash2Energy_AnnBCC[,i] <- BCC_energy_frac * Manage_AnnEnergyC[,i]
+  }
+  
+  # LCC FIRE
+  LCC_AnnFireC <- out_atmos_df_list[["LCC_Atmos_AnnGain_FireC"]]
+  LCCFire_AnnCO2C <- LCC_AnnFireC
+  for (i in 5:ncol(LCC_AnnFireC)) {
+    LCCFire_AnnCO2C[,i] <- CO2C_fire_frac * LCC_AnnFireC[,i]
+  }
+  LCCFire_AnnCH4C <- LCC_AnnFireC
+  for (i in 5:ncol(LCC_AnnFireC)) {
+    LCCFire_AnnCH4C[,i] <- CH4C_fire_frac * LCC_AnnFireC[,i]
+  }
+  LCCFire_AnnBCC <- LCC_AnnFireC
+  for (i in 5:ncol(LCC_AnnFireC)) {
+    LCCFire_AnnBCC[,i] <- BCC_fire_frac * LCC_AnnFireC[,i]
+  }
+  
+  # LCC TOTAL ENERGY
+  LCC_AnnEnergyC <- out_atmos_df_list[["LCC_Atmos_AnnGain_TotEnergyC"]]
+  LCCTotEnergy_AnnCO2C <- LCC_AnnEnergyC
   for (i in 5:ncol(LCC_AnnEnergyC)) {
-    LCCEnergy_AnnBCC[,i] <- BCC_energy_frac * LCC_AnnEnergyC[,i]
+    LCCTotEnergy_AnnCO2C[,i] <- CO2C_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  LCCTotEnergy_AnnCH4C <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCTotEnergy_AnnCH4C[,i] <- CH4C_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  LCCTotEnergy_AnnBCC <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCTotEnergy_AnnBCC[,i] <- BCC_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  
+  # LCC HARVEST 2 ENERGY
+  LCC_AnnEnergyC <- out_atmos_df_list[["LCC_Atmos_AnnGain_Harv2EnergyC"]]  
+  LCCHarv2Energy_AnnCO2C <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCHarv2Energy_AnnCO2C[,i] <- CO2C_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  LCCHarv2Energy_AnnCH4C <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCHarv2Energy_AnnCH4C[,i] <- CH4C_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  LCCHarv2Energy_AnnBCC <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCHarv2Energy_AnnBCC[,i] <- BCC_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  
+  # LCC SLASH 2 ENERGY
+  LCC_AnnEnergyC <- out_atmos_df_list[["LCC_Atmos_AnnGain_Slash2EnergyC"]]  
+  LCCSlash2Energy_AnnCO2C <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCSlash2Energy_AnnCO2C[,i] <- CO2C_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  LCCSlash2Energy_AnnCH4C <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCSlash2Energy_AnnCH4C[,i] <- CH4C_energy_frac * LCC_AnnEnergyC[,i]
+  }
+  LCCSlash2Energy_AnnBCC <- LCC_AnnEnergyC
+  for (i in 5:ncol(LCC_AnnEnergyC)) {
+    LCCSlash2Energy_AnnBCC[,i] <- BCC_energy_frac * LCC_AnnEnergyC[,i]
   }
   
   # WILDFIRE
@@ -2955,15 +3247,23 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     Wildfire_AnnBCC[,i] <- BCC_fire_frac * Wildfire_AnnBurnedC[,i]
   }
   
-  # TOTAL ENERGY CO2-C, CH4-C, and BC-C 
-  TotalEnergy_AnnCO2C <- LCCEnergy_AnnCO2C
-  TotalEnergy_AnnCO2C[,5:ncol(LCCEnergy_AnnCO2C)] <- LCCEnergy_AnnCO2C[,5:ncol(LCCEnergy_AnnCO2C)] + ManEnergy_AnnCO2C[,5:ncol(LCCEnergy_AnnCO2C)]
-  TotalEnergy_AnnCH4C <- LCCEnergy_AnnCH4C
-  TotalEnergy_AnnCH4C[,5:ncol(LCCEnergy_AnnCH4C)] <- LCCEnergy_AnnCH4C[,5:ncol(LCCEnergy_AnnCH4C)] + ManEnergy_AnnCH4C[,5:ncol(LCCEnergy_AnnCH4C)]
-  TotalEnergy_AnnBCC <- LCCEnergy_AnnBCC
-  TotalEnergy_AnnBCC[,5:ncol(LCCEnergy_AnnBCC)] <- LCCEnergy_AnnBCC[,5:ncol(LCCEnergy_AnnBCC)] + ManEnergy_AnnBCC[,5:ncol(LCCEnergy_AnnBCC)]
+  # TOTAL Ann Controlled Fires CO2-C, CH4-C, and BC-C 
+  TotalCntlFire_AnnCO2C <- LCCFire_AnnCO2C
+  TotalCntlFire_AnnCO2C[,5:ncol(LCCFire_AnnCO2C)] <- LCCFire_AnnCO2C[,5:ncol(LCCFire_AnnCO2C)] + ManFire_AnnCO2C[,5:ncol(LCCFire_AnnCO2C)]
+  TotalCntlFire_AnnCH4C <- LCCFire_AnnCH4C
+  TotalCntlFire_AnnCH4C[,5:ncol(LCCFire_AnnCH4C)] <- LCCFire_AnnCH4C[,5:ncol(LCCFire_AnnCH4C)] + ManFire_AnnCH4C[,5:ncol(LCCFire_AnnCH4C)]
+  TotalCntlFire_AnnBCC <- LCCFire_AnnBCC
+  TotalCntlFire_AnnBCC[,5:ncol(LCCFire_AnnBCC)] <- LCCFire_AnnBCC[,5:ncol(LCCFire_AnnBCC)] + ManFire_AnnBCC[,5:ncol(LCCFire_AnnBCC)]
   
-  ############## Partition Cumulative C emissions from total wood decay (management & lcc) into CO2-C and CH4-C ############## 
+  # TOTAL Ann ENERGY CO2-C, CH4-C, and BC-C 
+  TotalEnergy_AnnCO2C <- LCCTotEnergy_AnnCO2C
+  TotalEnergy_AnnCO2C[,5:ncol(LCCTotEnergy_AnnCO2C)] <- LCCTotEnergy_AnnCO2C[,5:ncol(LCCTotEnergy_AnnCO2C)] + ManTotEnergy_AnnCO2C[,5:ncol(LCCTotEnergy_AnnCO2C)]
+  TotalEnergy_AnnCH4C <- LCCTotEnergy_AnnCH4C
+  TotalEnergy_AnnCH4C[,5:ncol(LCCTotEnergy_AnnCH4C)] <- LCCTotEnergy_AnnCH4C[,5:ncol(LCCTotEnergy_AnnCH4C)] + ManTotEnergy_AnnCH4C[,5:ncol(LCCTotEnergy_AnnCH4C)]
+  TotalEnergy_AnnBCC <- LCCTotEnergy_AnnBCC
+  TotalEnergy_AnnBCC[,5:ncol(LCCTotEnergy_AnnBCC)] <- LCCTotEnergy_AnnBCC[,5:ncol(LCCTotEnergy_AnnBCC)] + ManTotEnergy_AnnBCC[,5:ncol(LCCTotEnergy_AnnBCC)]
+  
+  ############## Partition Cumulative C emissions from total wood product decay (management & lcc) into CO2-C and CH4-C ############## 
   # subset the total cumulative C emissions from wood decay from the out_atmos_df_list
   wood2atmos_CumC <- out_atmos_df_list[["Wood_Atmos_CumGain_C_stock"]]
   # copy dataframe to fill in the following loop  
@@ -3043,65 +3343,64 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     wood_AnnCO2C[,i] <- wood2atmos_AnnC[,i] - wood_AnnCH4C[,i]
   }
   
-  # sum all CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total should equal total atmosphere C gain 
-  # (less eco C emissions).
-
+  # SUM total CO2-C, CH4-C, and BC-C emissions from burned and non-burned sources. Total equals net C land-atmos exchange (source vs sink).  
+  
   ####### Cumulative ####### 
-  # first, do cumulative CO2-C. Choice of ncol(Manage_Fire_CumCO2C) is arbitrary -  just need the total number of columns.
-  Total_CumCO2C <- Manage_Fire_CumCO2C
+  # first, do cumulative CO2-C. Choice of ncol(ManFire_CumCO2C) is arbitrary - just need the total number of columns.
+  Total_CumCO2C <- ManFire_CumCO2C
   for (i in 5:ncol(Total_CumCO2C)) {
     Total_CumCO2C[,i] <- 0
   }
   for (i in 5:ncol(Total_CumCO2C)) { 
     Total_CumCO2C[,i] <- Eco_CumCO2C[,i] + wood_CumCO2C[,i] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][,i] + 
-      out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnEnerC"]][,i] + 
-      Manage_Fire_CumCO2C[,i] + ManEnergy_CumCO2C[,i] + Wildfire_CumCO2C[,i] + LCCEnergy_CumCO2C[,i]
+      out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]][,i] + 
+      TotalCntlFire_CumCO2C[,i] + TotalEnergy_CumCO2C[,i] + Wildfire_CumCO2C[,i] 
   }
-  # Second, do cumulative CH4-C. Choice of ncol(Manage_Fire_CumCH4C) is arbitrary -  just need the total number of columns.
-  Total_CumCH4C <- Manage_Fire_CumCH4C
+  # Second, do cumulative CH4-C. Choice of ncol(ManFire_CumCH4C) is arbitrary -  just need the total number of columns.
+  Total_CumCH4C <- ManFire_CumCH4C
   for (i in 5:ncol(Total_CumCH4C)) {
     Total_CumCH4C[,i] <- 0
   }
   for (i in 5:ncol(Total_CumCH4C)) { 
-    Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + Manage_Fire_CumCH4C[,i] + ManEnergy_CumCH4C[,i] + Wildfire_CumCH4C[,i] + 
-      LCCEnergy_CumCH4C[,i] + wood_CumCH4C[,i]
+    Total_CumCH4C[,i] <- Eco_CumCH4C[,i] + wood_CumCH4C[,i] + TotalCntlFire_CumCH4C[,i] + TotalEnergy_CumCH4C[,i] + 
+      Wildfire_CumCH4C[,i]  
   }
-  # Third, do cumulative BC-C. Choice of ncol(Manage_Burn_CumBCC) is arbitrary -  just need the total number of columns.
-  Total_CumBCC <- Manage_Fire_CumBCC
+  # Third, do cumulative BC-C. Choice of ncol(ManFire_CumBCC) is arbitrary -  just need the total number of columns.
+  Total_CumBCC <- ManFire_CumBCC
   for (i in 5:ncol(Total_CumBCC)) {
     Total_CumBCC[,i] <- 0
   }
   for (i in 5:ncol(Total_CumBCC)) {
-    Total_CumBCC[,i] <- Manage_Fire_CumBCC[,i] + ManEnergy_CumBCC[,i] + Wildfire_CumBCC[,i] + LCCEnergy_CumBCC[,i]
+    Total_CumBCC[,i] <- TotalCntlFire_CumBCC[,i] + TotalEnergy_CumBCC[,i] + Wildfire_CumBCC[,i] 
   }
   
   ####### Annual ####### 
-  # first, do annual CO2-C. Choice of ncol(Manage_Fire_AnnCO2C) is arbitrary -  just need the total number of columns.
-  Total_AnnCO2C <- Manage_Fire_AnnCO2C
+  # first, do annual CO2-C. Choice of ncol(ManFire_AnnCO2C) is arbitrary -  just need the total number of columns.
+  Total_AnnCO2C <- ManFire_AnnCO2C
   for (i in 5:ncol(Total_AnnCO2C)) {
     Total_AnnCO2C[,i] <- 0
   }
   for (i in 5:ncol(Total_AnnCO2C)) {  
     Total_AnnCO2C[,i] <- Eco_AnnCO2C[,i] + wood_AnnCO2C[,i] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][,i] + 
-      out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnEnerC"]][,i] +
-      Manage_Fire_AnnCO2C[,i] + ManEnergy_AnnCO2C[,i] + Wildfire_AnnCO2C[,i] + LCCEnergy_AnnCO2C[,i] 
+      out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]][,i] + out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]][,i] + 
+      TotalCntlFire_AnnCO2C[,i] + TotalEnergy_AnnCO2C[,i] + Wildfire_AnnCO2C[,i]  
   }
-  # Second, do annual CH4-C. Choice of ncol(Manage_Fire_AnnCH4C) is arbitrary -  just need the total number of columns.
-  Total_AnnCH4C <- Manage_Fire_AnnCH4C
+  # Second, do annual CH4-C. Choice of ncol(ManFire_AnnCH4C) is arbitrary -  just need the total number of columns.
+  Total_AnnCH4C <- ManFire_AnnCH4C
   for (i in 5:ncol(Total_AnnCH4C)) {
     Total_AnnCH4C[,i] <- 0
   }
   for (i in 5:ncol(Total_AnnCH4C)) { 
-    Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + Manage_Fire_AnnCH4C[,i] + ManEnergy_AnnCH4C[,i] + Wildfire_AnnCH4C[,i] + 
-      LCCEnergy_AnnCH4C[,i] + wood_AnnCH4C[,i]
+    Total_AnnCH4C[,i] <- Eco_AnnCH4C[,i] + wood_AnnCH4C[,i] + TotalCntlFire_AnnCH4C[,i] + TotalEnergy_AnnCH4C[,i] + 
+      Wildfire_AnnCH4C[,i]
   }
-  # Third, do annual BC-C. Choice of ncol(Manage_Fire_AnnBCC) is arbitrary -  just need the total number of columns.
-  Total_AnnBCC <- Manage_Fire_AnnBCC
+  # Third, do annual BC-C. Choice of ncol(ManFire_AnnBCC) is arbitrary -  just need the total number of columns.
+  Total_AnnBCC <- ManFire_AnnBCC
   for (i in 5:ncol(Total_AnnBCC)) {
     Total_AnnBCC[,i] <- 0
   }
-  for (i in 5:ncol(Manage_Fire_AnnBCC)) {
-    Total_AnnBCC[,i] <- Manage_Fire_AnnBCC[,i] + ManEnergy_AnnBCC[,i] + Wildfire_AnnBCC[,i] + LCCEnergy_AnnBCC[,i]
+  for (i in 5:ncol(ManFire_AnnBCC)) {
+    Total_AnnBCC[,i] <- TotalCntlFire_AnnBCC[,i] + TotalEnergy_AnnBCC[,i] + Wildfire_AnnBCC[,i]
   }
   
   # the following check is used to show that the differences between total annual CO2-C, CH4-C and BC-C, and
@@ -3168,29 +3467,48 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   # subset outputs from out_atmos to include in df.list below
   ManNonBurn_CumCO2C <- out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]]
   ManNonBurn_AnnCO2C <- out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]]
-  LCCNonBurn_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnEnerC"]]
-  LCCNonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnEnerC"]]
+  LCCNonBurn_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_NonBurnedC"]]
+  LCCNonBurn_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_NonBurnedC"]]
   
   # create list of all the additonal tables from which we want to calculate GWP 
   df.list <- list(Eco_CumCO2C = Eco_CumCO2C,
                   Eco_CumCH4C = Eco_CumCH4C,
                   
-                  ManEnergy_CumCO2C = ManEnergy_CumCO2C,
-                  ManEnergy_CumCH4C = ManEnergy_CumCH4C,
-                  ManEnergy_CumBCC = ManEnergy_CumBCC,
-                  ManFire_CumCO2C = Manage_Fire_CumCO2C,
-                  ManFire_CumCH4C = Manage_Fire_CumCH4C,
-                  ManFire_CumBCC = Manage_Fire_CumBCC,
+                  ManTotEnergy_CumCO2C = ManTotEnergy_CumCO2C,
+                  ManTotEnergy_CumCH4C = ManTotEnergy_CumCH4C,
+                  ManTotEnergy_CumBCC = ManTotEnergy_CumBCC,
+                  ManHarv2Energy_CumCO2C = ManHarv2Energy_CumCO2C,
+                  ManHarv2Energy_CumCH4C = ManHarv2Energy_CumCH4C,
+                  ManHarv2Energy_CumBCC = ManHarv2Energy_CumBCC,
+                  ManSlash2Energy_CumCO2C = ManSlash2Energy_CumCO2C,
+                  ManSlash2Energy_CumCH4C = ManSlash2Energy_CumCH4C,
+                  ManSlash2Energy_CumBCC = ManSlash2Energy_CumBCC,
+                  ManFire_CumCO2C = ManFire_CumCO2C,
+                  ManFire_CumCH4C = ManFire_CumCH4C,
+                  ManFire_CumBCC = ManFire_CumBCC,
                   ManNonBurn_CumCO2C = ManNonBurn_CumCO2C,
                   
-                  LCCEnergy_CumCO2C = LCCEnergy_CumCO2C,
-                  LCCEnergy_CumCH4C = LCCEnergy_CumCH4C,
-                  LCCEnergy_CumBCC  = LCCEnergy_CumBCC,
+                  LCCTotEnergy_CumCO2C = LCCTotEnergy_CumCO2C,
+                  LCCTotEnergy_CumCH4C = LCCTotEnergy_CumCH4C,
+                  LCCTotEnergy_CumBCC  = LCCTotEnergy_CumBCC,
+                  LCCHarv2Energy_CumCO2C = LCCHarv2Energy_CumCO2C,
+                  LCCHarv2Energy_CumCH4C = LCCHarv2Energy_CumCH4C,
+                  LCCHarv2Energy_CumBCC = LCCHarv2Energy_CumBCC,
+                  LCCSlash2Energy_CumCO2C = LCCSlash2Energy_CumCO2C,
+                  LCCSlash2Energy_CumCH4C = LCCSlash2Energy_CumCH4C,
+                  LCCSlash2Energy_CumBCC = LCCSlash2Energy_CumBCC,
+                  LCCFire_CumCO2C = LCCFire_CumCO2C,
+                  LCCFire_CumCH4C = LCCFire_CumCH4C,
+                  LCCFire_CumBCC  = LCCFire_CumBCC,
                   LCCNonBurn_CumCO2C = LCCNonBurn_CumCO2C,
                   
                   TotalEnergy_CumCO2C = TotalEnergy_CumCO2C,
                   TotalEnergy_CumCH4C = TotalEnergy_CumCH4C,
                   TotalEnergy_CumBCC  = TotalEnergy_CumBCC,
+                  
+                  TotalCntlFire_CumCO2C = TotalCntlFire_CumCO2C,
+                  TotalCntlFire_CumCH4C = TotalCntlFire_CumCH4C,
+                  TotalCntlFire_CumBCC  = TotalCntlFire_CumBCC,
                   
                   Wildfire_CumCO2C = Wildfire_CumCO2C,
                   Wildfire_CumCH4C = Wildfire_CumCH4C,
@@ -3202,22 +3520,41 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
                   Eco_AnnCO2C = Eco_AnnCO2C,
                   Eco_AnnCH4C = Eco_AnnCH4C,
                   
-                  ManEnergy_AnnCO2C = ManEnergy_AnnCO2C,
-                  ManEnergy_AnnCH4C = ManEnergy_AnnCH4C,
-                  ManEnergy_AnnBCC  = ManEnergy_AnnBCC,
-                  ManFire_AnnCO2C = Manage_Fire_AnnCO2C, 
-                  ManFire_AnnCH4C = Manage_Fire_AnnCH4C,
-                  ManFire_AnnBCC  = Manage_Fire_AnnBCC,
+                  ManTotEnergy_AnnCO2C = ManTotEnergy_AnnCO2C,
+                  ManTotEnergy_AnnCH4C = ManTotEnergy_AnnCH4C,
+                  ManTotEnergy_AnnBCC  = ManTotEnergy_AnnBCC,
+                  ManHarv2Energy_AnnCO2C = ManHarv2Energy_AnnCO2C,
+                  ManHarv2Energy_AnnCH4C = ManHarv2Energy_AnnCH4C,
+                  ManHarv2Energy_AnnBCC = ManHarv2Energy_AnnBCC,
+                  ManSlash2Energy_AnnCO2C = ManSlash2Energy_AnnCO2C,
+                  ManSlash2Energy_AnnCH4C = ManSlash2Energy_AnnCH4C,
+                  ManSlash2Energy_AnnBCC = ManSlash2Energy_AnnBCC,
+                  ManFire_AnnCO2C = ManFire_AnnCO2C, 
+                  ManFire_AnnCH4C = ManFire_AnnCH4C,
+                  ManFire_AnnBCC  = ManFire_AnnBCC,
                   ManNonBurn_AnnCO2C = ManNonBurn_AnnCO2C,
                   
-                  LCCEnergy_AnnCO2C = LCCEnergy_AnnCO2C,
-                  LCCEnergy_AnnCH4C = LCCEnergy_AnnCH4C,
-                  LCCEnergy_AnnBCC  = LCCEnergy_AnnBCC,
+                  LCCTotEnergy_AnnCO2C = LCCTotEnergy_AnnCO2C,
+                  LCCTotEnergy_AnnCH4C = LCCTotEnergy_AnnCH4C,
+                  LCCTotEnergy_AnnBCC  = LCCTotEnergy_AnnBCC,
+                  LCCHarv2Energy_AnnCO2C = LCCHarv2Energy_AnnCO2C,
+                  LCCHarv2Energy_AnnCH4C = LCCHarv2Energy_AnnCH4C,
+                  LCCHarv2Energy_AnnBCC = LCCHarv2Energy_AnnBCC,
+                  LCCSlash2Energy_AnnCO2C = LCCSlash2Energy_AnnCO2C,
+                  LCCSlash2Energy_AnnCH4C = LCCSlash2Energy_AnnCH4C,
+                  LCCSlash2Energy_AnnBCC = LCCSlash2Energy_AnnBCC,
+                  LCCFire_AnnCO2C = LCCFire_AnnCO2C,
+                  LCCFire_AnnCH4C = LCCFire_AnnCH4C,
+                  LCCFire_AnnBCC  = LCCFire_AnnBCC,
                   LCCNonBurn_AnnCO2C = LCCNonBurn_AnnCO2C,
                   
                   TotalEnergy_AnnCO2C = TotalEnergy_AnnCO2C,
                   TotalEnergy_AnnCH4C = TotalEnergy_AnnCH4C,
                   TotalEnergy_AnnBCC  = TotalEnergy_AnnBCC,
+                  
+                  TotalCntlFire_AnnCO2C = TotalCntlFire_AnnCO2C,
+                  TotalCntlFire_AnnCH4C = TotalCntlFire_AnnCH4C,
+                  TotalCntlFire_AnnBCC  = TotalCntlFire_AnnBCC,
                   
                   Wildfire_AnnCO2C = Wildfire_AnnCO2C,
                   Wildfire_AnnCH4C = Wildfire_AnnCH4C,
@@ -3255,13 +3592,13 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     TotalWood_AnnCO2eq_all[,i] <- new.df[["Wood_AnnCO2"]][,i] + new.df[["Wood_AnnCH4eq"]][,i]
   }
   
-  # sum total burned CO2eq (manage energy + manage fire + lcc energy + wildfire)
+  # sum total burned CO2eq (manage energy + manage fire + lcc fire + lcc energy + wildfire)
   ### cumulative ###
   TotalBurn_CumCO2eq_all <- Total_CumCO2
   for (i in 5:ncol(TotalBurn_CumCO2eq_all)) {
-    TotalBurn_CumCO2eq_all[,i] <- new.df[["ManEnergy_CumCO2"]][,i] + new.df[["ManEnergy_CumCH4eq"]][,i] + new.df[["ManEnergy_CumBCeq"]][,i] +
-    new.df[["ManFire_CumCO2"]][,i] + new.df[["ManFire_CumCH4eq"]][,i] + new.df[["ManFire_CumBCeq"]][,i] + new.df[["LCCEnergy_CumCO2"]][,i] +
-    new.df[["LCCEnergy_CumCH4eq"]][,i] + new.df[["LCCEnergy_CumBCeq"]][,i] + new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] +
+    TotalBurn_CumCO2eq_all[,i] <- new.df[["ManTotEnergy_CumCO2"]][,i] + new.df[["ManTotEnergy_CumCH4eq"]][,i] + new.df[["ManTotEnergy_CumBCeq"]][,i] +
+    new.df[["TotalCntlFire_CumCO2"]][,i] + new.df[["TotalCntlFire_CumCH4eq"]][,i] + new.df[["TotalCntlFire_CumBCeq"]][,i] + new.df[["LCCTotEnergy_CumCO2"]][,i] +
+    new.df[["LCCTotEnergy_CumCH4eq"]][,i] + new.df[["LCCTotEnergy_CumBCeq"]][,i] + new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] +
     new.df[["Wildfire_CumBCeq"]][,i] 
   }
   # sum total non-burned CO2eq (eco + manage + lcc)  *Wood decay not included
@@ -3271,12 +3608,12 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
       new.df[["LCCNonBurn_CumCO2"]][,i] 
   }
   ### annual ###
-  # sum total burned CO2eq (manage energy + manage fire + lcc energy + wildfire)
+  # sum total burned CO2eq (manage energy + manage fire + lcc fire + lcc energy + wildfire)
   TotalBurn_AnnCO2eq_all <- Total_AnnCO2
   for (i in 5:ncol(TotalBurn_AnnCO2eq_all)) {
-    TotalBurn_AnnCO2eq_all[,i] <- new.df[["ManEnergy_AnnCO2"]][,i] + new.df[["ManEnergy_AnnCH4eq"]][,i] + new.df[["ManEnergy_AnnBCeq"]][,i] +
-      new.df[["ManFire_AnnCO2"]][,i] + new.df[["ManFire_AnnCH4eq"]][,i] + new.df[["ManFire_AnnBCeq"]][,i] + new.df[["LCCEnergy_AnnCO2"]][,i] +
-      new.df[["LCCEnergy_AnnCH4eq"]][,i] + new.df[["LCCEnergy_AnnBCeq"]][,i] + new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] +
+    TotalBurn_AnnCO2eq_all[,i] <- new.df[["ManTotEnergy_AnnCO2"]][,i] + new.df[["ManTotEnergy_AnnCH4eq"]][,i] + new.df[["ManTotEnergy_AnnBCeq"]][,i] +
+      new.df[["TotalCntlFire_AnnCO2"]][,i] + new.df[["TotalCntlFire_AnnCH4eq"]][,i] + new.df[["TotalCntlFire_AnnBCeq"]][,i] + new.df[["LCCTotEnergy_AnnCO2"]][,i] +
+      new.df[["LCCTotEnergy_AnnCH4eq"]][,i] + new.df[["LCCTotEnergy_AnnBCeq"]][,i] + new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] +
       new.df[["Wildfire_AnnBCeq"]][,i]
   }
   # sum total non-burned CO2eq (eco + manage + lcc) *Wood decay not included
@@ -3286,29 +3623,29 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
       new.df[["LCCNonBurn_AnnCO2"]][,i] 
   }
   
-  # sum total energy CO2eq (manage energy + lcc energy) and total fire CO2eq (manage fire + wildfire) 
+  # sum total energy CO2eq (manage energy + lcc energy) and total fire CO2eq (manage fire + lcc fire + wildfire) 
   ### cumulative energy ###
   TotalEnergy_CumCO2eq_all <- Total_CumCO2
   for (i in 5:ncol(TotalEnergy_CumCO2eq_all)) {
-    TotalEnergy_CumCO2eq_all[,i] <- new.df[["ManEnergy_CumCO2"]][,i] + new.df[["ManEnergy_CumCH4eq"]][,i] + new.df[["ManEnergy_CumBCeq"]][,i] +
-      new.df[["LCCEnergy_CumCO2"]][,i] + new.df[["LCCEnergy_CumCH4eq"]][,i] + new.df[["LCCEnergy_CumBCeq"]][,i] 
+    TotalEnergy_CumCO2eq_all[,i] <- new.df[["ManTotEnergy_CumCO2"]][,i] + new.df[["ManTotEnergy_CumCH4eq"]][,i] + new.df[["ManTotEnergy_CumBCeq"]][,i] +
+      new.df[["LCCTotEnergy_CumCO2"]][,i] + new.df[["LCCTotEnergy_CumCH4eq"]][,i] + new.df[["LCCTotEnergy_CumBCeq"]][,i] 
   }
   ### cumulative fire ###
   TotalFire_CumCO2eq_all <- Total_CumCO2
-  for (i in 5:ncol(TotalFire_CumCO2eq_all)) {
-    TotalFire_CumCO2eq_all[,i] <- new.df[["ManFire_CumCO2"]][,i] + new.df[["ManFire_CumCH4eq"]][,i] + new.df[["ManFire_CumBCeq"]][,i] + 
+  for (i in 5:ncol(TotalFire_CumCO2eq_all)) { 
+    TotalFire_CumCO2eq_all[,i] <- new.df[["TotalCntlFire_CumCO2"]][,i] + new.df[["TotalCntlFire_CumCH4eq"]][,i] + new.df[["TotalCntlFire_CumBCeq"]][,i] + 
       new.df[["Wildfire_CumCO2"]][,i] + new.df[["Wildfire_CumCH4eq"]][,i] + new.df[["Wildfire_CumBCeq"]][,i]
   }
   ### annual energy ###
   TotalEnergy_AnnCO2eq_all <- Total_AnnCO2
   for (i in 5:ncol(TotalEnergy_AnnCO2eq_all)) {
-    TotalEnergy_AnnCO2eq_all[,i] <- new.df[["ManEnergy_AnnCO2"]][,i] + new.df[["ManEnergy_AnnCH4eq"]][,i] + new.df[["ManEnergy_AnnBCeq"]][,i] +
-      new.df[["LCCEnergy_AnnCO2"]][,i] + new.df[["LCCEnergy_AnnCH4eq"]][,i] + new.df[["LCCEnergy_AnnBCeq"]][,i] 
+    TotalEnergy_AnnCO2eq_all[,i] <- new.df[["ManTotEnergy_AnnCO2"]][,i] + new.df[["ManTotEnergy_AnnCH4eq"]][,i] + new.df[["ManTotEnergy_AnnBCeq"]][,i] +
+      new.df[["LCCTotEnergy_AnnCO2"]][,i] + new.df[["LCCTotEnergy_AnnCH4eq"]][,i] + new.df[["LCCTotEnergy_AnnBCeq"]][,i] 
   }
   ### annual fire ###
   TotalFire_AnnCO2eq_all <- Total_AnnCO2
   for (i in 5:ncol(TotalFire_AnnCO2eq_all)) {
-    TotalFire_AnnCO2eq_all[,i] <- new.df[["ManFire_AnnCO2"]][,i] + new.df[["ManFire_AnnCH4eq"]][,i] + new.df[["ManFire_AnnBCeq"]][,i] + 
+    TotalFire_AnnCO2eq_all[,i] <- new.df[["TotalCntlFire_AnnCO2"]][,i] + new.df[["TotalCntlFire_AnnCH4eq"]][,i] + new.df[["TotalCntlFire_AnnBCeq"]][,i] + 
       new.df[["Wildfire_AnnCO2"]][,i] + new.df[["Wildfire_AnnCH4eq"]][,i] + new.df[["Wildfire_AnnBCeq"]][,i]
   }
   
@@ -3342,21 +3679,21 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
     }
     
   }
-  
   # check that total atmos C gain is equal to the sum of the partitions, less the Eco C emissions (not included in the Total_Atmos gain C)
-  zero_test <- Total_CumCO2
+  zero_test <- Total_AnnCO2
   for (i in 5:ncol(zero_test)) {
     zero_test[,i] <- 0
   }
-  for (i in 5:ncol(Total_CumCO2)) {
-    zero_test[,i] <- out_atmos_df_list[["Total_Atmos_CumGain_C_stock"]][,i] - 
-      (Total_CumCO2[,i] * (12.0107/44.01) + Total_CumCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_CumBCeq[,i] * (0.6/gwp_BC) - 
-         Eco_CumCO2C[,i] - Eco_CumCH4C[,i]) 
+  for (i in 5:ncol(Total_AnnCO2)) {
+    zero_test[,i] <- out_atmos_df_list[["Total_Atmos_AnnGain_C_stock"]][,i] - 
+      (Total_AnnCO2[,i] * (12.0107/44.01) + Total_AnnCH4eq[,i] * (12.0107/(gwp_CH4*16.04)) + Total_AnnBCeq[,i] * (0.6/gwp_BC) - 
+         Eco_AnnCO2C[,i] - Eco_AnnCH4C[,i])
   } 
+  
   # rounding error so this test is false
   all(zero_test[5:ncol(zero_test)] == 0) 
   # but this checks to be true
-  all(zero_test[5:ncol(zero_test)] < 0.001 & zero_test[5:ncol(zero_test)] > -0.001) 
+  all(zero_test[5:ncol(zero_test)] < 1 & zero_test[5:ncol(zero_test)] > -1) 
   
   ###############################  Calculate some changes and totals  ###############################  
   # also round everything to integer ha, MgC and MgC/ha places for realistic precision
@@ -3669,12 +4006,13 @@ CALAND <- function(scen_file, c_file = "carbon_input.xlsx", indir = "", outdir =
   }
   
   # remove the Xs added to the front of the year columns so that the following atmosphere section can work without error
-  colnames_Ann = names(out_atmos_df_list[[26]])
-  colnames_Cum = names(out_atmos_df_list[[20]])
+  colnames_Ann = names(out_atmos_df_list[[8]])
+  colnames_Cum = names(out_atmos_df_list[[1]])
   names(out_atmos_df_list[["Eco_AnnCO2"]]) = colnames_Ann
   names(out_atmos_df_list[["Eco_AnnCH4eq"]]) = colnames_Ann
   names(out_atmos_df_list[["Eco_CumCO2"]]) = colnames_Cum
   names(out_atmos_df_list[["Eco_CumCH4eq"]]) = colnames_Cum
+  
   
   ######### (6) ATMOSHPHERE #########
   for (i in 1:length(out_atmos_df_list)) {
