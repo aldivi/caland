@@ -10,6 +10,7 @@
 #						this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
 #	ylabel			y label for the plot; this indicates the units and whether it is a difference from baseline
 #	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
+#	file_tag		additional tag to file name to note what regions/lts/ownerships are included; default is "" (nothing added)
 #	reg				array of region names to plot (see below)
 #	lt				array of land types to plot; can be any number of available types (all but Seagrass are below as default; All_land is excluded)
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
@@ -39,12 +40,13 @@ varname = "All_orgC_stock_diff"
 #ylabel = "Thousand ha"
 ylabel = "Change from Baseline (MMT C)"
 
-data_dir = "./outputs/MeanDens_MeanAccum_22June2017"
+data_dir = "./outputs/MD_MA_22June2017_rootfix"
+file_tag = ""
 reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region")
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 own = c("All_own")
-figdir = "test_diags"
+figdir = "figures"
 
   # this enables java to use up to 4GB of memory for reading and writing excel files
   options(java.parameters = "-Xmx4g" )
@@ -59,13 +61,17 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
-plot_scen_types <- function(scen_lname, varname, ylabel, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures") {
+plot_scen_types <- function(scen_lname, varname, ylabel, data_dir = "./outputs", file_tag="", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures") {
 
 outputdir = paste0(data_dir, "/")
 
 num_reg = length(reg)
 num_lt = length(lt)
 num_own = length(own)
+
+# need to add an underscore if an optional file tag is input
+if (nchar(file_tag) > 0) { added_file_tag = paste0("_", file_tag)
+} else {added_file_tag = file_tag}
 
 for (r in 1:num_reg) {
 
@@ -100,7 +106,7 @@ for (r in 1:num_reg) {
 	# plot the data on a single plot
 	FIGURE_DIMS <- list(dpi=300, width=2560/300, height=1440/300)
 	theme_set(theme_bw())
-	out_file = paste0(outputdir, figdir, "/", reg_lab, "/", reg_lab, "_", own_lab, "_", scen_lname, "_", varname, "_comp_ltsub.pdf")
+	out_file = paste0(outputdir, figdir, "/", reg_lab, "/", reg_lab, "_", own_lab, "_", scen_lname, "_", varname, "_comp", added_file_tag, ".pdf")
 	p <- ( ggplot(plot_df, aes(Year, Value, color=Land_Type))
 			+ scale_shape_manual(values=1:nlevels(plot_df$Land_Type))
 			+ geom_line(size = 0.3)
@@ -112,7 +118,7 @@ for (r in 1:num_reg) {
 	p$save_args <- FIGURE_DIMS
 	#print(p)
 	do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
-	out_file = paste0(outputdir, figdir, "/", reg_lab, "/", reg_lab, "_", own_lab, "_", scen_lname, "_", varname, "_comp_ltsub.csv")
+	out_file = paste0(outputdir, figdir, "/", reg_lab, "/", reg_lab, "_", own_lab, "_", scen_lname, "_", varname, "_comp", added_file_tag, ".csv")
 	write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
 
 } # end for r loop over regions

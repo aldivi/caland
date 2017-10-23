@@ -19,7 +19,7 @@
 #	8 tables
 #	vegc_uptake, soilc_accum, conversion2ag_urban, forest_manage, dev_manage, grass_manage, ag_manage, wildfire
 #	column headers are on row 12
-#	only non-zero values are included; more land type, ownership, management, or intensity rows can be added as appropriate (if the column exists)
+#	only non-zero values are included; more land type, ownership, management, or severity rows can be added as appropriate (if the column exists)
 #	this xls file is a subset of the original ca_carbon_input.xlsx file, as a starting point for filling in the new parameter tables
 
 # scenarios_file
@@ -49,11 +49,14 @@
 
 # mortality
 # the recent and expected forest mortality due to insects and drought is emulated by a doubled forest mortality rate for 10 years (2015-2024)
-# mortality applies only to woody systems with veg c accumulation (this is not yet checked for in caland, but needs to be fixed)
+# mortality applies only to woody systems with veg c accumulation
 # these types are: shrubland, savanna, woodland, forest, and developed_all
+# developed_all mortality is processed differently from the others
+#  the morality from the scenario is transferred to the above ground harvest of the dead_removal management
+#  this is because the urban system is highly managed, and allows for more control of what happens to the dead biomass
 
 # wildfire
-# current assumption is that fires are medium intensity and the state area is distributed proportionally across ownerships
+# current assumption is that fires are medium severity and the state area is distributed proportionally across ownerships
 # the historical annual average area is applied each year, proportionally existing areas of forest, woodland, savanna, grassland, and shrubland within each ownership
 
 # the only land categories available throughout the sim are those that are included in the input files
@@ -91,13 +94,13 @@ scen_tag = "frst2Xmort_fire"
 c_file = "carbon_input.xlsx"
 start_year = 2010
 end_year = 2051
-parameter_file = "orig_lc_params.xls"
+parameter_file = "lc_params.xls"
 scenarios_file = "orig_scenarios.xls"
 area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
 carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
 
 
-write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, parameter_file = "orig_lc_params.xls", scenarios_file = "orig_scenarios.xls", area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")) {
+write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls", area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")) {
 	
 cat("Start write_caland_inputs at", date(), "\n")
 
@@ -129,7 +132,7 @@ last_head_row = 10
 sqm2ha = 1.0/10000
 
 # output dataframe lists
-out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_martality")
+out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality")
 out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", "ltc_2010", "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
 out_c_tags = c("allorgc", "biomassc", "agc", "bgc", "usc", "dsc", "ddc", "ltc", "soc", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
 num_scen_sheets = length(out_scen_sheets)
@@ -178,7 +181,7 @@ seagrass_start_area_ha = 5261.00
 
 # default mortality for woody land types with vegc_uptake
 #	shrubland, savanna, woodland, developed_all
-#	all others need to be 0, because the code currently doesn't check for vegc_uptake > 0 (fix this)
+#	all others need to be 0, although CALAND does check this
 mortality_default = 0.01
 
 # initial mortality for forest
@@ -202,7 +205,7 @@ wildfire_mean = 243931.10
 wildfire_stddev = 151439.00
 wildfire_ann_val = wildfire_mean
 
-# fractions of area assigned to each intensity (these must sum to 1)
+# fractions of area assigned to each severity (these must sum to 1)
 high_fire_frac = 0.0
 low_fire_frac = 0.0
 med_fire_frac = 1.0
@@ -430,28 +433,28 @@ high_burn = burn_avail_reg_own[burn_avail_reg_own$ann_burn_area_high > 0,]
 low_burn = burn_avail_reg_own[burn_avail_reg_own$ann_burn_area_low > 0,]
 med_burn = burn_avail_reg_own[burn_avail_reg_own$ann_burn_area_med > 0,]
 if(nrow(high_burn) > 0) {
-	high_burn$Intensity = "High"
+	high_burn$Severity = "High"
 	high_burn$ann_burn_area = high_burn$ann_burn_area_high
 }
 if(nrow(low_burn) > 0) {
-	low_burn$Intensity = "Low"
+	low_burn$Severity = "Low"
 	low_burn$ann_burn_area = low_burn$ann_burn_area_low
 }
 if(nrow(med_burn) > 0) {
-	med_burn$Intensity = "Medium"
+	med_burn$Severity = "Medium"
 	med_burn$ann_burn_area = med_burn$ann_burn_area_med
 }
 burn_area_ann = rbind(high_burn, low_burn, med_burn)
-burn_area_ann = burn_area_ann[order(burn_area_ann$lcat_code, burn_area_ann$Region, burn_area_ann$Ownership, burn_area_ann$Intensity),]
-out_scen_df_list[[4]] = data.frame(Land_Cat_ID=burn_area_ann$lcat_code, Region=burn_area_ann$Region, Land_Type=burn_area_ann$lt_name, Ownership=burn_area_ann$Ownership, Intensity=burn_area_ann$Intensity, start_ha=burn_area_ann$ann_burn_area)
+burn_area_ann = burn_area_ann[order(burn_area_ann$lcat_code, burn_area_ann$Region, burn_area_ann$Ownership, burn_area_ann$Severity),]
+out_scen_df_list[[4]] = data.frame(Land_Cat_ID=burn_area_ann$lcat_code, Region=burn_area_ann$Region, Land_Type=burn_area_ann$lt_name, Ownership=burn_area_ann$Ownership, Severity=burn_area_ann$Severity, start_ha=burn_area_ann$ann_burn_area)
 names(out_scen_df_list[[4]])[ncol(out_scen_df_list[[4]])] <- paste0(start_year,"_ha")
 
 ###### scen mortality table
 # this is a multiple year table
 
-# mortality applies only to shrubland, savanna, woodland, and forest
+# mortality applies only to shrubland, savanna, woodland, forest, and developed_all
 # initial year
-mortality_types = out_scen_df_list[[1]][out_scen_df_list[[1]]$Land_Type == "Forest" | out_scen_df_list[[1]]$Land_Type == "Woodland" | out_scen_df_list[[1]]$Land_Type == "Savanna" | out_scen_df_list[[1]]$Land_Type == "Shrubland",]
+mortality_types = out_scen_df_list[[1]][out_scen_df_list[[1]]$Land_Type == "Forest" | out_scen_df_list[[1]]$Land_Type == "Woodland" | out_scen_df_list[[1]]$Land_Type == "Savanna" | out_scen_df_list[[1]]$Land_Type == "Shrubland" | out_scen_df_list[[1]]$Land_Type == "Developed_all",]
 names(mortality_types)[ncol(mortality_types)] <- "start_frac"
 year_col_start = ncol(mortality_types)
 mortality_types$start_frac = mortality_default

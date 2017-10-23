@@ -137,6 +137,7 @@ CALAND(scen_file=“HighProtect_BaseManage_frst2xmort_fire.xlsx”, c_file = "ca
 #	lt				array of land types to plot; can be any number of available types (all are below as default)
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default, which is the aggregation of ownerships)
 #	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
+#	INDIVIDUAL		flag: set to TRUE when comparing a single practice scenario with a static control scenario to get per managed area diagnostics
 
 # notes:
 # need at least two scenarios for this to work
@@ -161,7 +162,7 @@ CALAND(scen_file=“HighProtect_BaseManage_frst2xmort_fire.xlsx”, c_file = "ca
 
 # example:
 # plot the high protection/baseline management in reference to the historical baseline
-plot_caland(scen_fnames = c(“Baseline_frst2xmort_fire_output_mean.xlsx”, “BaseProtect_HighManage_frst2xmort_fire_output_mean.xlsx”), scen_lnames = c(“Baseline”, “HighManage”), scen_snames = c(“BASE”, “BOHM”), reg = c("All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land"), own = c("All_own"), figdir = "figures")
+plot_caland(scen_fnames = c(“Baseline_frst2xmort_fire_output_mean.xlsx”, “BaseProtect_HighManage_frst2xmort_fire_output_mean.xlsx”), scen_lnames = c(“Baseline”, “HighManage”), scen_snames = c(“BASE”, “BOHM”), reg = c("All_region"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land"), own = c("All_own"), figdir = "figures”, INDIVIDUAL = FALSE)
 
 #############################
 # plot_scen_types() #
@@ -181,6 +182,7 @@ plot_caland(scen_fnames = c(“Baseline_frst2xmort_fire_output_mean.xlsx”, “
 #						this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
 #	ylabel			y label for the plot; this indicates the units and whether it is a difference from baseline
 #	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
+#	file_tag		additional tag to file name to note what regions/lts/ownerships are included; default is "" (nothing added)
 #	reg				array of region names to plot (see below)
 #	lt				array of land types to plot; can be any number of available types (all but Seagrass are below as default; All_land is excluded)
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
@@ -202,7 +204,7 @@ plot_caland(scen_fnames = c(“Baseline_frst2xmort_fire_output_mean.xlsx”, “
 
 # example:
 # plot the total organic c stock for the individual land types in one figure, for the high protection/baseline manage scenario, for all regions, and "All_own"
-plot_scen_types(scen_lname = “HighProtect_BaseManage”, "All_orgC_stock", "MMTC", data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"), lt = c(Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures")
+plot_scen_types(scen_lname = “HighProtect_BaseManage”, "All_orgC_stock", "MMTC", data_dir = "./outputs", file_tag = “”, reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"), lt = c(Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures")
 
 
 #############################
