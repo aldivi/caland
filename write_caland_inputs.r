@@ -10,6 +10,10 @@
 #	c_file:				the carbon density and parameter file created for input to caland (needs to be .xls)
 #	start_year:			this is the initial year of the simulation, one of the area files needs to be for this year
 #	end_year:			this is the final year output from the caland simulation (matches the caland end_year argument)
+# land_change_method: "Landcover" will use original method of remote sensing landcover change from 2001 to 2010. "Landuse_Avg_Annual" will 
+#   use avg annual area change from 2010 to 2050 based on projected land use change of cultivated and developed lands (USGS data). 
+#   "Landuse_Annual" will use each year's annual area changes from 2010 to 2050 based on projected land use change of cultivated and developed 
+#   lands (USGS data).
 #	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
 #	area_gis_files:		vector of two csv file names of gis stats area by land category (sq m)
@@ -96,20 +100,40 @@ start_year = 2010
 end_year = 2051
 parameter_file = "lc_params.xls"
 scenarios_file = "orig_scenarios.xls"
-area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
-carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
+land_change_method = "Landuse_Annual"
+# land_change_method = "Landuse_Avg_Annual"
+# land_change_method = "Landcover"
+area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
+area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv"
+carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", 
+                     "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                     "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
+                     "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
 
 
-write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls", area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")) {
+write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, 
+                                parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls", 
+                                area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", land_change_method = "Landuse_Annual",
+                                area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), 
+                                carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                                                     "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                                                     "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                                                     "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                                                     "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                                                     "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
+                                                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")) {
 	
 cat("Start write_caland_inputs at", date(), "\n")
 
 num_c_in_files = length(carbon_gis_files)
 
+if (land_change_method = "Landcover") {
 # reference year for calculating area changes from start year
 ref_year = 2001
 diff_years = start_year - ref_year
 scen_end_year = end_year - 1
+}
 
 in_dir = "raw_data/"
 out_dir = "inputs/"
@@ -132,9 +156,13 @@ last_head_row = 10
 sqm2ha = 1.0/10000
 
 # output dataframe lists
-out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality")
-out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", "ltc_2010", "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
-out_c_tags = c("allorgc", "biomassc", "agc", "bgc", "usc", "dsc", "ddc", "ltc", "soc", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
+ifelse(land_change_method = "Landcover" | land_change_method = "Landuse_Avg_Annual", 
+       out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality"),
+       out_scen_sheets = c("area_2010", "annual_area_changes", "annual_managed_area", "annual_wildfire_area", "annual_mortality"))
+out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", "ltc_2010", 
+                 "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
+out_c_tags = c("allorgc", "biomassc", "agc", "bgc", "usc", "dsc", "ddc", "ltc", "soc", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", 
+               "dev_manage", "grass_manage", "ag_manage", "wildfire")
 num_scen_sheets = length(out_scen_sheets)
 num_c_sheets = length(out_c_sheets)
 out_scen_df_list <- list()
