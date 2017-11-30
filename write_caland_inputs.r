@@ -16,7 +16,8 @@
 #   lands (USGS data).
 #	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
-#	area_gis_files:		vector of two csv file names of gis stats area by land category (sq m)
+#	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
+#	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m)
 #	carbon_gis_files:	vector of 13 csv file names of gis stats carbon density by land category (t C per ha)
 
 # parameter_file
@@ -100,9 +101,9 @@ start_year = 2010
 end_year = 2051
 parameter_file = "lc_params.xls"
 scenarios_file = "orig_scenarios.xls"
-land_change_method = "Landuse_Annual"
+#land_change_method = "Landuse_Annual"
 # land_change_method = "Landuse_Avg_Annual"
-# land_change_method = "Landcover"
+land_change_method = "Landcover"
 area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
 area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv"
 carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", 
@@ -128,7 +129,7 @@ cat("Start write_caland_inputs at", date(), "\n")
 
 num_c_in_files = length(carbon_gis_files)
 
-if (land_change_method = "Landcover") {
+if (land_change_method == "Landcover") {
 # reference year for calculating area changes from start year
 ref_year = 2001
 diff_years = start_year - ref_year
@@ -156,9 +157,11 @@ last_head_row = 10
 sqm2ha = 1.0/10000
 
 # output dataframe lists
-ifelse(land_change_method = "Landcover" | land_change_method = "Landuse_Avg_Annual", 
-       out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality"),
-       out_scen_sheets = c("area_2010", "annual_area_changes", "annual_managed_area", "annual_wildfire_area", "annual_mortality"))
+# assign a different area change sheet name if using the landuse-based annual area changes 
+if (land_change_method == "Landcover" | land_change_method == "Landuse_Avg_Annual") {
+  out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality")
+} else { out_scen_sheets = c("area_2010", "annual_area_changes", "annual_managed_area", "annual_wildfire_area", "annual_mortality") }
+      
 out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", "ltc_2010", 
                  "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
 out_c_tags = c("allorgc", "biomassc", "agc", "bgc", "usc", "dsc", "ddc", "ltc", "soc", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", 
@@ -205,6 +208,15 @@ seagrass_lt_code = 200
 seagrass_own_code = 6
 seagrass_start_area_ha = 5261.00
 
+# add in ice and water landtypes to 
+# ice
+
+
+# water 
+
+
+
+#
 ###### mortality
 
 # default mortality for woody land types with vegc_uptake
@@ -296,14 +308,16 @@ soil_c_accum_peat_avg_ci = 0.69
 #	for average, this would give: 2.94/3.44=0.85
 soil_c_accum_frac_peat = 0.85
 
-# read the area files
+  #####################################################################################################################
+  ################################# process the original lancover area files ##########################################
+  #####################################################################################################################
 # first determine which file is the start year file
 # the columns are: region code, region name, land type code, land type name, ownership code, ownership name, area
-styr_ind = grep(start_year, area_gis_files)
-refyr_ind = grep(ref_year, area_gis_files)
-start_area_in = read.csv(paste0(in_dir, area_gis_files[styr_ind]), header=FALSE, stringsAsFactors=FALSE)
+styr_ind = grep(start_year, area_gis_files_orig)
+refyr_ind = grep(ref_year, area_gis_files_orig)
+start_area_in = read.csv(paste0(in_dir, area_gis_files_orig[styr_ind]), header=FALSE, stringsAsFactors=FALSE)
 start_area_in[,c(1,3,5)] <- as.numeric(unlist(start_area_in[,c(1,3,5)]))
-ref_area_in = read.csv(paste0(in_dir, area_gis_files[refyr_ind]), header=FALSE, stringsAsFactors=FALSE)
+ref_area_in = read.csv(paste0(in_dir, area_gis_files_orig[refyr_ind]), header=FALSE, stringsAsFactors=FALSE)
 ref_area_in[,c(1,3,5)] <- as.numeric(unlist(ref_area_in[,c(1,3,5)]))
 colnames(start_area_in) <- c("reg_code", "reg_name", "lt_code", "lt_name", "own_code", "own_name", "area_sqm")
 colnames(ref_area_in) <- c("reg_code", "reg_name", "lt_code", "lt_name", "own_code", "own_name", "area_sqm")
@@ -433,11 +447,24 @@ seagrass_df$start_area_ha = seagrass_start_area_ha
 seagrass_df[,c(9:ncol(seagrass_df))] = 0.00
 diff_area_calc = rbind(diff_area_calc, seagrass_df)
 
+##############################################################################################
+# if using new landuse change methods replace diff_area_calc$ann_diff_area_ha with new values  
+##############################################################################################
+
+
+##############################################################################################
+###########################  assign area calcs to out_scen_df_list ###########################  
+##############################################################################################
 # scen area tables
-# area
-out_scen_df_list[[1]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, Land_Type=diff_area_calc$lt_name, Ownership=diff_area_calc$own_name, Area_ha=diff_area_calc$start_area_ha)
-# annaul net area change
-out_scen_df_list[[2]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, Land_Type=diff_area_calc$lt_name, Ownership=diff_area_calc$own_name, Area_change_ha=diff_area_calc$ann_diff_area_ha)
+# initial area
+out_scen_df_list[[1]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, Land_Type=diff_area_calc$lt_name, 
+                                   Ownership=diff_area_calc$own_name, Area_ha=diff_area_calc$start_area_ha)
+
+
+
+# annaul area change
+out_scen_df_list[[2]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, Land_Type=diff_area_calc$lt_name, 
+                                   Ownership=diff_area_calc$own_name, Area_change_ha=diff_area_calc$ann_diff_area_ha)
 
 ###### scen wildfire area table
 # need to calculate the annual area burned for each ownership in each region
