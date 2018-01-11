@@ -1,7 +1,7 @@
 # write_caland_inputs.r
 
 # generate the caland input files based on the gis stats and parameters from the literature
-#	make .xlsx files
+#	make .xls files
 #	the columns widths are not properly adjusted when written, so this should be done by hand
 
 # this script defines function write_caland_inputs() for writing the intput files
@@ -12,8 +12,7 @@
 #	end_year:			this is the final year output from the caland simulation (matches the caland end_year argument)
 # land_change_method: "Landcover" will use original method of remote sensing landcover change from 2001 to 2010. "Landuse_Avg_Annual" will 
 #   use avg annual area change from 2010 to 2050 based on projected land use change of cultivated and developed lands (USGS data). 
-#   "Landuse_Annual" will use each year's annual area changes from 2010 to 2050 based on projected land use change of cultivated and developed 
-#   lands (USGS data).
+
 #	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
 #	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
@@ -96,7 +95,7 @@ for( i in libs ) {
 
 ########### set these here so that I can work without running the function
 scen_tag = "frst2Xmort_fire"
-c_file = "carbon_input.xlsx"
+c_file = "carbon_input.xls"
 start_year = 2010
 end_year = 2051
 parameter_file = "lc_params.xls"
@@ -133,11 +132,10 @@ ref_year = 2001
 diff_years = start_year - ref_year
 scen_end_year = end_year - 1
 
-
 in_dir = "raw_data/"
 out_dir = "inputs/"
 
-xltag = ".xlsx"
+xltag = ".xls"
 
 c_file_out = paste0(out_dir, c_file)
 # c_map_file_out = "local_files/carbon_density_map_source.xlsx" 
@@ -160,7 +158,7 @@ last_head_row = 10
 sqm2ha = 1.0/10000
 
 # output dataframe lists
-out_scen_sheets = c("area_2010", "landcover_based_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality")
+out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality")
 
 out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", "ltc_2010", 
                  "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
