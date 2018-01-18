@@ -5,15 +5,15 @@
 # CAlifornia natural and working LANDs carbon and greenhouse gas model
 
 # Inputs
-# ca_carbon_input.xlsx
+# carbon_input.xls
 #	The initial carbon density, carbon fluxes, and management/fire/conversion carbon adjustments
-# <scenario_name>.xlsx
+# <scenario_name>.xls
 #	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates
 #	Name the file something appropriate
 # These files have matching formats, including the number of preceding rows, the land types, the ownership, the management, the fire
 
 # Outputs
-# <scenario_name>_output_###.xlsx
+# <scenario_name>_output_###.xls
 # "_output_" is appended to the input scenario name, then a tag to denote which input values were used (e.g., the default ### = "mean")
 # output precision is to the integer (for ha and Mg C and their ratios)
 
@@ -123,8 +123,8 @@ GET.NAMES <- function(df, new.name) {
 }
 
 # set the default arguments here for debugging purposes
-scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xlsx"
-c_file_arg = "carbon_input.xlsx"
+scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
+c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
 start_year = 2010
@@ -135,7 +135,7 @@ value_col_accum = 7
 ADD_accum = TRUE
 WRITE_OUT_FILE = TRUE
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xlsx", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
@@ -148,7 +148,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xlsx", indir = "", 
   dir.create(outputdir, recursive=TRUE)
   
   # get scenario name as file name without extension
-  scen_name = substr(scen_file_arg, 1, nchar(scen_file_arg) - 5)
+  scen_name = substr(scen_file_arg, 1, nchar(scen_file_arg) - 4)
   # add the directory to the scen_file_arg name and c_file_arg name
   scen_file = paste0(inputdir, scen_file_arg)
   c_file = paste0(inputdir, c_file_arg)
@@ -158,7 +158,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xlsx", indir = "", 
   
   # Several assumptions are contained between this line down to the output table lines
   # They shouldn't need to be changed for differenct scenarios, but they would be useful for testing sensitivity of the model
-  # below the output tables and before the library load lines are names specific to columns in the input xlsx file
+  # below the output tables and before the library load lines are names specific to columns in the input xls file
   
   # this is used only for forest understory mortality
   # default mortality is 1%
