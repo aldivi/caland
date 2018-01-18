@@ -111,7 +111,7 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
                      "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
 
 
-write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, 
+write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xls", start_year = 2010, end_year = 2051, 
                                 parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls", 
                                 area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", land_change_method = "Landuse_Avg_Annual",
                                 area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), 
