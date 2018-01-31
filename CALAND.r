@@ -705,7 +705,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # linear interpolation between target years
     # if the year is past the final target year than use the final target year
     
-    # man_targetyears (man_targetyears: 2010, 2020, 2021, 2050), 
+    # man_targetyears (baseline man_targetyears: 2010, 2020, 2021, 2050), otherwise: 2010, 2016, 2017, 2020, 2021, 2050
     # assign the index of the management years (1:4) that are on or before the current year loop to 'linds'
     linds = which(man_targetyears <= year)
     # assign the index of the management years that are on or later to current year in loop to 'hinds'.
@@ -736,18 +736,20 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     
     # check if any man_area <0 that are != Growth  ### use this later after checking all scenario files ###
     # man_area_sum$man_area[man_area_sum$man_area < 0 & man_area_sum$Management != Growth] <- 0
+    
+    # Assign 0 to any negative man_area with dead_removal or urban_forest
     man_area_sum$man_area[man_area_sum$man_area < 0 & (man_area_sum$Management == "Dead_removal" | man_area_sum$Management == "Urban_forest")] <- 0
     
     ######## New:  check for excess man_area before man_area_sum ######## 
     # Check that the sum of man_area is not > tot_area
     man_area_agg_pre = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
                                                                            man_area_sum$Management != "Restoration",], FUN=sum)
-    # update aggregated column name (man_area) to man_area_agg_extra_pre
+    # update aggregated column name (man_area) to man_area_agg_pre
     names(man_area_agg_pre)[ncol(man_area_agg_pre)] <- "man_area_agg_pre"
     # merge df's man_area_sum & tot_area_df, and assign to man_area_sum dataframe (essentially, add additional 
     # tot_area column to man_area_sum)
     man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Cat_ID", "Region", "Land_Type","Ownership"), all.x = TRUE)
-    # merge man_area_sum & man_area_agg_pre dataframes by Land_Type_ID
+    # merge man_area_sum & man_area_agg_pre dataframes by Land_Cat_ID
     man_area_sum = merge(man_area_sum, man_area_agg_pre, by = "Land_Cat_ID", all.x = TRUE)
     # replace NA's in the new man_area_agg_pre column with 0's 
     man_area_sum$man_area_agg_pre = replace(man_area_sum$man_area_agg_pre, is.na(man_area_sum$man_area_agg_pre), 0)
@@ -1063,8 +1065,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     
     man_dead_df = merge(man_adjust_df, deadc_frac_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_dead_df = man_dead_df[order(man_dead_df$Land_Cat_ID, man_dead_df$Management),]
+    
+    # deadCaccum_frac is from the forest_manage tab in c_input, which is the effect of forest management on mortality 
+    # (i.e., mortality is reduced by either 44% or 33%) and deadc_frac_in is determined by linear interpolation above
+    # man_dead_area = agg_man_area * man_mort_factor * interp_mort_frac 
     man_dead_df$deadcfracXarea = man_dead_df$man_area_sum * man_dead_df$DeadCaccum_frac * man_dead_df$deadc_frac_in
+    # aggregate all the man_dead_area
     man_deadfrac_agg = aggregate(deadcfracXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_dead_df, FUN=sum)
+    
     man_deadfrac_agg = merge(all_c_flux, man_deadfrac_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     na_inds = which(is.na(man_deadfrac_agg$deadcfracXarea))
     man_deadfrac_agg$deadcfracXarea[na_inds] = 0
@@ -1073,20 +1081,31 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     man_deadfrac_agg = man_deadfrac_agg[order(man_deadfrac_agg$Land_Cat_ID),]
     na_inds = which(is.na(man_deadfrac_agg$deadc_frac_in))
     man_deadfrac_agg[na_inds, "deadc_frac_in"] = 0
+    
+    # fin_dead_c_frac = (agg_man_dead_area + agg_unman_area * interp_mort_frac) / tot_area
+    # which is the area-weighted mortality_fraction to later apply to total above- and below-ground C in Forest, Savanna/Woodland, and ??
     man_deadfrac_agg$fin_deadc_frac = (man_deadfrac_agg$deadcfracXarea + man_deadfrac_agg$unman_area_sum * 
                                          man_deadfrac_agg$deadc_frac_in) / tot_area_df$tot_area
     nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf)
+    # if NA or Inf, assign the interp_mort_frac to fin_deadc_frac
     man_deadfrac_agg$fin_deadc_frac[nan_inds] = man_deadfrac_agg[nan_inds, "deadc_frac_in"]
+    
+    # man_change_deadc_accum = diff between area-weighted man & unman mort_frac and interp_mort_frac 
     man_deadfrac_agg$man_change_deadc_accum = man_deadfrac_agg$fin_deadc_frac - man_deadfrac_agg$deadc_frac_in
     
-    # now transfer the developed_all mortality to "Above_harvested_frac" in man_adjust_df
+    ## now transfer the developed_all mortality to "Above_harvested_frac" in man_adjust_df
+    # 1. assign the developed_all records in man_deadfrac_agg to dev_deadfrac
     dev_deadfrac = man_deadfrac_agg[man_deadfrac_agg$Land_Type == "Developed_all",]
+    # 2. assign 0's to fin_deadc_frac & man_change_deadc_accum for all developed_all records in man_deadfrac_agg
     man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Developed_all"] = 0
     man_deadfrac_agg$man_change_deadc_accum[man_deadfrac_agg$Land_Type == "Developed_all"] = 0
     
+    # merge the dev_deaddfrac with the man_adjustdf
     man_adjust_df = merge(man_adjust_df, dev_deadfrac[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "fin_deadc_frac")],
     						by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+    # assign the non-zeroed fin_deadc_frac for Developed_all to Above_harvested_frac
     man_adjust_df$Above_harvested_frac[man_adjust_df$Land_Type == "Developed_all"] = man_adjust_df$fin_deadc_frac[man_adjust_df$Land_Type == "Developed_all"]
+    # now assign NULL to all fin_deadc_frac in man_adjust_df
     man_adjust_df$fin_deadc_frac = NULL
     man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Cat_ID, man_adjust_df$Management),]
     
@@ -1143,36 +1162,50 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       }
     }
     
-    # forest
+    #########################  forest  ######################### 
     
     # above main
+    # above main c density
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Forest", cur_density_label]
+    # above main stem c flux = area-weighted VEG C FLUXES
     vegc_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Forest"]
+    # above main leaf + bark + branch c flux 
     added_vegc_flux_vals = vegc_flux_vals * (leaffrac + barkfrac + branchfrac) / stemfrac 
+    # dead C flux from stem = area-weighted mortality_fraction * above main c density * stemfrac = area-weighted mortality_fraction * stem c density
     deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * above_vals * stemfrac
+    # dead C flux from leaf + bark + branch = area-weighted mortality_fraction * above main c density * (1-stemfrac) = area-weighted mortality_fraction * remaining main c density
     above2dldead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * above_vals * (1.0 - stemfrac)
+    
     #deadc2vegc_ratios = deadc_flux_vals / vegc_flux_vals
     #above2dldead_flux_vals = deadc2vegc_ratios * added_vegc_flux_vals
+    
+    # Above_main_C_den_gain_eco = (stem + leaf + bark + branch c flux) - (mortality) 
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[1]] = vegc_flux_vals + added_vegc_flux_vals - deadc_flux_vals - above2dldead_flux_vals
     
-    # standing dead
+    # standing dead C flux = c loss from stem
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[4]] = deadc_flux_vals
     
     # understory
+    # understory c density
     under_vals = out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type == "Forest", cur_density_label]
+    # ratio of understory to above main c density
     underfrac = under_vals / above_vals
+    # understory c flux = (understory c dens/above main c dens) * (above main stem c flux) * (above main c dens/stem c dens)
     underc_flux_vals = underfrac * vegc_flux_vals / stemfrac
+    # dead understory C =  0.01 * understory c dens
     under2dldead_flux_vals = default_mort_frac * out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type == "Forest", cur_density_label]
     #under2dldead_flux_vals = deadc2vegc_ratios * underc_flux_vals
+    # Understory_C_den_gain_eco = understory c flux - dead understory C
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[3]] = underc_flux_vals - under2dldead_flux_vals
     
     # downed dead and litter
+    # down dead frac = DownDead_C_den / (DownDead_C_den + Litter_C_den)
     downfrac = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Forest", cur_density_label] / 
       (out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Forest", cur_density_label] + 
          out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type == "Forest", cur_density_label])
-    # downded dead
+    # DownDead_C_den_gain_eco = (DownDead_C_den / (DownDead_C_den + Litter_C_den)) * (dead understory + leaf + bark + branch C)
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[5]] = downfrac * (above2dldead_flux_vals + under2dldead_flux_vals)
-    # litter
+    # Litter_C_den_gain_eco = (Litter_C_den / (DownDead_C_den + Litter_C_den)) * (dead understory + leaf + bark + branch C)
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[6]] = (1.0 - downfrac) * (above2dldead_flux_vals + under2dldead_flux_vals)
     
     # below ground
@@ -1181,22 +1214,28 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     #  so store the initial below ground mortality flux
     # assume that the other soil fluxes do not change (litter input rates and emissions) because I don't have enough info to change these
     #  basically, the litter input would change based on its density, and the emissions may increase with additional soil c
+    
+    # Root C density = Below_main_C_den
     below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Forest", cur_density_label]
+    # Dead root C flux = area-weighted mortality_fraction * root C density
     below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] * below_vals
+    # save the initial area-weighted mortality_fraction
     if (year == start_year) { initial_deadc_frac_forest = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Forest"] }
     	# { below2dead_flux_initial_forest = below2dead_flux_vals }
     # first calculate the net root biomass increase
-    
+    # rootfrac = root c density/above main C density
     rootfrac = below_vals / above_vals
-    all_c_flux[all_c_flux$Land_Type == "Forest",egnames[2]] = rootfrac * vegc_flux_vals / stemfrac - below2dead_flux_vals
+    # Below_main_C_den_gain_eco = (root c density/above main C density) * above main stem c flux/stem frac
+    all_c_flux[all_c_flux$Land_Type == "Forest",egnames[2]] = rootfrac * (vegc_flux_vals / stemfrac) - below2dead_flux_vals
     
     # soil
     # need to add the difference due to chnages from default/initial mortality
+    # Soil_orgC_den_gain_eco = area-weighted soil C flux + (Dead root C flux - initial area-weighted mortality_fraction * root C density)
     all_c_flux[all_c_flux$Land_Type == "Forest",egnames[7]] = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Forest"] + 
       (below2dead_flux_vals - initial_deadc_frac_forest * below_vals)
       #(below2dead_flux_vals - below2dead_flux_initial_forest)
     
-    # savanna/woodland
+    #########################  savanna/woodland  ######################### 
     
     # above and below main
     # root loss has to go to soil c because the veg gain is tree nee, and the soil flux is ground nee, together they are the net flux
@@ -1204,71 +1243,107 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # but these additions to the dead pools and soil c may be overestimated because the flux measurements do not include mortality
     # transfer above loss proportionally to standing, down, and litter pools
     # leave understory c static because the available data are for a grass understory, which has no long-term veg accumulation
+    
+    # Above main C dens = Above_main_C_den  
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type == "Savanna" | out_density_df_list[[3]]$Land_Type == "Woodland", 
                                           cur_density_label]
+    # Above main C flux = area-weighted VEG C FLUX
     vegc_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Savanna" | man_vegflux_agg$Land_Type == "Woodland"]
+    # Root C dens = Below_main_C_den 
     below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type == "Savanna" | out_density_df_list[[4]]$Land_Type == "Woodland", 
                                           cur_density_label]
+    # Above main C flux = area-weighted VEG C FLUX * Above C dens/(Above + Root C dens)
     above_flux_vals = vegc_flux_vals * above_vals / (above_vals + below_vals)
+    # Root C flux = area-weighted VEG C FLUX * Root C dens/(Above + Root C dens)
     below_flux_vals = vegc_flux_vals * below_vals / (above_vals + below_vals)
+    # Dead Above main C flux = area-weighted mortality_fraction * Above main C dens
     above2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Savanna" | man_deadfrac_agg$Land_Type == "Woodland"] * 
       above_vals
     #zinds = which(above2dead_flux_vals == 0 & above_flux_vals > 0)
     #above2dead_flux_vals[zinds] = default_mort_frac * above_vals[zinds]
     #deadc2vegc_ratios = above2dead_flux_vals / above_flux_vals
+    # Dead root C flux = area-weighted mortality_fraction * root C dens
     below2dead_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type == "Savanna" | man_deadfrac_agg$Land_Type == "Woodland"] * 
       below_vals
     #naninds = which(is.nan(below2dead_flux_vals) & below_flux_vals > 0)
     #below2dead_flux_vals[naninds] = default_mort_frac * below_vals[naninds]
     #naninds = which(is.nan(below2dead_flux_vals))
     #below2dead_flux_vals[naninds] = 0
+    
+    # above_main_C_den_gain_eco = Above main C flux - Dead Above C flux
     all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[1]] = above_flux_vals - above2dead_flux_vals
+    # Below_main_C_den_gain_eco = Root C flux - Dead Root C flux
     all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[2]] = below_flux_vals - below2dead_flux_vals
     
     # standing, down, and litter
+    # Standing dead C dens = StandDead_C_den
     standdead_vals = out_density_df_list[[6]][out_density_df_list[[6]]$Land_Type == "Savanna" | out_density_df_list[[6]]$Land_Type == "Woodland", 
                                               cur_density_label]
+    # Down dead C dens = DownDead_C_den
     downdead_vals = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type == "Savanna" | out_density_df_list[[7]]$Land_Type == "Woodland", 
                                              cur_density_label]
+    # Litter C dens = Litter_C_den
     litter_vals = out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type == "Savanna" | out_density_df_list[[8]]$Land_Type == "Woodland", 
                                            cur_density_label]
+    # Standing dead dens fraction = Stand Dead C dens/ Stand Dead + Down Dead + Litter)
     standdead_frac_vals = standdead_vals / (standdead_vals + downdead_vals + litter_vals)
+    # Down dead dens fraction = Down Dead C dens/ Stand Dead + Down Dead + Litter)
     downdead_frac_vals = downdead_vals / (standdead_vals + downdead_vals + litter_vals)
+    # Litter dens fraction = Litter C dens/ Stand Dead + Down Dead + Litter)
     litter_frac_vals = litter_vals / (standdead_vals + downdead_vals + litter_vals)
+    # StandDead_C_den_gain_eco = Stand dead frac * Dead above main C flux
     all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[4]] = standdead_frac_vals * above2dead_flux_vals
+    # DownDead_C_den_gain_eco = Down dead frac * Dead above main C flux
     all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[5]] = downdead_frac_vals * above2dead_flux_vals
+    # Litter_C_den_gain_eco = Litter frac * Dead above main C flux
     all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[6]] = litter_frac_vals * above2dead_flux_vals
     
     # soil - recall that this is nee flux measurement, not density change, so the root mortality has to go to soil c
+    # Soil C flux = area-weighted soil C flux
     soilc_flux_vals = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Savanna" | man_soilflux_agg$Land_Type == "Woodland"]
+    # Soil_orgC_den_gain_eco = area-weighted soil C flux + Dead root C flux
     all_c_flux[all_c_flux$Land_Type == "Savanna" | all_c_flux $Land_Type == "Woodland",egnames[7]] = soilc_flux_vals + below2dead_flux_vals
     
-    # the rest
+    ######################### the rest ######################### 
     # assume vegc flux is all standing net density change, sans mortality
     # assume above and understory deadc flux is all mort density change - take from above and distribute among stand, down, and litter
     # use mortality only if there is veg c accum due to growth
-    # assume soilc flux is net density change - so the below is simply a net root density change,
+    # assume soil c flux is net density change - so the below is simply a net root density change,
     #	and the calculated or implicit mortality implicitly goes to soil
+    
+    # Above main C dens
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type != "Savanna" & out_density_df_list[[3]]$Land_Type != "Woodland" & 
                                             out_density_df_list[[3]]$Land_Type != "Forest", cur_density_label]
+    # Root main C dens
     below_vals = out_density_df_list[[4]][out_density_df_list[[4]]$Land_Type != "Savanna" & out_density_df_list[[4]]$Land_Type != "Woodland" & 
                                             out_density_df_list[[4]]$Land_Type != "Forest", cur_density_label]
+    # Understory C dens
     under_vals = out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & out_density_df_list[[5]]$Land_Type != "Woodland" & 
                                             out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
+    # Standing dead C dens
     standdead_vals = out_density_df_list[[6]][out_density_df_list[[6]]$Land_Type != "Savanna" & out_density_df_list[[6]]$Land_Type != "Woodland" & 
                                                 out_density_df_list[[6]]$Land_Type != "Forest", cur_density_label]
+    # Down dead C dens
     downdead_vals = out_density_df_list[[7]][out_density_df_list[[7]]$Land_Type != "Savanna" & out_density_df_list[[7]]$Land_Type != "Woodland" & 
                                                out_density_df_list[[7]]$Land_Type != "Forest", cur_density_label]
+    # Litter C dens
     litter_vals = out_density_df_list[[8]][out_density_df_list[[8]]$Land_Type != "Savanna" & out_density_df_list[[8]]$Land_Type != "Woodland" & 
                                              out_density_df_list[[8]]$Land_Type != "Forest", cur_density_label]
+    # Soil C dens
     soil_vals = out_density_df_list[[9]][out_density_df_list[[9]]$Land_Type != "Savanna" & out_density_df_list[[9]]$Land_Type != "Woodland" & 
                                            out_density_df_list[[9]]$Land_Type != "Forest", cur_density_label]
-    # above and below
+    # above and below C fluxes
+    # Above main c flux = area-weighted above-main C flux
     above_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
                                                         man_vegflux_agg$Land_Type != "Forest"]
+    # Root main C flux = area-weighted above-main C flux * root C dens/above main C dens
     below_flux_vals = above_flux_vals * below_vals / above_vals
+    # index NA values
     naninds = which(is.nan(below_flux_vals))
+    # For NA root C flux, assume default root to above frac (0.2) 
+      # Root main C flux = area-weighted above-main C flux * 0.2
     below_flux_vals[naninds] = above_flux_vals[naninds] * default_below2above_frac
+    # Soil C flux = area-weighted soil C flux
     soilc_flux_vals = man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland" & 
                                                          man_soilflux_agg$Land_Type != "Forest"]
     # recall that the input historical soil c fluxes are net, so the default historical mortality here implicitly goes to the soil
@@ -1277,54 +1352,86 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # assume that the other soil fluxes do not change (litter input rates and emissions) because I don't have enough info to change these
     #  basically, the litter input would change based on its density, and the emissions may increase with additional soil c
     # also, if there is no veg c accum, then mortality is zero, even for understory, because only net soil c changes                                                    
+    
+    # dead c frac = area-weighted mortaility frac 
     deadc_flux_vals = man_deadfrac_agg$fin_deadc_frac[man_deadfrac_agg$Land_Type != "Savanna" & man_deadfrac_agg$Land_Type != "Woodland" &
     		man_deadfrac_agg$Land_Type != "Forest"]
+    # for records with NA or negative above main C flux, assign 0 to the dead c flux
     deadc_flux_vals[is.na(above_flux_vals) | above_flux_vals <= 0] = 0.0
+    # Dead above main C flux = area-weighted mortaility frac * above main C dens 
     above2dead_flux_vals = deadc_flux_vals * above_vals
+    # Dead root C flux = area-weighted mortaility frac * root C dens
     below2dead_flux_vals = deadc_flux_vals * below_vals
+    
+    # save intital area-weighted mortaility frac
     if (year == start_year) { initial_deadc_frac_rest = deadc_flux_vals }
     	#{ below2dead_flux_initial_rest = below2dead_flux_vals }
     
     # above
+    # Above_main_C_den_gain_eco = above main C flux - dead above main C flux
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[1]] = 
       above_flux_vals - above2dead_flux_vals
     
-    # below
+    # root
+    # Below_main_C_den_gain_eco = root C flux - dead root C flux
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[2]] = 
       below_flux_vals - below2dead_flux_vals
     
     # understory
+    # understory frac = understory/above main
     underfrac = under_vals / above_vals
+    # understory C flux = understory/above main * area-weighted above main C flux
     underc_flux_vals = underfrac * above_flux_vals
+    # index NA understory C flux
     naninds = which(is.nan(underc_flux_vals))
+    # for records with NA understory C flux, assign to it default understory frac (0.1) * area-weighted above main C flux
     underc_flux_vals[naninds] = default_under_frac * above_flux_vals[naninds]
+    # assign the dead area-weighted mortaility frac to understory mortality frac
     under_mort_frac = deadc_flux_vals
+    # assign the default mortality fraction (0.01) to records with positive area-weighted above main C flux
     under_mort_frac[!is.na(above_flux_vals) & above_flux_vals > 0] = default_mort_frac
+    # dead understory c flux = understory dead frac * Understory_C_den
     under2dead_flux_vals = under_mort_frac * out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type != "Savanna" & 
                                                                           out_density_df_list[[5]]$Land_Type != "Woodland" & 
                                                                           out_density_df_list[[5]]$Land_Type != "Forest", cur_density_label]
+    # Understory_C_den_gain_eco = understory C flux - dead understory c flux
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[3]] = 
       underc_flux_vals - under2dead_flux_vals
     
     # stand, down, litter
+    
+    # Standing dead C frac = Standing dead C dens / (Standing dead + down dead + litter C dens)
     standdead_frac_vals = standdead_vals / (standdead_vals + downdead_vals + litter_vals)
+    # index NA Standing dead C frac
     naninds = which(is.nan(standdead_frac_vals))
+    # assign the default standing dead frac (0.11) to records with NA standing dead fracs
     standdead_frac_vals[naninds] = default_standdead_frac
+    # down dead C frac = down dead C dens / (Standing dead + down dead + litter C dens)
     downdead_frac_vals = downdead_vals / (standdead_vals + downdead_vals + litter_vals)
+    # index NA down dead C frac
     naninds = which(is.nan(downdead_frac_vals))
+    # assign the default down dead frac (0.23) to records with NA down dead fracs
     downdead_frac_vals[naninds] = default_downdead_frac
+    # litter C frac = litter C dens / (Standing dead + down dead + litter C dens)
     litter_frac_vals = litter_vals / (standdead_vals + downdead_vals + litter_vals)
+    # index NA litter C frac
     naninds = which(is.nan(litter_frac_vals))
+    # assign the default litter frac (0.66) to records with NA litter fracs
     litter_frac_vals[naninds] = default_litter_frac
+    # StandDead_C_den_gain_eco = standing dead C frac * (area-weighted dead above main C flux + dead understory c flux)
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[4]] = 
       standdead_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
+    # DownDead_C_den_gain_eco = down dead C frac * (area-weighted dead above main C flux + dead understory c flux)
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[5]] = 
       downdead_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
+    # Litter_C_den_gain_eco = down dead C frac * (area-weighted dead above main C flux + dead understory c flux)
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[6]] = 
       litter_frac_vals * (above2dead_flux_vals + under2dead_flux_vals)
     
     # soil
     # add any c due to changes from default/initial mortality
+    
+    # Soil_orgC_den_gain_eco = area-weighted soil C flux + (area-weighted mortaility frac - intital area-weighted mortaility frac)
     all_c_flux[all_c_flux$Land_Type != "Savanna" & all_c_flux$Land_Type != "Woodland" & all_c_flux$Land_Type != "Forest",egnames[7]] = 
       soilc_flux_vals + (below2dead_flux_vals - initial_deadc_frac_rest * below_vals)
       #(below2dead_flux_vals - below2dead_flux_initial_rest)
@@ -1345,11 +1452,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       # print out the indices that have negative c
       cat("neginds for out_density_df_list eco" , i, "are", neginds, "\n")
-      # print out the areas for land categries that have negative c (if greater than 0 then land category us running out of c, which may be due to a particular case of land conversions, i.e. land 
-      # category x has negative c accumulation and is gaining area from land category y with lower c density, which can dilute the c density lower than the annual c loss sending the c density negative. 
-      # Otherwise, if the area == 0 and there is negative c density, it can solely be due to the land cateogry running out of area and having a negative c accumulation rate.)
+      # print out the areas for land categries that have negative c (if greater than 0 then land category us running out of c, which may 
+      # be due to a particular case of land conversions, i.e. land category x has negative c accumulation and is gaining area from land category y 
+      # with lower c density, which can dilute the c density lower than the annual c loss sending the c density negative. 
+      # Otherwise, if the area == 0 and there is negative c density, it can solely be due to the land cateogry running out of area and having a 
+      # negative c accumulation rate.)
       cat("total areas for neginds out_density_df_list eco" , i, "are", out_area_df_list[[1]][neginds, cur_area_label], "\n")
-      # check if any of the negative c density land categories have area > 0 (note: this only works if soil c density (i=9) is the only pool with negative values, as this is re-saved for each i loop)
+      # check if any of the negative c density land categories have area > 0 (note: this only works if soil c density (i=9) is the only pool with 
+      # negative values, as this is re-saved for each i loop)
       if (any((out_area_df_list[[1]][neginds, cur_area_label])>0)) {
         # if so, subset the rows from the out_area_df_list associated with all neginds and assign to area_neginds_df
         area_neginds_df <- out_area_df_list[[1]][neginds,]
@@ -1358,9 +1468,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         # add column that says which year it is
         area_neginds_df$Year <- rep(year,nrow(area_neginds_df)) 
         # print the land category ID's that have neginds _and_ area >0
-        cat("Land_Cat_ID with neginds for", out_density_sheets[i], "& non-zero area are", unlist(area_neginds_df[out_area_df_list[[1]][neginds,cur_area_label]>0, c("Land_Cat_ID","Region","Ownership","Land_Type")]), "\n")
+        cat("Land_Cat_ID with neginds for", out_density_sheets[i], "& non-zero area are", 
+            unlist(area_neginds_df[out_area_df_list[[1]][neginds,cur_area_label]>0, c("Land_Cat_ID","Region","Ownership","Land_Type")]), "\n")
         # subset rows from from area_neginds_df with area >0, and assign to out_neginds_eco_df_pre
-        out_neginds_eco_df_pre <- area_neginds_df[out_area_df_list[[1]][neginds,cur_area_label]>0, c("Land_Cat_ID","Region","Ownership","Land_Type","Year",cur_area_label,"neg_c_density_pool")]
+        out_neginds_eco_df_pre <- area_neginds_df[out_area_df_list[[1]][neginds,cur_area_label]>0, 
+                                                  c("Land_Cat_ID","Region","Ownership","Land_Type","Year",cur_area_label,"neg_c_density_pool")]
         # rename the area column to generic name so rbind() for out_neginds_eco_df_pre & out_neginds_eco_df will work each year 
         colnames(out_neginds_eco_df_pre)[6] <- "Area_ha"
         # get the c density from next_density_label column in out_density_df_list[[i]] that are <0 (neginds) and have tot_area >0, and add column to area_neginds_df
