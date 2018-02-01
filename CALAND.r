@@ -8,7 +8,8 @@
 # carbon_input.xls
 #	The initial carbon density, carbon fluxes, and management/fire/conversion carbon adjustments
 # <scenario_name>.xls
-#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates
+#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates and
+# climate effect parameters for vegetation and soil
 #	Name the file something appropriate
 # These files have matching formats, including the number of preceding rows, the land types, the ownership, the management, the fire
 
@@ -19,11 +20,14 @@
 
 # This model follows basic density (stock) and flow guidelines similar to IPCC protocols
 # The initial year area data are used for the first year for carbon operations
-# The area data for each year are operated on by the carbon adjustments for management, flux, and fire within that year
-#	first eco fluxes are applied, then management, then fire
-# Land conversion area changes are applied after the carbon operations, and conversion carbon fluxes assigned to that same year
-# Each subsequent step uses the updated carbon values from the previous step
-# The new carbon density and area are assigned to the beginning of next year
+# The area data for each year are operated on by the carbon (density & flux) adjustments for climate, management, fires, and land conversion 
+# within that year
+#	Order of operations (Each subsequent step uses the updated carbon values from the previous step): 
+# 1) climate effects are applied to input soil and vegetation carbon fluxes 
+# 2) management effects are applied to climate-adjusted carbon fluxes resulting in an area-weighted eco C flux 
+# 3) fire effects are applied to area-weighted eco C flux 
+# 4) land conversion area changes are applied after the carbon operations, and their effects on carbon fluxes are assigned to that same year
+# 5) new carbon density and area are assigned to the beginning of next year
 
 # Output positive flux values are land uptake; negative values are losses to the atmosphere
 
@@ -57,10 +61,13 @@
 # accumulation values are stats of literature values
 
 # How to use CALAND for beginners in R:
-# (1) Load the libraries and all 3 functions (CALC.GWP, GET.NAMES, CALAND) by selecting "Source Document" from the Edit menu
+# (1) Set working directory to the location of CALAND folder by selecting "Set Working Directory" and "Choose Directory"
+# from the Session menu.
+# Or type setwd("<your_path>/caland/") pn the R command line
+# (2) Load the libraries and all 3 functions (CALC.GWP, GET.NAMES, CALAND) by selecting "Source Document" from the Edit menu
 #	Or type source("CALAND.R") on the R command line
 #	Or by highlighting everything below and selecting clicking "Run," if that button exists
-# (2) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
+# (3) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
 # the scen_file (e.g. CALAND(scen_file = "Baseline_frst2Xmort_fire.xls")).
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
@@ -135,7 +142,8 @@ value_col_accum = 7
 ADD_accum = TRUE
 WRITE_OUT_FILE = TRUE
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, 
+                   ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
