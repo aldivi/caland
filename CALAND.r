@@ -1009,6 +1009,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
     # all developed area veg c uptake is adjusted because urban forest increased
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
+    
+    # apply this year's veg climate effect to baseline veg c flux
+    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$vegc_uptake_val * climate_veg_df[,year-2005]
     # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df (ROWS = 85)
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Land_Cat_ID, man_veg_df$Management),] 
