@@ -130,7 +130,7 @@ GET.NAMES <- function(df, new.name) {
 }
 
 # set the default arguments here for debugging purposes
-scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
+scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire_climate.xls"
 c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
@@ -503,6 +503,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   }
   
   for (i in 5:5) { # annual mortality fraction
+    scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
+  }
+  for (i in 6:7) { # annual climate effects on veg and soil C fluxes, respectively
     scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
   }
   names(c_df_list) <- c_sheets
