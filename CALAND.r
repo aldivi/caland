@@ -454,9 +454,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # NA values need to be converted to numeric
   # the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
   # converted to NA value
-  c_col_types1 = c("numeric", "character", "character", "character", rep("numeric",50))
-  c_col_types2 = c("numeric", "character", "character", "character", "character", rep("numeric",50))
-  c_col_types3 = c("character", rep("numeric",50))
+  c_col_types1 = c("numeric", "character", "character", "character", rep("numeric",100))
+  c_col_types2 = c("numeric", "character", "character", "character", "character", rep("numeric",100))
+  c_col_types3 = c("character", rep("numeric",100))
   
   # Load the worksheets into a list of data frames
   c_df_list <- list()
