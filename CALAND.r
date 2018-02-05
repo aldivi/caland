@@ -533,6 +533,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   man_target_df <- scen_df_list[[3]]
   fire_target_df <- scen_df_list[[4]]
   mortality_target_df <- scen_df_list[[5]]
+  climate_veg_df <- scen_df_list[[6]]
+  climate_soil_df <- scen_df_list[[7]]
+  
   # these are useful
   # assign the conversion area sheet from sceario file to conv_area_df
   conv_area_df = scen_df_list[[2]]
@@ -936,12 +939,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     na_inds = which(is.na(all_c_flux[,"man_area_sum_agg"]))
     all_c_flux[na_inds,"man_area_sum_agg"] = 0
     all_c_flux$unman_area_sum = all_c_flux[,"tot_area"] - all_c_flux[,"man_area_sum_agg"]
-    
+    # merge rangeland management (soil) effect and cultivated land df's. Then merge with developed and forest managment 
     man_adjust_df = rbind(man_grass_df, man_ag_df)
       man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
     man_adjust_df = rbind(man_adjust_df, man_dev_df[,c(1:5,dev_soilcaccumfrac_colind)])
     man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
                                                                                   "Management", "SoilCaccum_frac"), all.x = TRUE)
+    # merge compiled management effects df with area calcs
     man_adjust_df = merge(man_area_sum, man_adjust_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), 
                           all.x = TRUE)
     man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Cat_ID, man_adjust_df$Management),]
@@ -959,6 +963,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       man_adjust_df[man_adjust_df$Management == "Urban_forest", "tot_area"] / start_urban_forest_fraction
     
     # soil
+    # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df
+    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,year-2005]
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
