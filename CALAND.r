@@ -8,7 +8,8 @@
 # carbon_input.xls
 #	The initial carbon density, carbon fluxes, and management/fire/conversion carbon adjustments
 # <scenario_name>.xls
-#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates
+#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates and
+# climate effect parameters for vegetation and soil
 #	Name the file something appropriate
 # These files have matching formats, including the number of preceding rows, the land types, the ownership, the management, the fire
 
@@ -19,11 +20,14 @@
 
 # This model follows basic density (stock) and flow guidelines similar to IPCC protocols
 # The initial year area data are used for the first year for carbon operations
-# The area data for each year are operated on by the carbon adjustments for management, flux, and fire within that year
-#	first eco fluxes are applied, then management, then fire
-# Land conversion area changes are applied after the carbon operations, and conversion carbon fluxes assigned to that same year
-# Each subsequent step uses the updated carbon values from the previous step
-# The new carbon density and area are assigned to the beginning of next year
+# The area data for each year are operated on by the carbon (density & flux) adjustments for climate, management, fires, and land conversion 
+# within that year
+#	Order of operations (Each subsequent step uses the updated carbon values from the previous step): 
+# 1) climate effects are applied to input soil and vegetation carbon fluxes 
+# 2) management effects are applied to climate-adjusted carbon fluxes resulting in an area-weighted eco C flux 
+# 3) fire effects are applied to area-weighted eco C flux 
+# 4) land conversion area changes are applied after the carbon operations, and their effects on carbon fluxes are assigned to that same year
+# 5) new carbon density and area are assigned to the beginning of next year
 
 # Output positive flux values are land uptake; negative values are losses to the atmosphere
 
@@ -57,10 +61,13 @@
 # accumulation values are stats of literature values
 
 # How to use CALAND for beginners in R:
-# (1) Load the libraries and all 3 functions (CALC.GWP, GET.NAMES, CALAND) by selecting "Source Document" from the Edit menu
+# (1) Set working directory to the location of CALAND folder by selecting "Set Working Directory" and "Choose Directory"
+# from the Session menu.
+# Or type setwd("<your_path>/caland/") pn the R command line
+# (2) Load the libraries and all 3 functions (CALC.GWP, GET.NAMES, CALAND) by selecting "Source Document" from the Edit menu
 #	Or type source("CALAND.R") on the R command line
 #	Or by highlighting everything below and selecting clicking "Run," if that button exists
-# (2) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
+# (3) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
 # the scen_file (e.g. CALAND(scen_file = "Baseline_frst2Xmort_fire.xls")).
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
@@ -123,7 +130,7 @@ GET.NAMES <- function(df, new.name) {
 }
 
 # set the default arguments here for debugging purposes
-scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
+scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire_climate.xls"
 c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
@@ -446,9 +453,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # NA values need to be converted to numeric
   # the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
   # converted to NA value
-  c_col_types1 = c("numeric", "character", "character", "character", rep("numeric",50))
-  c_col_types2 = c("numeric", "character", "character", "character", "character", rep("numeric",50))
-  c_col_types3 = c("character", rep("numeric",50))
+  c_col_types1 = c("numeric", "character", "character", "character", rep("numeric",100))
+  c_col_types2 = c("numeric", "character", "character", "character", "character", rep("numeric",100))
+  c_col_types3 = c("character", rep("numeric",100))
   
   # Load the worksheets into a list of data frames
   c_df_list <- list()
@@ -497,6 +504,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   for (i in 5:5) { # annual mortality fraction
     scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
   }
+  for (i in 6:7) { # annual climate effects on veg and soil C fluxes, respectively
+    scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
+  }
   names(c_df_list) <- c_sheets
   names(scen_df_list) <- scen_sheets
   
@@ -522,6 +532,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   man_target_df <- scen_df_list[[3]]
   fire_target_df <- scen_df_list[[4]]
   mortality_target_df <- scen_df_list[[5]]
+  climate_veg_df <- scen_df_list[[6]]
+  climate_soil_df <- scen_df_list[[7]]
+  
   # these are useful
   # assign the conversion area sheet from sceario file to conv_area_df
   conv_area_df = scen_df_list[[2]]
@@ -925,12 +938,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     na_inds = which(is.na(all_c_flux[,"man_area_sum_agg"]))
     all_c_flux[na_inds,"man_area_sum_agg"] = 0
     all_c_flux$unman_area_sum = all_c_flux[,"tot_area"] - all_c_flux[,"man_area_sum_agg"]
-    
+    # merge rangeland management (soil) effect and cultivated land df's. Then merge with developed and forest managment 
     man_adjust_df = rbind(man_grass_df, man_ag_df)
       man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
     man_adjust_df = rbind(man_adjust_df, man_dev_df[,c(1:5,dev_soilcaccumfrac_colind)])
     man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
                                                                                   "Management", "SoilCaccum_frac"), all.x = TRUE)
+    # merge compiled management effects df with area calcs
     man_adjust_df = merge(man_area_sum, man_adjust_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), 
                           all.x = TRUE)
     man_adjust_df = man_adjust_df[order(man_adjust_df$Land_Cat_ID, man_adjust_df$Management),]
@@ -948,6 +962,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       man_adjust_df[man_adjust_df$Management == "Urban_forest", "tot_area"] / start_urban_forest_fraction
     
     # soil
+    # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df
+    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,year-2005]
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
@@ -992,6 +1008,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
     # all developed area veg c uptake is adjusted because urban forest increased
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
+    
+    # apply this year's veg climate effect to baseline veg c flux
+    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$vegc_uptake_val * climate_veg_df[,year-2005]
     # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df (ROWS = 85)
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Land_Cat_ID, man_veg_df$Management),] 
