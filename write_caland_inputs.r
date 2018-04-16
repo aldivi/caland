@@ -114,7 +114,8 @@ c_file = "carbon_input.xls"
 start_year = 2010
 end_year = 2051
 CLIMATE = "HIST"
-parameter_file = "lc_params.xls"
+# parameter_file = "lc_params.xls"
+parameter_file = "lc_params_new.xls"
 scenarios_file = "orig_scenarios.xls"
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
@@ -306,6 +307,7 @@ forest_npp = data.frame(Region=reg_names, npp=reg_vals)
 forest_npp$Land_Type = "Forest"
 
 ### Delta adjustments
+# commenting out this section - all cultivated input values are being updated in lc_params
 
 # Delta Cultivated peatland soil c accum values MgC/ha/yr (negative value is soil c loss) (knox 2015)
 # average these? Or just use corn?
@@ -318,18 +320,18 @@ forest_npp$Land_Type = "Forest"
 #soil_c_accum_peat_rice = -1.17
 #soil_c_accum_peat_rice_ci = 1.03
 # average values because not all Delta land is peatland or corn
-soil_c_accum_peat_mean = -3.44
-soil_c_accum_peat_min = -5.71
-soil_c_accum_peat_max = -1.17
-soil_c_accum_peat_stddev = 3.21
-soil_c_accum_peat_avg_ci = 0.69
+#soil_c_accum_peat_mean = -3.44
+#soil_c_accum_peat_min = -5.71
+#soil_c_accum_peat_max = -1.17
+#soil_c_accum_peat_stddev = 3.21
+#soil_c_accum_peat_avg_ci = 0.69
 
 # If the cultivated peatland values are used for the Delta, then the SoilCaccum_frac in ag_manage needs to be 
 # updated also assume the same mean benefit of 0.5 MgC/ha/yr
 #	for rice, this would give: 0.67/1.17=0.57
 # 	for corn, this would give: 5.21/5.71=0.91
 #	for average, this would give: 2.94/3.44=0.85
-soil_c_accum_frac_peat = 0.85
+#soil_c_accum_frac_peat = 0.85
 
   #####################################################################################################################
   ################################# process the original lancover area files ##########################################
@@ -513,7 +515,7 @@ out_scen_df_list[[2]][out_scen_df_list[[2]]["Land_Cat_ID"] == 107001, "Area_chan
 fire_area_in = read.csv(paste0(in_dir,fire_area_file), stringsAsFactors = FALSE)
 
 # first set up the table
-# use all region-ownerships and all three severities so that the tabel is consistent across years and complete
+# use all region-ownerships and all three severities so that the table is consistent across years and complete
 # remove ocean and aggregate to region-ownership
 burn_avail_reg_own = aggregate(Area_ha ~ Region + Ownership, out_scen_df_list[[1]][out_scen_df_list[[1]]$Region != "Ocean",], FUN=sum)
 names(burn_avail_reg_own)[ncol(burn_avail_reg_own)] <- "reg_own_area_ha"
@@ -712,6 +714,8 @@ num_param_sheets = length(param_sheets)
 c_col_types1 = c("character", "character", rep("numeric",50))
 c_col_types2 = c("character", rep("numeric",50))
 c_col_types3 = c("character", "character", "character", rep("numeric",50))
+c_col_types4 = c("character", "character", "character", "character", rep("numeric",50))
+
 # Load the param worksheets into a list of data frames
 param_df_list <- list()
 param_head_list <- list()
@@ -727,10 +731,16 @@ for (i in 3:3) { # conversion2ag_urban
 i = 4
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
-for (i in 5:7) { # dev_manage to ag_manage
+for (i in 5:6) { # dev_manage to grass_manage 
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
 }
+
+# ag_manage
+i = 7
+param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types4, forceConversion = TRUE)
+
 # wildfire
 i=8
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
