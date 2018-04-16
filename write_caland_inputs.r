@@ -26,10 +26,8 @@
 #	8 tables
 #	vegc_uptake, soilc_accum, conversion2ag_urban, forest_manage, dev_manage, grass_manage, ag_manage, wildfire
 #	column headers are on row 12
-#	only non-zero values are included; more land type, ownership, management, or severity rows can be added as appropriate 
-# (if the column exists)
-#	this xls file is a subset of the original ca_carbon_input.xlsx file, as a starting point for filling in the new parameter 
-# tables
+#	only non-zero values are included; more land type, ownership, management, or severity rows can be added as appropriate (if the column exists)
+#	this xls file is a subset of the original ca_carbon_input.xlsx file, as a starting point for filling in the new parameter tables
 
 # scenarios_file
 #	one scenario per table; can have many scenarios defined in this file
@@ -65,43 +63,28 @@
 
 # carbon_gis_files (t C per ha)
 #	14 columns
-#	land category code, label (blank), valid cell count, null cell count, min, max, range, mean, mean of absolute values, sdddev, 
-# variance, coeff_var, sum, sum_abs
+#	land category code, label (blank), valid cell count, null cell count, min, max, range, mean, mean of absolute values, sdddev, variance, coeff_var, sum, sum_abs
 #	use the min, max, mean, and stddev
 #	these are the density and standard error csv files (13) for the seven carbon pools, with values by land category
 #	above ground, below ground, downed dead, standing dead, litter, understory are from ARB inventory
-#	soil organic c is from gSSURGO, and we assume that any zero values in the original data set are non-valid when calculating 
-# the land category averages
-#		there is 12236544 ha (mostly desert) with no data that is converted to zero when the raster is created, and only 17601 ha 
-# (mostly rivers) with zeros in the gssurgo data
+#	soil organic c is from gSSURGO, and we assume that any zero values in the original data set are non-valid when calculating the land category averages
+#		there is 12236544 ha (mostly desert) with no data that is converted to zero when the raster is created, and only 17601 ha (mostly rivers) with zeros in the gssurgo data
 
 # mortality
-# the recent and expected forest mortality due to insects and drought is emulated by a doubled forest mortality rate for 10 years 
-# (2015-2024)
+# the recent and expected forest mortality due to insects and drought is emulated by a doubled forest mortality rate for 10 years (2015-2024)
 # mortality applies only to woody systems with veg c accumulation
 # these types are: shrubland, savanna, woodland, forest, and developed_all
 # developed_all mortality is processed differently from the others
 #  the morality from the scenario is transferred to the above ground harvest of the dead_removal management
 #  this is because the urban system is highly managed, and allows for more control of what happens to the dead biomass
 
-<<<<<<< HEAD
-# wildfire
-# current assumption is that fires are medium severity and the state area is distributed proportionally across ownerships
-# the historical annual average area is applied each year, proportionally existing areas of forest, woodland, savanna, 
-# grassland, and shrubland within each ownership
-
-=======
->>>>>>> upstream/master
 # the only land categories available throughout the sim are those that are included in the input files
 
 # restoration
-# fresh marsh comes out of only private and state land in the delta, so make sure that these are included (for now, all 
-# existing cultivate delta land categories are included as potential fresh marsh)
-#	so far, this is the only land type for which land categories need to be added (except for seagrass)
-# coastal marsh comes out of only private and state land in the coastal regions, so make sure these are available, from 
-# cultivated
-# meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, 
-# savanna, and woodland, 
+# fresh marsh comes out of only private and state land in the delta, so make sure that these are included (for now, all existing cultivate delta land categories are included as potential fresh marsh)
+#	      so far, this is the only land type for which land categories need to be added (except for seagrass)
+# coastal marsh comes out of only private and state land in the coastal regions, so make sure these are available, from cultivated
+# meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, savanna, and woodland, 
 
 # output files
 # areas are in ha (scenario files)
@@ -133,34 +116,6 @@ end_year = 2051
 CLIMATE = "HIST"
 parameter_file = "lc_params.xls"
 scenarios_file = "orig_scenarios.xls"
-<<<<<<< HEAD
-area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
-carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
-
-
-write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xlsx", start_year = 2010, end_year = 2051, 
-                                parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls", 
-                                area_gis_files = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", 
-                                                   "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), 
-                                carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-=======
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 land_change_method = "Landuse_Avg_Annual"
@@ -186,7 +141,6 @@ write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_i
                                                      "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
->>>>>>> upstream/master
                                                      "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")) {
 	
 cat("Start write_caland_inputs at", date(), "\n")
@@ -224,21 +178,12 @@ last_head_row = 10
 sqm2ha = 1.0/10000
 
 # output dataframe lists
-<<<<<<< HEAD
-out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality")
-out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", 
-                 "ltc_2010", "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", 
-                 "grass_manage", "ag_manage", "wildfire")
-out_c_tags = c("allorgc", "biomassc", "agc", "bgc", "usc", "dsc", "ddc", "ltc", "soc", "vegc_uptake", "soilc_accum", 
-               "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
-=======
 out_scen_sheets = c("area_2010", "annual_net_area_change", "annual_managed_area", "annual_wildfire_area", "annual_mortality", "veg_climate_scalars", "soil_climate_scalars")
 
 out_c_sheets = c("sum_allorgc_2010", "sum_biomassc_2010", "agcmain_2010", "bgcmain_2010", "usc_2010", "dsc_2010", "ddc_2010", "ltc_2010", 
                  "soc_2010", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", "dev_manage", "grass_manage", "ag_manage", "wildfire")
 out_c_tags = c("allorgc", "biomassc", "agc", "bgc", "usc", "dsc", "ddc", "ltc", "soc", "vegc_uptake", "soilc_accum", "conversion2ag_urban", "forest_manage", 
                "dev_manage", "grass_manage", "ag_manage", "wildfire")
->>>>>>> upstream/master
 num_scen_sheets = length(out_scen_sheets)
 num_c_sheets = length(out_c_sheets)
 out_scen_df_list <- list()
@@ -355,8 +300,7 @@ range_soc_mean = 116.0
 # south coast is from oak-chapparal
 # central coast is from oak-chapparal
 # Delta and central valley use the oak-chapparal because it is very close to the unweighted average of 4.76
-reg_names = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", 
-              "Sierra_Cascades", "South_Coast")
+reg_names = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast")
 reg_vals = c(4.7, 4.7, 4.7, 2.2, 3.3, 6.0, 7.8, 4.6, 4.7)
 forest_npp = data.frame(Region=reg_names, npp=reg_vals)
 forest_npp$Land_Type = "Forest"
@@ -414,12 +358,8 @@ ref_na = ref_area_in[is.na(ref_area_in$reg_code) & is.na(ref_area_in$lt_code) & 
 cat("\nstart NA area (ha) =", start_na$area_sqm * sqm2ha, "\n")
 cat("ref NA area (ha) =", ref_na$area_sqm * sqm2ha, "\n")
 cat("start-ref NA area (ha) =", start_na$area_sqm * sqm2ha - ref_na$area_sqm * sqm2ha, "\n")
-start_lcat_mismatch = start_area_in[is.na(start_area_in$lcat_code) & !(is.na(start_area_in$reg_code) & 
-                                                                         is.na(start_area_in$lt_code) & 
-                                                                         is.na(start_area_in$own_code)),]
-ref_lcat_mismatch = ref_area_in[is.na(ref_area_in$lcat_code) & !(is.na(ref_area_in$reg_code) & 
-                                                                   is.na(ref_area_in$lt_code) & 
-                                                                   is.na(ref_area_in$own_code)),]
+start_lcat_mismatch = start_area_in[is.na(start_area_in$lcat_code) & !(is.na(start_area_in$reg_code) & is.na(start_area_in$lt_code) & is.na(start_area_in$own_code)),]
+ref_lcat_mismatch = ref_area_in[is.na(ref_area_in$lcat_code) & !(is.na(ref_area_in$reg_code) & is.na(ref_area_in$lt_code) & is.na(ref_area_in$own_code)),]
 start_lcat_mismatch_ha = sum(start_lcat_mismatch$area_sqm * sqm2ha)
 ref_lcat_mismatch_ha = sum(ref_lcat_mismatch$area_sqm * sqm2ha)
 cat("\nstart lcat mismatch area (ha) =", start_lcat_mismatch_ha, "\n")
@@ -448,12 +388,9 @@ names(start_area_reg_own)[ncol(start_area_reg_own)] <- "start_reg_own_area_ha"
 # calculate the annual net area change
 # need to merge the data to deal with mismatches in existing categories between the years
 # first subtract 2001 from 2010
-# if the area is zero in 2010 and the annual loss is < 0, set the annual loss to zero, and 
-# proportionally redistribute the loss to the other land types
-# 	this means that losses in other land types will be increased and gains in other land types 
-# will be decreased
-# adjust the differences by adjusting (reducing in this case) the 2001 areas proportionally by 
-# land category within ownership class and region (so that the total areas match and total differences are zero)
+# if the area is zero in 2010 and the annual loss is < 0, set the annual loss to zero, and proportionally redistribute the loss to the other land types
+# 	this means that losses in other land types will be increased and gains in other land types will be decreased
+# adjust the differences by adjusting (reducing in this case) the 2001 areas proportionally by land category within ownership class and region (so that the total areas match and total differences are zero)
 #	this done by adjusting the non-zero differences directly
 # divide the differences by start-ref year-difference to annualize them
 diff_area_in = merge(start_area_in, ref_area_in, by=c("lcat_code"), all=TRUE)
@@ -476,8 +413,7 @@ diff_area_in$lt_code.y = NULL
 diff_area_in$lt_name.y = NULL
 diff_area_in$own_code.y = NULL
 diff_area_in$own_name.y = NULL
-colnames(diff_area_in) <- c("lcat_code", "reg_code", "reg_name", "lt_code", "lt_name", "own_code", "own_name", 
-                            "start_area_ha", "ref_area_ha", "diff_area_ha")
+colnames(diff_area_in) <- c("lcat_code", "reg_code", "reg_name", "lt_code", "lt_name", "own_code", "own_name", "start_area_ha", "ref_area_ha", "diff_area_ha")
 # get the region-ownership areas for the start year
 diff_area_calc = merge(diff_area_in, start_area_reg_own, by=c("reg_name", "own_name"), all.x=TRUE)
 diff_area_calc = diff_area_calc[order(diff_area_calc$lcat_code),]
@@ -487,12 +423,10 @@ unavail_loss_agg = aggregate(diff_area_ha ~ reg_name + own_name, unavail_loss, F
 names(unavail_loss_agg)[ncol(unavail_loss_agg)] <- "start_reg_own_diff_area_ha"
 diff_area_calc = merge(diff_area_calc, unavail_loss_agg, by=c("reg_name", "own_name"), all.x=TRUE)
 diff_area_calc = diff_area_calc[order(diff_area_calc$lcat_code),]
-diff_area_calc$start_reg_own_diff_area_ha = replace(diff_area_calc$start_reg_own_diff_area_ha, 
-                                                    is.na(diff_area_calc$start_reg_own_diff_area_ha), 0)
+diff_area_calc$start_reg_own_diff_area_ha = replace(diff_area_calc$start_reg_own_diff_area_ha, is.na(diff_area_calc$start_reg_own_diff_area_ha), 0)
 diff_area_calc$diff_area_clean_ha = diff_area_calc$diff_area_ha
 diff_area_calc$diff_area_clean_ha[diff_area_calc$diff_area_ha<0 & diff_area_calc$start_area_ha==0] = 0
-diff_area_calc$diff_area_clean_ha = diff_area_calc$diff_area_clean_ha + diff_area_calc$start_reg_own_diff_area_ha * 
-  diff_area_calc$start_area_ha / diff_area_calc$start_reg_own_area_ha
+diff_area_calc$diff_area_clean_ha = diff_area_calc$diff_area_clean_ha + diff_area_calc$start_reg_own_diff_area_ha * diff_area_calc$start_area_ha / diff_area_calc$start_reg_own_area_ha
 diff_area_clean_sum_ha = sum(diff_area_calc$diff_area_clean_ha)
 # adjust for differences due to total area mismatch
 # get the region-ownership change area sums
@@ -500,10 +434,8 @@ extra_change_agg = aggregate(diff_area_clean_ha ~ reg_name + own_name, diff_area
 names(extra_change_agg)[ncol(extra_change_agg)] <- "extra_change_area_ha"
 diff_area_calc = merge(diff_area_calc, extra_change_agg, by=c("reg_name", "own_name"), all.x=TRUE)
 diff_area_calc = diff_area_calc[order(diff_area_calc$lcat_code),]
-diff_area_calc$extra_change_area_ha = replace(diff_area_calc$extra_change_area_ha, 
-                                              is.na(diff_area_calc$extra_change_area_ha), 0)
-diff_area_calc$diff_area_adj_ha = diff_area_calc$diff_area_clean_ha - diff_area_calc$extra_change_area_ha * 
-  diff_area_calc$start_area_ha / diff_area_calc$start_reg_own_area_ha
+diff_area_calc$extra_change_area_ha = replace(diff_area_calc$extra_change_area_ha, is.na(diff_area_calc$extra_change_area_ha), 0)
+diff_area_calc$diff_area_adj_ha = diff_area_calc$diff_area_clean_ha - diff_area_calc$extra_change_area_ha * diff_area_calc$start_area_ha / diff_area_calc$start_reg_own_area_ha
 diff_area_adj_sum_ha = sum(diff_area_calc$diff_area_adj_ha)
 # annualize difference
 diff_area_calc$ann_diff_area_ha = diff_area_calc$diff_area_adj_ha / diff_years
@@ -542,16 +474,6 @@ diff_area_calc = rbind(diff_area_calc, seagrass_df)
 ###########################  assign area calcs to out_scen_df_list ###########################  
 ##############################################################################################
 # scen area tables
-<<<<<<< HEAD
-# area
-out_scen_df_list[[1]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, 
-                                   Land_Type=diff_area_calc$lt_name, Ownership=diff_area_calc$own_name, 
-                                   Area_ha=diff_area_calc$start_area_ha)
-# annaul net area change
-out_scen_df_list[[2]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, 
-                                   Land_Type=diff_area_calc$lt_name, Ownership=diff_area_calc$own_name, 
-                                   Area_change_ha=diff_area_calc$ann_diff_area_ha)
-=======
 # initial area
 out_scen_df_list[[1]] = data.frame(Land_Cat_ID=diff_area_calc$lcat_code, Region=diff_area_calc$reg_name, Land_Type=diff_area_calc$lt_name, 
                                    Ownership=diff_area_calc$own_name, Area_ha=diff_area_calc$start_area_ha)
@@ -581,7 +503,6 @@ colnames(new_area_changes)[2:(ncol(new_area_changes)-1)] <- sub("Area_", "Area_c
 }
 # checks if matching is done correctly. Should equal -0.4541131. Good!
 out_scen_df_list[[2]][out_scen_df_list[[2]]["Land_Cat_ID"] == 107001, "Area_change_ha"]
->>>>>>> upstream/master
 
 ###### scen wildfire area table
 # the available land types are forest, woodland, savanna, shrubland, grassland; but these are determined annually in caland
@@ -591,29 +512,11 @@ out_scen_df_list[[2]][out_scen_df_list[[2]]["Land_Cat_ID"] == 107001, "Area_chan
 
 fire_area_in = read.csv(paste0(in_dir,fire_area_file), stringsAsFactors = FALSE)
 
-<<<<<<< HEAD
-# subset these land types from the start area table, then aggregate to region-ownwership
-start_area_burn_types = out_scen_df_list[[1]][out_scen_df_list[[1]]$Land_Type == "Forest" | 
-                                                out_scen_df_list[[1]]$Land_Type == "Woodland" | 
-                                                out_scen_df_list[[1]]$Land_Type == "Savanna" | 
-                                                out_scen_df_list[[1]]$Land_Type == "Shrubland" | 
-                                                out_scen_df_list[[1]]$Land_Type == "Grassland",]
-burn_avail_reg_own = aggregate(Area_ha ~ Region + Ownership, start_area_burn_types, FUN=sum)
-names(burn_avail_reg_own)[ncol(burn_avail_reg_own)] <- "burn_avail_area_ha"
-burn_avail_area_sum_ha = sum(burn_avail_reg_own$burn_avail_area_ha)
-burn_avail_reg_own$burn_avail_area_sum_ha = burn_avail_area_sum_ha
-burn_avail_reg_own$ann_burn_area = wildfire_ann_val * burn_avail_reg_own$burn_avail_area_ha / 
-  burn_avail_reg_own$burn_avail_area_sum_ha
-burn_avail_reg_own$ann_burn_area_high = high_fire_frac * burn_avail_reg_own$ann_burn_area
-burn_avail_reg_own$ann_burn_area_low = low_fire_frac * burn_avail_reg_own$ann_burn_area
-burn_avail_reg_own$ann_burn_area_med = med_fire_frac * burn_avail_reg_own$ann_burn_area
-=======
 # first set up the table
 # use all region-ownerships and all three severities so that the tabel is consistent across years and complete
 # remove ocean and aggregate to region-ownership
 burn_avail_reg_own = aggregate(Area_ha ~ Region + Ownership, out_scen_df_list[[1]][out_scen_df_list[[1]]$Region != "Ocean",], FUN=sum)
 names(burn_avail_reg_own)[ncol(burn_avail_reg_own)] <- "reg_own_area_ha"
->>>>>>> upstream/master
 burn_avail_reg_own$lcat_code = -1
 burn_avail_reg_own$lt_name = "Unspecified"
 
@@ -625,13 +528,6 @@ med_burn = burn_avail_reg_own
 med_burn$Severity = "Medium"
 
 burn_area_ann = rbind(high_burn, low_burn, med_burn)
-<<<<<<< HEAD
-burn_area_ann = burn_area_ann[order(burn_area_ann$lcat_code, burn_area_ann$Region, burn_area_ann$Ownership, 
-                                    burn_area_ann$Severity),]
-out_scen_df_list[[4]] = data.frame(Land_Cat_ID=burn_area_ann$lcat_code, Region=burn_area_ann$Region, 
-                                   Land_Type=burn_area_ann$lt_name, Ownership=burn_area_ann$Ownership, 
-                                   Severity=burn_area_ann$Severity, start_ha=burn_area_ann$ann_burn_area)
-=======
 burn_area_ann = merge(burn_area_ann, fire_area_in, by = c("Region", "Ownership"), all.x = TRUE)
 burn_area_ann = burn_area_ann[order(burn_area_ann$lcat_code, burn_area_ann$Region, burn_area_ann$Ownership, burn_area_ann$Severity),]
 
@@ -659,7 +555,6 @@ burn_area_ann[burn_area_ann$Severity == "Medium", "initial_area_sev"] = med_fire
 
 # start building the output table
 out_scen_df_list[[4]] = data.frame(Land_Cat_ID=burn_area_ann$lcat_code, Region=burn_area_ann$Region, Land_Type=burn_area_ann$lt_name, Ownership=burn_area_ann$Ownership, Severity=burn_area_ann$Severity, start_ha=burn_area_ann$initial_area_sev)
->>>>>>> upstream/master
 names(out_scen_df_list[[4]])[ncol(out_scen_df_list[[4]])] <- paste0(start_year,"_ha")
 
 # loop through the remaining years
@@ -703,26 +598,18 @@ for (y in (start_year+1):(end_year-1)) {
 
 # mortality applies only to shrubland, savanna, woodland, forest, and developed_all
 # initial year
-mortality_types = out_scen_df_list[[1]][out_scen_df_list[[1]]$Land_Type == "Forest" | 
-                                          out_scen_df_list[[1]]$Land_Type == "Woodland" | 
-                                          out_scen_df_list[[1]]$Land_Type == "Savanna" | 
-                                          out_scen_df_list[[1]]$Land_Type == "Shrubland" | 
-                                          out_scen_df_list[[1]]$Land_Type == "Developed_all",]
+mortality_types = out_scen_df_list[[1]][out_scen_df_list[[1]]$Land_Type == "Forest" | out_scen_df_list[[1]]$Land_Type == "Woodland" | out_scen_df_list[[1]]$Land_Type == "Savanna" | out_scen_df_list[[1]]$Land_Type == "Shrubland" | out_scen_df_list[[1]]$Land_Type == "Developed_all",]
 names(mortality_types)[ncol(mortality_types)] <- "start_frac"
 year_col_start = ncol(mortality_types)
 mortality_types$start_frac = mortality_default
-mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership == "Private"] = 
-  mortality_forest_private
-mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership == "USFS_nonwild"] = 
-  mortality_forest_usfs
-mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership != "Private" & 
-                             mortality_types$Ownership != "USFS_nonwild"] = mortality_forest_other
+mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership == "Private"] = mortality_forest_private
+mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership == "USFS_nonwild"] = mortality_forest_usfs
+mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership != "Private" & mortality_types$Ownership != "USFS_nonwild"] = mortality_forest_other
 # increased forest mortality
 # need to add the years surround the jumps so that each period has a flat mortality rate
 mortality_types$year2_frac = mortality_types$start_frac
 mortality_types$year3_frac = mortality_types$start_frac
-mortality_types$year3_frac[mortality_types$Land_Type == "Forest"] = mortality_forest_factor * 
-  mortality_types$year3_frac[mortality_types$Land_Type == "Forest"]
+mortality_types$year3_frac[mortality_types$Land_Type == "Forest"] = mortality_forest_factor * mortality_types$year3_frac[mortality_types$Land_Type == "Forest"]
 mortality_types$year4_frac = mortality_types$year3_frac
 mortality_types$year5_frac = mortality_types$start_frac
 mortality_types = mortality_types[order(mortality_types$Land_Cat_ID),]
@@ -796,14 +683,11 @@ scenin_wrkbk = loadWorkbook(paste0(in_dir,scenarios_file))
 scenin_sheets = getSheets(scenin_wrkbk)
 num_scenin_sheets = length(scenin_sheets)
 # NA values need to be converted to numeric
-# the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be 
-# converted a number so it is 
+# the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
 # converted to NA value
 scenin_df_list <- list()
 for (i in 1:num_scenin_sheets) {
-	scenin_df_list[[i]] <- readWorksheet(scenin_wrkbk, i, startRow = start_row, colTypes = c(rep("character",4), 
-	                                                                                         rep("numeric",50)), 
-	                                     forceConversion = TRUE)
+	scenin_df_list[[i]] <- readWorksheet(scenin_wrkbk, i, startRow = start_row, colTypes = c(rep("character",4), rep("numeric",50)), forceConversion = TRUE)
 }
 
 ###### read the scenario headers file for the outputs
@@ -823,8 +707,7 @@ param_wrkbk = loadWorkbook(paste0(in_dir,parameter_file))
 param_sheets = getSheets(param_wrkbk)
 num_param_sheets = length(param_sheets)
 # NA values need to be converted to numeric
-# the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be 
-# converted a number so it is 
+# the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
 # converted to NA value
 c_col_types1 = c("character", "character", rep("numeric",50))
 c_col_types2 = c("character", rep("numeric",50))
@@ -834,33 +717,24 @@ param_df_list <- list()
 param_head_list <- list()
 for (i in 1:2) { # vegc_uptake and soilc_accum
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-<<<<<<< HEAD
-	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, 
-	                                    forceConversion = TRUE)
-=======
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
->>>>>>> upstream/master
 }
 for (i in 3:3) { # conversion2ag_urban
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, 
-	                                    forceConversion = TRUE)
+	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
 }
 # forest_manage
 i = 4
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, 
-                                    forceConversion = TRUE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
 for (i in 5:7) { # dev_manage to ag_manage
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, 
-	                                    forceConversion = TRUE)
+	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
 }
 # wildfire
 i=8
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, 
-                                    forceConversion = TRUE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
 
 ###### read the parameter headers file for the outputs
 paramhead_wrkbk = loadWorkbook(param_head_file)
@@ -884,8 +758,7 @@ for (s in 1:num_scenin_sheets) {
 	# check the scenario management against the parameter management
 	# Restoration, Urban_forest, and Growth do not have any parameters associated with them
 	for (m in 1:length(scenin$Management)) {
-		if (scenin$Management[m] != "Restoration" & scenin$Management[m] != "Urban_forest" & 
-		    scenin$Management[m] != "Growth") {
+		if (scenin$Management[m] != "Restoration" & scenin$Management[m] != "Urban_forest" & scenin$Management[m] != "Growth") {
 			EXIST = FALSE
 			for (t in 4:7) {
 				for (r in 1:length(param_df_list[[t]]$Management)) {
@@ -897,8 +770,7 @@ for (s in 1:num_scenin_sheets) {
 				if (EXIST) {break}
 			}
 			if (!EXIST) {
-				cat("\n STOP! Scenario management", scenin$Management[m], 
-				    "does not exist in the parameter definitions\n")
+				cat("\n STOP! Scenario management", scenin$Management[m], "does not exist in the parameter definitions\n")
 				stop()
 			}
 		} # end if not Restoration
@@ -942,19 +814,6 @@ for (s in 1:num_scenin_sheets) {
 	manage4$allregion = NULL
 	manage4$allown = NULL
 	
-<<<<<<< HEAD
-	# now calculate the appropriate normalizing area for each group so that the management area can be 
-	# distributed
-	col_order = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "Area_ha", "Area_change_ha", 
-	              "start_year", "end_year", "start_area", "end_area", "start_area_frac", "end_area_frac", 
-	              "Area_norm_ha")
-	if (nrow(manage1) > 0) {
-		manage1_agg = aggregate(Area_ha ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year, 
-		                        manage1, FUN=sum)
-		names(manage1_agg)[ncol(manage1_agg)] = "Area_norm_ha"
-		manage1 = merge(manage1, manage1_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
-		                                             "start_year"), all.x = TRUE)
-=======
 	# now calculate the appropriate normalizing area for each group so that the management area can be distributed
 	# normalized area here seems like it is equal to the sum aggregated management areas
 	col_order = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "Area_ha", "Area_change_ha", 
@@ -966,23 +825,20 @@ for (s in 1:num_scenin_sheets) {
 		names(manage1_agg)[ncol(manage1_agg)] = "Area_norm_ha"
 		# merge with non-aggregated areas
 		manage1 = merge(manage1, manage1_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year"), all.x = TRUE)
->>>>>>> upstream/master
 		manage1 = manage1[,col_order]
 	} 
 	if (nrow(manage2) > 0) {
 	  # sum aggregate all own-specific management areas
 		manage2_agg = aggregate(Area_ha ~ Land_Type + Ownership + Management + start_year, manage2, FUN=sum)
 		names(manage2_agg)[ncol(manage2_agg)] = "Area_norm_ha"
-		manage2 = merge(manage2, manage2_agg, by = c("Land_Type", "Ownership", "Management", "start_year"), 
-		                all.x = TRUE)
+		manage2 = merge(manage2, manage2_agg, by = c("Land_Type", "Ownership", "Management", "start_year"), all.x = TRUE)
 		manage2 = manage2[,col_order]
 	}
 	if (nrow(manage3) > 0) {
 	  # sum aggregate all region-specific management areas
 		manage3_agg = aggregate(Area_ha ~ Region + Land_Type + Management + start_year, manage3, FUN=sum)
 		names(manage3_agg)[ncol(manage3_agg)] = "Area_norm_ha"
-		manage3 = merge(manage3, manage3_agg, by = c("Region", "Land_Type", "Management", "start_year"), 
-		                all.x = TRUE)
+		manage3 = merge(manage3, manage3_agg, by = c("Region", "Land_Type", "Management", "start_year"), all.x = TRUE)
 		manage3 = manage3[,col_order]
 	}
 	if (nrow(manage4) > 0) {
@@ -1000,13 +856,8 @@ for (s in 1:num_scenin_sheets) {
 	manage[,paste0(start_year,"_ha")] = 0.0
 	
 	# get the necessary years for columns (note that the start_year column already exists)
-<<<<<<< HEAD
-	# years immediately before start years and immediately after end years need to be added (unless they are 
-	# beyond the year range)
-=======
 	# years immediately before start years and immediately after end years need to be added (unless they are beyond the year range)
 	
->>>>>>> upstream/master
 	# first years: includes the prior year (within start_year to scen_end_year)
 	man_first = sort(unique(manage$start_year))
 	man_last = sort(unique(manage$end_year))
@@ -1060,18 +911,6 @@ for (s in 1:num_scenin_sheets) {
 		## process first year to last year
 		
 		# annual area input; the values set are annual area; need to distribute the prescribed area
-<<<<<<< HEAD
-		# if normalizing area is zero, then no existing category, so set norm area to 1 so that end value 
-		# is zero
-		area_norm_recs = manage_annareain$Area_norm_ha[manage_annareain$start_year <= year & 
-		                                                 manage_annareain$end_year >= year]
-		zinds = which(area_norm_recs == 0)
-		area_norm_recs[zinds] = 1.0
-		manage_annareain[manage_annareain$start_year <= year & manage_annareain$end_year >= year,year_lab] = 
-		  (manage_annareain$start_area[manage_annareain$start_year <= year & manage_annareain$end_year >= year] + 
-		     (year - manage_annareain$start_year[manage_annareain$start_year <= year & 
-		                                           manage_annareain$end_year >= year]) * 
-=======
 		# prescribed area is distributed relative to the sum aggregated management areas according to whether they are region- and/or ownership- specific
 		# if normalizing area is zero, then no existing category, so set norm area to 1 so that end value is zero
 		area_norm_recs = manage_annareain$Area_norm_ha[manage_annareain$start_year <= year & manage_annareain$end_year >= year]
@@ -1083,7 +922,6 @@ for (s in 1:num_scenin_sheets) {
 		manage_annareain[manage_annareain$start_year <= year & manage_annareain$end_year >= year,year_lab] = 
 		  (manage_annareain$start_area[manage_annareain$start_year <= year & manage_annareain$end_year >= year] + 
 		     (year - manage_annareain$start_year[manage_annareain$start_year <= year & manage_annareain$end_year >= year]) * 
->>>>>>> upstream/master
 		     (manage_annareain$end_area[manage_annareain$start_year <= year & manage_annareain$end_year >= year] - 
 		        manage_annareain$start_area[manage_annareain$start_year <= year & manage_annareain$end_year >= year]) / 
 		     (manage_annareain$end_year[manage_annareain$start_year <= year & manage_annareain$end_year >= year] - 
@@ -1095,18 +933,10 @@ for (s in 1:num_scenin_sheets) {
 		# if normalizing area is zero, then no existing category, so set norm area to 1 so that end value is zero
 		#	unless the zeros are for fresh marsh, then assume that the management values are specified for each land 
 		# category already
-		area_norm_recs = manage_cumareain$Area_norm_ha[manage_cumareain$start_year <= year & 
-		                                                 manage_cumareain$end_year >= year]
-		area_initial_recs = manage_cumareain$Area_ha[manage_cumareain$start_year <= year & 
-		                                               manage_cumareain$end_year >= year]
+		area_norm_recs = manage_cumareain$Area_norm_ha[manage_cumareain$start_year <= year & manage_cumareain$end_year >= year]
+		area_initial_recs = manage_cumareain$Area_ha[manage_cumareain$start_year <= year & manage_cumareain$end_year >= year]
 		zinds = which(area_norm_recs == 0)
-<<<<<<< HEAD
-		fresh_marsh_inds = which(manage_cumareain$Land_Type[manage_cumareain$start_year <= year & 
-		                                                      manage_cumareain$end_year >= year] == "Fresh_marsh")
-=======
-		fresh_marsh_inds = which(manage_cumareain$Land_Type[manage_cumareain$start_year <= year & manage_cumareain$end_year >= 
-		                                                      year] == "Fresh_marsh")
->>>>>>> upstream/master
+		fresh_marsh_inds = which(manage_cumareain$Land_Type[manage_cumareain$start_year <= year & manage_cumareain$end_year >= year] == "Fresh_marsh")
 		fmzinds = intersect(zinds, fresh_marsh_inds)
 		area_norm_recs[zinds] = 1.0
 		area_initial_recs[fmzinds] = 1.0
@@ -1125,33 +955,6 @@ for (s in 1:num_scenin_sheets) {
 		#	these negative values are dealt with in CALAND
 
 		# growth
-<<<<<<< HEAD
-		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                manage_fracin$Management == "Growth",year_lab] = 
-		  (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                   manage_fracin$Management == "Growth"] + 
-		     (year - manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                        manage_fracin$Management == "Growth"]) * 
-		     (manage_fracin$end_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                    manage_fracin$Management == "Growth"] - 
-		        manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                        manage_fracin$Management == "Growth"]) / 
-		     (manage_fracin$end_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                               manage_fracin$Management == "Growth"] - 
-		        manage_fracin$start_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                   manage_fracin$Management == "Growth"])) * 
-		  manage_fracin$Area_change_ha[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                 manage_fracin$Management == "Growth"]
-
-		# dead_removal and urban forest
-		# first calculate the developed_all area for this year
-		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                (manage_fracin$Management == "Dead_removal" | 
-		                   manage_fracin$Management == "Urban_forest"),year_lab] = 
-		  manage_fracin$Area_ha[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                          (manage_fracin$Management == "Dead_removal" | 
-		                             manage_fracin$Management == "Urban_forest")]
-=======
 		# for rows with management start_year <= current management year (e.g. 2010, 2020, 2021, 2050) in loop 
 		# (that's all rows because start_year == 2010), assign the following calculation to the current management area
 		# column in loop (e.g. "2010_ha" "2020_ha" "2021_ha" "2050_ha")
@@ -1193,7 +996,6 @@ for (s in 1:num_scenin_sheets) {
 		                (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = 
 		  manage_fracin$Area_ha[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | 
 		                                                                                               manage_fracin$Management == "Urban_forest")]
->>>>>>> upstream/master
 		if (year > start_year) {
 			for (p in 2:y) {
 			  # assign current management year to pyear
@@ -1204,15 +1006,7 @@ for (s in 1:num_scenin_sheets) {
 				prev_pyear = man_years[p-1]
 				# assign previous management year's corresponding label to prev_pyear_lab
 				prev_pyear_lab = man_years_labels[p-1]
-<<<<<<< HEAD
-				# get the appropriate growth area values and merge them with the dead and urban data
-				growth_temp = manage_fracin[manage_fracin$Management == "Growth" & 
-				                              manage_fracin$Area_change_ha >= 0,]
-				growth_temp$growth_val = growth_temp[,prev_pyear_lab]
-				growth_pos_agg = aggregate(growth_val ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
-				                           growth_temp, FUN=max)
-=======
-				
+
 				### get the appropriate growth area values and merge them with the dead and urban data
 				
 				# assign all Growth management records that have _expanding_ Urban area to growth_temp
@@ -1226,28 +1020,9 @@ for (s in 1:num_scenin_sheets) {
 				}
 				
 				# assign all Growth management records that have _contracting_ Urban area to growth_temp
->>>>>>> upstream/master
 				growth_temp = manage_fracin[manage_fracin$Management == "Growth" & manage_fracin$Area_change_ha < 0,]
 				# assign the previous year's Growth management area to rowth_temp$growth_val
 				growth_temp$growth_val = growth_temp[,prev_pyear_lab]
-<<<<<<< HEAD
-				growth_neg_agg = aggregate(growth_val ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
-				                           growth_temp, FUN=min)
-				growth_temp = rbind(growth_pos_agg, growth_neg_agg)
-				manage_fracin_temp = merge(manage_fracin[manage_fracin$start_year <= year & 
-				                                           manage_fracin$end_year >= year & 
-				                                           (manage_fracin$Management == "Dead_removal" | 
-				                                              manage_fracin$Management == "Urban_forest"),], 
-				                           growth_temp, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), 
-				                           all.x = TRUE)
-				area_delta = manage_fracin_temp$growth_val * (pyear - prev_pyear)
-				manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-				                (manage_fracin$Management == "Dead_removal" | 
-				                   manage_fracin$Management == "Urban_forest"),year_lab] = 
-				  manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-				                  (manage_fracin$Management == "Dead_removal" | 
-				                     manage_fracin$Management == "Urban_forest"),year_lab] + area_delta
-=======
 				# check if any contracting Urban areas exist before aggregating them
 				if (nrow(growth_temp) != 0) {
 				  # extract the previous year's _min_ Growth management area for each landcat, region, landtype, ownership combination
@@ -1276,40 +1051,10 @@ for (s in 1:num_scenin_sheets) {
 				                (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = 
 				  manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
 				                  (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] + area_delta
->>>>>>> upstream/master
 			} # end for p loop over previous year columns
 		} # end if not start year
 		# now multiply the area by the fraction
 		manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-<<<<<<< HEAD
-		                (manage_fracin$Management == "Dead_removal" | 
-		                   manage_fracin$Management == "Urban_forest"),year_lab] = 
-		  (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                                   (manage_fracin$Management == "Dead_removal" | 
-		                                      manage_fracin$Management == "Urban_forest")] + 
-		     (year - manage_fracin$start_year[manage_fracin$start_year <= year & 
-		                                        manage_fracin$end_year >= year & 
-		                                        (manage_fracin$Management == "Dead_removal" | 
-		                                           manage_fracin$Management == "Urban_forest")]) * 
-		     (manage_fracin$end_area_frac[manage_fracin$start_year <= year & 
-		                                    manage_fracin$end_year >= year & 
-		                                    (manage_fracin$Management == "Dead_removal" | 
-		                                       manage_fracin$Management == "Urban_forest")] - 
-		        manage_fracin$start_area_frac[manage_fracin$start_year <= year & 
-		                                        manage_fracin$end_year >= year & 
-		                                        (manage_fracin$Management == "Dead_removal" | 
-		                                           manage_fracin$Management == "Urban_forest")]) / 
-		     (manage_fracin$end_year[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                               (manage_fracin$Management == "Dead_removal" | 
-		                                  manage_fracin$Management == "Urban_forest")] - 
-		        manage_fracin$start_year[manage_fracin$start_year <= year & 
-		                                   manage_fracin$end_year >= year & 
-		                                   (manage_fracin$Management == "Dead_removal" | 
-		                                      manage_fracin$Management == "Urban_forest")])) * 
-		  manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
-		                  (manage_fracin$Management == "Dead_removal" | 
-		                     manage_fracin$Management == "Urban_forest"),year_lab]
-=======
 		                (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest"),year_lab] = 
 		  (manage_fracin$start_area_frac[manage_fracin$start_year <= year & manage_fracin$end_year >= year & 
 		                                   (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")] + 
@@ -1325,8 +1070,7 @@ for (s in 1:num_scenin_sheets) {
 		                                   (manage_fracin$Management == "Dead_removal" | manage_fracin$Management == "Urban_forest")])) * 
 		  manage_fracin[manage_fracin$start_year <= year & manage_fracin$end_year >= year & (manage_fracin$Management == "Dead_removal" | 
 		                                                                                       manage_fracin$Management == "Urban_forest"),year_lab]
->>>>>>> upstream/master
-		
+	
 		## process years after last years
 		
 		# annual area input; the values set are annual area
@@ -1373,17 +1117,12 @@ for (s in 1:num_scenin_sheets) {
 	if (nrow(growth_temp)!=0) {
 	# combine the manage_agg and growth_neg_agg
 	manage_out = rbind(manage_agg, growth_neg_agg)
-<<<<<<< HEAD
-	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Region, manage_out$Land_Type, 
-	                              manage_out$Ownership, manage_out$Management),]
-=======
 	} else {
 	  manage_out <- manage_agg
 	}
 	# change order of columns 
 	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Region, manage_out$Land_Type, manage_out$Ownership, manage_out$Management),]
 	# assign to output sheet
->>>>>>> upstream/master
 	out_scen_df_list[[3]] = manage_out
 
 	# write the scenario file
@@ -1426,23 +1165,17 @@ for (p in cpool_start:cpool_end) {
 	se_index = intersect(which(grepl("_se_", carbon_gis_files)), file_indices)
 	val_index = setdiff(file_indices, se_index)
 	
-	out_table = merge(out_scen_df_list[[1]], in_c_df_list[[val_index]], by.x = c("Land_Cat_ID"), 
-	                  by.y = c("zone"), all.x = TRUE)
-	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "min", 
-	                         "max", "mean", "stddev")]
-	names(out_table)[] = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
-	                       "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")
+	out_table = merge(out_scen_df_list[[1]], in_c_df_list[[val_index]], by.x = c("Land_Cat_ID"), by.y = c("zone"), all.x = TRUE)
+	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "min", "max", "mean", "stddev")]
+	names(out_table)[] = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")
 	if (length(se_index) > 0) { # biomass c
-		out_table = merge(out_table, in_c_df_list[[se_index]], by.x = c("Land_Cat_ID"), by.y = c("zone"), 
-		                  all.x = TRUE)
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
-		                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "mean", "stddev")]
+		out_table = merge(out_table, in_c_df_list[[se_index]], by.x = c("Land_Cat_ID"), by.y = c("zone"), all.x = TRUE)
+		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "mean", "stddev")]
 	} else { # soil c
 		out_table$"Mean_SE_Mg_ha" = NA
 		out_table$"Stddev_SE_Mg_ha" = NA
 	}
-	names(out_table)[] = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
-	                       "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")
+	names(out_table)[] = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")
 	
 	# fill Developed-all above ground c
 	if (out_c_tags[p] == "agc") {
