@@ -114,8 +114,7 @@ c_file = "carbon_input.xls"
 start_year = 2010
 end_year = 2051
 CLIMATE = "HIST"
-# parameter_file = "lc_params.xls"
-parameter_file = "lc_params_new.xls"
+parameter_file = "lc_params.xls"
 scenarios_file = "orig_scenarios.xls"
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
@@ -207,7 +206,7 @@ ag_manage_ind = 16
 wildfire_ind = 17
 
 # useful indices of the input parameter files
-param_start_col = c(3, 3, 2, 4, 3, 3, 3, 2)
+param_start_col = c(3, 3, 2, 4, 3, 3, 4, 2)
 
 # some default parameters
 
@@ -714,7 +713,6 @@ num_param_sheets = length(param_sheets)
 c_col_types1 = c("character", "character", rep("numeric",50))
 c_col_types2 = c("character", rep("numeric",50))
 c_col_types3 = c("character", "character", "character", rep("numeric",50))
-c_col_types4 = c("character", "character", "character", "character", rep("numeric",50))
 
 # Load the param worksheets into a list of data frames
 param_df_list <- list()
@@ -731,6 +729,7 @@ for (i in 3:3) { # conversion2ag_urban
 i = 4
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
+
 for (i in 5:6) { # dev_manage to grass_manage 
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
@@ -739,7 +738,7 @@ for (i in 5:6) { # dev_manage to grass_manage
 # ag_manage
 i = 7
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types4, forceConversion = TRUE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
 
 # wildfire
 i=8
@@ -1536,47 +1535,83 @@ out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_map_df_list[[biomas
 
 ############### make the conversion/management parameter tables
 # the vegetation c uptake table is distributed then Forest is adjusted by region
-# deal with soil c accumulation table similarly to the veg table, and delta cultivated is updated to 
-# peat values
+# deal with soil c accumulation [and ag_manage table (??)] similarly to the veg table 
 # wildfire is passed through exactly as is
 # the rest are merged with the full set of land cats, then the NA rows are removed
 
 # loop over the management parameter tables (except wildfire)
+ # recall:
+#params_start = 10
+#params_end = 17
+#vegcuptake_ind = 10
+#soilcaccum_ind = 11
+#conversion_ind = 12
+#forest_man_ind = 13
+#ag_manage_ind = 16
+#wildfire_ind = 17
+
+ # for vegCuptake, soilCuptake, conversion, forest_man, dev_manage, grass_manage, ag_manage, wildfire 
 for (m in params_start:params_end) {
+  # m = 10 to 17
+  # in_index = 1 to 8
 	in_index = m - params_start + 1
+	# assign how merging will be done depending on which table is being worked on in loop
+	  # if vegcuptake, soilcaccum merging will be done by reg, landtype, and ownership 
 	if (m == vegcuptake_ind | m == soilcaccum_ind) {
 		mergeby = c("Region", "Land_Type", "Ownership")
+		# if forest_man merging will be done by landtype and ownership 
 	} else if (m == forest_man_ind) {
 		mergeby = c("Land_Type", "Ownership")
-	} else {
-		mergeby = c("Land_Type")
-	}
+	# if conversion, dev_manage, grass_manage, or wildfire merge by landtype
+		} else if (m == ag_manage_ind) {
+		  mergeby = c("Region", "Land_Type")
+		} else {
+		  mergeby = c("Land_Type")
+		}
 	
+	# if on wildfire table (m=17, in_index=8),
 	if (m == wildfire_ind) {
+	  # assign the wildfire param table to the 17th df of out_c_df_list
 		out_c_df_list[[wildfire_ind]] = param_df_list[[in_index]]
-	} else if (m == vegcuptake_ind | m==soilcaccum_ind) {
-		
+		# otherwise for veg and soil c accum
+	} else 
+	  if (m == vegcuptake_ind | m==soilcaccum_ind) {
 		# split the records based on complete specification, all own, or all region, or all own all region
-		paramin = param_df_list[[in_index]]
-		complete_recs = paramin[paramin$Ownership != "All" & paramin$Region != "All",]
-		allown_recs = paramin[paramin$Ownership == "All" & paramin$Region != "All",]
+		  # assign the veg or soil C param table to paramin
+	  paramin = param_df_list[[in_index]]
+		  # assign rows with  ownership- and region-specific land types to complete_recs
+	  complete_recs = paramin[paramin$Ownership != "All" & paramin$Region != "All",]
+	    # assign region-specifc landtype to allown_recs
+	  allown_recs = paramin[paramin$Ownership == "All" & paramin$Region != "All",]
+	    # assign ownership-specifc landtype to allreg_recs
 		allreg_recs = paramin[paramin$Region == "All" & paramin$Ownership != "All",]
+		  # assign statewide landtype to allownreg_recs
 		allownreg_recs = paramin[paramin$Region == "All" & paramin$Ownership == "All",]
+		
+		# create column names 
+		 # "Region", "Land_Type","allown","Min_Mg_ha_yr","Max_Mg_ha_yr","Mean_Mg_ha_yr","Stddev_Mg_ha_yr"
 		names(allown_recs)[grep("^Ownership$", colnames(allown_recs))] = "allown"
+		  # "allreg","Land_Type","Ownership","Min_Mg_ha_yr","Max_Mg_ha_yr","Mean_Mg_ha_yr","Stddev_Mg_ha_yr"
 		names(allreg_recs)[grep("^Region$", colnames(allreg_recs))] = "allreg"
+		  # "allreg","Land_Type","allown","Min_Mg_ha_yr","Max_Mg_ha_yr","Mean_Mg_ha_yr","Stddev_Mg_ha_yr"
 		names(allownreg_recs)[grep("^Region$", colnames(allownreg_recs))] = "allreg"
+		 # "allreg","Land_Type","allown","Min_Mg_ha_yr","Max_Mg_ha_yr","Mean_Mg_ha_yr","Stddev_Mg_ha_yr"
 		names(allownreg_recs)[grep("^Ownership$", colnames(allownreg_recs))] = "allown"
 	
-		# merge these groups accordingly with the start area table
+		# merge these groups accordingly with the start area table into accum1, accum2, accum3, and accum4, depending on if
+		 # there any records in each, and create list accum_df_list with each table (1 to 4) represented regardless if it has any rows
 		area = out_scen_df_list[[1]]
 		AE = NULL
+		# first merge region- and ownership-specific landtypes with initial areas
 		if (nrow(complete_recs) > 0) {
+		  # 
 			accum1 = merge(area, complete_recs, by = c("Region", "Land_Type", "Ownership"), all.y = TRUE)
 			accum1 = accum1[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha_yr", "Max_Mg_ha_yr", "Mean_Mg_ha_yr", "Stddev_Mg_ha_yr")]
 			accum1 = accum1[accum1$Region%in%complete_recs$Region & accum1$Land_Type%in%complete_recs$Land_Type & accum1$Ownership%in%complete_recs$Ownership,]
 			accum_df_list[[1]] = accum1
 			AE = c(AE,1)
 		}
+		# then region-specifc landtypes with initial areas
 		if (nrow(allown_recs) > 0) {
 			accum2 = merge(area, allown_recs, by = c("Region", "Land_Type"), all.y = TRUE)
 			accum2$allown = NULL
@@ -1585,6 +1620,7 @@ for (m in params_start:params_end) {
 			accum_df_list[[2]] = accum2
 			AE = c(AE,2)
 		}
+		# then ownership-specifc landtypes with initial areas
 		if (nrow(allreg_recs) > 0) {
 			accum3 = merge(area, allreg_recs, by = c("Land_Type", "Ownership"), all.y = TRUE)
 			accum3$allreg = NULL
@@ -1593,6 +1629,7 @@ for (m in params_start:params_end) {
 			accum_df_list[[3]] = accum3
 			AE = c(AE,3)
 		}
+		# then statewide landtypes with initial areas
 		if (nrow(allownreg_recs) > 0) {
 			accum4 = merge(area, allownreg_recs, by = c("Land_Type"), all.y = TRUE)
 			accum4$allreg = NULL
@@ -1603,29 +1640,36 @@ for (m in params_start:params_end) {
 			AE = c(AE,4)
 		}
 		
-		# bind the groups together into one table
+		# bind the groups together into one accum table
+		# if there's only one group
 		if (length(AE) == 1) {
+		  # index the single group ID in accum_df_list using tracker ID in AE, and call it accum 
 			accum = accum_df_list[[AE[1]]]
+			# otherwise, if there's >1 group
 		} else if (length(AE) > 1) {
+		  # do the same
 			accum = accum_df_list[[AE[1]]]
+			# and rbind additional groups to accum, resulting in df accum with 1 column and length 2 to 4
 			for (al in 2:length(AE)) {
 				accum = rbind(accum, accum_df_list[[AE[al]]])
 			}
+			# otherwise there's 0 records and give error
 		} else {
 			cat("Error: no veg or soil uptake records!\n")
 		}
-
+		
+    # merge the initial area table with the ID for type of record by all spatial identifiers and area
 		accum = merge(area, accum, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha"), all.x = TRUE)
 
-		# get regional land type areas
+		# get regional land type areas (reg_lt_ha) and merge with the accum table (C input params and areas)
 		accum_reg_agg = aggregate(Area_ha ~ Region + Land_Type, accum, FUN=sum, na.rm = TRUE)
 		names(accum_reg_agg)[ncol(accum_reg_agg)] = "reg_lt_ha"
 		accum = merge(accum, accum_reg_agg, by = c("Region", "Land_Type"), all.x = TRUE)
-		# get ownership land type areas
+		# get ownership land type areas (own_lt_ha) and merge with the accum table (C input params and areas)
 		accum_own_agg = aggregate(Area_ha ~ Land_Type + Ownership, accum, FUN=sum, na.rm = TRUE)
 		names(accum_own_agg)[ncol(accum_own_agg)] = "own_lt_ha"
 		accum = merge(accum, accum_own_agg, by = c("Land_Type", "Ownership"), all.x = TRUE)
-		# get total land type areas
+		# get total land type areas (lt_ha) and merge with the accum table (C input params and areas)
 		accum_lt_agg = aggregate(Area_ha ~ Land_Type, accum, FUN=sum, na.rm = TRUE)
 		names(accum_lt_agg)[ncol(accum_lt_agg)] = "lt_ha"
 		accum = merge(accum, accum_lt_agg, by = c("Land_Type"), all.x = TRUE)
@@ -1697,14 +1741,15 @@ for (m in params_start:params_end) {
 			out_c_df_list[[m]] = accum
 		} # end if veg c uptake adjustment
 		
+		
 		# soil c accum table adjustments
 		if (m == soilcaccum_ind) {
-			
+		  #comment out the following adjustments for delta region as new values are now in lc_params.xls
 			# adjust delta cultivated
-			accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Min_Mg_ha_yr"] = soil_c_accum_peat_min
-			accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Max_Mg_ha_yr"] = soil_c_accum_peat_max
-			accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Mean_Mg_ha_yr"] = soil_c_accum_peat_mean
-			accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Stddev_Mg_ha_yr"] = soil_c_accum_peat_stddev
+			#accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Min_Mg_ha_yr"] = soil_c_accum_peat_min
+			#accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Max_Mg_ha_yr"] = soil_c_accum_peat_max
+			#accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Mean_Mg_ha_yr"] = soil_c_accum_peat_mean
+			#accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Stddev_Mg_ha_yr"] = soil_c_accum_peat_stddev
 			
 			# delete extra columns and order the table and put it in the output list
 			accum = accum[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Min_Mg_ha_yr", "Max_Mg_ha_yr", 
@@ -1713,24 +1758,45 @@ for (m in params_start:params_end) {
 			out_c_df_list[[m]] = accum
 		} # end if soil c accum adjustment
 		
-	} else { # the rest of the parameter tables
+	} # end if vegcuptake or soilcaccum
+	# for the rest of the parameter tables (conversion, forest_man, dev_manage, grass_manage, ag_manage, wildfire)
+	    else { 
+		# merge the parameter table from param_df_list with the initial areas and assign to out_table
 		out_table = merge(out_scen_df_list[[1]], param_df_list[[in_index]], by = mergeby, all.x = TRUE)
+		# remove all the NA records from out_table
 		out_table = out_table[!is.na(out_table[,ncol(out_table)]),]
+		# assign NULL to all areas
 		out_table$Area_ha = NULL
-		# using peat values for Delta agriculture
-		if (m == ag_manage_ind) { out_table$SoilCaccum_frac[out_table$Region == "Delta"] = soil_c_accum_frac_peat}
+		
+		# commenting out the following speical treatment of Delta, as the values are now in lc_params
+		  # using peat values for Delta agriculture
+		  # if (m == ag_manage_ind) { out_table$SoilCaccum_frac[out_table$Region == "Delta"] = soil_c_accum_frac_peat}
+		
+		# for forest_man (m=13, in_index=4, param_start_col=4) , dev_manage (m=14,in_index=5,param_start_col=3), 
+		  #grass_manage (m=15,in_index=6, param_start_col=3), ag_manage (m=16,in_index=7,param_start_col=4), 
+		  # wildfire (m=17, in_index=8, param_start_col=2)
 		if (m != conversion_ind) {
+		  # select the columns "Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management" along with
+		   # a subset of columns from the current param table that correpond to the param_start_col to the last column
 			out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
+			                         # column headers from current param table
+			                         # param_start_col = c(3, 3, 2, 4, 3, 3, 4, 2)
+			                         # m = 10 to 17
+			                         # in_index = 1 to 8
+			                         # in_index = m - params_start + 1
 			                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
+			# for conversion table
 			} else {
 				out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
 				                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
 			}
+		# order current out_table
 		out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, out_table$Ownership),]
+		# add it to out_c_df_list
 		out_c_df_list[[m]] = out_table
-	}
+	} # end if not veg and soil c accum
 
-} # for m loop over the management parameter tables
+} # end 'for m loop' over the management parameter tables
 
 # write the carbon file
 # modify some of the input headers and write the headers also
