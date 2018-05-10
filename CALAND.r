@@ -3235,7 +3235,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
                 # need to use the non_regen_area value to ensure the correct land type is adjusted for not regnerating
                 lt_conv$area_adj = lt_conv[, conv_col_names[l]]
                 if (length(lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0]) > 0) {
-                	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] = lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] +
+                	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] = lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] -
                 		lt_conv$non_regen_area[l] * lt_conv$nonreg_add[lt_conv[,conv_col_names[l]] < 0] / lt_conv$non_regen_area[l]
                 	lt_conv$area_adj[is.na(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[is.nan(lt_conv$area_adj)] = 0.00
