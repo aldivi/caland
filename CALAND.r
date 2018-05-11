@@ -41,7 +41,7 @@
 # Output excel file is written to caland/outputs/<outdir> (unless <outdir> is specified as different from the default of "")
 
 # CALAND is now a function!
-# 12  arguments (see function definition for default values):
+# 14  arguments (see function definition for default values):
 #	scen_file_arg		name of the scenario file; assumed to be in caland/inptus/<indir>
 #	c_file_arg			name of the carbon parameter input file; assumed to be in caland/inputs/<outdir>
 #	indir				name only of directory in caland/inputs/ that contains scen_file and c_file; do not include "/" character at the end
@@ -50,8 +50,10 @@
 #	end_year		    simulation ends at the beginning of this year (so the simulation goes through the end of end_year - 1)
 #	value_col_dens		select which carbon density values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev
 # 	value_col_accum 	select which carbon accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev
+# value_col_soilcon select which carbon accumulation values to use for cultivated soil conservation; 6 = min, 7 = max, 8 = mean, 9 = std dev
 #	ADD_dens			for use with value_col_dens ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
 #	ADD_accum			for use with value_col_accum ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
+# ADD_soilcon   for use with value_col_soilcon ==9: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
 #	NR_Dist			for adjusting the amount of non-regenerating forest after high severity fire (-1 = full regeneration, 120m is the minimum)
 #	WRITE_OUT_FILE	TRUE= write the output file; FALSE= do not write the output file
 
@@ -131,24 +133,33 @@ GET.NAMES <- function(df, new.name) {
 }
 
 # set the default arguments here for debugging purposes
-scen_file_arg = "Baseline_frst2Xmort_fire.xls"
+#scen_file_arg = "Baseline_frst2Xmort_fire.xls"
+scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
 c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
 start_year = 2010
 end_year = 2051
+#mean
 value_col_dens = 7
 ADD_dens = TRUE
+#mean
 value_col_accum = 7
 ADD_accum = TRUE
+#mean
+value_col_soilcon = 8
+ADD_soilcon = TRUE
 NR_Dist = -1
 WRITE_OUT_FILE = TRUE
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE) {
+
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd")
+  # for soil cons flux values
+  ftag_soilcon = c("", "", "", "", "", "min", "max", "mean", "sd")
   
   inputdir = paste0("inputs/", indir)
   if(substr(inputdir,nchar(inputdir), nchar(inputdir)) != "/") { inputdir = paste0(inputdir, "/") }
@@ -241,13 +252,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   downdead_decay_frac = c(1,exp(-fire_branch_decay_rate * fire_decay_years)[fire_decay_years[-length(fire_decay_years)]]) - exp(-fire_branch_decay_rate * fire_decay_years)
   
   ######### Determine output file names based on arguments in CALAND() that specify which input statistics are used for c density ######### 
-  ##################################################### and c accumulation ################################################################
+  ############################ and c accumulation (baseline and cultivated soil conservation) ############################################
   
   # first check to make sure that the val cols are valid (min, max, mean, std dev)
-  #		so the numbers have to be 5 - 8
-  if ( value_col_dens < 5 | value_col_dens > 8 | value_col_accum < 5 | value_col_accum > 8) {
-  	cat( "Invalid value column for value_col_dens or value_col_accum\n" )
-    stop( "Please make sure that both these arguemnts are one of the following:\nmin (5), max (6), mean (7), std_dev (8)\n" )
+  #		so the numbers have to be 5 - 8 for dens or 6 - 9 for soil conservation
+  if ( value_col_dens < 5 | value_col_dens > 8 | value_col_accum < 5 | value_col_accum > 8 | value_col_soilcon < 6 | value_col_soilcon > 9) {
+  	cat( "Invalid value column for value_col_dens, value_col_accum, or value_col_soilcon\n" )
+    stop( "Please make sure that all of these arguemnts are one of the following:\nmin (5), max (6), mean (7), std_dev (8)\n" )
   }
   
   # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6), mean (7), std_dev (8)
@@ -314,6 +325,27 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       } # end else accum is std dev
     } # end else one val col is 8 (std_dev)
   } # end else dens and accum have different stat
+  
+  # paste extended name to output file to indicate which statistic is used for soil conservation flux
+  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean") {
+    # do nothing, filename stays the same: outputs/[scen_name]_output_mean.xls
+  } else {
+    # otherwise subtract ".xls" and replace with [mean, add, or sub]_soilcon.xls
+    delete.xls <- ".xls"
+    if (value_col_soilcon==8) {
+      # mean soil conservation
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_mean_soilcon.xls")
+    } else {
+      if (ADD_soilcon) {
+        # plus sd soil conservation
+        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_add_soilcon.xls")
+      } else {
+        # sub sd soil conservation
+        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_sub_soilcon.xls")
+      }
+    }
+  }
+  
   #########################################################################################################################################
   
   # assign 100 yr global warming potential of CO2, CH4, and black C (BC)
@@ -572,13 +604,15 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   dev_soilcaccumfrac_colind = which(names(man_dev_df) == "SoilCaccum_frac")
   man_grass_df = c_df_list[[15]]
   man_ag_df = c_df_list[[16]]
+  # assign the correct soil conservation column (mean=8, SD=9) to man_ag_df$soilc_accum_val_soilcon 
+  man_ag_df$soilc_accum_val_soilcon = man_ag_df[,value_col_soilcon]
   fire_df = c_df_list[[17]]
   
   # merge deadc_frac_df and mortality_target_df because zero rows do not exist and allrows are needed 
   mortality_target_df = merge(deadc_frac_df, mortality_target_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
   mortality_target_df[,c(5:ncol(mortality_target_df))] <- apply(mortality_target_df[,c(5:ncol(mortality_target_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
   
-  # get the correct values for the accum tables if value is std dev
+  # get the correct values for the baseline c accum tables if value is std dev
   if(value_col_accum == 8) { # std dev as value
     if(ADD_accum) {
       vegc_uptake_df$vegc_uptake_val = vegc_uptake_df$vegc_uptake_val + vegc_uptake_df$Mean_Mg_ha_yr
@@ -588,6 +622,26 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       soilc_accum_df$soilc_accum_val = soilc_accum_df$Mean_Mg_ha_yr - soilc_accum_df$soilc_accum_val
     }
   }
+  
+  # get the correct values for the cutivated soil conservation soil c accum if value is std dev
+  if(value_col_soilcon == 9) { # std dev as value
+    if(ADD_soilcon) {
+      man_ag_df$soilc_accum_val_soilcon = man_ag_df$soilc_accum_val_soilcon + man_ag_df$Mean_Mg_ha_yr
+    } else {
+      man_ag_df$soilc_accum_val_soilcon = man_ag_df$Mean_Mg_ha_yr - man_ag_df$soilc_accum_val_soilcon
+    }
+  }
+  
+  ### Create a dummy variable for the soil_c_flux_frac for cultivated lands so that:
+  ### man_soilc_flux = man_frac * baseline_soilc_flux
+  ### man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * baseline_soilc_flux
+  ### Thus, for cultivated lands, man_frac = man_soilc_flux/baseline_soilc_flux
+  
+  # subset baseline c accum values and landcat ID's to be merged into man_ag_df
+  df <- soilc_accum_df[,c("Land_Cat_ID","soilc_accum_val")]
+  man_ag_df <- merge(man_ag_df, df, by="Land_Cat_ID")
+  # calc the dummy cultivated soil c flux frac
+  man_ag_df$SoilCaccum_frac <- man_ag_df$soilc_accum_val_soilcon/man_ag_df$soilc_accum_val
   
   # create lists of the output tables
   # change the NA value to zero for calculations
@@ -959,7 +1013,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
 				rowSums(temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation", c(sum_start_col:sum_end_col)])
 		}
 		
-		# developed_all dwead_removal
+		# developed_all dead_removal
 		sum_start = year - urban_forest_benefit_period + 1
 		if (sum_start < start_year) { sum_start = start_year }
 		sum_start_col = which(names(temp_df) == paste0(sum_start, "_ha"))
@@ -1065,9 +1119,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     na_inds = which(is.na(all_c_flux[,"man_area_sum_agg"]))
     all_c_flux[na_inds,"man_area_sum_agg"] = 0
     all_c_flux$unman_area_sum = all_c_flux[,"tot_area"] - all_c_flux[,"man_area_sum_agg"]
+    
     # merge rangeland management (soil) effect and cultivated land df's. Then merge with developed and forest management 
-    man_adjust_df = rbind(man_grass_df, man_ag_df)
-      man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
+      # assign the common column names between man_grass_df and man_ag_df to common_cols since man_ag_df has extra columns now
+    common_cols <- intersect(colnames(man_ag_df), colnames(man_grass_df))
+      # rbind the commmon columns into man_adjust_df
+    man_adjust_df = rbind(subset(man_grass_df, select = common_cols),subset(man_ag_df, select = common_cols))
+    man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
     man_adjust_df = rbind(man_adjust_df, man_dev_df[,c(1:5,dev_soilcaccumfrac_colind)])
     man_adjust_df = merge(man_adjust_df, rbind(man_forest_df, man_dev_df), by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
                                                                                   "Management", "SoilCaccum_frac"), all.x = TRUE)
@@ -1090,6 +1148,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     
     # soil
     # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
+      # note that the soil conservation flux will be modified too: man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * (baseline_soilc_flux * soil climate scalar)
     soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,year-2005]
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
@@ -1097,6 +1156,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Cultivated"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Cultivated"] * 
       man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Cultivated"] * 
       man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Cultivated"]
+    # for cultivated lands: soilcfluxXarea = current year managed area * modified-SoilCaccum_frac * climate-effected baseline soil C flux
     man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Cultivated"] = man_soil_df$man_area[man_soil_df$Land_Type == "Cultivated"] * 
       man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Cultivated"] * 
       man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"]
@@ -3175,7 +3235,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
                 # need to use the non_regen_area value to ensure the correct land type is adjusted for not regnerating
                 lt_conv$area_adj = lt_conv[, conv_col_names[l]]
                 if (length(lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0]) > 0) {
-                	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] = lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] +
+                	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] = lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] -
                 		lt_conv$non_regen_area[l] * lt_conv$nonreg_add[lt_conv[,conv_col_names[l]] < 0] / lt_conv$non_regen_area[l]
                 	lt_conv$area_adj[is.na(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[is.nan(lt_conv$area_adj)] = 0.00
@@ -3740,7 +3800,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     out_atmos_df_list[[38]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_DecayC_stock_conv"]
     
   } # end loop over calculation years
-  ###################################
+  ;###################################
   
   if (exists("out_neginds_eco_df")) { 
   # print sum of negative eco c cleared
