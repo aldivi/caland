@@ -15,7 +15,7 @@
 # plot_caland() has 9 arguments:
 #	scen_fnames		array of scenario output file names; assumed to be in data_dir
 #	scen_lnames		array of scenario labels associated with scen_fnames
-#	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs)
+#	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs) *must be different from scen_lnames
 #	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
 #	reg				array of regions to plot; can be any number of available regions (all are below as default)
 #	lt				array of land types to plot; can be any number of available types (all are below as default)
@@ -66,20 +66,23 @@ for( i in libs ) {
 
 # set these here so the function does not have to be used
 data_dir = "./outputs"
-scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls",
-"HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls",
-"BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
-scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
-scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
-reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast",
-"Ocean", "All_region")
+scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls","BAU_Fire_frst2Xmort_fire_output_mean.xls") 
+scen_lnames = c("Baseline","Wildfire-Only")
+scen_snames = c("BASE","Fire")
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow",
 "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 own = c("All_own")
 figdir = "figures"
 INDIVIDUAL = TRUE
+reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast",
+        "Ocean", "All_region")
 
+scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls",
+                "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls",
+                "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
+scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
+scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
 ############# main function
 
 plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley",
@@ -1825,6 +1828,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                             
                             # land
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", area_sheets[i], "_output.pdf")
+                            # out_area_df_list (3 df's)
+                              #1: Annual Area, 2010-2051 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
+                              #2: Annual Managed Area, 2010-2050 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
+                              #3: Annual Wildfire Area, 2010-2050 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
                             plot_df = out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == lt_lab,]
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
@@ -1844,6 +1851,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", area_sheets[i], "_diff_output.pdf")
                             temp_df = out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == lt_lab,]
                             plot_df <- data.frame(Scenario=NULL, Land_Type=NULL, Year=NULL, Value=NULL)
+                            # error if there are no prescribed management practices in alternative scenario
                             for (s in 2:num_scen_names) {
                                 diff_df = temp_df[temp_df$Scenario == scen_lnames[s],]
                                 diff_df$Value = temp_df$Value[temp_df$Scenario == scen_lnames[s]] - temp_df$Value[temp_df$Scenario == scen_lnames[1]]
