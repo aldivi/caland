@@ -115,7 +115,8 @@ start_year = 2010
 end_year = 2051
 CLIMATE = "HIST"
 parameter_file = "lc_params.xls"
-scenarios_file = "orig_scenarios.xls"
+# scenarios_file = "orig_scenarios.xls"
+scenarios_file = "individual_proposed_sims.xls"
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 land_change_method = "Landuse_Avg_Annual"
@@ -127,7 +128,9 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
                      "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
-
+# if TRUE, it indicates that there is an alternative scenarios_file (i.e. "individual_proposed_sims.xls") that will call for reassignment of LULCC and wildfire for each sim 
+ # based on "LULCC&Wildfire_reassignments_for_individ_sims.csv"
+input_selections_file <- TRUE
 
 write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xls", start_year = 2010, end_year = 2051, 
                                 CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls",
@@ -141,7 +144,7 @@ write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_i
                                                      "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")) {
+                                                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv"), input_selections_file = FALSE) {
 	
 cat("Start write_caland_inputs at", date(), "\n")
 
@@ -755,19 +758,44 @@ for (i in 1:num_paramhead_sheets) {
 	param_head_df_list[[i]] <- readWorksheet(paramhead_wrkbk, i, startRow = 1, header = FALSE)
 }
 
+# read in the instruction file for individual sims
+turn_off_df <-read.csv("raw_data/LULCC&Wildfire_reassignments_for_indiv_sims.csv", header = TRUE)
+
 ###### loop over the scenario definitions
 # make a complete scenario file for each one
 
 for (s in 1:num_scenin_sheets) {
+  
+  # if creating the sensitivity/scenario inputs using individual_proposed_sims.xls instead of orig_scenario.xls, 
+  # use the current sheet (s) number to find the selection of out_scen_df_list sheets to modify (i.e, LULCC to 0 and/or Wildfire to 0)
+  
+  if (input_selections_file) {
+    
+    # read the row for current sheet
+    
+    LULCC_switch <- turn_off_df[s,3]
+    
+    wildfire_switch <- turn_off_df[s,2]
+    
+    # update LULCC
+    
+    out_scen_df_list[[2]][5] <- out_scen_df_list[[2]][5] * LULCC_switch
+    
+    # update wildfire
+    
+    out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] <- out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] * wildfire_switch
+    
+  }
 	
 	###### scenario managed area table
 	
 	scenin = scenin_df_list[[s]]
 	scenin_name = scenin_sheets[s]
-	# check the scenario management against the parameter management
+	# check the scenario management against the parameter management (if it exists)
 	# Restoration, Urban_forest, and Growth do not have any parameters associated with them
+	if (nrow(scenin) != 0) {
 	for (m in 1:length(scenin$Management)) {
-		if (scenin$Management[m] != "Restoration" & scenin$Management[m] != "Urban_forest" & scenin$Management[m] != "Growth") {
+	  if (scenin$Management[m] != "Restoration" & scenin$Management[m] != "Urban_forest" & scenin$Management[m] != "Growth") {
 			EXIST = FALSE
 			for (t in 4:7) {
 				for (r in 1:length(param_df_list[[t]]$Management)) {
@@ -784,21 +812,21 @@ for (s in 1:num_scenin_sheets) {
 			}
 		} # end if not Restoration
 	} # end for m over management practices
-	
+
 	# split the records based on full land category definition or "All" for Region or Ownership
 	# then merge them all together with the full land category set and drop the records with no management
 	
 	# assign all region- and own-specific practices (i.e. restoration) to complete_recs
 	complete_recs = scenin[scenin$Region != "All" & scenin$Ownership != "All",]
-	# assign all ownership-specific practices to allregion_recs
+	# assign all ownership-specific practices to allregion_recs (e.g. central valley, cultivated, soil conservation)
 	allregion_recs = scenin[scenin$Region == "All" & scenin$Ownership != "All",]
 	# change "Region" column in allregion_recs to "allregion"
 	names(allregion_recs)[grep("^Region$", colnames(allregion_recs))] = "allregion"
-	# assign all region-specific practices to allown_recs
+	# assign all region-specific practices to allown_recs (e.g. private prescribed burning)
 	allown_recs = scenin[scenin$Ownership == "All" & scenin$Region != "All",]
 	# change "Ownership" column in allown_recs to "allown"
 	names(allown_recs)[grep("^Ownership$", colnames(allown_recs))] = "allown"
-	# assign all practices that are only land-type specific to allregionown_recs (e.g. developed_all practices)
+	# assign all practices that are only land-type specific to allregionown_recs (e.g. developed_all urban forest)
 	allregionown_recs = scenin[scenin$Ownership == "All" & scenin$Region == "All",]
 	# change "Region" & "Ownership" columns in allregionown_recs to "allregion" & "allown"
 	names(allregionown_recs)[grep("^Region$", colnames(allregionown_recs))] = "allregion"
@@ -810,7 +838,7 @@ for (s in 1:num_scenin_sheets) {
 	# add area change column
 	area_change$Area_change_ha = out_scen_df_list[[2]]$Area_change_ha
 
-	# assign area_change merged with all region- and own-specific management areas (i.e. restoration) to manage1 
+	# assign area_change merged with landcategory-specific management areas (i.e. restoration) to manage1 
 	manage1 = merge(area_change, complete_recs, by = c("Region", "Land_Type", "Ownership"), all.y = TRUE)
 	# assign area_change merged with all own-specific management areas to manage2
 	manage2 = merge(area_change, allregion_recs, by = c("Land_Type", "Ownership"), all.y = TRUE)
@@ -863,7 +891,7 @@ for (s in 1:num_scenin_sheets) {
 	manage = manage[order(manage$Land_Cat_ID, manage$Management),]
 	manage = manage[!is.na(manage$Management),] # this should not be necessary
 	manage[,paste0(start_year,"_ha")] = 0.0
-	
+
 	# get the necessary years for columns (note that the start_year column already exists)
 	# years immediately before start years and immediately after end years need to be added (unless they are beyond the year range)
 	
@@ -896,8 +924,11 @@ for (s in 1:num_scenin_sheets) {
 	num_man_years = length(man_years)
 	
 	# split the manage table based on cumulative area, annual managed area, or area fraction input
+	  # select rows which have existing starting area (annual type)
 	manage_annareain = manage[!is.na(manage$start_area) & manage$start_area > 0,]
+	  # select rows which have no existing starting area (cumulative type)
 	manage_cumareain = manage[!is.na(manage$start_area) & manage$start_area == 0,]
+	  # select rows which have area fraction input
 	manage_fracin = manage[!is.na(manage$start_area_frac),]
 	
 	####### loop over the manage years to create and fill the columns
@@ -911,11 +942,17 @@ for (s in 1:num_scenin_sheets) {
 		## process (all?) years before first years
 		
 		# annual area input; the values set are annual area
+		if (nrow(manage_annareain)>0) {
 		manage_annareain[manage_annareain$start_year > year,year_lab] = 0.0
+		}
 		# cumulative area input; the values set are annual area
-		manage_cumareain[manage_cumareain$start_year > year,year_lab] = 0.0
+		if (nrow(manage_cumareain)>0) {
+		  manage_cumareain[manage_cumareain$start_year > year,year_lab] = 0.0
+		}
+		if (nrow(manage_fracin)>0) {
 		# fraction input; the values set are annual area
 		manage_fracin[manage_fracin$start_year > year,year_lab] = 0.0
+		}
 		
 		## process first year to last year
 		
@@ -1023,7 +1060,7 @@ for (s in 1:num_scenin_sheets) {
 				# assign the previous year's Growth management area to rowth_temp$growth_val
 				growth_temp$growth_val = growth_temp[,prev_pyear_lab]
 				# check if any expanding Urban areas exist before aggregating them
-				if (nrow(growth_temp != 0)) {
+				if (nrow(growth_temp) != 0) {
 				# extract the previous year's _max_ Growth management area for each landcat, region, landtype, ownership combination
 				growth_pos_agg = aggregate(growth_val ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, growth_temp, FUN=max)
 				}
@@ -1083,11 +1120,17 @@ for (s in 1:num_scenin_sheets) {
 		## process years after last years
 		
 		# annual area input; the values set are annual area
-		manage_annareain[manage_annareain$end_year < year,year_lab] = 0.0
+		if (nrow(manage_annareain)>0) {
+		  manage_annareain[manage_annareain$end_year < year,year_lab] = 0.0
+		}
 		# cumulative area input; the values set are annual area
+		if (nrow(manage_cumareain)>0) {
 		manage_cumareain[manage_cumareain$end_year < year,year_lab] = 0.0
+		}
+		if (nrow(manage_fracin)>0) {
 		# fraction input; the values set are annual area
 		manage_fracin[manage_fracin$end_year < year,year_lab] = 0.0
+		}
 	
 	} # end y loop over the management year columns
 	
@@ -1129,12 +1172,17 @@ for (s in 1:num_scenin_sheets) {
 	} else {
 	  manage_out <- manage_agg
 	}
+	
 	# change order of columns 
 	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Region, manage_out$Land_Type, manage_out$Ownership, manage_out$Management),]
 	# assign to output sheet
 	out_scen_df_list[[3]] = manage_out
-
-	# write the scenario file
+  } else { # end if there are management practices
+    out_scen_df_list[[3]] <- data.frame(Land_Cat_ID=numeric(0), Region=character(0), Land_Type=character(0), 
+                                                 Ownership=character(0), Management=character(0), stringsAsFactors=FALSE)
+  }
+	
+  # write the scenario file
 	# write the headers also
 	
 	out_file = paste0(out_dir, scenin_name, "_", scen_tag, xltag)
@@ -1152,6 +1200,7 @@ for (s in 1:num_scenin_sheets) {
 		rc = expand.grid(row = 1:(nrow(out_scen_df_list[[i]])+start_row), col = 1:ncol(out_scen_df_list[[i]]))
 		setCellStyle(out_wrkbk, sheet = out_scen_sheets[i], row = rc$row, col = rc$col, cellstyle = cs)
 	}
+
 	# write the workbook
 	saveWorkbook(out_wrkbk)
 
