@@ -135,7 +135,7 @@ GET.NAMES <- function(df, new.name) {
 # set the default arguments here for debugging purposes
 #scen_file_arg = "Baseline_frst2Xmort_fire.xls"
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
-scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire.xls"
+scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
 c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
@@ -583,14 +583,33 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   names(scen_df_list[[5]])[c(5:ncol(scen_df_list[[5]]))] = mortality_targetyear_labels
   mortality_targetyears = as.integer(substr(mortality_targetyear_labels,1,4))
   
+  veg_clim_targetyear_labels = names(scen_df_list[[6]])[c(5:ncol(scen_df_list[[6]]))]
+  # subtract 'X'
+  veg_clim_targetyear_labels = substr(veg_clim_targetyear_labels,2,nchar(veg_clim_targetyear_labels[1]))
+  # subtract "ha" at end if it's there
+  if (all(nchar(veg_clim_targetyear_labels)>4)) {
+    veg_clim_targetyear_labels = substr(veg_clim_targetyear_labels,1,nchar(veg_clim_targetyear_labels[1])-3)
+  }
+  names(scen_df_list[[6]])[c(5:ncol(scen_df_list[[6]]))] = veg_clim_targetyear_labels
+  veg_clim_targetyears = as.integer(substr(veg_clim_targetyear_labels,1,4))
+  
+  soil_clim_targetyear_labels = names(scen_df_list[[7]])[c(5:ncol(scen_df_list[[7]]))]
+  soil_clim_targetyear_labels = substr(soil_clim_targetyear_labels,2,nchar(soil_clim_targetyear_labels[1]))
+  # subtract "ha" at end if it's there
+  if (all(nchar(soil_clim_targetyear_labels)>4)) {
+  soil_clim_targetyear_labels = substr(soil_clim_targetyear_labels,1,nchar(soil_clim_targetyear_labels[1])-3)
+  }
+  names(scen_df_list[[7]])[c(5:ncol(scen_df_list[[7]]))] = soil_clim_targetyear_labels
+  soil_clim_targetyears = as.integer(substr(soil_clim_targetyear_labels,1,4))
+  
   # get some tables
   
   # these include all target years
   man_target_df <- scen_df_list[[3]]
   fire_target_df <- scen_df_list[[4]]
   mortality_target_df <- scen_df_list[[5]]
-  climate_veg_df <- scen_df_list[[6]]
-  climate_soil_df <- scen_df_list[[7]]
+  climate_veg_target_df <- scen_df_list[[6]]
+  climate_soil_target_df <- scen_df_list[[7]]
   
   # these are useful
   # assign the conversion area sheet from sceario file to conv_area_df
@@ -798,14 +817,88 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     tot_area_df = out_area_df_list[[1]][,c(1:4,ncol(out_area_df_list[[1]]))]
     names(tot_area_df)[names(tot_area_df) == cur_area_label] <- "tot_area"
     
-    # check if there any prescibed management practices
+    # determine the climate scalars for this year from the prescribed years 
+    # do linear interpolation between years 
+    # if the year is past the final target year then use the final prescribed year
+    
+    ### veg scalars ###
+    # indices of prior or current target years
+    linds = which(veg_clim_targetyears <= year)
+    # indices of upcoming or current target years
+    hinds = which(veg_clim_targetyears >= year)
+    # assign most recent (or current) target year
+    prev_targetyear = max(veg_clim_targetyears[linds])
+    # set next (or current) target year
+    next_targetyear = min(veg_clim_targetyears[hinds])
+    # index of previous target year
+    pind = which(veg_clim_targetyears == prev_targetyear)
+    # index of next target year
+    nind = which(veg_clim_targetyears == next_targetyear)
+    # column header of previous target year
+    pcol = veg_clim_targetyear_labels[pind]
+    # column header of next target year
+    ncol = veg_clim_targetyear_labels[nind]
+    
+    # assign the veg climate scalar identifier columns to climate_veg_df
+    climate_veg_df = climate_veg_target_df[,c(1:4)]
+    # if current year is a target year or past all target years, 
+    if (prev_targetyear == next_targetyear | length(hinds) == 0) {
+      # create column for previous year target year and set to previous (or current) year's target area 
+      climate_veg_df[,pcol] <- climate_veg_target_df[,pcol]
+      # else add a column with previous year target area
+    } else {
+      #climate_veg_df = climate_veg_target_df[,c(1:4,pcol)]
+      # update the column with the linear interpolation of the areas between target years
+      climate_veg_df[,as.character(year)] = climate_veg_target_df[,pcol] + (year - prev_targetyear) * 
+        (climate_veg_target_df[,ncol] - climate_veg_target_df[,pcol]) / 
+        (next_targetyear - prev_targetyear)
+    }
+    climate_veg_df[which(is.na(climate_veg_df))] = 0.0
+    
+    
+    ### soil scalars ###
+    # indices of prior or current target years
+    linds = which(soil_clim_targetyears <= year)
+    # indices of upcoming or current target years
+    hinds = which(soil_clim_targetyears >= year)
+    # assign most recent (or current) target year
+    prev_targetyear = max(soil_clim_targetyears[linds])
+    # set next (or current) target year
+    next_targetyear = min(soil_clim_targetyears[hinds])
+    # index of previous target year
+    pind = which(soil_clim_targetyears == prev_targetyear)
+    # index of next target year
+    nind = which(soil_clim_targetyears == next_targetyear)
+    # column header of previous target year
+    pcol = soil_clim_targetyear_labels[pind]
+    # column header of next target year
+    ncol = soil_clim_targetyear_labels[nind]
+    
+    # assign the fire target areas to fire_area_df
+    climate_soil_df = climate_soil_target_df[,c(1:4)]
+    # if current year is a target year or past all target years, 
+    if (prev_targetyear == next_targetyear | length(hinds) == 0) {
+      # create column for previous year target year and set to previous (or current) year's target area 
+      climate_soil_df[,pcol] <- climate_soil_target_df[,pcol]
+      # else add a column with previous year target area
+    } else {
+      climate_soil_df = climate_soil_target_df[,c(1:4,pcol)]
+      # update the column with the linear interpolation of the areas between target years
+      climate_soil_df[,as.character(year)] = climate_soil_target_df[,pcol] + (year - prev_targetyear) * 
+        (climate_soil_target_df[,ncol] - climate_soil_target_df[,pcol]) / 
+        (next_targetyear - prev_targetyear)
+    }
+    climate_soil_df[which(is.na(climate_soil_df))] = 0.0
+    
+    
+    ##### check if there any prescibed management practices #####
     if (nrow(man_area_sum)>0) {
     # reset the man_area_sum df
     man_area_sum = man_area_sum[,1:7]
     
     # determine the managed areas for this year from target years
     # linear interpolation between target years
-    # if the year is past the final target year than use the final target year
+    # if the year is past the final target year then use the final target year
     
     # man_targetyears (baseline man_targetyears: 2010, 2020, 2021, 2050), otherwise: 2010, 2016, 2017, 2020, 2021, 2050
     # assign the index of the management years (1:4) that are on or before the current year loop to 'linds'
@@ -1214,7 +1307,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # soil
     # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
       # note that the soil conservation flux will be modified too: man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * (baseline_soilc_flux * soil climate scalar)
-    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,year-2005]
+    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,as.character(year)]
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
@@ -1281,7 +1374,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
     
     # apply this year's veg climate effect to baseline veg c flux (first year clim factor col ind is 5)
-    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$vegc_uptake_val * climate_veg_df[,year-2005]
+    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$vegc_uptake_val * climate_veg_df[,as.character(year)]
     # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df 
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Land_Cat_ID, man_veg_df$Management),] 
@@ -2140,8 +2233,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       fire_area_df[,pcol] = fire_target_df[,pcol]
       # else add a column with previous year target area
     } else {
-      fire_area_df = fire_target_df[,c(1:5,pcol)]
       # update the column with the linear interpolation of the areas between target years
+        # note that this doesn't label the header with the correct year, but that's ok because it's replaced with "fire_own_area" below
       fire_area_df[,pcol] = fire_target_df[,pcol] + (year - prev_targetyear) * (fire_target_df[,ncol] - fire_target_df[,pcol]) / 
         (next_targetyear - prev_targetyear)
     }
