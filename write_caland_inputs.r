@@ -21,6 +21,7 @@
 #	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
 #	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m)
 #	carbon_gis_files:	vector of 13 csv file names of gis stats carbon density by land category (t C per ha)
+# units_scenario: specify units for input areas in scenarios_file - must be ac or ha.
 
 # parameter_file
 #	8 tables
@@ -35,6 +36,7 @@
 #	defines the scenarios fairly concisely, as given
 #	10 columns each: Region, Land_Type, Ownership, Management, start_year, end_year, start_area, end_area, start_frac, end_frac
 #	either area or frac values are used; the other two columns are NA
+# units can be in ha or ac, which must be scecified by the "units_scenario" argument 
 #	Region and Ownership can be "All" or a specific name
 #	Each record defines management for a specific time period; outside of the defined time periods the management values are zero
 
@@ -131,9 +133,11 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
 # if TRUE, it indicates that there is an alternative scenarios_file (i.e. "individual_proposed_sims.xls") that will call for reassignment of LULCC and wildfire for each sim 
  # based on "LULCC_Wildfire_reassignments_for_individ_sims.csv"
 input_selections_file <- TRUE
+units_scenario <- "ha"
 
 write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xls", start_year = 2010, end_year = 2051, 
                                 CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls",
+                                units_scenario = "ha",
                                 climate_c_file = "climate_c_scalars_unitary.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
                                 area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", land_change_method = "Landuse_Avg_Annual",
@@ -692,6 +696,12 @@ num_scenin_sheets = length(scenin_sheets)
 scenin_df_list <- list()
 for (i in 1:num_scenin_sheets) {
 	scenin_df_list[[i]] <- readWorksheet(scenin_wrkbk, i, startRow = start_row, colTypes = c(rep("character",4), rep("numeric",50)), forceConversion = TRUE)
+}
+
+# convert management acres to hectares as needed
+if (units_scenario=="ac") {
+  scenin_df_list[[which(scen_sheets=="annual_managed_area")]][c("start_area","end_area")] <- 
+    scenin_df_list[[which(scen_sheets=="annual_managed_area")]][c("start_area","end_area")] * 0.404685642
 }
 
 ###### read the scenario headers file for the outputs
