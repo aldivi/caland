@@ -825,30 +825,34 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # indices of prior or current target years
     linds = which(veg_clim_targetyears <= year)
     # indices of upcoming or current target years
+      # integer(0) if past last target year
     hinds = which(veg_clim_targetyears >= year)
     # assign most recent (or current) target year
     prev_targetyear = max(veg_clim_targetyears[linds])
     # set next (or current) target year
+      # warning message when there are no more target years
     next_targetyear = min(veg_clim_targetyears[hinds])
     # index of previous target year
     pind = which(veg_clim_targetyears == prev_targetyear)
     # index of next target year
+      # integer(0) if past last target year
     nind = which(veg_clim_targetyears == next_targetyear)
     # column header of previous target year
     pcol = veg_clim_targetyear_labels[pind]
     # column header of next target year
+      # returns character(0) if past last target year
     ncol = veg_clim_targetyear_labels[nind]
     
     # assign the veg climate scalar identifier columns to climate_veg_df
     climate_veg_df = climate_veg_target_df[,c(1:4)]
     # if current year is a target year or past all target years, 
     if (prev_targetyear == next_targetyear | length(hinds) == 0) {
-      # create column for previous year target year and set to previous (or current) year's target area 
-      climate_veg_df[,pcol] <- climate_veg_target_df[,pcol]
+      # create column for previous (or current) target scalar and name it current year
+      climate_veg_df[,as.character(year)] <- climate_veg_target_df[,pcol]
       # else add a column with previous year target area
     } else {
       #climate_veg_df = climate_veg_target_df[,c(1:4,pcol)]
-      # update the column with the linear interpolation of the areas between target years
+      # update the column with the linear interpolation of the scalars between target years
       climate_veg_df[,as.character(year)] = climate_veg_target_df[,pcol] + (year - prev_targetyear) * 
         (climate_veg_target_df[,ncol] - climate_veg_target_df[,pcol]) / 
         (next_targetyear - prev_targetyear)
@@ -878,12 +882,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     climate_soil_df = climate_soil_target_df[,c(1:4)]
     # if current year is a target year or past all target years, 
     if (prev_targetyear == next_targetyear | length(hinds) == 0) {
-      # create column for previous year target year and set to previous (or current) year's target area 
-      climate_soil_df[,pcol] <- climate_soil_target_df[,pcol]
+      # create column for previous (or current) target scalar and name it current year
+      climate_soil_df[,as.character(year)] <- climate_soil_target_df[,pcol]
       # else add a column with previous year target area
     } else {
       climate_soil_df = climate_soil_target_df[,c(1:4,pcol)]
-      # update the column with the linear interpolation of the areas between target years
+      # update the column with the linear interpolation of the scalars between target years
       climate_soil_df[,as.character(year)] = climate_soil_target_df[,pcol] + (year - prev_targetyear) * 
         (climate_soil_target_df[,ncol] - climate_soil_target_df[,pcol]) / 
         (next_targetyear - prev_targetyear)

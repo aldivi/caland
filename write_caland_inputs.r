@@ -129,7 +129,7 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
                      "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
 # if TRUE, it indicates that there is an alternative scenarios_file (i.e. "individual_proposed_sims.xls") that will call for reassignment of LULCC and wildfire for each sim 
- # based on "LULCC&Wildfire_reassignments_for_individ_sims.csv"
+ # based on "LULCC_Wildfire_reassignments_for_individ_sims.csv"
 input_selections_file <- TRUE
 
 write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xls", start_year = 2010, end_year = 2051, 
@@ -633,8 +633,8 @@ if(climate_c_in$Land_Type[1] == "All") {
 	UNITARY = TRUE
 	climate_c_in$Land_Type = NULL
 }
-clim_start_col = which(names(climate_c_in) == paste0("X", start_year, "_ha"))
-clim_end_col = which(names(climate_c_in) == paste0("X", end_year-1, "_ha"))
+clim_start_col = which(names(climate_c_in) == paste0("X", start_year))
+clim_end_col = which(names(climate_c_in) == paste0("X", end_year-1))
 
 # veg
 # start building the output table
@@ -759,10 +759,15 @@ for (i in 1:num_paramhead_sheets) {
 }
 
 # read in the instruction file for individual sims
-turn_off_df <-read.csv("raw_data/LULCC&Wildfire_reassignments_for_indiv_sims.csv", header = TRUE)
+turn_off_df <-read.csv("raw_data/LULCC_Wildfire_reassignments_for_indiv_sims.csv", header = TRUE)
 
 ###### loop over the scenario definitions
 # make a complete scenario file for each one
+
+# save the LULCC and wildfire dataframesin case they are modfied in each loop and need to be reset
+  # for creating the individual sensitivity/scenario tests (input_selections_file==TRUE)
+orig_LULCC<- out_scen_df_list[[2]]
+orig_fire<- out_scen_df_list[[4]]
 
 for (s in 1:num_scenin_sheets) {
   
@@ -771,18 +776,18 @@ for (s in 1:num_scenin_sheets) {
   
   if (input_selections_file) {
     
+    # reset LULCC and wildfire with original datasets
+    out_scen_df_list[[2]] <- orig_LULCC
+    out_scen_df_list[[4]] <- orig_fire
+    
     # read the row for current sheet
-    
     LULCC_switch <- turn_off_df[s,3]
-    
     wildfire_switch <- turn_off_df[s,2]
     
     # update LULCC
-    
     out_scen_df_list[[2]][5] <- out_scen_df_list[[2]][5] * LULCC_switch
     
     # update wildfire
-    
     out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] <- out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] * wildfire_switch
     
   }
