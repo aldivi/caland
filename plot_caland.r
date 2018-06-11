@@ -12,7 +12,7 @@
 # the plots are put into caland/<data_dir>/<figdir>/ within each region, land type, and ownership directory
 #	where <data_dir> and <figdir> are arguments to the function
 
-# plot_caland() has 9 arguments:
+# plot_caland() has 10 arguments:
 #	scen_fnames		array of scenario output file names; assumed to be in data_dir
 #	scen_lnames		array of scenario labels associated with scen_fnames
 #	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs) *must be different from scen_lnames
@@ -22,6 +22,7 @@
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
 #	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
 #	INDIVIDUAL		TRUE = output per area effects of individual practices based on model runs configured for this purpose
+# units     TRUE = output units in "ha", FALSE = "ac". Default is "ha".
 
 # notes:
 # need at least two scenarios for this to work
@@ -66,23 +67,27 @@ for( i in libs ) {
 
 # set these here so the function does not have to be used
 data_dir = "./outputs"
-scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls","BAU_Fire_frst2Xmort_fire_output_mean.xls") 
-scen_lnames = c("Baseline","Wildfire-Only")
-scen_snames = c("BASE","Fire")
-lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow",
-"Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
-#own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
-own = c("All_own")
+scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls","BAU_EcoFlux_frst2Xmort_fire_output_mean.xls") 
+scen_lnames = c("Baseline","Eco-Only")
+scen_snames = c("BASE","ECO")
+lt="All_land"
+own = "All_own"
 figdir = "figures"
 INDIVIDUAL = TRUE
+units = FALSE
+reg="All_region"
 reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast",
         "Ocean", "All_region")
+lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow",
+       "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
+#own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 
 scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls",
                 "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls",
                 "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
 scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
 scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
+
 ############# main function
 
 plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley",
@@ -91,7 +96,7 @@ plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./out
 "South_Coast", "Ocean", "All_region"),
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
 "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass", "All_land"),
-own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
+own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
     
     cat("Start plot_caland() at", date(), "\n")
     
@@ -108,12 +113,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
     # Mg C to Million Metric tons C
     Mg2MMT = 1 / 1000000
     
-    # ha to Thousand ha
+    # ha (or ac) to Thousand ha
     ha2kha = 1 / 1000
     
     c_lab = "MMT C"
-    a_lab = "kha"
-    d_lab = "MgC/ha"
+    ha_lab = "kha"
+    ac_lab = "kac"
+    dh_lab = "MgC/ha"
+    da_lab = "MgC/ac"
     g_lab = "MMT CO2-eq"
     
     # these are the sheets for plotting C summary data
@@ -274,11 +281,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                             # Load the worksheets into a list of data frames
                             scen_df_list <- list()
                             for (i in 1:num_scen_sheets) {
-                            #for (i in 86:158) {
                                 scen_df_list[[i]] <- readWorksheet(scen_wrkbk, i, startRow = 1)
                                 # remove the Xs added to the front of the year columns, and get the years as numbers only
                                 yinds = which(substr(names(scen_df_list[[i]]),1,1) == "X")
                                 names(scen_df_list[[i]])[yinds] = substr(names(scen_df_list[[i]]),2,5)[yinds]
+                                
+                                # convert the 3 area sheets to from ha to ac if units == FALSE
+                                if (scen_sheets[i] %in% area_sheets & units == FALSE) {
+                                  if (i==1) { 
+                                  scen_df_list[[i]][,5:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,5:(ncol(scen_df_list[[i]])-1)] * 2.47105
+                                  } else {
+                                    scen_df_list[[i]][,6:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,6:(ncol(scen_df_list[[i]])-1)] * 2.47105
+                                  }
+                                }
                                 
                                 # get the stock data
                                 if (scen_sheets[i] %in% stock_sheets) {
@@ -660,14 +675,13 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                             # area and wildfire and non-dev managemenent and non-all_land management
                                             # first sum up the ownerships for the direct area values
                                             # more than one row (which means more than one ownership, and/or multiple fire severities)
-                                            #   this >1 houldn't trigger because the All_own label will have only one record that meets these conditions
+                                            #   this >1 shouldn't trigger because the All_own label will have only one record that meets these conditions
                                             if (nrow(area_df[area_df[,"Region"] == reg_lab, ]) > 1) {
                                                 # this sum works only for Area and Wildfire and for Management not on Developed_all
                                                 val_col = ha2kha * unlist(apply(area_df[area_df[,"Region"] == reg_lab,
                                                 startcol:ncol(area_df)], 2, sum))
                                             } else if (nrow(area_df[area_df[,"Region"] == reg_lab, ]) == 1) {
                                                 # this captures the "All_region" overall areas, but still need the breakdown below for the density data
-                                                # this captures the "All_land" overall areas, but still need the breakdown below for the density data
                                                 val_col = ha2kha * unlist(area_df[area_df[,"Region"] == reg_lab,
                                                 startcol:ncol(area_df)])
                                             } else {
@@ -847,7 +861,11 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                     reg_col = rep(reg_lab, length(val_col))
                                     lt_col = rep(lt_lab, length(val_col))
                                     own_col = rep(own_lab, length(val_col))
-                                    unit_col = rep(a_lab, length(val_col))
+                                    if (units==TRUE){
+                                      unit_col = rep(ha_lab, length(val_col))
+                                    } else {
+                                      unit_col = rep(ac_lab, length(val_col))
+                                    }
                                     year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
                                     temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col,
                                     Value=val_col)
@@ -859,7 +877,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                 if (scen_sheets[i] %in% den_sheets) {
                                     oind = which(den_sheets == scen_sheets[i])
                                     startcol = 5
-                                    
+                                    # convert units from Mg/ha to Mg/ac if units==FALSE
+                                    if (units==FALSE) {
+                                      scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] / 2.47105
+                                    }
                                     # all own
                                     # actually need the individual region/ownerships for area weighting;
                                     #  All_own == own_lab will return only a single record with the straight sum of values across ownerships
@@ -873,6 +894,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                         } else {
                                             den_df = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] == lt_lab, 1:(ncol(scen_df_list[[i]])-1)]
                                         }
+                                      
                                         # get the region of interest
                                         if (reg_lab == "All_region") {
                                             den_data = den_df[den_df[,"Region"] != reg_lab, startcol:ncol(den_df)]
@@ -915,7 +937,11 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                     reg_col = rep(reg_lab, length(val_col))
                                     lt_col = rep(lt_lab, length(val_col))
                                     own_col = rep(own_lab, length(val_col))
-                                    unit_col = rep(d_lab, length(val_col))
+                                    if (units == TRUE){
+                                      unit_col = rep(dh_lab, length(val_col))
+                                    } else {
+                                      unit_col = rep(da_lab, length(val_col))
+                                    }
                                     year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
                                     temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col,
                                     Value=val_col)
@@ -1833,6 +1859,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                               #2: Annual Managed Area, 2010-2050 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
                               #3: Annual Wildfire Area, 2010-2050 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
                             plot_df = out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == lt_lab,]
+                            if (units == TRUE) { 
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                             + geom_line(size = 0.3)
@@ -1841,6 +1868,16 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                             + theme(legend.key.size = unit(0.4,"cm"))
                             + ggtitle(paste(reg_lab, lt_lab, own_lab, area_sheets[i]))
                             )
+                            } else {
+                              p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
+                                     + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                     + geom_line(size = 0.3)
+                                     + geom_point(aes(shape=Scenario), size = 1.5)
+                                     + ylab( paste( "Thousand ac" ) )
+                                     + theme(legend.key.size = unit(0.4,"cm"))
+                                     + ggtitle(paste(reg_lab, lt_lab, own_lab, area_sheets[i]))
+                              )
+                            }
                             p$save_args <- FIGURE_DIMS
                             #print(p)
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
@@ -1857,6 +1894,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                 diff_df$Value = temp_df$Value[temp_df$Scenario == scen_lnames[s]] - temp_df$Value[temp_df$Scenario == scen_lnames[1]]
                                 plot_df = rbind(plot_df, diff_df)
                             }
+                            if (units == TRUE) {
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                             + geom_line(size = 0.3)
@@ -1864,7 +1902,17 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                             + ylab( paste( "Change from Baseline (Thousand ha)" ) )
                             + theme(legend.key.size = unit(0.4,"cm"))
                             + ggtitle(paste(reg_lab, lt_lab, own_lab, area_sheets[i], "Change from Baseline"))
-                            )
+                            )   
+                            } else {
+                              p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
+                                     + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                     + geom_line(size = 0.3)
+                                     + geom_point(aes(shape=Scenario), size = 1.5)
+                                     + ylab( paste( "Change from Baseline (Thousand ac)" ) )
+                                     + theme(legend.key.size = unit(0.4,"cm"))
+                                     + ggtitle(paste(reg_lab, lt_lab, own_lab, area_sheets[i], "Change from Baseline"))
+                              )  
+                            }
                             p$save_args <- FIGURE_DIMS
                             #print(p)
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
@@ -1878,14 +1926,26 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                             
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", den_sheets[i], "_output.pdf")
                             plot_df = out_den_df_list[[i]][out_den_df_list[[i]][,"Land_Type"] == lt_lab,]
-                            p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
-                            + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            + geom_line(size = 0.3)
-                            + geom_point(aes(shape=Scenario), size = 1.5)
-                            + ylab( paste( "MgC per ha" ) )
-                            + theme(legend.key.size = unit(0.4,"cm"))
-                            + ggtitle(paste(reg_lab, lt_lab, own_lab, den_sheets[i]))
-                            )
+                            if (units == TRUE) {
+                              p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
+                                     + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                     + geom_line(size = 0.3)
+                                     + geom_point(aes(shape=Scenario), size = 1.5)
+                                     + ylab( paste( "MgC per ha" ) )
+                                     + theme(legend.key.size = unit(0.4,"cm"))
+                                     + ggtitle(paste(reg_lab, lt_lab, own_lab, den_sheets[i]))
+                              )
+                            } else {
+                              p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
+                                     + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                     + geom_line(size = 0.3)
+                                     + geom_point(aes(shape=Scenario), size = 1.5)
+                                     + ylab( paste( "MgC per ac" ) )
+                                     + theme(legend.key.size = unit(0.4,"cm"))
+                                     + ggtitle(paste(reg_lab, lt_lab, own_lab, den_sheets[i]))
+                              )
+                            }
+                            
                             p$save_args <- FIGURE_DIMS
                             #print(p)
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
@@ -1901,14 +1961,26 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                 diff_df$Value = temp_df$Value[temp_df$Scenario == scen_lnames[s]] - temp_df$Value[temp_df$Scenario == scen_lnames[1]]
                                 plot_df = rbind(plot_df, diff_df)
                             }
-                            p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
-                            + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            + geom_line(size = 0.3)
-                            + geom_point(aes(shape=Scenario), size = 1.5)
-                            + ylab( paste( "Change from Baseline (MgC per ha)" ) )
-                            + theme(legend.key.size = unit(0.4,"cm"))
-                            + ggtitle(paste(reg_lab, lt_lab, own_lab, own_lab, den_sheets[i], "Change from Baseline"))
-                            )
+                            if (units == TRUE) {
+                              p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
+                                     + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                     + geom_line(size = 0.3)
+                                     + geom_point(aes(shape=Scenario), size = 1.5)
+                                     + ylab( paste( "Change from Baseline (MgC per ha)" ) )
+                                     + theme(legend.key.size = unit(0.4,"cm"))
+                                     + ggtitle(paste(reg_lab, lt_lab, own_lab, own_lab, den_sheets[i], "Change from Baseline"))
+                              )
+                            } else {
+                              p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
+                                     + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                     + geom_line(size = 0.3)
+                                     + geom_point(aes(shape=Scenario), size = 1.5)
+                                     + ylab( paste( "Change from Baseline (MgC per ac)" ) )
+                                     + theme(legend.key.size = unit(0.4,"cm"))
+                                     + ggtitle(paste(reg_lab, lt_lab, own_lab, own_lab, den_sheets[i], "Change from Baseline"))
+                              )
+                            }
+                            
                             p$save_args <- FIGURE_DIMS
                             #print(p)
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
@@ -2007,16 +2079,31 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    plot_df$units_dpa = "Mg/ha/ha"
+                                    if (units == TRUE) {
+                                      plot_df$units_dpa = "Mg/ha/ha"
+                                    } else {
+                                      plot_df$units_dpa = "Mg/ac/ac"
+                                    }
                                     
-                                    p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
-                            			+ scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            			+ geom_line(size = 0.3)
-                            			+ geom_point(aes(shape=Scenario), size = 1.5)
-                            			+ ylab( paste( "Change from Baseline (Mg C per ha per ha)" ) )
-                            				+ theme(legend.key.size = unit(0.4,"cm"))
-                            			+ ggtitle(paste(reg_lab, lt_lab, own_lab, den_sheets[i], "Change from Baseline per man area"))
-                            		)
+                                    if (units == TRUE) {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ha per ha)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, den_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    } else {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ac per ac)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, den_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    }
                             		p$save_args <- FIGURE_DIMS
                             		#print(p)
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", den_sheets[i], "_diffperarea_output.pdf")
@@ -2157,16 +2244,31 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    plot_df$units_dpa = "MgCO2eq/ha/yr"
+                                    if (units == TRUE) {
+                                      plot_df$units_dpa = "MgCO2eq/ha/yr"
+                                    } else {
+                                      plot_df$units_dpa = "MgCO2eq/ac/yr"
+                                    }
                                     
-                                    p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
-                            			+ scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            			+ geom_line(size = 0.3)
-                            			+ geom_point(aes(shape=Scenario), size = 1.5)
-                            			+ ylab( paste( "Change from Baseline (Mg CO2eq per ha per yr)" ) )
-                            				+ theme(legend.key.size = unit(0.4,"cm"))
-                            			+ ggtitle(paste(reg_lab, lt_lab, own_lab, ann_ghg_sheets[i], "Change from Baseline per man area per yr"))
-                            		)
+                                    if (units == TRUE) {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg CO2eq per ha per yr)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, ann_ghg_sheets[i], "Change from Baseline per man area per yr"))
+                                      )
+                                    } else {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg CO2eq per ac per yr)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, ann_ghg_sheets[i], "Change from Baseline per man area per yr"))
+                                      )
+                                    }
                             		p$save_args <- FIGURE_DIMS
                             		#print(p)
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diffperarea_output.pdf")
@@ -2312,16 +2414,32 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE) {
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    plot_df$units_dpa = "MgCO2eq/ha"
+                                    if (units == TRUE) {
+                                      plot_df$units_dpa = "MgCO2eq/ha"
+                                    } else {
+                                      plot_df$units_dpa = "MgCO2eq/ac"
+                                    }
                                     
-                                    p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
-                            			+ scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            			+ geom_line(size = 0.3)
-                            			+ geom_point(aes(shape=Scenario), size = 1.5)
-                            			+ ylab( paste( "Change from Baseline (Mg CO2eq per ha)" ) )
-                            				+ theme(legend.key.size = unit(0.4,"cm"))
-                            			+ ggtitle(paste(reg_lab, lt_lab, own_lab, cum_ghg_sheets[i], "Change from Baseline per man area"))
-                            		)
+                                    if (units == TRUE) {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg CO2eq per ha)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, cum_ghg_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    } else {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg CO2eq per ac)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, cum_ghg_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    }
+                                    
                             		p$save_args <- FIGURE_DIMS
                             		#print(p)
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperarea_output.pdf")
