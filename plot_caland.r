@@ -1200,7 +1200,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                         } else {
                                             # Urban_forest
                                             # need to cumulate before merge with variable
-                                            dev_man_data_sub_df = merge(dev_man_scen_df[dev_man_scen_df$Management == "Urban_forest",], dev_man_data_df[dev_man_data_df$Scenario == scen_lnames[1] & dev_man_data_df$Management == "Urban_forest",], by = c("Region", "Land_Type", "Year"), all.x = TRUE)
+                                            dev_man_data_sub_df = merge(dev_man_scen_df[dev_man_scen_df$Management == "Urban_forest",], 
+                                                                        dev_man_data_df[dev_man_data_df$Scenario == scen_lnames[1] & dev_man_data_df$Management == "Urban_forest",], 
+                                                                        by = c("Region", "Land_Type", "Year"), all.x = TRUE)
                                             dev_man_data_sub_df$DiffArea = dev_man_data_sub_df$value.x - dev_man_data_sub_df$value.y
                                             dev_man_data_sub_df$CumArea = cumsum(dev_man_data_sub_df$DiffArea)
                                             ann_ghg_comp_df = merge(ann_ghg_comp_df, dev_man_data_sub_df, by = c("Region", "Land_Type", "Year"), all.x = TRUE)
@@ -1217,17 +1219,28 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     ninf_inds = which(ann_ghg_comp_df$DiffPerArea == -Inf)
                                     ann_ghg_comp_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    ann_ghg_comp_df$units_dpa = "MgCO2eq/ha/yr"
-                                    
-                                    p <- ( ggplot(ann_ghg_comp_df, aes(x=Year))
-                                    + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
-                                    + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea < 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
-                                    + geom_hline(yintercept=0)
-                                    + ylab("Change from Baseline (Mg CO2-eq per ha per year)")
-                                    + ggtitle(paste(scen_lnames[s], reg_lab, lt_lab, own_lab, ": Contribution to change in net annual GWP per man area"))
-                                    + scale_fill_manual(values = ghg_colors, breaks = breaks)
-                                    )
+                                    if (units == TRUE) {
+                                      ann_ghg_comp_df$units_dpa = "MgCO2eq/ha/yr"
+                                      p <- ( ggplot(ann_ghg_comp_df, aes(x=Year))
+                                             + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea < 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_hline(yintercept=0)
+                                             + ylab("Change from Baseline (Mg CO2-eq per ha per year)")
+                                             + ggtitle(paste(scen_lnames[s], reg_lab, lt_lab, own_lab, ": Contribution to change in net annual GWP per man area"))
+                                             + scale_fill_manual(values = ghg_colors, breaks = breaks)
+                                      )
                                     #print(p)
+                                    } else {
+                                      ann_ghg_comp_df$units_dpa = "MgCO2eq/ac/yr"
+                                      p <- ( ggplot(ann_ghg_comp_df, aes(x=Year))
+                                             + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea < 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_hline(yintercept=0)
+                                             + ylab("Change from Baseline (Mg CO2-eq per ac per year)")
+                                             + ggtitle(paste(scen_lnames[s], reg_lab, lt_lab, own_lab, ": Contribution to change in net annual GWP per man area"))
+                                             + scale_fill_manual(values = ghg_colors, breaks = breaks)
+                                      )
+                                    }
                                     
                                     p$save_args <- FIGURE_DIMS
                                     out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", scen_lnames[s], "_ghg_ann_comp_diffperarea_output.pdf")
@@ -1360,17 +1373,31 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     ninf_inds = which(cum_ghg_comp_df$DiffPerArea == -Inf)
                                     cum_ghg_comp_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    cum_ghg_comp_df$units_dpa = "MgCO2eq/ha"
-                                    
-                                    p <- ( ggplot(cum_ghg_comp_df, aes(x=Year))
-                                    + geom_area(data = cum_ghg_comp_df[cum_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
-                                    + geom_area(data = cum_ghg_comp_df[cum_ghg_comp_df$DiffPerArea < 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
-                                    + geom_hline(yintercept=0)
-                                    + ylab("Change from Baseline (Mg CO2-eq per ha)")
-                                    + ggtitle(paste(scen_lnames[s], reg_lab, lt_lab, own_lab, ": Contribution to change in net cumulative GWP per man area"))
-                                    + scale_fill_manual(values = ghg_colors, breaks = breaks)
-                                    )
+                                    if (units == TRUE) {
+                                      cum_ghg_comp_df$units_dpa = "MgCO2eq/ha"
+                                      
+                                      p <- ( ggplot(cum_ghg_comp_df, aes(x=Year))
+                                             + geom_area(data = cum_ghg_comp_df[cum_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_area(data = cum_ghg_comp_df[cum_ghg_comp_df$DiffPerArea < 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_hline(yintercept=0)
+                                             + ylab("Change from Baseline (Mg CO2-eq per ha)")
+                                             + ggtitle(paste(scen_lnames[s], reg_lab, lt_lab, own_lab, ": Contribution to change in net cumulative GWP per man area"))
+                                             + scale_fill_manual(values = ghg_colors, breaks = breaks)
+                                      )
                                     #print(p)
+                                    } else {
+                                      cum_ghg_comp_df$units_dpa = "MgCO2eq/ac"
+                                      p <- ( ggplot(cum_ghg_comp_df, aes(x=Year))
+                                             + geom_area(data = cum_ghg_comp_df[cum_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_area(data = cum_ghg_comp_df[cum_ghg_comp_df$DiffPerArea < 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
+                                             + geom_hline(yintercept=0)
+                                             + ylab("Change from Baseline (Mg CO2-eq per ac)")
+                                             + ggtitle(paste(scen_lnames[s], reg_lab, lt_lab, own_lab, ": Contribution to change in net cumulative GWP per man area"))
+                                             + scale_fill_manual(values = ghg_colors, breaks = breaks)
+                                      )
+                                    }
+                                    
+                                    
                                     
                                     p$save_args <- FIGURE_DIMS
                                     out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", scen_lnames[s], "_ghg_cum_comp_diffperarea_output.pdf")
@@ -1519,16 +1546,28 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    plot_df$units_dpa = "MgC/ha"
+                                    if (units == TRUE) {
+                                      plot_df$units_dpa = "MgC/ha"
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ha)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, stock_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    } else {
+                                      plot_df$units_dpa = "MgC/ha"
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ac)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, stock_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    }
                                     
-                                    p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
-                            			+ scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            			+ geom_line(size = 0.3)
-                            			+ geom_point(aes(shape=Scenario), size = 1.5)
-                            			+ ylab( paste( "Change from Baseline (Mg C per ha)" ) )
-                            				+ theme(legend.key.size = unit(0.4,"cm"))
-                            			+ ggtitle(paste(reg_lab, lt_lab, own_lab, stock_sheets[i], "Change from Baseline per man area"))
-                            		)
                             		p$save_args <- FIGURE_DIMS
                             		#print(p)
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", stock_sheets[i], "_diffperarea_output.pdf")
@@ -1672,16 +1711,29 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    plot_df$units_dpa = "MgC/ha/yr"
+                                    if (units == TRUE) {
+                                      plot_df$units_dpa = "MgC/ha/yr"
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ha per yr)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, ann_sheets[i], "Change from Baseline per man area per yr"))
+                                      )
+                                    } else {
+                                      plot_df$units_dpa = "MgC/ac/yr"
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ac per yr)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, ann_sheets[i], "Change from Baseline per man area per yr"))
+                                      )
+                                    }
                                     
-                                    p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
-                            			+ scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            			+ geom_line(size = 0.3)
-                            			+ geom_point(aes(shape=Scenario), size = 1.5)
-                            			+ ylab( paste( "Change from Baseline (Mg C per ha per yr)" ) )
-                            				+ theme(legend.key.size = unit(0.4,"cm"))
-                            			+ ggtitle(paste(reg_lab, lt_lab, own_lab, ann_sheets[i], "Change from Baseline per man area per yr"))
-                            		)
+                                    
                             		p$save_args <- FIGURE_DIMS
                             		#print(p)
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_sheets[i], "_diffperarea_output.pdf")
@@ -1829,16 +1881,28 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
+                                    if (units == TRUE) {
                                     plot_df$units_dpa = "MgC/ha"
-                                    
                                     p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
-                            			+ scale_shape_manual(values=1:nlevels(plot_df$Scenario))
-                            			+ geom_line(size = 0.3)
-                            			+ geom_point(aes(shape=Scenario), size = 1.5)
-                            			+ ylab( paste( "Change from Baseline (Mg C per ha)" ) )
-                            				+ theme(legend.key.size = unit(0.4,"cm"))
-                            			+ ggtitle(paste(reg_lab, lt_lab, own_lab, cum_sheets[i], "Change from Baseline per man area"))
-                            		)
+                                           + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                           + geom_line(size = 0.3)
+                                           + geom_point(aes(shape=Scenario), size = 1.5)
+                                           + ylab( paste( "Change from Baseline (Mg C per ha)" ) )
+                                           + theme(legend.key.size = unit(0.4,"cm"))
+                                           + ggtitle(paste(reg_lab, lt_lab, own_lab, cum_sheets[i], "Change from Baseline per man area"))
+                                    )
+                                    } else {
+                                      plot_df$units_dpa = "MgC/ac"
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg C per ac)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, cum_sheets[i], "Change from Baseline per man area"))
+                                      )
+                                    }
+                                    
                             		p$save_args <- FIGURE_DIMS
                             		#print(p)
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_sheets[i], "_diffperarea_output.pdf")

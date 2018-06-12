@@ -154,6 +154,16 @@ cat("Start write_caland_inputs at", date(), "\n")
 
 num_c_in_files = length(carbon_gis_files)
 
+# give warning if the climate_c_file does not correspond correctly with the historic CLIMATE setting 
+if (CLIMATE == "HIST" & climate_c_file != "climate_c_scalars_unitary.csv") {
+  stop("Historic climate (CLIMATE = 'HIST') must be paired with climate_c_file = 'climate_c_scalars_unitary.csv'")
+}
+
+# give warning if the climate_c_file does not correspond correctly with the projected CLIMATE setting 
+if (CLIMATE == "PROJ" & climate_c_file == "climate_c_scalars_unitary.csv") {
+  stop("Projected climate (CLIMATE = 'PROJ') must be paired with the RCP4.5 or RCP8.8 climate_c_file (not climate_c_scalars_unitary.csv)")
+}
+
 # reference year for calculating area changes from start year
 ref_year = 2001
 diff_years = start_year - ref_year
