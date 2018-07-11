@@ -135,7 +135,17 @@ GET.NAMES <- function(df, new.name) {
 # set the default arguments here for debugging purposes
 #scen_file_arg = "Baseline_frst2Xmort_fire.xls"
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
-scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
+# scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
+# scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_partial_cut_frst2Xmort_fire.xls"
+scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
+scen_file_arg = "USFS_understory_frst2Xmort_fire.xls"
+scen_file_arg = "USFS_burn_frst2Xmort_fire.xls"
+
+scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
+scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
+scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
 c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
@@ -2291,8 +2301,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # burned area for adjusted severity = burned_area/forest_area * man_area_sum/forest_area * forest_area
     # this is per management practice, per severity, based on managed area and total forest area in the land cat
     # need to calculate decreases/increases based on input fractions, then scale increases so that total man burn area doesn't change
-      # check that there are prescribed mmgmt practices and prescribed wildfire
-    if (nrow(fire_sevadj_df)>0 & all(fire_sevadj_df$fire_burn_area!=0)) {
+      # check that there are prescribed mmgmt practices relevant to wildfire severity and that there is prescribed wildfire
+    if (nrow(fire_sevadj_df[fire_sevadj_df$Land_Type=="Forest" & fire_sevadj_df$Management != "Afforestation",])>0 & 
+        all(fire_sevadj_df$fire_burn_area!=0)) {
     # if there are prescribed management practices, create man_burn_area for variable for fire_sevadj_df (79 variables total)
       fire_sevadj_df$man_burn_area = 0.0
     # man_burn_area = fire_burn_area * (man_area_sum/tot_area)
@@ -2329,19 +2340,33 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # 1. REDUCED & UNCHANGED SEVERITY AREAS
     # sum the new decreased (and unchanged) burn area severities to normalize the increases so man burn area doesn't change
       # store in mban_dec_agg (Land_Cat_ID, Region, Land_Type, Ownership, Management, man_burn_area_new)
-    mban_dec_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, fire_sevadj_df[fire_sevadj_df$man_burn_area_new <= fire_sevadj_df$man_burn_area,], FUN=sum, na.rm = TRUE)
+      # 
+    if (nrow(fire_sevadj_df[fire_sevadj_df$man_burn_area_new <= fire_sevadj_df$man_burn_area,])>0) {
+    mban_dec_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
+                             fire_sevadj_df[fire_sevadj_df$man_burn_area_new <= fire_sevadj_df$man_burn_area,], FUN=sum, na.rm = TRUE)
     # rename the new aggreagated man_burn_area_new in mban_dec_agg: "man_burn_area_new_dec_agg"
     names(mban_dec_agg)[names(mban_dec_agg) == "man_burn_area_new"] = "man_burn_area_new_dec_agg"
     # merge mban_dec_agg with fire_sevadj_df (fire_sevadj_df: 97 variables)
     fire_sevadj_df = merge(fire_sevadj_df, mban_dec_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+    } else {
+      # assign 0 to decreased severity area if there isn't any
+      fire_sevadj_df$man_burn_area_new_dec_agg <- 0
+    }
     
     # 2a. INCREASED SEVERITY AREA
     # sum the new increased severities to normalize the increases so man burn area doesn't change
-    mban_inc_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, fire_sevadj_df[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area,], FUN=sum, na.rm = TRUE)
+      # before aggregating, check that fire_sevadj_df has rows which have new burn areas with higher severity than originally
+    if (nrow(fire_sevadj_df[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area,])>0) {
+    mban_inc_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
+                             fire_sevadj_df[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area,], FUN=sum, na.rm = TRUE)
     # call it "man_burn_area_new_inc_agg"
     names(mban_inc_agg)[names(mban_inc_agg) == "man_burn_area_new"] = "man_burn_area_new_inc_agg"
     # add it to fire_sevadj_df (fire_sevadj_df: 98 variables)
     fire_sevadj_df = merge(fire_sevadj_df, mban_inc_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+    } else {
+      # assign 0 to increased severity area if there isn't any
+      fire_sevadj_df$man_burn_area_new_inc_agg <- 0
+    }
     
     # 2b. ADJUST INCREAED SEVERITY AREAS
     # scale the increased severities so that total man burn area doesn't change
