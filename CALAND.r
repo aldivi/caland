@@ -41,7 +41,7 @@
 # Output excel file is written to caland/outputs/<outdir> (unless <outdir> is specified as different from the default of "")
 
 # CALAND is now a function!
-# 14  arguments (see function definition for default values):
+# 15  arguments (see function definition for default values):
 #	scen_file_arg		name of the scenario file; assumed to be in caland/inptus/<indir>
 #	c_file_arg			name of the carbon parameter input file; assumed to be in caland/inputs/<outdir>
 #	indir				name only of directory in caland/inputs/ that contains scen_file and c_file; do not include "/" character at the end
@@ -56,6 +56,7 @@
 # ADD_soilcon   for use with value_col_soilcon ==9: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
 #	NR_Dist			for adjusting the amount of non-regenerating forest after high severity fire (-1 = full regeneration, 120m is the minimum)
 #	WRITE_OUT_FILE	TRUE= write the output file; FALSE= do not write the output file
+# blackC      TRUE = GWP of black C is 900, FALSE = GWP of black C is 1 (default)
 
 # notes:
 # carbon calcs occur in start_year up to end_year-1
@@ -136,8 +137,8 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "Baseline_frst2Xmort_fire.xls"
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
 # scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
-# scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
-#scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
+scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
+scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_partial_cut_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_understory_frst2Xmort_fire.xls"
@@ -162,9 +163,12 @@ value_col_soilcon = 8
 ADD_soilcon = TRUE
 NR_Dist = -1
 WRITE_OUT_FILE = TRUE
+# set GWP of black C equal to 900 (true) or 1 (false, default)
+blackC = FALSE
 
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE) {
+
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
@@ -357,12 +361,26 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     }
   }
   
+  # paste extended name to output file to indicate if BC GWP is 1 or 900
+  if (blackC == TRUE) {
+    # subtract ".xls" and replace with GWP 
+    out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_BC900.xls")
+  } else {
+    # subtract ".xls" and replace with GWP
+    out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_BC1.xls")
+  }
+  
   #########################################################################################################################################
   
   # assign 100 yr global warming potential of CO2, CH4, and black C (BC)
   gwp_CO2 <- 1
   gwp_CH4 <- 25
+  # GWP of black C can be turned on/off as argument to caland
+  if (blackC == TRUE) {
   gwp_BC <- 900
+  } else {
+    gwp_BC <- 1
+  }
   
   # assign fractions of soil c accumulation that is CO2-C and CH4-C in fresh marsh 
   marsh_CO2_C_frac <- -1.14
