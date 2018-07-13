@@ -12,7 +12,7 @@
 # the plots are put into caland/<data_dir>/<figdir>/ within each region, land type, and ownership directory
 #	where <data_dir> and <figdir> are arguments to the function
 
-# plot_caland() has 10 arguments:
+# plot_caland() has 12 arguments:
 #	scen_fnames		array of scenario output file names; assumed to be in data_dir
 #	scen_lnames		array of scenario labels associated with scen_fnames
 #	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs) *must be different from scen_lnames
@@ -22,7 +22,9 @@
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
 #	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
 #	INDIVIDUAL		TRUE = output per area effects of individual practices based on model runs configured for this purpose
-# units     TRUE = output units in "ha", FALSE = "ac". Default is "ha".
+# units         TRUE = output units in "ha", FALSE = "ac". Default is "ha".
+# blackC        TRUE = black GWP equal to 900, FALSE = black GWP equal to 1 (default)
+# blackC_plot   TRUE = plot BC, CO2, and CH4, FALSE = plot only CO2 and CH4 (BC added to CO2 which is only valid if black C is FALSE) (default)
 
 # notes:
 # need at least two scenarios for this to work
@@ -67,13 +69,16 @@ for( i in libs ) {
 
 # set these here so the function does not have to be used
 data_dir = "./outputs"
-scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
-scen_lnames = c("BAU_Eco","Wood_Restoration")
-scen_snames = c("BAUEco","WoodRest")
-lt=c("Woodland")
-own=c("All_own")
+# scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
+#scen_lnames = c("BAU_Eco","Wood_Restoration")
+#scen_snames = c("BAUEco","WoodRest")
+scen_fnames = c("BAU_Fire_frst2Xmort_fire_output_mean_BC1.xls","USFS_partial_cut_frst2Xmort_fire_output_mean_BC1.xls") 
+scen_lnames = c("BAU_Fire","USFS_PartialCut")
+scen_snames = c("BAUFire","USFSPC")
+lt=c("Forest")
+own=c("USFS_nonwild")
 units = TRUE
-reg=c("Central_Valley")
+reg=c("All_region")
 
 reg="All_region"
 lt="All_land"
@@ -81,6 +86,8 @@ own = "All_own"
 
 figdir = "figures"
 INDIVIDUAL = TRUE
+blackC = FALSE
+blackC_plot = FALSE
 
 reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast",
         "Ocean", "All_region")
@@ -102,10 +109,16 @@ plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./out
 "South_Coast", "Ocean", "All_region"),
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
 "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass", "All_land"),
-own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
+own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC = FALSE, blackC_plot = FALSE) {
     
     cat("Start plot_caland() at", date(), "\n")
     
+  # first check to make sure that the combination of blackC and backC_plot are valid 
+  if (blackC == TRUE & blackC_plot == FALSE) {
+    cat( "Invalid settings for black carbon\n" )
+    stop( "If black carbon GWP was computed as 900 (blackC==TRUE), it must be plotted as black carbon (blackC_plot==TRUE)\n" )
+  }
+  
     outputdir = paste0(data_dir, "/")
     num_scen_names = length(scen_fnames)
     num_lt = length(lt)
@@ -300,6 +313,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                 # remove the Xs added to the front of the year columns, and get the years as numbers only
                                 yinds = which(substr(names(scen_df_list[[i]]),1,1) == "X")
                                 names(scen_df_list[[i]])[yinds] = substr(names(scen_df_list[[i]]),2,5)[yinds]
+                                
+                                
                                 
                                 # convert the 3 area sheets to from ha to ac if units == FALSE
                                 if (scen_sheets[i] %in% area_sheets & units == FALSE) {
@@ -1434,6 +1449,20 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     oind = which(ann_ghg_sheets == scen_sheets[i])
                                     startcol = 5
                                     
+                                    # if blackC was output as GWP=1 and blackC_plot is FALSE, add BC to CO2 sheets
+                                    if (blackC == FALSE & blackC_plot == FALSE & scen_sheets[i] %in% c("Total_AnnCO2","Wildfire_AnnCO2", "ManTotEnergy_AnnCO2", "LCCTotEnergy_AnnCO2", 
+                                                                                                       "Eco_AnnCO2", "ManFire_AnnCO2", "LCCFire_AnnCO2")) {
+                                      # read the BC sheet
+                                      BC_df <- readWorksheet(scen_wrkbk, i+2, startRow = 1)
+                                      # add the respective BC sheet to CO2
+                                      scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] + BC_df[,startcol:(ncol(scen_df_list[[i]])-1)]
+                                    }
+                                    
+                                    # do the following if plotting BC is TRUE or if it's FALSE, not on one of the BC sheets
+                                    
+                                    if (blackC_plot == TRUE | blackC_plot == FALSE & !(scen_sheets[i] %in% c("Total_AnnBCeq","Wildfire_AnnBCeq", "ManTotEnergy_AnnBCeq", "LCCTotEnergy_AnnBCeq", 
+                                                                                     "Eco_AnnBCeq", "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) { 
+                                    
                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                     # 3) All_own & All_land, 4) All_own & All_region
                                     if (own_lab == "All_own") {
@@ -1506,6 +1535,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                           } # end individual statewide ownership-Land_Type
                                         } # end individual statewide ownership
                                     } # end landcat level
+                                   
                                     
                                     scen_col = rep(scen_lnames[s], length(val_col))
                                     reg_col = rep(reg_lab, length(val_col))
@@ -1515,9 +1545,12 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                     year_col = as.numeric(names(scen_df_list[[i]])[startcol:(ncol(scen_df_list[[i]])-1)])
                                     temp_df = data.frame(Scenario=scen_col, Region=reg_col, Land_Type=lt_col, Ownership=own_col, Units=unit_col, Year=year_col,
                                     Value=val_col)
+                                    
+                                    # annual ghg data stored here
                                     out_ann_ghg_df_list[[oind]] = rbind(out_ann_ghg_df_list[[oind]],temp_df)
                                     
                                     # fill the stacked line df for this scenario and this region/land type/ownership and the component variables
+                                    # only for individual GHG species and components of totals (not totals which are 1:8 of ann_ghg_sheets)
                                     if (oind > num_plot_ann_ghg_sheets & num_plot_ann_ghg_sheets <= num_ann_ghg_sheets) {
                                         # get this scenario data - remove duplicate rows
                                         temp_df = out_ann_ghg_df_list[[oind]][out_ann_ghg_df_list[[oind]]$Scenario == scen_lnames[s] & out_ann_ghg_df_list[[oind]]$Region == reg_lab &
@@ -1535,12 +1568,27 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                         ann_ghg_comp_df = rbind(ann_ghg_comp_df, temp_df)
                                     }
                                     
+                                    } # end calcs on condition that not on BC sheet and want to exclude BC from plots
                                 } # end get annual ghg data
                                 
                                 # get the cumulative ghg data
                                 if (scen_sheets[i] %in% cum_ghg_sheets) {
                                     oind = which(cum_ghg_sheets == scen_sheets[i])
                                     startcol = 5
+                                    
+                                    # if blackC was output as GWP=1 and blackC_plot is FALSE, add BC to CO2 sheets
+                                    if (blackC == FALSE & blackC_plot == FALSE & scen_sheets[i] %in% c("Total_CumCO2","Wildfire_CumCO2", "ManTotEnergy_CumCO2", "LCCTotEnergy_CumCO2", 
+                                                                                                       "Eco_CumCO2", "ManFire_CumCO2", "LCCFire_CumCO2")) {
+                                      # read the BC sheet
+                                      BC_df <- readWorksheet(scen_wrkbk, i+2, startRow = 1)
+                                      # add the respective BC sheet to CO2
+                                      scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] + BC_df[,startcol:(ncol(scen_df_list[[i]])-1)]
+                                    }
+                                    
+                                    # do the following if plotting BC is TRUE or if it's FALSE, not on one of the BC sheets
+                                    
+                                    if (blackC_plot == TRUE | blackC_plot == FALSE & !(scen_sheets[i] %in% c("Total_CumBCeq","Wildfire_CumBCeq", "ManTotEnergy_CumBCeq", "LCCTotEnergy_CumBCeq", 
+                                                                                                             "Eco_CumBCeq", "ManFire_CumBCeq", "LCCFire_CumBCeq"))) { 
                                     
                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                     # 3) All_own & All_land, 4) All_own & All_region
@@ -1641,7 +1689,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                                         # add this variable to the plot df
                                         cum_ghg_comp_df = rbind(cum_ghg_comp_df, temp_df)
                                     }
-                                    
+                                    } # end calcs on condition that not on BC sheet and want to exclude BC from plots
                                 } # end get cumulative ghg data
                                 
                             } # end for i loop over the sheets
@@ -1664,12 +1712,22 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                             brew_ch4 <- c(brewer.pal(9, "Blues"))
                             brew_co2 <- c(brewer.pal(9, "Greys"))
                             brew_bc <- c(brewer.pal(9, "Reds"))
+                            if (blackC_plot == TRUE) {
                             ghg_colors = c(Eco_AnnCH4eq  = brew_ch4[2], Eco_AnnCO2  = brew_co2[2], LCCTotEnergy_AnnBCeq = brew_bc[2],
                             LCCTotEnergy_AnnCH4eq = brew_ch4[4], LCCTotEnergy_AnnCO2 = brew_co2[3], LCCNonBurn_AnnCO2 = brew_co2[4],
                             ManTotEnergy_AnnBCeq = brew_bc[4], ManTotEnergy_AnnCH4eq = brew_ch4[6], ManTotEnergy_AnnCO2 = brew_co2[5],
                             ManFire_AnnBCeq = brew_bc[6], ManFire_AnnCH4eq = brew_ch4[8], ManFire_AnnCO2 = brew_co2[6],
                             ManNonBurn_AnnCO2 = brew_co2[7], Wildfire_AnnBCeq = brew_bc[8], Wildfire_AnnCH4eq = brew_ch4[9],
-                            Wildfire_AnnCO2 = brew_co2[8], Wood_AnnCH4eq = brew_ch4[9], Wood_AnnCO2 = brew_co2[9])
+                            Wildfire_AnnCO2 = brew_co2[8], Wood_AnnCH4eq = brew_ch4[9], Wood_AnnCO2 = brew_co2[9]) 
+                            } else {
+                              ghg_colors = c(Eco_AnnCH4eq  = brew_ch4[2], Eco_AnnCO2  = brew_co2[2], 
+                                             LCCTotEnergy_AnnCH4eq = brew_ch4[4], LCCTotEnergy_AnnCO2 = brew_co2[3], LCCNonBurn_AnnCO2 = brew_co2[4],
+                                             ManTotEnergy_AnnCH4eq = brew_ch4[6], ManTotEnergy_AnnCO2 = brew_co2[5],
+                                             ManFire_AnnCH4eq = brew_ch4[8], ManFire_AnnCO2 = brew_co2[6],
+                                             ManNonBurn_AnnCO2 = brew_co2[7], Wildfire_AnnCH4eq = brew_ch4[9],
+                                             Wildfire_AnnCO2 = brew_co2[8], Wood_AnnCH4eq = brew_ch4[9], Wood_AnnCO2 = brew_co2[9]) 
+                            }
+                  
                             #ghg_colors = c(brew_ch4[2], brew_co2[2], brew_bc[2], brew_ch4[4], brew_co2[3], brew_co2[4], brew_bc[4], brew_ch4[6],
                             # brew_co2[5], brew_bc[6], brew_ch4[8], brew_co2[6], brew_co2[7], brew_bc[8], brew_ch4[9], brew_co2[8], brew_ch4[9],
                             # brew_co2[9])
@@ -1825,6 +1883,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                             brew_ch4 <- c(brewer.pal(9, "Blues"))
                             brew_co2 <- c(brewer.pal(9, "Greys"))
                             brew_bc <- c(brewer.pal(9, "Reds"))
+                            
+                            if (blackC_plot == TRUE) {
                             ghg_colors = c(Eco_CumCH4eq  = brew_ch4[2], Eco_CumCO2  = brew_co2[2], LCCTotEnergy_CumBCeq = brew_bc[2],
                             LCCTotEnergy_CumCH4eq = brew_ch4[4], LCCTotEnergy_CumCO2 = brew_co2[3], LCCNonBurn_CumCO2 = brew_co2[4],
                             ManTotEnergy_CumBCeq = brew_bc[4], ManTotEnergy_CumCH4eq = brew_ch4[6], ManTotEnergy_CumCO2 = brew_co2[5],
@@ -1832,6 +1892,15 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                             ManNonBurn_CumCO2 = brew_co2[7], Wildfire_CumBCeq = brew_bc[8], Wildfire_CumCH4eq = brew_ch4[9],
                             Wildfire_CumCO2 = brew_co2[8], Wood_CumCH4eq = brew_ch4[9], Wood_CumCO2 = brew_co2[9])
                             cum_ghg_comp_df = na.omit(cum_ghg_comp_df[order(c(cum_ghg_comp_df$Component, cum_ghg_comp_df$Year)),])
+                            } else {
+                              ghg_colors = c(Eco_CumCH4eq  = brew_ch4[2], Eco_CumCO2  = brew_co2[2], 
+                                             LCCTotEnergy_CumCH4eq = brew_ch4[4], LCCTotEnergy_CumCO2 = brew_co2[3], LCCNonBurn_CumCO2 = brew_co2[4],
+                                             ManTotEnergy_CumCH4eq = brew_ch4[6], ManTotEnergy_CumCO2 = brew_co2[5],
+                                             ManFire_CumCH4eq = brew_ch4[8], ManFire_CumCO2 = brew_co2[6],
+                                             ManNonBurn_CumCO2 = brew_co2[7], Wildfire_CumCH4eq = brew_ch4[9],
+                                             Wildfire_CumCO2 = brew_co2[8], Wood_CumCH4eq = brew_ch4[9], Wood_CumCO2 = brew_co2[9])
+                              cum_ghg_comp_df = na.omit(cum_ghg_comp_df[order(c(cum_ghg_comp_df$Component, cum_ghg_comp_df$Year)),])
+                            }
                             
                             # absolute values
                             p <- ( ggplot(cum_ghg_comp_df, aes(x=Year))
@@ -2746,7 +2815,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                         
                         # plot the annual ghg line plot comparisons
                         for (i in 1:num_plot_ann_ghg_sheets) {
-                            
+                            if (blackC_plot==TRUE | blackC_plot==FALSE & !(ann_ghg_sheets[i] %in% c("Total_AnnBCeq", "Wildfire_AnnBCeq", "ManTotEnergy_AnnBCeq",
+                                                                                                    "LCCTotEnergy_AnnBCeq", "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) {
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_output.pdf")
                             plot_df = out_ann_ghg_df_list[[i]][out_ann_ghg_df_list[[i]][,"Land_Type"] == lt_lab,]
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
@@ -2906,13 +2976,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diffperarea_output.csv")
                             		write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
                                 } # end if cumulative per area effect of individual practice
-                        
+                            } # end if plotting BC or plotting another GHG species
                         
                         } # end plot annual ghg line plot comparisons
                         
                         # plot the cumulative ghg line plot comparisons
                         for (i in 1:num_plot_cum_ghg_sheets) {
-                            
+                          if (blackC_plot==TRUE | blackC_plot==FALSE & !(cum_ghg_sheets[i] %in% c("Total_CumBCeq", "Wildfire_CumBCeq", "ManTotEnergy_CumBCeq",
+                                                                                                  "LCCTotEnergy_CumBCeq", "ManFire_CumBCeq", "LCCFire_CumBCeq"))) {
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_output.pdf")
                             plot_df = out_cum_ghg_df_list[[i]][out_cum_ghg_df_list[[i]][,"Land_Type"] == lt_lab,]
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
@@ -3077,21 +3148,34 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                             		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperarea_output.csv")
                             		write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
                                 } # end if cumulative per area effect of individual practice
-                        
+                          } # end if plotting BC or plotting another GHG species
                         } # end plot cumulative ghg line plot comparisons
                         
                         # plot the annual ghg species bar graphs
                         
                         out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", "ann_ghg_species_output.pdf")
-                        plot_df = out_ann_ghg_df_list[[start_spec_ann]][out_ann_ghg_df_list[[start_spec_ann]][,"Land_Type"] ==
-                        lt_lab & out_ann_ghg_df_list[[start_spec_ann]][,"Ownership"] == own_lab,]
+                        
+                        # assign the first annual ghg species data ("Total_AnnCO2") to plot_df
+                        plot_df = out_ann_ghg_df_list[[start_spec_ann]][out_ann_ghg_df_list[[start_spec_ann]][,"Land_Type"] == 
+                                                                          lt_lab & out_ann_ghg_df_list[[start_spec_ann]][,"Ownership"] == own_lab,]
+                        # assign "Total_AnnCO2" to Component column
                         plot_df$Component = ann_ghg_sheets[start_spec_ann]
+                        
+                        # for "Total_AnnCH4eq" and "Total_AnnBCeq" do the following
                         for (i in (start_spec_ann+1):end_spec_ann) {
+                          # skip this if not plotting BC and on "Total_AnnBCeq"
+                          if (blackC_plot == TRUE | blackC_plot == FALSE & !(names(out_ann_ghg_df_list)[[i]] %in% c("Total_AnnBCeq", "Wildfire_AnnBCeq",          
+                                                                                                                    "ManTotEnergy_AnnBCeq", "LCCTotEnergy_AnnBCeq",      
+                                                                                                                    "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) { 
+                            # assign the species-specific GHG (CH4 or BC) to temp_df
                             temp_df = out_ann_ghg_df_list[[i]][out_ann_ghg_df_list[[i]][,"Land_Type"] == lt_lab &
                             out_ann_ghg_df_list[[i]][,"Ownership"] == own_lab,]
+                            # assign it's name to "Component" column 
                             temp_df$Component = ann_ghg_sheets[i]
+                            # add the data to plot_df (this will eventually have all 3 ghg's unless not plotting BC, then only 2)
                             plot_df = rbind(plot_df, temp_df)
-                        }
+                          } # end plot depending on whether BC is excluded from plots
+                        } 
                         plot_df = plot_df[(plot_df $Year == 2020 | plot_df $Year == 2030 | plot_df $Year == 2040 | plot_df $Year == 2050),]
                         # use the short scenario names
                         plot_df$Scenario <- factor(plot_df$Scenario, levels = c(scen_lnames, scen_snames))
@@ -3102,10 +3186,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                         plot_df_pos = plot_df_pos[order(plot_df_pos$Component),]
                         plot_df_neg = plot_df[plot_df$Value < 0,]
                         plot_df_neg = plot_df_neg[order(plot_df_neg$Component),]
-                        breaks <- c(levels(plot_df$Component))
+                        # convert Component to factor so it has levels
+                        #plot_df$Component <- factor(plot_df$Component)
+                        #breaks <- c(levels(plot_df$Component))
                         ymax = max(plot_df_pos$Value)
                         ymin = min(plot_df_neg$Value)
                         amax = max(abs(ymax),abs(ymin))
+                        if (blackC_plot == TRUE) { 
+                          # plot all 3 GHG's 
                         p <- ( ggplot()
                         + geom_bar(data=plot_df_neg, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
                         + geom_bar(data=plot_df_pos, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
@@ -3116,6 +3204,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                         + theme(axis.text.x = element_text(size=5))
                         + geom_hline(yintercept=0)
                         )
+                        } else {
+                          # plot only CO2 & CH4 with BC lumped into CO2
+                          p <- ( ggplot()
+                                 + geom_bar(data=plot_df_neg, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                                 + geom_bar(data=plot_df_pos, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                                 + facet_grid(~Year)
+                                 + ylab(paste("MMT CO2-eq per year"))
+                                 + ggtitle(paste(reg_lab, lt_lab, own_lab, ": Annual GWP (*Black C counted as CO2)"))
+                                 + scale_fill_manual(values=c(Total_AnnCH4eq = "dodgerblue3", Total_AnnCO2 = "gray10"))
+                                 + theme(axis.text.x = element_text(size=5))
+                                 + geom_hline(yintercept=0)
+                          )
+                        } 
                         #print(p)
                         p$save_args <- FIGURE_DIMS
                         do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
@@ -3129,10 +3230,15 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                         lt_lab & out_cum_ghg_df_list[[start_spec_cum]][,"Ownership"] == own_lab,]
                         plot_df$Component = cum_ghg_sheets[start_spec_cum]
                         for (i in (start_spec_cum+1):end_spec_cum) {
+                          # skip this if not plotting BC and on "Total_AnnBCeq"
+                          if (blackC_plot == TRUE | blackC_plot == FALSE & !(names(out_cum_ghg_df_list)[[i]] %in% c("Total_CumBCeq", "Wildfire_CumBCeq",          
+                                                                                                                    "ManTotEnergy_CumBCeq", "LCCTotEnergy_CumBCeq",      
+                                                                                                                    "ManFire_CumBCeq", "LCCFire_CumBCeq"))) { 
                             temp_df = out_cum_ghg_df_list[[i]][out_cum_ghg_df_list[[i]][,"Land_Type"] ==
                             lt_lab & out_cum_ghg_df_list[[i]][,"Ownership"] == own_lab,]
                             temp_df$Component = cum_ghg_sheets[i]
                             plot_df = rbind(plot_df, temp_df)
+                          } # end plotting of ghg species dependent on whether BC is selected to be plotted
                         }
                         plot_df = plot_df[(plot_df $Year == 2020 | plot_df $Year == 2030 | plot_df $Year == 2040 | plot_df $Year == 2050),]
                         # use the short scenario names
@@ -3148,6 +3254,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                         ymax = max(plot_df_pos$Value)
                         ymin = min(plot_df_neg$Value)
                         amax = max(abs(ymax),abs(ymin))
+                        
+                        if (blackC_plot == TRUE) { 
+                        # plot all 3 GHG's
                         p <- ( ggplot()
                         + geom_bar(data=plot_df_neg, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
                         + geom_bar(data=plot_df_pos, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
@@ -3157,7 +3266,20 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                         + scale_fill_manual(values=c(Total_CumBCeq = "firebrick3", Total_CumCH4eq = "dodgerblue3", Total_CumCO2 = "gray10"))
                         + theme(axis.text.x = element_text(size=5))
                         + geom_hline(yintercept=0)
-                        )
+                        ) 
+                        } else {
+                          # plot only CO2 and CH4 as BC is lumped into CO2
+                          p <- ( ggplot()
+                                 + geom_bar(data=plot_df_neg, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                                 + geom_bar(data=plot_df_pos, aes(Scenario, Value, fill=Component), stat="identity", position="stack")
+                                 + facet_grid(~Year)
+                                 + ylab(paste("MMT CO2-eq"))
+                                 + ggtitle(paste(reg_lab, lt_lab, own_lab, ": Cumulative GWP (*Black C counted as CO2)"))
+                                 + scale_fill_manual(values=c(Total_CumCH4eq = "dodgerblue3", Total_CumCO2 = "gray10"))
+                                 + theme(axis.text.x = element_text(size=5))
+                                 + geom_hline(yintercept=0)
+                          ) 
+                        }
                         #print(p)
                         p$save_args <- FIGURE_DIMS
                         do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
@@ -3458,8 +3580,6 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE) {
                             write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
                             
                         } # end if not ocean or seagrass
-                        
-                        
                #     } # end if All_own or a specific region and land type (not All_region and not All_land)
                    
                 } # end o loop over ownerships
