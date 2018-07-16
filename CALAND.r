@@ -379,7 +379,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   if (blackC == TRUE) {
   gwp_BC <- 900
   } else {
-    gwp_BC <- 1
+    # otherwise BC is treated like CO2 with 12.0107 g of C per 44.01 g of CO2, with a GWP of 1. Multiplying by 0.6 to cancel out the ratio of C to BC (1/0.6) 
+      # further down in script
+    gwp_BC <- 0.6 * (44.01/12.0107)
   }
   
   # assign fractions of soil c accumulation that is CO2-C and CH4-C in fresh marsh 
@@ -2487,6 +2489,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # and in the next step these losses are applied to these two pools by adding them to the "to atmosphere" transfers
     
     # calculate the decay for this year's new dead material and add it to the ongoing decay
+    
+    # for start_year only, create the 2 df's that track the decay for standdead and down dead
     if (year == start_year) {
     	fire_decay_standdead = fire_adjust_df
     	fire_decay_downdead = fire_adjust_df
@@ -2497,15 +2501,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     	}
     } # done creating decay df if start_year
     
+    # add 2 new columns to fire_adjust_df to distinguish _non-burned_ C emissions of StandDead & DownDead due to decay from burned C emissions
+    fire_adjust_df$StandDead2AtmosNonburn_c <- 0
+    fire_adjust_df$DownDead2AtmosNonburn_c <- 0
+    
     for (i in fire_decay_years) {
     	fcname = paste0("decay_year_",i)
     	if (i == 1) {
-    		# add the loss of new dead material
+    		# add the loss of new current year's dead material to the first decay year
+    	    # decay_year_1 = prior cumulative decay_year_1 + current year's decay
     		fire_decay_standdead[, fcname] = fire_decay_standdead[, fcname] + standdead_decay_frac[i] * fire_adjust_df$Above2StandDead_c
+    		  # decay_year_1 = prior cumulative decay_year_1 + current year's decay
     		fire_decay_downdead[, fcname] = fire_decay_downdead[, fcname] + downdead_decay_frac[i] * fire_adjust_df$Understory2DownDead_c
     		# apply this year's loss to the transfer variables
-    		fire_adjust_df$StandDead2Atmos_c = fire_adjust_df$StandDead2Atmos_c + fire_decay_standdead[,"decay_year_1"]
-    		fire_adjust_df$DownDead2Atmos_c = fire_adjust_df$DownDead2Atmos_c + fire_decay_downdead[,"decay_year_1"]
+    		  # Current year's Non-burned C emissions = current year's decayed C (includes fraction from current year's total C transfer + cumulative fractions of prior year(s))
+    		fire_adjust_df$StandDead2AtmosNonburn_c = fire_decay_standdead[,"decay_year_1"]
+    		fire_adjust_df$DownDead2AtmosNonburn_c = fire_decay_downdead[,"decay_year_1"]
     	} else {
     		# update the decay array
     		fcname_prev = paste0("decay_year_",i-1)
@@ -2540,13 +2551,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[5], "_gain"))
     fire_adjust_df[,fire_agg_names[3]] = -fire_adjust_df$Understory2Atmos_c - fire_adjust_df$Understory2DownDead_c
     # standing dead
-    # add a column called "StandDead_C_den_gain": standing dead C density = -(standing dead to atmos C) + (above-main to standing dead C)
+    # add a column called "StandDead_C_den_gain": standing dead C density = -(standing dead to atmos C from burning) + -(standing dead to atmos C from decay) + (above-main to standing dead C)
     fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[6], "_gain"))
-    fire_adjust_df[,fire_agg_names[4]] = -fire_adjust_df$StandDead2Atmos_c + fire_adjust_df$Above2StandDead_c
+    fire_adjust_df[,fire_agg_names[4]] = -fire_adjust_df$StandDead2Atmos_c + -fire_adjust_df$StandDead2AtmosNonburn_c + fire_adjust_df$Above2StandDead_c
     # down dead
-    # add a column called "DownDead_C_den_gain": down dead C density = -(down dead to atmos C) + (understory to down dead C)
+    # add a column called "DownDead_C_den_gain": down dead C density = -(down dead to atmos C) + -(down dead to atmos C from decay) + (down dead to down dead C)
     fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[7], "_gain"))
-    fire_adjust_df[,fire_agg_names[5]] = -fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$Understory2DownDead_c
+    fire_adjust_df[,fire_agg_names[5]] = -fire_adjust_df$DownDead2Atmos_c + -fire_adjust_df$DownDead2AtmosNonburn_c + fire_adjust_df$Understory2DownDead_c
     # litter
     # add a column called "Litter_C_den_gain": litter C density = -(litter to atmos C)
     fire_agg_names = c(fire_agg_names, paste0(out_density_sheets[8], "_gain"))
@@ -2564,27 +2575,34 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # atmos
     # calc fire C loss to atmosphere [Mg C] ("Land2Atmos_c_stock_fire") = -(total area [ha]) * (soil emissons [MgC/ha] + 
     # litter emissons [Mg/ha] + down dead emissons [Mg/ha] + standing dead emissions [Mg/ha] + understory emissons [Mg/ha] + 
-    # root emissions [Mg/ha] + above-main emissions [Mg/ha])
+    # root emissions [Mg/ha] + above-main emissions [Mg/ha] + standing dead non-burn emissions [Mg/ha] + down dead non-burned emissions [Mg/ha])
     fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_c_stock"))
     fire_adjust_df[,fire_agg_names[8]] = -fire_adjust_df$tot_area * (fire_adjust_df$Soil2Atmos_c + fire_adjust_df$Litter2Atmos_c + 
                                                                        fire_adjust_df$DownDead2Atmos_c + fire_adjust_df$StandDead2Atmos_c + 
                                                                        fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Below2Atmos_c + 
-                                                                       fire_adjust_df$Above2Atmos_c)
+                                                                       fire_adjust_df$Above2Atmos_c + fire_adjust_df$StandDead2AtmosNonburn_c +
+                                                                       fire_adjust_df$DownDead2AtmosNonburn_c)
     # Partition the Land2Atmos_c_stock into total burned (CO2-C+CH4-C+BC-C) and total non-burned C emissions (CO2-C). Currently soil c and root c 
     # are assumed not to burn, and decay is captured in ongoing soil accum rates. (i.e. input values for wildfire effects fractions on 
     # root and soil c to atmosphere are currently 0. Update if contrary evidence is found)
     # first, calculate burned c emissions from wildfire
     fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_BurnedC_stock"))
+    # Land2Atmost_BurnedC_stock [Mg C] = tot_area [ha] * all burned (litter, down dead, stand dead, understory, above-main) C emission densities [MgC/ha]
     fire_adjust_df[,fire_agg_names[9]] = -fire_adjust_df$tot_area * (fire_adjust_df$Litter2Atmos_c + fire_adjust_df$DownDead2Atmos_c + 
                                                                        fire_adjust_df$StandDead2Atmos_c + 
                                                                        fire_adjust_df$Understory2Atmos_c + fire_adjust_df$Above2Atmos_c)
     # second, calculate non-burned c emissions from wildfire
-    # currently this is 0 as there's no lost root or soil c.
     fire_agg_names = c(fire_agg_names, paste0("Land2Atmos_NonBurnedC_stock"))
-    fire_adjust_df[,fire_agg_names[10]] = fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]]
+    # Land2Atmos_NonBurnedC_stock [Mg C] = tot_area [ha] * all non-burned (down dead, stand dead, root, soil) C emission densities [MgC/ha]
+    fire_adjust_df[,fire_agg_names[10]] = -fire_adjust_df$tot_area * (fire_adjust_df$DownDead2AtmosNonburn_c + fire_adjust_df$StandDead2AtmosNonburn_c +
+                                                                        fire_adjust_df$Soil2Atmos_c + fire_adjust_df$Below2Atmos_c)
     
     # check that fire Land2Atmos c flux is equal to the sum of burned and non-burned c stock in the fire_adjust_df
-    identical(fire_adjust_df[,fire_agg_names[8]], fire_adjust_df[,fire_agg_names[9]] + fire_adjust_df[,fire_agg_names[10]])
+    # "Land2Atmos_c_stock" - "Land2Atmos_BurnedC_stock" = "Land2Atmos_NonBurnedC_stock"
+     # not identical due to rouding error
+    identical(fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]], fire_adjust_df[,fire_agg_names[10]])
+    # this is true in 2010 for BAU wildfire
+    all(abs(fire_adjust_df[,fire_agg_names[8]] - fire_adjust_df[,fire_agg_names[9]] - fire_adjust_df[,fire_agg_names[10]]) <= 0.000000001)
     
     ############################################################################################################
     ######### ninth, aggregate changes in each C density pool within each landtype-ownership class ############# 
@@ -2620,8 +2638,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
     
     # check that the fire Land2Atmos c flux is equal to the sum of burned and non-burned land2Atmos c flux in the all_c_flux dataframe
-    # checks true
+    # checks flase due to rounding error
     identical(all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"] + all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"], all_c_flux[,"Land2Atmos_c_stock_fire_agg"])
+    # this is true  
+    all(abs(all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"] + all_c_flux[,"Land2Atmos_NonBurnedC_stock_fire_agg"] - all_c_flux[,"Land2Atmos_c_stock_fire_agg"]) <=0.000001)
     
     # loop over the relevant out density tables to update the carbon pools based on the fire fluxes
     # carbon cannot go below zero
