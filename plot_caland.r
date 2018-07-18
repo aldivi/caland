@@ -1114,9 +1114,18 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                             if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Region"] != "Ocean" &
                                                 scen_df_list[[i]][,"Ownership"] == own_lab, startcol:(ncol(scen_df_list[[i]])-1)])>=1)) {
                                               # sum specific ownership data across all Land_Types and regions
-                                              val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                              # exclude Growth & Urban_forest for Developed_all if on Management sheet (i=2) due their overlapping areas with Dead_removal
+                                              if (i==2) {
+                                                val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                    scen_df_list[[i]][,"Region"] != "Ocean" &
+                                                                                                  scen_df_list[[i]]["Management"] != "Urban_forest" &
+                                                                                                    scen_df_list[[i]]["Management"] != "Growth",
+                                                                                                  startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                              } else { 
+                                                val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                   scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                 startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                              }
                                               # store area data for density calcs
                                               if (scen_sheets[i] == "Area") {
                                               # save all the region-landtype combinations for this ownership except Ocean-Seagrass
@@ -1147,10 +1156,20 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                                                                                        scen_df_list[[i]][,"Region"] == reg_lab & 
                                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
-                                                  val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                      scen_df_list[[i]][,"Region"] == reg_lab & 
-                                                                                                      scen_df_list[[i]][,"Region"] != "Ocean", 
-                                                                                                    startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                                  # exclude Growth & Urban_forest for Developed_all if on Management sheet (i=2) due their overlapping areas with Dead_removal
+                                                  if (i==2) {
+                                                    val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                        scen_df_list[[i]][,"Region"] == reg_lab &
+                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean" &
+                                                                                                        scen_df_list[[i]]["Management"] != "Urban_forest" &
+                                                                                                        scen_df_list[[i]]["Management"] != "Growth",
+                                                                                                      startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                                  } else {
+                                                    val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                        scen_df_list[[i]][,"Region"] == reg_lab & 
+                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                      startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                                  }
                                                   
                                                   # store area data for density calcs
                                                   if (scen_sheets[i] == "Area") {
