@@ -5042,13 +5042,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   out_atmos_df_list[["TotalFire_CumCO2eq_all"]] <- TotalFire_CumCO2eq_all
   out_atmos_df_list[["TotalEnergy_CumCO2eq_all"]] <- TotalEnergy_CumCO2eq_all
   out_atmos_df_list[["TotalNonBurn_AnnCO2eq_all"]] <- TotalNonBurn_AnnCO2eq_all
-  out_atmos_df_list[["TotalFire_AnnCO2eq_all"]] <- TotalFire_CumCO2eq_all
-  out_atmos_df_list[["TotalEnergy_AnnCO2eq_all"]] <- TotalEnergy_CumCO2eq_all
+  out_atmos_df_list[["TotalFire_AnnCO2eq_all"]] <- TotalFire_AnnCO2eq_all
+  out_atmos_df_list[["TotalEnergy_AnnCO2eq_all"]] <- TotalEnergy_AnnCO2eq_all
   out_atmos_df_list[["TotalBurn_CumCO2eq_all"]] <- TotalBurn_CumCO2eq_all
   out_atmos_df_list[["TotalBurn_AnnCO2eq_all"]] <- TotalBurn_AnnCO2eq_all
   out_atmos_df_list[["Total_CumCO2eq_all"]] <- Total_CumCO2eq_all
   out_atmos_df_list[["Total_AnnCO2eq_all"]] <- Total_AnnCO2eq_all
-  # add BC-C outputs
+  ### add BC-C outputs
+    # cumulative
   out_atmos_df_list[["ManFire_CumBCC"]] <- ManFire_CumBCC
   out_atmos_df_list[["ManTotEnergy_CumBCC"]] <- ManTotEnergy_CumBCC
   out_atmos_df_list[["ManHarv2Energy_CumBCC"]] <- ManHarv2Energy_CumBCC
@@ -5058,6 +5059,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   out_atmos_df_list[["LCCHarv2Energy_CumBCC"]] <- LCCHarv2Energy_CumBCC
   out_atmos_df_list[["LCCSlash2Energy_CumBCC"]] <- LCCSlash2Energy_CumBCC
   out_atmos_df_list[["Wildfire_CumBCC"]] <- Wildfire_CumBCC
+    # annual
+  out_atmos_df_list[["ManFire_AnnBCC"]] <- ManFire_AnnBCC
+  out_atmos_df_list[["ManTotEnergy_AnnBCC"]] <- ManTotEnergy_AnnBCC
+  out_atmos_df_list[["ManHarv2Energy_AnnBCC"]] <- ManHarv2Energy_AnnBCC
+  out_atmos_df_list[["ManSlash2Energy_AnnBCC"]] <- ManSlash2Energy_AnnBCC
+  out_atmos_df_list[["LCCFire_AnnBCC"]] <- LCCFire_AnnBCC
+  out_atmos_df_list[["LCCTotEnergy_AnnBCC"]] <- LCCTotEnergy_AnnBCC
+  out_atmos_df_list[["LCCHarv2Energy_AnnBCC"]] <- LCCHarv2Energy_AnnBCC
+  out_atmos_df_list[["LCCSlash2Energy_AnnBCC"]] <- LCCSlash2Energy_AnnBCC
+  out_atmos_df_list[["Wildfire_AnnBCC"]] <- Wildfire_AnnBCC
   
   # replaces any -0 with 0
   for (i in 1:length(out_atmos_df_list)) {
