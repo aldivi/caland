@@ -70,13 +70,16 @@ for( i in libs ) {
 # set these here so the function does not have to be used
 data_dir = "./outputs"
 # scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
+scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
+scen_lnames = c("BAU_Eco","BAU_all")
+scen_snames = c("BAUEco","BAUall")
 #scen_lnames = c("BAU_Eco","Wood_Restoration")
 #scen_snames = c("BAUEco","WoodRest")
 scen_fnames = c("BAU_Fire_frst2Xmort_fire_output_mean_BC1.xls","USFS_partial_cut_frst2Xmort_fire_output_mean_BC1.xls") 
 scen_lnames = c("BAU_Fire","USFS_PartialCut")
 scen_snames = c("BAUFire","USFSPC")
-lt=c("Forest")
-own=c("USFS_nonwild")
+lt=c("Developed_all", "All_land")
+own=c("Private","All_own")
 units = TRUE
 reg=c("All_region")
 
@@ -313,8 +316,6 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                 # remove the Xs added to the front of the year columns, and get the years as numbers only
                                 yinds = which(substr(names(scen_df_list[[i]]),1,1) == "X")
                                 names(scen_df_list[[i]])[yinds] = substr(names(scen_df_list[[i]]),2,5)[yinds]
-                                
-                                
                                 
                                 # convert the 3 area sheets to from ha to ac if units == FALSE
                                 if (scen_sheets[i] %in% area_sheets & units == FALSE) {
@@ -938,9 +939,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                           # each area_df will include a row for All_region and all the individual regions combinations for the given landtype
                                           # possible nrows in area_df for given lt_lab: (1) specific Land_Type (1 to multiple rows) or (2) All_land (1 to multiple rows) 
                                           
-                                          ######## For Area and Wildfire_area and non-Dev and non-All_land Management_area ########
+                                          ######## For Area and Wildfire_area and non-Developed_all and non-All_land Management_area ########
                                            ####### All_own ####### 
-                                             ####### (1) Single landtype #########
+                                             ####### (1) Single (non-developed_all) landtype #########
                                             if (nrow(area_df[area_df[,"Region"] == reg_lab, ]) > 1) {
                                               # Sum across ownerships for given Land_Type & Region 
                                                 val_col = ha2kha * unlist(apply(area_df[area_df[,"Region"] == reg_lab,
@@ -992,9 +993,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                 area_df = area_df[area_df$Region != "All_region",]
                                             } else {
                                             ####### All_land #######
-                                              # Extract individual land types and regions (non-ocean) from original Managed_area sheet and assign to temp_df
-                                                temp_df = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] != "All_land" & scen_df_list[[i]][,"Region"] != "All_region" &
-                                                scen_df_list[[i]][,"Region"] != "Ocean", 1:(ncol(scen_df_list[[i]])-1)]
+                                              # Extract individual land types and regions (non-ocean because not land) from original Managed_area sheet and assign to temp_df
+                                                temp_df = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] != "All_land" & scen_df_list[[i]][,"Region"] != "All_region" & 
+                                                                              scen_df_list[[i]][,"Region"] != "Ocean", 1:(ncol(scen_df_list[[i]])-1)]
                                                 temp_df = na.omit(temp_df[order(c(temp_df$Ownership)),])
                                                 temp_df = na.omit(temp_df[order(c(temp_df$Region, area_df$Management)),])
                                                 # first aggregate the land types, but keep the other variables separate

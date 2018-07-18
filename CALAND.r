@@ -138,6 +138,7 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
 # scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
 scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
+scen_file_arg = "BAU_All_frst2Xmort_fire.xls"
 scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_partial_cut_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
@@ -5172,7 +5173,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       # name the landtype cell accordingly
       all_landtype_sums[l,c(1:5)] <- c(-1, "All_region", landtype_names[l], "All_own", "All")
       # subset landtype-specific df
-      landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name,] 
+        # if on management areas, exclude developed_all urban forest and growth to ensure accurate summed management areas for developed_all using only dead_removal
+      if (i == 2) {
+        landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name & out_area_df_list[[i]][,"Management"] != "Growth" & 
+                                                    out_area_df_list[[i]][,"Management"] != "Urban_forest"]
+      } else {
+        landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name]
+      }
+       
       # aggregate sum areas of landtype-specific areas for each column year
       all_landtype_sums[l,c(6:ncol(all_landtype_sums))] <- apply(landtype_df_temp[,c(6:ncol(landtype_df_temp))], 2, sum)
     }
@@ -5191,7 +5199,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       # name the region cell accordingly
       all_region_sums[r,c(1:5)] <- c(-1, region_names[r], "All_land", "All_own", "All")
       # subset region-specific df
-      region_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Region"] == region_name,] 
+        # if on management areas, exclude developed_all urban forest and growth to ensure accurate summed management areas for developed_all using only dead_removal
+      if (i == 2) {
+        region_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Region"] == region_name & out_area_df_list[[i]][,"Management"] != "Growth" & 
+          out_area_df_list[[i]][,"Management"] != "Urban_forest"]
+      } else {
+        region_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Region"] == region_name,] 
+      }
       # aggregate sum areas of region-specific areas for each column year
       all_region_sums[r,c(6:ncol(all_region_sums))] <- apply(region_df_temp[,c(6:ncol(region_df_temp))], 2, sum)
     }
