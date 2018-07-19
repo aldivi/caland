@@ -16,12 +16,18 @@
 
 #	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
+# 	units_scenario: 	specify units for input areas in scenarios_file - must be ac or ha.
 #	climate_c_file:		the climate scalars for vegetation and soil carbon accumulation; future scenario must match the fire input file
 #	fire_area_file:		annual burned area by region-ownership; future scenario must match the climate c file
+#	mortality_file:		mortality rate as annual fraction of above ground biomass; includes values for all woody land types that have c accumulation in vegetation
 #	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
 #	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m)
 #	carbon_gis_files:	vector of 13 csv file names of gis stats carbon density by land category (t C per ha)
-# units_scenario: specify units for input areas in scenarios_file - must be ac or ha.
+#	forest_mort_fact:		the value by which to adjust the forest mortality during the period specified by forest_mort_adj_first/last
+#	forest_mort_adj_first:	the first year to adjust forest mortality
+#	forest_mort_adj_last:	the last year to adjust forest mortality
+# 	control_wildfire_lulcc:	if TRUE, read control_wildfire_lulcc_file to shut off wildfire, or lulcc, or both
+#	control_wildfire_lulcc_file: file with flags for each scenario in scenarios_file to control wildfire and lulcc
 
 # parameter_file
 #	8 tables
@@ -56,6 +62,14 @@
 #	Non-regen area is parameterized as a function of the high severity fraction and a threshold distance from burn edge
 #	Projected climate fire is directly from the area file, and is currently area only, so other aspects are estimated as for BAU fire
 
+# mortality_file
+#	Three ID columns: Region, Land_Type, Ownership
+#	One data column: Mortality_frac
+#	this is the annual mortality rate as a fraction of above ground biomass
+#	includes values for all woody land types that have c accumulation in vegetation
+#	all valid land types must be explicitly specified: Shrubland, Savanna, Woodland, Forest, Developed_all
+#	region and/or ownership can be "All"
+
 # area_gis_files (sq m)
 #	7 columns
 #	region code, region name, land type code, land type name, ownership code, ownership name, area
@@ -72,6 +86,13 @@
 #	soil organic c is from gSSURGO, and we assume that any zero values in the original data set are non-valid when calculating the land category averages
 #		there is 12236544 ha (mostly desert) with no data that is converted to zero when the raster is created, and only 17601 ha (mostly rivers) with zeros in the gssurgo data
 
+# control_wildfire_lulcc_file
+#	flags to dtermine whether wildfire and/or lulcc will happen
+#	three columns, in order: Scenario, Wildfire, LULCC
+#		Scenario: matches the worksheet names in the scenarios_file; these scenario names MUST MATCH between these two files
+#		Wildfire: 1=wildfire; 0=no wildfire
+#		LULCC: 1=lulcc; 0=no lulcc
+
 # mortality
 # the recent and expected forest mortality due to insects and drought is emulated by a doubled forest mortality rate for 10 years (2015-2024)
 # mortality applies only to woody systems with veg c accumulation
@@ -86,13 +107,17 @@
 # fresh marsh comes out of only private and state land in the delta, so make sure that these are included (for now, all existing cultivate delta land categories are included as potential fresh marsh)
 #	      so far, this is the only land type for which land categories need to be added (except for seagrass)
 # coastal marsh comes out of only private and state land in the coastal regions, so make sure these are available, from cultivated
-# meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, savanna, and woodland, 
+# meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, savanna, and woodland
+# woodland comes from cultivated and grassland
+# afforestation is forest area expansion and comes from shrubland and grassland
 
 # output files
 # areas are in ha (scenario files)
 # carbon file:
 #  densities are in Mg C per ha (t C per ha)
 #  factors are fractions
+
+# this takes about an hour for 5he 5 original scenarios
 
 #setwd("/Users/adivi/projects/cnra_carbon/caland")
 
@@ -117,10 +142,12 @@ start_year = 2010
 end_year = 2051
 CLIMATE = "HIST"
 parameter_file = "lc_params.xls"
-# scenarios_file = "orig_scenarios.xls"
-scenarios_file = "individual_proposed_sims.xls"
+scenarios_file = "orig_scenarios.xls"
+#scenarios_file = "individual_proposed_sims.xls"
+units_scenario <- "ha"
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
+mortality_file = "mortality_annual_july_2018.csv"
 land_change_method = "Landuse_Avg_Annual"
 # land_change_method = "Landcover"
 area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
@@ -130,16 +157,19 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
                      "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
-# if TRUE, it indicates that there is an alternative scenarios_file (i.e. "individual_proposed_sims.xls") that will call for reassignment of LULCC and wildfire for each sim 
- # based on "LULCC_Wildfire_reassignments_for_individ_sims.csv"
-input_selections_file <- TRUE
-units_scenario <- "ha"
+forest_mort_fact = 2
+forest_mort_adj_first = 2015
+forest_mort_adj_last = 2024
+control_wildfire_lulcc <- FALSE
+#control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
+control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv"
 
 write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xls", start_year = 2010, end_year = 2051, 
                                 CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls",
                                 units_scenario = "ha",
                                 climate_c_file = "climate_c_scalars_unitary.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
+                                mortality_file = "mortality_annual_july_2018.csv",
                                 area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", land_change_method = "Landuse_Avg_Annual",
                                 area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), 
                                 carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", 
@@ -148,7 +178,12 @@ write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_i
                                                      "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                                                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv"), input_selections_file = FALSE) {
+                                                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv"),
+								forest_mort_fact = 2,
+								forest_mort_adj_first = 2015,
+								forest_mort_adj_last = 2024,
+								control_wildfire_lulcc = FALSE,
+								control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv") {
 	
 cat("Start write_caland_inputs at", date(), "\n")
 
@@ -207,6 +242,20 @@ out_scen_df_list <- list()
 out_c_df_list <- list()
 in_c_df_list <- list()
 accum_df_list <- list()
+man_df_list <- list()
+
+# regions
+reg_names = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast")
+num_reg = length(reg_names)
+
+# land types
+lt_names = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow",
+       "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass")
+num_lt = length(lt_names)
+
+# ownerships
+own_names = c("BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
+num_own = length(own_names)
 
 # useful out_c_df_list indices
 allc_ind = 1
@@ -223,7 +272,7 @@ ag_manage_ind = 16
 wildfire_ind = 17
 
 # useful indices of the input parameter files
-param_start_col = c(3, 3, 2, 4, 3, 3, 4, 2)
+param_start_col = c(4, 4, 2, 5, 3, 3, 4, 2)
 
 # some default parameters
 
@@ -247,21 +296,10 @@ seagrass_start_area_ha = 5261.00
 ###### mortality
 
 # default mortality for woody land types with vegc_uptake
-#	shrubland, savanna, woodland, developed_all
+#	valid land types: Shrubland, Savanna, Woodland, Forest, Developed_all
 #	all others need to be 0, although CALAND does check this
+# this default value is just used to initialize the table
 mortality_default = 0.01
-
-# initial mortality for forest
-mortality_forest_private = 0.005
-mortality_forest_usfs = 0.011
-mortality_forest_other = 0.008
-
-# forest mortality multiplier
-mortality_forest_factor = 2
-
-# forest mortality adjusted years
-mortality_forest_adj_first = 2015
-mortality_forest_adj_last = 2024
 
 ###### wildfire (ha)
 # assume that the intensities are: High, Medium, Low
@@ -290,13 +328,42 @@ med_fire_frac = 0.29
 # other two classes will decrease proportionally
 hs_fire_trend = 0.0027
 
-######## Developed_all above ground C density
-# statewide average of cities, based on urban forest
-# bjorkman et al 2015
-dev_all_agc_min = 0.13
-dev_all_agc_max = 47.01
-dev_all_agc_mean = 10.7
-dev_all_agc_stddev = 10.19
+######## Developed_all above and below ground C density
+# regional averages of cities, based on urban forest
+# mcpherson et al 2017
+# the reported values have been mapped to caland in the file urban_forest_data.xlsx
+# the split between above and below is based on the paper assumption that 28% of total live biomass in in roots
+#  only the total live biomass is reported in the paper, and we were originally told the root values were not included
+# we recently learned that the root values are included in the reported values
+# for now merge above and below into above, because that was the original assumption, and changing it require caland modification
+# if there enough time separate these
+# use the std err as the uncertainty (in the stddev column)
+# add and subtract the stderr to get max and min
+# the values are in the order of reg_names above
+dev_all_agc_mean = c(14.27, 11.23, 11.23, 1.60, 7.49, 7.49, 17.32, 7.49, 6.23)
+dev_all_bgc_mean = c(5.55, 4.37, 4.37, 0.62, 2.91, 2.91, 6.74, 2.91, 2.42)
+dev_all_agc_stddev = c(0.33, 0.07, 0.07, 0.08, 0.11, 0.11, 0.59, 0.11, 0.08)
+dev_all_bgc_stddev = c(0.01, 0.001, 0.001, 0.003, 0.003, 0.003, 0.02, 0.003, 0.002)
+dev_all_agc_min = dev_all_agc_mean - dev_all_agc_stddev
+dev_all_agc_max = dev_all_agc_mean + dev_all_agc_stddev
+dev_all_bgc_min = dev_all_bgc_mean - dev_all_bgc_stddev
+dev_all_bgc_max = dev_all_bgc_mean + dev_all_bgc_stddev
+
+# now sum them into above only and propagate the error
+dev_all_agc_mean = dev_all_agc_mean + dev_all_bgc_mean
+dev_all_agc_stddev = sqrt(dev_all_agc_stddev^2 + dev_all_bgc_stddev^2)
+dev_all_agc_min = dev_all_agc_mean - dev_all_agc_stddev
+dev_all_agc_max = dev_all_agc_mean + dev_all_agc_stddev
+dev_all_bgc_mean[] = 0
+dev_all_bgc_stddev[] = 0
+dev_all_bgc_min[] = 0
+dev_all_bgc_max[] = 0
+
+# these are the original statewide values from bjorkman et al 2015
+#dev_all_agc_min = 0.13
+#dev_all_agc_max = 47.01
+#dev_all_agc_mean = 10.7
+#dev_all_agc_stddev = 10.19
 
 # Grassland, Savanna, Woodland soil c values
 # statewide average of estimated total col soil c density from reviewed lit
@@ -613,29 +680,73 @@ for (y in (start_year+1):(end_year-1)) {
 
 ###### scen mortality table
 # this is a multiple year table
+# currently, the only land types with explicit mortality are:
+# shrubland, savanna, woodland, forest, developed_all
+# this is because other land types do not have above gound carbon accumulation (i.e. mortality is implicit)
 
-# mortality applies only to shrubland, savanna, woodland, forest, and developed_all
+# read in the mortality values
+# all valid land types must be explicitly specified
+mort_in = read.csv(paste0(in_dir,mortality_file), stringsAsFactors = FALSE)
+
 # initial year
 mortality_types = out_scen_df_list[[1]][out_scen_df_list[[1]]$Land_Type == "Forest" | out_scen_df_list[[1]]$Land_Type == "Woodland" | out_scen_df_list[[1]]$Land_Type == "Savanna" | out_scen_df_list[[1]]$Land_Type == "Shrubland" | out_scen_df_list[[1]]$Land_Type == "Developed_all",]
 names(mortality_types)[ncol(mortality_types)] <- "start_frac"
 year_col_start = ncol(mortality_types)
 mortality_types$start_frac = mortality_default
-mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership == "Private"] = mortality_forest_private
-mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership == "USFS_nonwild"] = mortality_forest_usfs
-mortality_types$start_frac[mortality_types$Land_Type == "Forest" & mortality_types$Ownership != "Private" & mortality_types$Ownership != "USFS_nonwild"] = mortality_forest_other
-# increased forest mortality
-# need to add the years surround the jumps so that each period has a flat mortality rate
-mortality_types$year2_frac = mortality_types$start_frac
-mortality_types$year3_frac = mortality_types$start_frac
-mortality_types$year3_frac[mortality_types$Land_Type == "Forest"] = mortality_forest_factor * mortality_types$year3_frac[mortality_types$Land_Type == "Forest"]
-mortality_types$year4_frac = mortality_types$year3_frac
-mortality_types$year5_frac = mortality_types$start_frac
-mortality_types = mortality_types[order(mortality_types$Land_Cat_ID),]
+
+# create table of the mortality values by location specified
+mort_in_landcat = mort_in[mort_in$Region != "All" & mort_in$Ownership != "All",]
+mort_in_allreg = mort_in[mort_in$Region == "All" & mort_in$Ownership != "All",]
+mort_in_allown = mort_in[mort_in$Region != "All" & mort_in$Ownership == "All",]
+mort_in_allregown = mort_in[mort_in$Region == "All" & mort_in$Ownership == "All",]
+
+# land cat
+if (nrow(mort_in_landcat) > 0) {
+	mortality_types = merge(mortality_types, mort_in_landcat, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+	mortality_types$start_frac[!is.na(mortality_types$Mortality_frac)] = mortality_types$Mortality_frac[!is.na(mortality_types$Mortality_frac)]
+	mortality_types$Mortality_frac = NULL
+}
+
+# all region
+if (nrow(mort_in_allreg) > 0) {
+	mortality_types = merge(mortality_types, mort_in_allreg[,c("Land_Type", "Ownership", "Mortality_frac")], by = c("Land_Type", "Ownership"), all.x = TRUE)
+	mortality_types$start_frac[!is.na(mortality_types$Mortality_frac)] = mortality_types$Mortality_frac[!is.na(mortality_types$Mortality_frac)]
+	mortality_types$Mortality_frac = NULL
+}
+
+# all ownership
+if (nrow(mort_in_allown) > 0) {
+	mortality_types = merge(mortality_types, mort_in_allown[,c("Region", "Land_Type", "Mortality_frac")], by = c("Region", "Land_Type"), all.x = TRUE)
+	mortality_types$start_frac[!is.na(mortality_types$Mortality_frac)] = mortality_types$Mortality_frac[!is.na(mortality_types$Mortality_frac)]
+	mortality_types$Mortality_frac = NULL
+}
+
+# all reigon and all ownership
+if (nrow(mort_in_allregown) > 0) {
+	mortality_types = merge(mortality_types, mort_in_allregown[,c("Land_Type", "Mortality_frac")], by = c("Land_Type"), all.x = TRUE)
+	mortality_types$start_frac[!is.na(mortality_types$Mortality_frac)] = mortality_types$Mortality_frac[!is.na(mortality_types$Mortality_frac)]
+	mortality_types$Mortality_frac = NULL
+}
+
+mortality_types = mortality_types[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "start_frac")]
+
+if(forest_mort_fact != 1) {
+	# increased forest mortality
+	# need to add the years surround the jumps so that each period has a flat mortality rate
+	mortality_types$year2_frac = mortality_types$start_frac
+	mortality_types$year3_frac = mortality_types$start_frac
+	mortality_types$year3_frac[mortality_types$Land_Type == "Forest"] = forest_mort_fact * mortality_types$year3_frac[mortality_types$Land_Type == "Forest"]
+	mortality_types$year3_frac[mortality_types$Land_Type == "Forest" & mortality_types$year3_frac >= 1] = 1
+	mortality_types$year4_frac = mortality_types$year3_frac	
+	mortality_types$year5_frac = mortality_types$start_frac
+	mortality_types = mortality_types[order(mortality_types$Land_Cat_ID),]
+	names(mortality_types)[year_col_start+1] <- paste0(forest_mort_adj_first-1,"_frac")
+	names(mortality_types)[year_col_start+2] <- paste0(forest_mort_adj_first,"_frac")
+	names(mortality_types)[year_col_start+3] <- paste0(forest_mort_adj_last,"_frac")
+	names(mortality_types)[year_col_start+4] <- paste0(forest_mort_adj_last+1,"_frac")
+}
+
 names(mortality_types)[year_col_start] <- paste0(start_year,"_frac")
-names(mortality_types)[year_col_start+1] <- paste0(mortality_forest_adj_first-1,"_frac")
-names(mortality_types)[year_col_start+2] <- paste0(mortality_forest_adj_first,"_frac")
-names(mortality_types)[year_col_start+3] <- paste0(mortality_forest_adj_last,"_frac")
-names(mortality_types)[year_col_start+4] <- paste0(mortality_forest_adj_last+1,"_frac")
 out_scen_df_list[[5]] = mortality_types
 
 ###### scen climate scalars tables
@@ -669,7 +780,7 @@ if(CLIMATE == "HIST") { climate_c_veg[,-c(1:4)] = 1 }
 out_scen_df_list[[6]] = cbind(out_scen_df_list[[6]], climate_c_veg[,c(5:ncol(climate_c_veg))])
 # set the column names
 for (i in c(5:ncol(out_scen_df_list[[6]]))) {
-	names(out_scen_df_list[[6]])[i] <- paste0(start_year+i-5,"_ha")
+	names(out_scen_df_list[[6]])[i] <- paste0(start_year+i-5)
 }
 
 # soil
@@ -733,9 +844,10 @@ num_param_sheets = length(param_sheets)
 # NA values need to be converted to numeric
 # the warnings thrown by readWorksheet below are ok because they just state that the NA string can't be converted a number so it is 
 # converted to NA value
-c_col_types1 = c("character", "character", rep("numeric",50))
-c_col_types2 = c("character", rep("numeric",50))
+c_col_types1 = c("character", rep("numeric",50))
+c_col_types2 = c("character", "character", rep("numeric",50))
 c_col_types3 = c("character", "character", "character", rep("numeric",50))
+c_col_types4 = c("character", "character", "character", "character", rep("numeric",50))
 
 # Load the param worksheets into a list of data frames
 param_df_list <- list()
@@ -746,16 +858,16 @@ for (i in 1:2) { # vegc_uptake and soilc_accum
 }
 for (i in 3:3) { # conversion2ag_urban
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
+	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
 }
 # forest_manage
 i = 4
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types4, forceConversion = TRUE)
 
 for (i in 5:6) { # dev_manage to grass_manage 
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
+	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
 }
 
 # ag_manage
@@ -766,7 +878,7 @@ param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTyp
 # wildfire
 i=8
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
-param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types1, forceConversion = TRUE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
 
 ###### read the parameter headers file for the outputs
 paramhead_wrkbk = loadWorkbook(param_head_file)
@@ -778,44 +890,56 @@ for (i in 1:num_paramhead_sheets) {
 	param_head_df_list[[i]] <- readWorksheet(paramhead_wrkbk, i, startRow = 1, header = FALSE)
 }
 
-# read in the instruction file for individual sims
-turn_off_df <-read.csv("raw_data/LULCC_Wildfire_reassignments_for_indiv_sims.csv", header = TRUE)
+if (control_wildfire_lulcc) {
+	# read in the instruction file for input scenario
+	control_wildfire_lulcc_df <-read.csv(paste0(in_dir,control_wildfire_lulcc_file), header = TRUE)
+}
 
 ###### loop over the scenario definitions
 # make a complete scenario file for each one
 
 # save the LULCC and wildfire dataframesin case they are modfied in each loop and need to be reset
-  # for creating the individual sensitivity/scenario tests (input_selections_file==TRUE)
+  # for creating the individual sensitivity/scenario tests (control_wildfire_lulcc==TRUE)
 orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
 for (s in 1:num_scenin_sheets) {
   
-  # if creating the sensitivity/scenario inputs using individual_proposed_sims.xls instead of orig_scenario.xls, 
-  # use the current sheet (s) number to find the selection of out_scen_df_list sheets to modify (i.e, LULCC to 0 and/or Wildfire to 0)
+  ###### scenario managed area table
+	
+	scenin = scenin_df_list[[s]]
+  	scenin_name = scenin_sheets[s]
   
-  if (input_selections_file) {
+  # if turning off wildfire and/or lulcc, 
+  # use the scenario name to find the selection of out_scen_df_list sheets to modify (i.e, LULCC to 0 and/or Wildfire to 0)
+  
+  if (control_wildfire_lulcc) {
     
     # reset LULCC and wildfire with original datasets
     out_scen_df_list[[2]] <- orig_LULCC
     out_scen_df_list[[4]] <- orig_fire
     
-    # read the row for current sheet
-    LULCC_switch <- turn_off_df[s,3]
-    wildfire_switch <- turn_off_df[s,2]
+    # find the correct row for this scenario
+    for (i in 1:nrow(control_wildfire_lulcc_df)) {
+    	if (scenin_name == control_wildfire_lulcc_df$Scenario[i]) {
+    		# read the row for current sheet
+    		LULCC_switch <- control_wildfire_lulcc_df[i,3]
+    		wildfire_switch <- control_wildfire_lulcc_df[i,2]
     
-    # update LULCC
-    out_scen_df_list[[2]][5] <- out_scen_df_list[[2]][5] * LULCC_switch
+    		# update LULCC
+    		out_scen_df_list[[2]][5] <- out_scen_df_list[[2]][5] * LULCC_switch
     
-    # update wildfire
-    out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] <- out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] * wildfire_switch
-    
-  }
+    		# update wildfire
+    		out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] <- out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] * wildfire_switch
+    		break
+    	} else {# end if the scenario is found
+    		cat("/nError: No lulcc/wildfire control record for scenario", scenin_name, "in file ", control_wildfire_lulcc_file, "\n")
+    		stop()
+    	}
+    } # end for i loop over control file rows
+     
+  } # end if control_wildfire_lulcc
 	
-	###### scenario managed area table
-	
-	scenin = scenin_df_list[[s]]
-	scenin_name = scenin_sheets[s]
 	# check the scenario management against the parameter management (if it exists)
 	# Restoration, Urban_forest, and Growth do not have any parameters associated with them
 	if (nrow(scenin) != 0) {
@@ -1262,10 +1386,12 @@ for (p in cpool_start:cpool_end) {
 	
 	# fill Developed-all above ground c
 	if (out_c_tags[p] == "agc") {
-		out_table$Min_Mg_ha[out_table$Land_Type == "Developed_all"] = dev_all_agc_min
-		out_table$Max_Mg_ha[out_table$Land_Type == "Developed_all"] = dev_all_agc_max
-		out_table$Mean_Mg_ha[out_table$Land_Type == "Developed_all"] = dev_all_agc_mean
-		out_table$Stddev_Mg_ha[out_table$Land_Type == "Developed_all"] = dev_all_agc_stddev
+		for	(r in 1:num_reg) {
+			out_table$Min_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_min[r]
+			out_table$Max_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_max[r]
+			out_table$Mean_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_mean[r]
+			out_table$Stddev_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_stddev[r]
+		}
 	}
 	
 	########### for biomass c
@@ -1608,8 +1734,7 @@ out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_map_df_list[[biomas
 
 
 ############### make the conversion/management parameter tables
-# the vegetation c uptake table is distributed then Forest is adjusted by region
-# deal with soil c accumulation [and ag_manage table (??)] similarly to the veg table 
+# regionalization of veg and soil uptake values is now explicit in the raw data 
 # wildfire is passed through exactly as is
 # the rest are merged with the full set of land cats, then the NA rows are removed
 
@@ -1637,26 +1762,25 @@ for (m in params_start:params_end) {
 	} else if (m == forest_man_ind) {
 		mergeby = c("Land_Type", "Ownership")
 	# if conversion, dev_manage, grass_manage, or wildfire merge by landtype
-		} else if (m == ag_manage_ind) {
-		  mergeby = c("Region", "Land_Type")
-		} else {
-		  mergeby = c("Land_Type")
-		}
+	} else if (m == ag_manage_ind) {
+		mergeby = c("Region", "Land_Type")
+	} else {
+		mergeby = c("Land_Type")
+	}
 	
 	# if on wildfire table (m=17, in_index=8),
 	if (m == wildfire_ind) {
 	  # assign the wildfire param table to the 17th df of out_c_df_list
 		out_c_df_list[[wildfire_ind]] = param_df_list[[in_index]]
 		# otherwise for veg and soil c accum
-	} else 
-	  if (m == vegcuptake_ind | m==soilcaccum_ind) {
+	} else if (m == vegcuptake_ind | m==soilcaccum_ind) {
 		# split the records based on complete specification, all own, or all region, or all own all region
-		  # assign the veg or soil C param table to paramin
-	  paramin = param_df_list[[in_index]]
-		  # assign rows with  ownership- and region-specific land types to complete_recs
-	  complete_recs = paramin[paramin$Ownership != "All" & paramin$Region != "All",]
+		# assign the veg or soil C param table to paramin
+	  	paramin = param_df_list[[in_index]]
+		# assign rows with  ownership- and region-specific land types to complete_recs
+	  	complete_recs = paramin[paramin$Ownership != "All" & paramin$Region != "All",]
 	    # assign region-specifc landtype to allown_recs
-	  allown_recs = paramin[paramin$Ownership == "All" & paramin$Region != "All",]
+	  	allown_recs = paramin[paramin$Ownership == "All" & paramin$Region != "All",]
 	    # assign ownership-specifc landtype to allreg_recs
 		allreg_recs = paramin[paramin$Region == "All" & paramin$Ownership != "All",]
 		  # assign statewide landtype to allownreg_recs
@@ -1678,7 +1802,6 @@ for (m in params_start:params_end) {
 		AE = NULL
 		# first merge region- and ownership-specific landtypes with initial areas
 		if (nrow(complete_recs) > 0) {
-		  # 
 			accum1 = merge(area, complete_recs, by = c("Region", "Land_Type", "Ownership"), all.y = TRUE)
 			accum1 = accum1[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha_yr", "Max_Mg_ha_yr", "Mean_Mg_ha_yr", "Stddev_Mg_ha_yr")]
 			accum1 = accum1[accum1$Region%in%complete_recs$Region & accum1$Land_Type%in%complete_recs$Land_Type & accum1$Ownership%in%complete_recs$Ownership,]
@@ -1748,8 +1871,16 @@ for (m in params_start:params_end) {
 		names(accum_lt_agg)[ncol(accum_lt_agg)] = "lt_ha"
 		accum = merge(accum, accum_lt_agg, by = c("Land_Type"), all.x = TRUE)
 		
+		# no adjustments below should be necessary, so this should be the last task for veg and soil c uptake:
+		# delete extra columns and order the table and put it in the output list
+		accum = accum[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Min_Mg_ha_yr", "Max_Mg_ha_yr", 
+		                 "Mean_Mg_ha_yr", "Stddev_Mg_ha_yr")]
+		accum = accum[order(accum$Land_Cat_ID, accum$Region, accum$Land_Type, accum$Ownership),]
+		out_c_df_list[[m]] = accum
+		
 		# veg c accum table adjustments
-		if (m == vegcuptake_ind) {
+		if (FALSE) {
+		#if (m == vegcuptake_ind) {
 			# forest
 			# adjusted regional veg c uptake = statewide input veg c uptake average * regional npp / 
 		  #   statewide npp average
@@ -1817,7 +1948,8 @@ for (m in params_start:params_end) {
 		
 		
 		# soil c accum table adjustments
-		if (m == soilcaccum_ind) {
+		if (FALSE) {
+		#if (m == soilcaccum_ind) {
 		  #comment out the following adjustments for delta region as new values are now in lc_params.xls
 			# adjust delta cultivated
 			#accum[accum$Region == "Delta" & accum$Land_Type == "Cultivated", "Min_Mg_ha_yr"] = soil_c_accum_peat_min
@@ -1833,20 +1965,119 @@ for (m in params_start:params_end) {
 		} # end if soil c accum adjustment
 		
 	} # end if vegcuptake or soilcaccum
-	# for the rest of the parameter tables (conversion, forest_man, dev_manage, grass_manage, ag_manage, wildfire)
-	    else { 
+	# forest manage needs a special merge now to account for potential "All" region and/or "All" ownerships entries
+	else if (m == forest_man_ind) {
+		# land type is already specified as Forest
+		# merge the records by location specified
+		recs_landcat = param_df_list[[in_index]][param_df_list[[in_index]]$Region != "All" & param_df_list[[in_index]]$Ownership != "All",]
+		recs_allreg = param_df_list[[in_index]][param_df_list[[in_index]]$Region == "All" & param_df_list[[in_index]]$Ownership != "All",]
+		recs_allown = param_df_list[[in_index]][param_df_list[[in_index]]$Region != "All" & param_df_list[[in_index]]$Ownership == "All",]
+		recs_allregown = param_df_list[[in_index]][param_df_list[[in_index]]$Region == "All" & param_df_list[[in_index]]$Ownership == "All",]
+		ME = NULL
+
+		# land cat
+		if (nrow(recs_landcat) > 0) {
+			out_table_landcat = merge(out_scen_df_list[[1]], recs_landcat, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+			# remove all the NA records from out_table
+			out_table_landcat = out_table_landcat[!is.na(out_table_landcat[,ncol(out_table_landcat)]),]
+			# remove the area column
+			out_table_landcat $Area_ha = NULL
+			# order the columns
+			out_table_landcat = out_table_landcat[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
+			                         # column headers from current param table
+			                         # param_start_col = c(4, 4, 2, 5, 3, 3, 4, 2)
+			                         # m = 10 to 17
+			                         # in_index = 1 to 8
+			                         # in_index = m - params_start + 1
+			                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
+			man_df_list[[1]] = out_table_landcat
+			ME = c(ME,1)
+		}
+
+		# all region
+		if (nrow(recs_allreg) > 0) {
+			out_table_allreg = merge(out_scen_df_list[[1]], recs_allreg[,!(names(recs_allreg) %in% c("Region"))], by = c("Land_Type", "Ownership"), all.x = TRUE)
+			# remove all the NA records from out_table
+			out_table_allreg = out_table_allreg[!is.na(out_table_allreg[,ncol(out_table_allreg)]),]
+			# remove the area column
+			out_table_allreg $Area_ha = NULL
+			# order the columns
+			out_table_allreg = out_table_allreg[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
+			                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
+			man_df_list[[2]] = out_table_allreg
+			ME = c(ME,2)
+		}
+
+		# all ownership
+		if (nrow(recs_allown) > 0) {
+			out_table_allown = merge(out_scen_df_list[[1]], recs_allown[,!(names(recs_allown) %in% c("Ownership"))], by = c("Region", "Land_Type"), all.x = TRUE)
+			# remove all the NA records from out_table
+			out_table_allown = out_table_allown[!is.na(out_table_allown[,ncol(out_table_allown)]),]
+			# remove the area column
+			out_table_allown $Area_ha = NULL
+			# order the columns
+			out_table_allown = out_table_allown[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
+			                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
+			man_df_list[[3]] = out_table_allown
+			ME = c(ME,3)
+		}
+
+		# all region and all ownership
+		if (nrow(recs_allregown) > 0) {
+			out_table_allregown = merge(out_scen_df_list[[1]], recs_allregown[,!(names(recs_allregown) %in% c("Region", "Ownership"))], by = c("Land_Type"), all.x = TRUE)
+			# remove all the NA records from out_table
+			out_table_allregown = out_table_allregown[!is.na(out_table_allregown[,ncol(out_table_allregown)]),]	
+			# remove the area column
+			out_table_allregown $Area_ha = NULL
+			# order the columns
+			out_table_allown = out_table_allown[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
+			                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
+			man_df_list[[4]] = out_table_allregown
+			ME = c(ME,4)
+		}
+
+		# bind the rows together
+		
+		# bind the groups together into one out table
+		# if there's only one group
+		if (length(ME) == 1) {
+		  # index the single group ID in accum_df_list using tracker ID in AE, and call it out_table 
+			out_table = man_df_list[[ME[1]]]
+			# otherwise, if there's >1 group
+		} else if (length(ME) > 1) {
+		  # do the same
+			out_table = man_df_list[[ME[1]]]
+			# and rbind additional groups to out_table, resulting in df out_table
+			for (ml in 2:length(ME)) {
+				out_table = rbind(out_table, man_df_list[[ME[ml]]])
+			}
+			# otherwise there's 0 records and give error
+		} else {
+			cat("Error: no forest management definition records!\n")
+		}
+		
+		# order the rows
+		out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, out_table$Ownership, out_table$Management),]
+		
+		# add it to out_c_df_list
+		out_c_df_list[[m]] = out_table
+		
+	} # end else if forest manage
+	# for the rest of the parameter tables (conversion, dev_manage, grass_manage, ag_manage, wildfire)
+	else { 
 		# merge the parameter table from param_df_list with the initial areas and assign to out_table
 		out_table = merge(out_scen_df_list[[1]], param_df_list[[in_index]], by = mergeby, all.x = TRUE)
 		# remove all the NA records from out_table
 		out_table = out_table[!is.na(out_table[,ncol(out_table)]),]
-		# assign NULL to all areas
+		# remove the area column
 		out_table$Area_ha = NULL
 		
 		# commenting out the following speical treatment of Delta, as the values are now in lc_params
 		  # using peat values for Delta agriculture
 		  # if (m == ag_manage_ind) { out_table$SoilCaccum_frac[out_table$Region == "Delta"] = soil_c_accum_frac_peat}
 		
-		# for forest_man (m=13, in_index=4, param_start_col=4) , dev_manage (m=14,in_index=5,param_start_col=3), 
+		# adjust the column order
+		# for dev_manage (m=14,in_index=5,param_start_col=3), 
 		  #grass_manage (m=15,in_index=6, param_start_col=3), ag_manage (m=16,in_index=7,param_start_col=4), 
 		  # wildfire (m=17, in_index=8, param_start_col=2)
 		if (m != conversion_ind) {
@@ -1854,7 +2085,7 @@ for (m in params_start:params_end) {
 		   # a subset of columns from the current param table that correpond to the param_start_col to the last column
 			out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
 			                         # column headers from current param table
-			                         # param_start_col = c(3, 3, 2, 4, 3, 3, 4, 2)
+			                         # param_start_col = c(4, 4, 2, 5, 3, 3, 4, 2)
 			                         # m = 10 to 17
 			                         # in_index = 1 to 8
 			                         # in_index = m - params_start + 1
@@ -1864,11 +2095,11 @@ for (m in params_start:params_end) {
 				out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
 				                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
 			}
-		# order current out_table
+		# order current out_table rows
 		out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, out_table$Ownership),]
 		# add it to out_c_df_list
 		out_c_df_list[[m]] = out_table
-	} # end if not veg and soil c accum
+	} # end if not veg and soil c accum and not forest manage
 
 } # end 'for m loop' over the management parameter tables
 

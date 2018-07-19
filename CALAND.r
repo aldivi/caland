@@ -134,13 +134,14 @@ GET.NAMES <- function(df, new.name) {
 }
 
 # set the default arguments here for debugging purposes
-#scen_file_arg = "Baseline_frst2Xmort_fire.xls"
+scen_file_arg = "Baseline_frst2Xmort_fire.xls"
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
 # scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
 scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
 scen_file_arg = "BAU_All_frst2Xmort_fire.xls"
 scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_partial_cut_frst2Xmort_fire.xls"
+
 scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_understory_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_burn_frst2Xmort_fire.xls"
@@ -148,6 +149,9 @@ scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire.xls"
 scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
 scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
 scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
 c_file_arg = "carbon_input.xls"
 indir = ""
 outdir = ""
@@ -819,7 +823,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # set sum neginds eco to 0
   out_cum_neginds_eco_tot <- 0
   
-  #####################
+  ##########################################################################
   # loop over the years
   for (year in start_year:(end_year-1)) {
     
@@ -1505,14 +1509,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     man_dead_df = man_dead_df[order(man_dead_df$Land_Cat_ID, man_dead_df$Management),]
     
     # deadCaccum_frac is from the forest_manage tab in c_input, which is the effect of forest management on mortality 
-    # (i.e., mortality is reduced by either 44% or 33%) and deadc_frac_in is determined by linear interpolation above
+    # and deadc_frac_in is determined by linear interpolation above
     # man_dead_area = agg_man_area * man_mort_factor * interp_mort_frac 
     # first check if no prescribed management practices
     if (nrow(man_adjust_df)==0) {
       # assign 0 to man_dead_df$deadcfracXarea if no prescribed mgmt practices
       man_dead_df$deadcfracXarea <- 0
     } else {
-      man_dead_df$deadcfracXarea = man_dead_df$man_area_sum * man_dead_df$DeadCaccum_frac * man_dead_df$deadc_frac_in
+    	man_dead_df$adjDeadCfrac = man_dead_df$DeadCaccum_frac * man_dead_df$deadc_frac_in
+    	man_dead_df$adjDeadCfrac[man_dead_df$adjDeadCfrac >= 1] = 1
+      	man_dead_df$deadcfracXarea = man_dead_df$man_area_sum * man_dead_df$adjDeadCfrac
     }
     # aggregate all the man_dead_area
     man_deadfrac_agg = aggregate(deadcfracXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_dead_df, FUN=sum)
@@ -1532,7 +1538,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       man_deadfrac_agg$fin_deadc_frac <- man_deadfrac_agg$deadc_frac_in
     } else {
     # fin_dead_c_frac = (agg_man_dead_area + agg_unman_area * interp_mort_frac) / tot_area
-    # which is the area-weighted mortality_fraction to later apply to total above- and below-ground C in Forest, Savanna/Woodland, and ??
+    # which is the area-weighted mortality_fraction to later apply to total above- and below-ground C in Forest, Savanna/Woodland, and shrubland
     man_deadfrac_agg$fin_deadc_frac = (man_deadfrac_agg$deadcfracXarea + man_deadfrac_agg$unman_area_sum * 
                                          man_deadfrac_agg$deadc_frac_in) / tot_area_df$tot_area
     nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf)
@@ -1639,8 +1645,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # understory
     # understory c density
     under_vals = out_density_df_list[[5]][out_density_df_list[[5]]$Land_Type == "Forest", cur_density_label]
-    # ratio of understory to above main c density
+    # understory frac = understory/above main; constrain this to a max of the same growth rate for above and under
     underfrac = under_vals / above_vals
+    biginds = which(underfrac > 1)
+    if (length(biginds) > 0) { underfrac[biginds] = 1 }
     # understory c flux = (understory c dens/above main c dens) * (above main stem c flux) * (above main c dens/stem c dens)
     underc_flux_vals = underfrac * vegc_flux_vals / stemfrac
     # dead understory C =  0.01 * understory c dens
@@ -1829,8 +1837,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       below_flux_vals - below2dead_flux_vals
     
     # understory
-    # understory frac = understory/above main
+    # understory frac = understory/above main; constrain this to a max of the same growth rate for above and under
     underfrac = under_vals / above_vals
+    biginds = which(underfrac > 1)
+    if (length(biginds) > 0) { underfrac[biginds] = 1 }
     # understory C flux = understory/above main * area-weighted above main C flux
     underc_flux_vals = underfrac * above_flux_vals
     # index NA understory C flux

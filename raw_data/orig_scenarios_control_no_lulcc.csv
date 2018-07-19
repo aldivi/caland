@@ -1,0 +1,6 @@
+Scenario,Wildfire,LULCC
+Baseline,1,0
+LowProtect_BaseManage,1,0
+HighProtect_BaseManage,1,0
+BaseProtect_LowManage,1,0
+BaseProtect_HighManage,1,0
