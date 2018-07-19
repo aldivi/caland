@@ -821,8 +821,8 @@ for (i in 1:num_scenin_sheets) {
 
 # convert management acres to hectares as needed
 if (units_scenario=="ac") {
-  scenin_df_list[[which(scen_sheets=="annual_managed_area")]][c("start_area","end_area")] <- 
-    scenin_df_list[[which(scen_sheets=="annual_managed_area")]][c("start_area","end_area")] * 0.404685642
+  scenin_df_list[[which(scenin_sheets=="annual_managed_area")]][c("start_area","end_area")] <- 
+    scenin_df_list[[which(scenin_sheets=="annual_managed_area")]][c("start_area","end_area")] * 0.404685642
 }
 
 ###### read the scenario headers file for the outputs
