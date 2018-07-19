@@ -69,8 +69,8 @@ for( i in libs ) {
 
 # set these here so the function does not have to be used
 data_dir = "./outputs"
-# scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
-scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
+# scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
+scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
 scen_lnames = c("BAU_Eco","BAU_all")
 scen_snames = c("BAUEco","BAUall")
 #scen_lnames = c("BAU_Eco","Wood_Restoration")
@@ -81,7 +81,7 @@ scen_snames = c("BAUFire","USFSPC")
 lt=c("Developed_all", "All_land")
 own=c("Private","All_own")
 units = TRUE
-reg=c("All_region")
+reg=c("Central_Valley","All_region")
 
 reg="All_region"
 lt="All_land"
@@ -1165,7 +1165,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                                                                         scen_df_list[[i]]["Management"] != "Growth",
                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                                   } else {
-                                                    val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                    val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                         scen_df_list[[i]][,"Region"] == reg_lab & 
                                                                                                         scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
