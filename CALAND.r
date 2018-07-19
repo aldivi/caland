@@ -144,7 +144,7 @@ scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_understory_frst2Xmort_fire.xls"
 scen_file_arg = "USFS_burn_frst2Xmort_fire.xls"
-
+scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire.xls"
 scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
 scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
 scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
@@ -5176,9 +5176,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         # if on management areas, exclude developed_all urban forest and growth to ensure accurate summed management areas for developed_all using only dead_removal
       if (i == 2) {
         landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name & out_area_df_list[[i]][,"Management"] != "Growth" & 
-                                                    out_area_df_list[[i]][,"Management"] != "Urban_forest"]
+                                                    out_area_df_list[[i]][,"Management"] != "Urban_forest",]
       } else {
-        landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name]
+        landtype_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == landtype_name,]
       }
        
       # aggregate sum areas of landtype-specific areas for each column year
@@ -5202,7 +5202,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         # if on management areas, exclude developed_all urban forest and growth to ensure accurate summed management areas for developed_all using only dead_removal
       if (i == 2) {
         region_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Region"] == region_name & out_area_df_list[[i]][,"Management"] != "Growth" & 
-          out_area_df_list[[i]][,"Management"] != "Urban_forest"]
+          out_area_df_list[[i]][,"Management"] != "Urban_forest",]
       } else {
         region_df_temp <- out_area_df_list[[i]][out_area_df_list[[i]][,"Region"] == region_name,] 
       }

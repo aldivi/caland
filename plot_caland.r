@@ -78,10 +78,10 @@ scen_snames = c("BAUEco","BAUall")
 scen_fnames = c("BAU_Fire_frst2Xmort_fire_output_mean_BC1.xls","USFS_partial_cut_frst2Xmort_fire_output_mean_BC1.xls") 
 scen_lnames = c("BAU_Fire","USFS_PartialCut")
 scen_snames = c("BAUFire","USFSPC")
-lt=c("Developed_all", "All_land")
-own=c("Private","All_own")
+lt=c("All_land")
+own=c("All_own")
 units = TRUE
-reg=c("Central_Valley","All_region")
+reg=c("All_region")
 
 reg="All_region"
 lt="All_land"
@@ -932,6 +932,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                       
                                         # for All_own in area or wilfire area sheets, or any area sheets for an individual non-Developed_all Land_Type (only one record exists)
                                         if (scen_sheets[i] != "Managed_area" | (lt_lab != "Developed_all" & lt_lab != "All_land")) {
+                                           # includes Areas, Managed Areas for non-Developed_all specific Land_Types
                                             
                                             # first sum up the ownerships for the direct area values
                                             # more than one row (which means more than one ownership, and/or multiple fire severities)
@@ -946,7 +947,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                               # Sum across ownerships for given Land_Type & Region 
                                                 val_col = ha2kha * unlist(apply(area_df[area_df[,"Region"] == reg_lab,
                                                 startcol:ncol(area_df)], 2, sum))
-                                             ####### (2) All_land #########
+                                             ####### (2) All_land or All_region in Areas #########
                                             } else if (nrow(area_df[area_df[,"Region"] == reg_lab, ]) == 1) {
                                               # Extract row for All_region or specific region 
                                                 val_col = ha2kha * unlist(area_df[area_df[,"Region"] == reg_lab,
@@ -983,24 +984,28 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                 } # end All_region or individual region
                                             } # end if storing area data for density calcs
                                             
-                                        } else { # end if Area and Wildfire_area and non-Dev and non-All_land Management_area
+                                        } else { # end if Area and Wildfire_area and non-Dev landtype and non-All_land Management_area
                                           
-                                      ######## Extract All_own-Developed_all or All_own-All_land from Management_area sheet ########
+                                      ######## Extract All_own Developed_all or All_own All_land or All_region All_own All_land from Management_area sheet ########
                                             ####### Developed_all #######
                                             if (lt_lab == "Developed_all") {
                                                 # val col is just dead removal
                                                 # keep the managements separate for per area calcs
                                                 area_df = area_df[area_df$Region != "All_region",]
                                             } else {
-                                            ####### All_land #######
+                                              
+                                            ####### All_land Managed Areas #######
+                                              
                                               # Extract individual land types and regions (non-ocean because not land) from original Managed_area sheet and assign to temp_df
-                                                temp_df = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] != "All_land" & scen_df_list[[i]][,"Region"] != "All_region" & 
+                                               temp_df = scen_df_list[[i]][scen_df_list[[i]][,"Land_Type"] != "All_land" & scen_df_list[[i]][,"Region"] != "All_region" & 
                                                                               scen_df_list[[i]][,"Region"] != "Ocean", 1:(ncol(scen_df_list[[i]])-1)]
+                                              
                                                 temp_df = na.omit(temp_df[order(c(temp_df$Ownership)),])
                                                 temp_df = na.omit(temp_df[order(c(temp_df$Region, area_df$Management)),])
                                                 # first aggregate the land types, but keep the other variables separate
                                                 # this will mainly just change the Land_Type to All_land for all rows, I think
                                                 #  because each management is unique to a land type
+                                                  # note: This is reassigning area_df, which is currently all rows from management area output with All_land
                                                 area_df = aggregate(cbind(unlist(temp_df[startcol])) ~ Region + Ownership + Management, data=temp_df, FUN=sum, na.rm = TRUE)
                                                 area_df$Land_Type = "All_land"
                                                 area_df$Land_Cat_dummy = -1
@@ -1017,9 +1022,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                 area_df = na.omit(area_df[order(c(area_df$Region, area_df$Management)),])
                                             } # end else all_land managed area
                                           
-                                          ######## Managed_area sheet: Developed_all and All_land ########
+                                          ######## Managed_area sheet: Developed_all and All_land ########  THIS HAPPENS TO ALL_LAND TOO
                                             if (nrow(area_df) > 0) {
-                                                
+                                               
+                                                 
                                                 # first aggregate the ownerships
                                                 # these data area used later for per area calcs
                                                 dev_man_data = aggregate(cbind(unlist(area_df[startcol])) ~ Region + Land_Type + Management, data=area_df, FUN=sum, na.rm = TRUE)
@@ -1059,10 +1065,23 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                 
                                                 # need to get just the value column, but make sure the order is by year by sorting above
                                                 deadrem = valcol_df$value[valcol_df$Management == "Dead_removal"]
-                                                
-                                                if (length(deadrem) > 0) {
-                                                    val_col = ha2kha * deadrem
-                                                } else { val_col = 0 }
+                                                  
+                                                  if (lt_lab == "Developed_all") {
+                                                    if (length(deadrem) > 0) {
+                                                      val_col = ha2kha * deadrem
+                                                    } else {
+                                                      val_col = 0
+                                                    }
+                                                  } else { 
+                                                      # All_land & All_region or Specific region 
+                                                      # aggregate by scenario, region (All_region vs specific reg already taken care of), year, # management, & exclude and urban_forest and Growth
+                                                      df <- aggregate(value ~ Scenario+Region+Land_Type+Year, data=valcol_df[valcol_df$Management != "Urban_forest" & valcol_df$Management != "Growth",],
+                                                                      FUN=sum)
+                                                      val_col = ha2kha * df$value
+                                                      if (length(val_col) == 0) {
+                                                        val_col = 0 
+                                                      }
+                                                    } # end if Developed_all or All_land
                                                 
                                             } else {
                                                 # this land type does not exist in this region
@@ -1108,7 +1127,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                                                                 scen_df_list[[i]][,"Region"] == reg_lab,
                                                                                               startcol:(ncol(scen_df_list[[i]])-1)])
                                             
-                                          } else { # end landcat with multiple rows
+                                          } else { # end landcat 
                                           ### (2) get individual statewide ownership ###
                                             # aggregate individual ownership across regions and Land_Types, excluding Seagrass
                                             if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Region"] != "Ocean" &
@@ -1174,8 +1193,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                   # store area data for density calcs
                                                   if (scen_sheets[i] == "Area") {
                                                     # save all the individual landtypes for this ownership-region combination 
-                                                    area_data = area_df[area_df$Region == reg_lab & 
-                                                                          scen_df_list[[i]][,"Region"] != "Ocean", startcol:ncol(area_df)]
+                                                    area_data = area_df[area_df$Region == reg_lab & area_df$Region != "Ocean", startcol:ncol(area_df)]
                                                   }
                                                   
                                                 } else { 
@@ -1188,7 +1206,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                         } # end landcat from Managed area or Wildfire
                                         } else { # end Area, Managed_area without Developed_all, and Wilfire_area
                                           
-                                      ####### Get Developed_all Managed_area #######
+                                      ####### Get Developed_all Managed_area in individual oqwwnership #######
                                        # check if any Developed_all exists
                                           if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] ==
                                             lt_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 0) {
@@ -1216,6 +1234,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC =
                                                 # need to reshape dev_man_data so that there is only one value column, and order it ultimately by year
                                                 temp_df = melt(dev_man_data, variable.name = "Year", id.vars = colnames(dev_man_data)[1:(startcol-1)])
                                                 temp_df = na.omit(temp_df[order(c(temp_df$Region, temp_df$Land_Type, temp_df$Management, temp_df$Year)),])
+                                                
                                               
                                           } else { # end if landcat-level Developed_all
                                           ### (2) get individual statewide ownership-specific Developed_all ###
