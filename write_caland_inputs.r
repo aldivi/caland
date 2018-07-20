@@ -137,14 +137,15 @@ for( i in libs ) {
 
 ########### set these here so that I can work without running the function
 scen_tag = "frst2Xmort_fire"
-c_file = "carbon_input.xls"
+c_file = "carbon_input_nwl.xls"
 start_year = 2010
-end_year = 2051
+end_year = 2101
 CLIMATE = "HIST"
 parameter_file = "lc_params.xls"
-scenarios_file = "orig_scenarios.xls"
+#scenarios_file = "orig_scenarios.xls"
+scenarios_file = "prelim_nwl_scenarios_ac.xls"
 #scenarios_file = "individual_proposed_sims.xls"
-units_scenario <- "ha"
+units_scenario <- "ac"
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 mortality_file = "mortality_annual_july_2018.csv"
@@ -827,14 +828,6 @@ for (i in 1:num_scenin_sheets) {
 } # end for i loop to read in scenarios
 
 ###### read the scenario headers file for the outputs
-
-# convert management acres to hectares as needed
-if (units_scenario=="ac") {
-  scenin_df_list[[which(scenin_sheets=="annual_managed_area")]][c("start_area","end_area")] <- 
-    scenin_df_list[[which(scenin_sheets=="annual_managed_area")]][c("start_area","end_area")] * 0.404685642
-}
-
-###### read the scenario headers file for the outputs
 scenhead_wrkbk = loadWorkbook(scen_head_file)
 # worksheet/table names
 scenhead_sheets = getSheets(scenhead_wrkbk)
@@ -1010,37 +1003,81 @@ for (s in 1:num_scenin_sheets) {
 	manage4$allown = NULL
 	
 	# now calculate the appropriate normalizing area for each group so that the management area can be distributed
-	# normalized area here seems like it is equal to the sum aggregated management areas
+	# normalizing area here is the respective total land area within the unit that needs to be disaagregated
 	col_order = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "Area_ha", "Area_change_ha", 
 	              "start_year", "end_year", "start_area", "end_area", "start_area_frac", "end_area_frac", "Area_norm_ha")
 	
+	# need to first merge identical records with different start/end areas
+	#	this only applies to the area practices because they may overlap
+	# then sum land type area over the input spatial category
+	
 	if (nrow(manage1) > 0) {
-	  # sum aggregate all region- and own-specific management areas
-		manage1_agg = aggregate(Area_ha ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year, manage1, FUN=sum)
+		area_rows = which(!is.na(manage1$start_area))
+		if (length(area_rows) > 0) {
+			dup_agg = aggregate(cbind(manage1$start_area, manage1$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage1[area_rows,], FUN=sum)
+			manage1 = merge(manage1, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			manage1$start_area = manage1$V1
+			manage1$end_area = manage1$V2
+			manage1$V1 = NULL
+			manage1$V2 = NULL
+			manage1 = unique(manage1)
+		}
+	  # sum land type area to land cat for each practice entry; this should do any aggregating at all
+		manage1_agg = aggregate(Area_ha ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage1, FUN=sum)
 		names(manage1_agg)[ncol(manage1_agg)] = "Area_norm_ha"
 		# merge with non-aggregated areas
-		manage1 = merge(manage1, manage1_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year"), all.x = TRUE)
+		manage1 = merge(manage1, manage1_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.x = TRUE)
 		manage1 = manage1[,col_order]
 	} 
 	if (nrow(manage2) > 0) {
-	  # sum aggregate all own-specific management areas
-		manage2_agg = aggregate(Area_ha ~ Land_Type + Ownership + Management + start_year, manage2, FUN=sum)
+		area_rows = which(!is.na(manage2$start_area))
+		if (length(area_rows) > 0) {
+			dup_agg = aggregate(cbind(manage2$start_area, manage2$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage2, FUN=sum)
+			manage2 = merge(manage2, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			manage2$start_area = manage2$V1
+			manage2$end_area = manage2$V2
+			manage2$V1 = NULL
+			manage2$V2 = NULL
+			manage2 = unique(manage2)
+		}
+	  # sum land type area to all region for each practice entry
+		manage2_agg = aggregate(Area_ha ~ Land_Type + Ownership + Management + start_year + end_year, manage2, FUN=sum)
 		names(manage2_agg)[ncol(manage2_agg)] = "Area_norm_ha"
-		manage2 = merge(manage2, manage2_agg, by = c("Land_Type", "Ownership", "Management", "start_year"), all.x = TRUE)
+		manage2 = merge(manage2, manage2_agg, by = c("Land_Type", "Ownership", "Management", "start_year", "end_year"), all.x = TRUE)
 		manage2 = manage2[,col_order]
 	}
 	if (nrow(manage3) > 0) {
-	  # sum aggregate all region-specific management areas
-		manage3_agg = aggregate(Area_ha ~ Region + Land_Type + Management + start_year, manage3, FUN=sum)
+		area_rows = which(!is.na(manage3$start_area))
+		if (length(area_rows) > 0) {
+			dup_agg = aggregate(cbind(manage3$start_area, manage3$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage3, FUN=sum)
+			manage3 = merge(manage3, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			manage3$start_area = manage3$V1
+			manage3$end_area = manage3$V2
+			manage3$V1 = NULL
+			manage3$V2 = NULL
+			manage3 = unique(manage3)
+		}
+	  # sum land type area to all ownership for each practice entry
+		manage3_agg = aggregate(Area_ha ~ Region + Land_Type + Management + start_year + end_year, manage3, FUN=sum)
 		names(manage3_agg)[ncol(manage3_agg)] = "Area_norm_ha"
-		manage3 = merge(manage3, manage3_agg, by = c("Region", "Land_Type", "Management", "start_year"), all.x = TRUE)
+		manage3 = merge(manage3, manage3_agg, by = c("Region", "Land_Type", "Management", "start_year", "end_year"), all.x = TRUE)
 		manage3 = manage3[,col_order]
 	}
 	if (nrow(manage4) > 0) {
-	  # sum aggregate all landtype-only-specific management areas
-		manage4_agg = aggregate(Area_ha ~ Land_Type + Management + start_year, manage4, FUN=sum)
+		area_rows = which(!is.na(manage4$start_area))
+		if (length(area_rows) > 0) {
+			dup_agg = aggregate(cbind(manage4$start_area, manage4$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage4[area_rows,], FUN=sum)
+			manage4 = merge(manage4, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			manage4$start_area = manage4$V1
+			manage4$end_area = manage4$V2
+			manage4$V1 = NULL
+			manage4$V2 = NULL
+			manage4 = unique(manage4)
+		}
+	  # sum land type area to all region-ownership for each practice entry
+		manage4_agg = aggregate(Area_ha ~ Land_Type + Management + start_year + end_year, manage4, FUN=sum)
 		names(manage4_agg)[ncol(manage4_agg)] = "Area_norm_ha"
-		manage4 = merge(manage4, manage4_agg, by = c("Land_Type", "Management", "start_year"), all.x = TRUE)
+		manage4 = merge(manage4, manage4_agg, by = c("Land_Type", "Management", "start_year", "end_year"), all.x = TRUE)
 		manage4 = manage4[,col_order]
 	}
 	
@@ -1115,7 +1152,7 @@ for (s in 1:num_scenin_sheets) {
 		## process first year to last year
 		
 		# annual area input; the values set are annual area; need to distribute the prescribed area
-		# prescribed area is distributed relative to the sum aggregated management areas according to whether they are region- and/or ownership- specific
+		# prescribed area is distributed relative to the sum aggregated landtype areas according to whether they are region- and/or ownership- specific
 		# if normalizing area is zero, then no existing category, so set norm area to 1 so that end value is zero
 		area_norm_recs = manage_annareain$Area_norm_ha[manage_annareain$start_year <= year & manage_annareain$end_year >= year]
 		zinds = which(area_norm_recs == 0)
@@ -1133,7 +1170,7 @@ for (s in 1:num_scenin_sheets) {
 		  manage_annareain$Area_ha[manage_annareain$start_year <= year & manage_annareain$end_year >= year] / area_norm_recs
 		
 		# cumulative area input; the values set are annual area; need to distribute the prescribed area
-		# prescribed area is distributed relative to the sum aggregated management areas according to whether they are region- and/or ownership- specific
+		# prescribed area is distributed relative to the sum aggregated land type areas according to whether they are region- and/or ownership- specific
 		# if normalizing area is zero, then no existing category, so set norm area to 1 so that end value is zero
 		#	unless the zeros are for fresh marsh, then assume that the management values are specified for each land 
 		# category already
@@ -1303,8 +1340,16 @@ for (s in 1:num_scenin_sheets) {
 	manage_out$end_area_frac = NULL
 	manage_out$Area_norm_ha = NULL
 	
-	### merge the rows containing the same practice but for different years
+	### merge the rows containing the same practice but for different start and end years
+	# non-assigned fields are zero, so these can just be summed
+	if (nrow(manage_out)!=0) {
+		manage_out$Area_change_ha = NULL
+		manage_out = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, manage_out, FUN=sum)
+	}
 	
+	
+	##################### should delete this;  not sure why min and max were used; must not have thought through summing with zeros or overlap
+	if(FALSE){
 	# need to do this separately for negative growth
 	  # reassign growth_temp to records with Growth management area and _contracting_ Urban area  
 	growth_temp = manage_out[manage_out$Management == "Growth" & manage_out$Area_change_ha < 0,]
@@ -1330,8 +1375,9 @@ for (s in 1:num_scenin_sheets) {
 	} else {
 	  manage_out <- manage_agg
 	}
+	} ################ end FALSE - should delete this section
 	
-	# change order of columns 
+	# change order of rows 
 	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Region, manage_out$Land_Type, manage_out$Ownership, manage_out$Management),]
 	# assign to output sheet
 	out_scen_df_list[[3]] = manage_out

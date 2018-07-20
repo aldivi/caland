@@ -22,7 +22,7 @@
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
 #	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
 #	INDIVIDUAL		TRUE = output per area effects of individual practices based on model runs configured for this purpose
-# units         TRUE = output units in "ha", FALSE = "ac". Default is "ha".
+# units         TRUE = output units in "ha", FALSE = "ac". Default is "ac".
 # blackC        TRUE = black GWP equal to 900, FALSE = black GWP equal to 1 (default)
 # blackC_plot   TRUE = plot BC, CO2, and CH4, FALSE = plot only CO2 and CH4 (BC added to CO2 which is only valid if black C is FALSE) (default)
 
@@ -80,7 +80,7 @@ scen_lnames = c("BAU_Fire","USFS_PartialCut")
 scen_snames = c("BAUFire","USFSPC")
 lt=c("All_land")
 own=c("All_own")
-units = TRUE
+units = FALSE
 reg=c("All_region")
 
 reg="All_region"
@@ -88,7 +88,7 @@ lt="All_land"
 own = "All_own"
 
 figdir = "figures"
-INDIVIDUAL = TRUE
+INDIVIDUAL = FALSE
 blackC = FALSE
 blackC_plot = FALSE
 
@@ -98,11 +98,17 @@ lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "
        "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 
+
+
 scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls",
                 "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls",
                 "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
 scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
 scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
+
+scen_fnames = c("Historical_frst2Xmort_fire_output_mean_BC1.xls", "BAU_NWL_frst2Xmort_fire_output_mean_BC1.xls", "Ambitious_frst2Xmort_fire_output_mean_BC1.xls")
+scen_lnames = c("Historical", "BAU_NWL", "Ambitious")
+scen_snames = c("HIST", "BAU", "AMB")
 
 ############# main function
 
@@ -112,7 +118,7 @@ plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./out
 "South_Coast", "Ocean", "All_region"),
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
 "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass", "All_land"),
-own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=TRUE, blackC = FALSE, blackC_plot = FALSE) {
+own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC = FALSE, blackC_plot = FALSE) {
     
     cat("Start plot_caland() at", date(), "\n")
     

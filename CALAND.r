@@ -134,27 +134,35 @@ GET.NAMES <- function(df, new.name) {
 }
 
 # set the default arguments here for debugging purposes
-scen_file_arg = "Baseline_frst2Xmort_fire.xls"
+#scen_file_arg = "Baseline_frst2Xmort_fire.xls"
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
-# scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
-scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
-scen_file_arg = "BAU_All_frst2Xmort_fire.xls"
-scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
+#scen_file_arg = "BaseProtect_LowManage_frst2Xmort_fire.xls"
+#scen_file_arg = "LowProtect_BaseManage_frst2Xmort_fire.xls"
+scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
+#scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_All_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_Fire_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_partial_cut_frst2Xmort_fire.xls"
 
-scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
-scen_file_arg = "USFS_understory_frst2Xmort_fire.xls"
-scen_file_arg = "USFS_burn_frst2Xmort_fire.xls"
-scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire.xls"
-scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
-scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
-scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
+#scen_file_arg = "USFS_forest_expansion_frst2Xmort_fire.xls"
+#scen_file_arg = "USFS_understory_frst2Xmort_fire.xls"
+#scen_file_arg = "USFS_burn_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_burn_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
+#scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
+
+#scen_file_arg = "Historical_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
+#scen_file_arg = "Ambitious_frst2Xmort_fire.xls"
+
 c_file_arg = "carbon_input.xls"
 indir = ""
-outdir = ""
+outdir = "july20_2018_orig"
 start_year = 2010
 end_year = 2051
 #mean
