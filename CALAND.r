@@ -410,8 +410,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # clrcut_mainremoved_burn <- 0.25
   # forest partial_cut and above-main removed  to atmos
   # parcut_mainremoved_burn <- 0.25
-  # forest fuel_reduction and above-main removed  to atmos
-  # fuelred_mainremoved_burn <- 0.25
+  # forest Thinning and above-main removed  to atmos
+  # thin_mainremoved_burn <- 0.25
   # forest Prescribed_burn and above-main removed  to atmos (currently above2atmos is 0; only understory, litter and down dead go to atmos)
   # prescrburn_mainremoved_burn <- 1
   # forest Weed_treatment and above-main removed to atmos
@@ -420,8 +420,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # clrcut_under_burn <- 0.25
   # forest partial_cut and understory to atmos
   # parcut_under_burn <- 0.25
-  # forest fuel_reduction and understory to atmos
-  # fuelred_under_burn <- 0.25
+  # forest Thinning and understory to atmos
+  # thin_under_burn <- 0.25
   # forest Prescribed_burn and understory to atmos
   # prescrburn_under_burn <- 1
   # forest weed_treatment and understory removed to atmos
@@ -430,8 +430,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # clrcut_down_burn <- 0.25
   # forest partial_cut and down dead to atmos
   # parcut_down_burn <- 0.25
-  # forest fuel_reduction and down dead to atmos
-  #fuelred_down_burn <- 0.25
+  # forest Thinning and down dead to atmos
+  # thin_down_burn <- 0.25
   # forest Prescribed_burn and down dead to atmos
   # prescrburn_down_burn <- 1
   # forest Weed_treatment and down dead removed to atmos
@@ -440,8 +440,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # clrcut_litter_burn <- 0.25
   # forest partial_cut and litter to atmos
   # parcut_litter_burn <- 0.25
-  # forest fuel_reduction and litter to atmos
-  # fuelred_litter_burn <- 0.25
+  # forest Thinning and litter to atmos
+  # thin_litter_burn <- 0.25
   # forest Prescribed_burn and litter to atmos
   # prescrburn_litter_burn <- 1
   # forest weed_treatment and litter removed to atmos

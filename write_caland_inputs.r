@@ -220,6 +220,9 @@ if (land_change_method == "Landcover") {
 
 param_head_file = paste0(in_dir, "parameter_headers.xlsx")
 
+# convert acres to hectares
+ac2ha = 0.404685642
+
 # the column headers are on line 12, for both input and output files
 start_row = 12
 
@@ -816,13 +819,19 @@ num_scenin_sheets = length(scenin_sheets)
 # converted to NA value
 scenin_df_list <- list()
 for (i in 1:num_scenin_sheets) {
-	scenin_df_list[[i]] <- readWorksheet(scenin_wrkbk, i, startRow = start_row, colTypes = c(rep("character",4), rep("numeric",50)), forceConversion = TRUE)
-}
+  scenin_df_list[[i]] <- readWorksheet(scenin_wrkbk, i, startRow = start_row, colTypes = c(rep("character",4), rep("numeric",50)), forceConversion = TRUE)
+  # convert management acres to hectares as needed
+  if (units_scenario=="ac") {
+    scenin_df_list[[i]][,c("start_area", "end_area")] = scenin_df_list[[i]][,c("start_area", "end_area")] * ac2ha
+  }
+} # end for i loop to read in scenarios
+
+###### read the scenario headers file for the outputs
 
 # convert management acres to hectares as needed
 if (units_scenario=="ac") {
-  scenin_df_list[[which(scen_sheets=="annual_managed_area")]][c("start_area","end_area")] <- 
-    scenin_df_list[[which(scen_sheets=="annual_managed_area")]][c("start_area","end_area")] * 0.404685642
+  scenin_df_list[[which(scenin_sheets=="annual_managed_area")]][c("start_area","end_area")] <- 
+    scenin_df_list[[which(scenin_sheets=="annual_managed_area")]][c("start_area","end_area")] * 0.404685642
 }
 
 ###### read the scenario headers file for the outputs
