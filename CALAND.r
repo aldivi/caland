@@ -138,7 +138,7 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
 #scen_file_arg = "BaseProtect_LowManage_frst2Xmort_fire.xls"
 #scen_file_arg = "LowProtect_BaseManage_frst2Xmort_fire.xls"
-scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire.xls"
+#scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire.xls"
 #scen_file_arg = "BAU_EcoFlux_frst2Xmort_fire_test_scalar&fire_interp.xls"
 #scen_file_arg = "USFS_partial_cut_frst2Xmort_fire.xls"
 #scen_file_arg = "BAU_All_frst2Xmort_fire.xls"
@@ -156,12 +156,12 @@ scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
 
-#scen_file_arg = "Historical_frst2Xmort_fire.xls"
+scen_file_arg = "Historical_frst2Xmort_fire.xls"
 #scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
 #scen_file_arg = "Ambitious_frst2Xmort_fire.xls"
 #c_file_arg = "carbon_input_nwl.xls"
 
-c_file_arg = "carbon_input.xls"
+c_file_arg = "carbon_input_nwl.xls"
 indir = ""
 outdir = "july20_2018_orig"
 start_year = 2010
@@ -3188,7 +3188,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         if (num_avail_land_types < 0 ){num_avail_land_types = 0}
         for (l in 1:length(conv_own$Land_Type)) {
         	### afforestation
-        	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) > 0) {
+        	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] > 0) {
         	man_area_adj = min(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)], 
         		conv_own$area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] -
         		conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)])
@@ -3219,7 +3219,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         	} # end afforestation
         	
         	### coastal marsh
-        	if (conv_col_names[l] != "Coastal_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        	if (conv_col_names[l] != "Coastal_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
         	man_area_adj = 
         		min(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
         		conv_own$area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
@@ -3254,7 +3254,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         	} # end coastal marsh
         		
         	### fresh marsh
-        	if (conv_col_names[l] != "Fresh_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        	if (conv_col_names[l] != "Fresh_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
         	man_area_adj = 
         		min(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
         		conv_own$area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
@@ -3289,7 +3289,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         	} # end fresh marsh
         		
         	### meadow
-        	if (conv_col_names[l] != "Meadow" & length(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        	if (conv_col_names[l] != "Meadow" & length(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
         	man_area_adj = 
         		min(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
         		conv_own$area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
@@ -3324,7 +3324,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         	} # end meadow
         		
         	### woodland
-        	if (conv_col_names[l] != "Woodland" & length(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        	if (conv_col_names[l] != "Woodland" & length(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
         	man_area_adj = 
         		min(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
         		conv_own$area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
@@ -4853,7 +4853,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   LCCSawmillDecay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_SawmillDecayC"]]
   LCCOnSiteDecay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_OnSiteDecayC"]]
   LCCSawmillDecay_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_SawmillDecayC"]]
-  LCCOnSiteDecay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_OnSiteDecayC"]]
+  LCCOnSiteDecay_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_OnSiteDecayC"]]
   Wildfire_Decay_AnnCO2C <- out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]]
   Wildfire_Decay_CumCO2C <- out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]]
   
@@ -4895,7 +4895,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
                   LCCSawmillDecay_AnnCO2C = LCCSawmillDecay_AnnCO2C,
                   LCCOnSiteDecay_AnnCO2C = LCCOnSiteDecay_AnnCO2C,
                   LCCSawmillDecay_CumCO2C = LCCSawmillDecay_CumCO2C,
-                  LCCOnSiteDecay_AnnCO2C = LCCOnSiteDecay_AnnCO2C,
+                  LCCOnSiteDecay_CumCO2C = LCCOnSiteDecay_CumCO2C,
                   
                   Wildfire_Decay_AnnCO2C = Wildfire_Decay_AnnCO2C,
                   Wildfire_Decay_CumCO2C = Wildfire_Decay_CumCO2C,
