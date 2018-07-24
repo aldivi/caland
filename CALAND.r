@@ -156,14 +156,14 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
 
-scen_file_arg = "Historical_frst2Xmort_fire.xls"
-#scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
+#scen_file_arg = "Historical_frst2Xmort_fire.xls"
+scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
 #scen_file_arg = "Ambitious_frst2Xmort_fire.xls"
 #c_file_arg = "carbon_input_nwl.xls"
 
 c_file_arg = "carbon_input_nwl.xls"
 indir = ""
-outdir = "july20_2018_orig"
+outdir = "july24_2018_nwl"
 start_year = 2010
 end_year = 2051
 #mean
@@ -182,7 +182,7 @@ blackC = FALSE
 
 
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
@@ -840,7 +840,6 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   # loop over the years
   for (year in start_year:(end_year-1)) {
 
-    
     cat("\nStarting year ", year, "...\n")
     
     cur_density_label = paste0(year, "_Mg_ha")
@@ -1783,6 +1782,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # use mortality only if there is veg c accum due to growth
     # assume soil c flux is net density change - so the below is simply a net root density change,
     #	and the calculated or implicit mortality implicitly goes to soil
+    # the developed all flux input includes above and below, so separate it accordingly
     
     # Above main C dens
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type != "Savanna" & out_density_df_list[[3]]$Land_Type != "Woodland" & 
@@ -1807,8 +1807,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
                                            out_density_df_list[[9]]$Land_Type != "Forest", cur_density_label]
     # above and below C fluxes
     # Above main c flux = area-weighted above-main C flux
+    dev_inds = which(man_vegflux_agg$Land_Type[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
+                                                        man_vegflux_agg$Land_Type != "Forest"] == "Developed_all")
     above_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
                                                         man_vegflux_agg$Land_Type != "Forest"]
+    above_flux_vals[dev_inds] = above_flux_vals[dev_inds] * above_vals[dev_inds] / (above_vals[dev_inds] + below_vals[dev_inds])
+    
     # Root main C flux = area-weighted above-main C flux * root C dens/above main C dens
     below_flux_vals = above_flux_vals * below_vals / above_vals
     # index NA values

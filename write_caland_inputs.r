@@ -138,14 +138,17 @@ for( i in libs ) {
 ########### set these here so that I can work without running the function
 scen_tag = "frst2Xmort_fire"
 c_file = "carbon_input_nwl.xls"
+#c_file = "carbon_input.xls"
 start_year = 2010
 end_year = 2101
+#end_year = 2051
 CLIMATE = "HIST"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
 scenarios_file = "prelim_nwl_scenarios_ac.xls"
 #scenarios_file = "individual_proposed_sims.xls"
 units_scenario <- "ac"
+#units_scenario = "ha"
 climate_c_file = "climate_c_scalars_unitary.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 mortality_file = "mortality_annual_july_2018.csv"
@@ -165,9 +168,9 @@ control_wildfire_lulcc <- FALSE
 #control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv"
 
-write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input.xls", start_year = 2010, end_year = 2051, 
-                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "orig_scenarios.xls",
-                                units_scenario = "ha",
+write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
+                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "prelim_nwl_scenarios_ac.xls",
+                                units_scenario = "ac",
                                 climate_c_file = "climate_c_scalars_unitary.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
                                 mortality_file = "mortality_annual_july_2018.csv",
@@ -339,8 +342,7 @@ hs_fire_trend = 0.0027
 # the split between above and below is based on the paper assumption that 28% of total live biomass in in roots
 #  only the total live biomass is reported in the paper, and we were originally told the root values were not included
 # we recently learned that the root values are included in the reported values
-# for now merge above and below into above, because that was the original assumption, and changing it require caland modification
-# if there enough time separate these
+# use the above and below
 # use the std err as the uncertainty (in the stddev column)
 # add and subtract the stderr to get max and min
 # the values are in the order of reg_names above
@@ -352,7 +354,7 @@ dev_all_agc_min = dev_all_agc_mean - dev_all_agc_stddev
 dev_all_agc_max = dev_all_agc_mean + dev_all_agc_stddev
 dev_all_bgc_min = dev_all_bgc_mean - dev_all_bgc_stddev
 dev_all_bgc_max = dev_all_bgc_mean + dev_all_bgc_stddev
-
+if (FALSE) { # don't need this any more
 # now sum them into above only and propagate the error
 dev_all_agc_mean = dev_all_agc_mean + dev_all_bgc_mean
 dev_all_agc_stddev = sqrt(dev_all_agc_stddev^2 + dev_all_bgc_stddev^2)
@@ -362,6 +364,7 @@ dev_all_bgc_mean[] = 0
 dev_all_bgc_stddev[] = 0
 dev_all_bgc_min[] = 0
 dev_all_bgc_max[] = 0
+}
 
 # these are the original statewide values from bjorkman et al 2015
 #dev_all_agc_min = 0.13
@@ -1470,6 +1473,16 @@ for (p in cpool_start:cpool_end) {
 			out_table$Max_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_max[r]
 			out_table$Mean_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_mean[r]
 			out_table$Stddev_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_agc_stddev[r]
+		}
+	}
+	
+	# fill Developed-all below ground c
+	if (out_c_tags[p] == "bgc") {
+		for	(r in 1:num_reg) {
+			out_table$Min_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_bgc_min[r]
+			out_table$Max_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_bgc_max[r]
+			out_table$Mean_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_bgc_mean[r]
+			out_table$Stddev_Mg_ha[out_table$Land_Type == "Developed_all" & out_table$Region == reg_names[r]] = dev_all_bgc_stddev[r]
 		}
 	}
 	
