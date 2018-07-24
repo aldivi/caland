@@ -922,8 +922,10 @@ for (s in 1:num_scenin_sheets) {
     out_scen_df_list[[4]] <- orig_fire
     
     # find the correct row for this scenario
+    nomatch = TRUE
     for (i in 1:nrow(control_wildfire_lulcc_df)) {
     	if (scenin_name == control_wildfire_lulcc_df$Scenario[i]) {
+    		nomatch = FALSE
     		# read the row for current sheet
     		LULCC_switch <- control_wildfire_lulcc_df[i,3]
     		wildfire_switch <- control_wildfire_lulcc_df[i,2]
@@ -934,12 +936,14 @@ for (s in 1:num_scenin_sheets) {
     		# update wildfire
     		out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] <- out_scen_df_list[[4]][6:ncol(out_scen_df_list[[4]])] * wildfire_switch
     		break
-    	} else {# end if the scenario is found
-    		cat("/nError: No lulcc/wildfire control record for scenario", scenin_name, "in file ", control_wildfire_lulcc_file, "\n")
-    		stop()
-    	}
+    	} 
     } # end for i loop over control file rows
-     
+    
+    if (nomatch == TRUE) {
+    	cat("\nError: No lulcc/wildfire control record for scenario", scenin_name, "in file ", control_wildfire_lulcc_file, "\n")
+    	stop()
+    }
+    
   } # end if control_wildfire_lulcc
 	
 	# check the scenario management against the parameter management (if it exists)
@@ -1014,15 +1018,20 @@ for (s in 1:num_scenin_sheets) {
 	if (nrow(manage1) > 0) {
 		area_rows = which(!is.na(manage1$start_area))
 		if (length(area_rows) > 0) {
-			dup_agg = aggregate(cbind(manage1$start_area, manage1$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage1[area_rows,], FUN=sum)
-			manage1 = merge(manage1, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
-			manage1$start_area = manage1$V1
-			manage1$end_area = manage1$V2
-			manage1$V1 = NULL
-			manage1$V2 = NULL
-			manage1 = unique(manage1)
+			dup_agg = aggregate(cbind(manage1$start_area[area_rows], manage1$end_area[area_rows]) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage1[area_rows,], FUN=sum)
+			dup_agg = merge(manage1[area_rows,], dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			dup_agg$start_area = dup_agg$V1
+			dup_agg$end_area = dup_agg$V2
+			dup_agg$V1 = NULL
+			dup_agg$V2 = NULL
+			dup_agg = unique(dup_agg)
+			if(nrow(manage1) > length(area_rows)) {
+				manage1 = rbind(manage1[-area_rows,], dup_agg)
+			} else {
+				manage1 = dup_agg
+			}
 		}
-	  # sum land type area to land cat for each practice entry; this should do any aggregating at all
+	  # sum land type area to land cat for each practice entry; this should not do any aggregating at all
 		manage1_agg = aggregate(Area_ha ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage1, FUN=sum)
 		names(manage1_agg)[ncol(manage1_agg)] = "Area_norm_ha"
 		# merge with non-aggregated areas
@@ -1032,13 +1041,18 @@ for (s in 1:num_scenin_sheets) {
 	if (nrow(manage2) > 0) {
 		area_rows = which(!is.na(manage2$start_area))
 		if (length(area_rows) > 0) {
-			dup_agg = aggregate(cbind(manage2$start_area, manage2$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage2, FUN=sum)
-			manage2 = merge(manage2, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
-			manage2$start_area = manage2$V1
-			manage2$end_area = manage2$V2
-			manage2$V1 = NULL
-			manage2$V2 = NULL
-			manage2 = unique(manage2)
+			dup_agg = aggregate(cbind(manage2$start_area[area_rows], manage2$end_area[area_rows]) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage2[area_rows,], FUN=sum)
+			dup_agg = merge(manage2[area_rows,], dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			dup_agg$start_area = dup_agg$V1
+			dup_agg$end_area = dup_agg$V2
+			dup_agg$V1 = NULL
+			dup_agg$V2 = NULL
+			dup_agg = unique(dup_agg)
+			if(nrow(manage2) > length(area_rows)) {
+				manage2 = rbind(manage2[-area_rows,], dup_agg)
+			} else {
+				manage2 = dup_agg
+			}
 		}
 	  # sum land type area to all region for each practice entry
 		manage2_agg = aggregate(Area_ha ~ Land_Type + Ownership + Management + start_year + end_year, manage2, FUN=sum)
@@ -1049,13 +1063,18 @@ for (s in 1:num_scenin_sheets) {
 	if (nrow(manage3) > 0) {
 		area_rows = which(!is.na(manage3$start_area))
 		if (length(area_rows) > 0) {
-			dup_agg = aggregate(cbind(manage3$start_area, manage3$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage3, FUN=sum)
-			manage3 = merge(manage3, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
-			manage3$start_area = manage3$V1
-			manage3$end_area = manage3$V2
-			manage3$V1 = NULL
-			manage3$V2 = NULL
-			manage3 = unique(manage3)
+			dup_agg = aggregate(cbind(manage3$start_area[area_rows], manage3$end_area[area_rows]) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage3[area_rows,], FUN=sum)
+			dup_agg = merge(manage3[area_rows,], dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			dup_agg$start_area = dup_agg$V1
+			dup_agg$end_area = dup_agg$V2
+			dup_agg$V1 = NULL
+			dup_agg$V2 = NULL
+			dup_agg = unique(dup_agg)
+			if(nrow(manage3) > length(area_rows)) {
+				manage3 = rbind(manage3[-area_rows,], dup_agg)
+			} else {
+				manage3 = dup_agg
+			}
 		}
 	  # sum land type area to all ownership for each practice entry
 		manage3_agg = aggregate(Area_ha ~ Region + Land_Type + Management + start_year + end_year, manage3, FUN=sum)
@@ -1066,13 +1085,18 @@ for (s in 1:num_scenin_sheets) {
 	if (nrow(manage4) > 0) {
 		area_rows = which(!is.na(manage4$start_area))
 		if (length(area_rows) > 0) {
-			dup_agg = aggregate(cbind(manage4$start_area, manage4$end_area) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage4[area_rows,], FUN=sum)
-			manage4 = merge(manage4, dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
-			manage4$start_area = manage4$V1
-			manage4$end_area = manage4$V2
-			manage4$V1 = NULL
-			manage4$V2 = NULL
-			manage4 = unique(manage4)
+			dup_agg = aggregate(cbind(manage4$start_area[area_rows], manage4$end_area[area_rows]) ~ Land_Cat_ID + Region + Land_Type + Ownership + Management + start_year + end_year, manage4[area_rows,], FUN=sum)
+			dup_agg = merge(manage4[area_rows,], dup_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", "start_year", "end_year"), all.y = TRUE)
+			dup_agg$start_area = dup_agg$V1
+			dup_agg$end_area = dup_agg$V2
+			dup_agg$V1 = NULL
+			dup_agg$V2 = NULL
+			dup_agg = unique(dup_agg)
+			if(nrow(manage4) > length(area_rows)) {
+				manage4 = rbind(manage4[-area_rows,], dup_agg)
+			} else {
+				manage4 = dup_agg
+			}
 		}
 	  # sum land type area to all region-ownership for each practice entry
 		manage4_agg = aggregate(Area_ha ~ Land_Type + Management + start_year + end_year, manage4, FUN=sum)
@@ -1378,7 +1402,7 @@ for (s in 1:num_scenin_sheets) {
 	} ################ end FALSE - should delete this section
 	
 	# change order of rows 
-	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Region, manage_out$Land_Type, manage_out$Ownership, manage_out$Management),]
+	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Management),]
 	# assign to output sheet
 	out_scen_df_list[[3]] = manage_out
   } else { # end if there are management practices

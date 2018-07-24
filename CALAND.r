@@ -159,6 +159,7 @@ scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire.xls"
 #scen_file_arg = "Historical_frst2Xmort_fire.xls"
 #scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
 #scen_file_arg = "Ambitious_frst2Xmort_fire.xls"
+#c_file_arg = "carbon_input_nwl.xls"
 
 c_file_arg = "carbon_input.xls"
 indir = ""
@@ -679,7 +680,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   
   # merge deadc_frac_df and mortality_target_df because zero rows do not exist and allrows are needed 
   mortality_target_df = merge(deadc_frac_df, mortality_target_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
-  mortality_target_df[,c(5:ncol(mortality_target_df))] <- apply(mortality_target_df[,c(5:ncol(mortality_target_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
+  if (ncol(mortality_target_df) == 5) {
+  	mortality_target_df[which(is.na(mortality_target_df[,5])),5] = 0.00
+  } else {
+  	mortality_target_df[,c(5:ncol(mortality_target_df))] <- apply(mortality_target_df[,c(5:ncol(mortality_target_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
+  }	
   
   # get the correct values for the baseline c accum tables if value is std dev
   if(value_col_accum == 8) { # std dev as value
@@ -834,6 +839,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   ##########################################################################
   # loop over the years
   for (year in start_year:(end_year-1)) {
+
     
     cat("\nStarting year ", year, "...\n")
     
@@ -3859,8 +3865,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list lcc" , i, "are", neginds, "\n")
       cat("total areas for neginds out_density_df_list lcc" , i, "are", all_c_flux[neginds, "new_area"], "\n")
-      sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
-                                        out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+      #sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+       #                                 out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       # sum all negative
       sum_neg_conv = sum_neg_conv + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                           out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
@@ -3886,7 +3892,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     # split non-burned DECAY into at sawmill and on-site
     all_c_flux[,"Land2Atmos_SawmillDecayC_stock_conv"] = -conv_adjust_df$tot_area * conv_adjust_df$Harvested2SawmillDecay_conv_c 
     all_c_flux[,"Land2Atmos_OnSiteDecayC_stock_conv"] = -conv_adjust_df$tot_area * 
-      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Slash2Decay_conv_c + conv_adjust_df$Below2Atmos_conv_c)
+      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Slash2Decay_conv_c + conv_adjust_df$Below2Atmos_conv_c + 
+         conv_adjust_df$Above_main_C_den2Atmos + conv_adjust_df$Understory_C_den2Atmos + conv_adjust_df$StandDead_C_den2Atmos + 
+         conv_adjust_df$DownDead_C_den2Atmos + conv_adjust_df$Litter_C_den2Atmos)
     # replace NA with 0
     all_c_flux[,"Land2Atmos_SawmillDecayC_stock_conv"] <- replace(all_c_flux[,"Land2Atmos_SawmillDecayC_stock_conv"], 
                                                           is.nan( all_c_flux[,"Land2Atmos_SawmillDecayC_stock_conv"]), 0.0)
@@ -4134,8 +4142,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
           (out_atmos_df_list[["Manage_Atmos_CumGain_C_stock"]][, next_atmos_label] - (out_atmos_df_list[["Manage_Atmos_CumGain_FireC"]][, next_atmos_label] + 
               out_atmos_df_list[["Manage_Atmos_CumGain_TotEnergyC"]][, next_atmos_label] + out_atmos_df_list[["Manage_Atmos_CumGain_NonBurnedC"]][, next_atmos_label])) > -0.5)
     
-    # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
-    # including this here in case changes are later made to those input wildfire fractions)
+    # Partition the "Fire_Atmos_CumGain_C_stock" into burned and non-burned C sources
     
     # FIRE burned: "Fire_Atmos_CumGain_BurnedC" = (current year "Fire_Atmos_CumGain_BurnedC") - "Land2Atmos_BurnedC_stock_fire_agg" 
     out_atmos_df_list[[20]][, next_atmos_label] = out_atmos_df_list[[20]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
@@ -4191,8 +4198,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
                   out_atmos_df_list[["Manage_Atmos_AnnGain_EnergyC"]][, cur_atmos_label] + out_atmos_df_list[["Manage_Atmos_AnnGain_NonBurnedC"]][, cur_atmos_label])) > -0.5)  
     
     
-    # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources (currently all burned because root and soil C are 0, but
-    # including this here in case changes are later made to those input wildfire fractions)
+    # Partition the "Fire_Atmos_AnnGain_C_stock" into burned and non-burned C sources
     # FIRE burned: "Fire_Atmos_AnnGain_BurnedC" = - "Land2Atmos_BurnedC_stock_fire_agg" 
     out_atmos_df_list[[32]][, cur_atmos_label] = - all_c_flux[,"Land2Atmos_BurnedC_stock_fire_agg"]
     # FIRE non-burned: "Fire_Atmos_AnnGain_NonBurnedC" = - "Land2Atmos_NonBurnedC_stock_fire_agg" 
@@ -4221,10 +4227,6 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
     out_atmos_df_list[[41]][, next_atmos_label] = out_atmos_df_list[[41]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_SawmillDecayC_stock_man_agg"] 
     out_atmos_df_list[[42]][, next_atmos_label] = out_atmos_df_list[[42]][, cur_atmos_label] - all_c_flux[,"Land2Atmos_InForestDecayC_stock_man_agg"] 
     
-    # split non-burned DECAY into at sawmill and on-site
-    all_c_flux[,"Land2Atmos_SawmillDecayC_stock_conv"] = -conv_adjust_df$tot_area * conv_adjust_df$Harvested2SawmillDecay_conv_c 
-    all_c_flux[,"Land2Atmos_OnSiteDecayC_stock_conv"] = -conv_adjust_df$tot_area * 
-      (conv_adjust_df$Soil2Atmos_conv_c + conv_adjust_df$Slash2Decay_conv_c + conv_adjust_df$Below2Atmos_conv_c)
     ### LCC ###
     # Annual #
     out_atmos_df_list[[43]][,cur_atmos_label] = -all_c_flux[,"Land2Atmos_SawmillDecayC_stock_conv"]
@@ -4851,7 +4853,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
   LCCSawmillDecay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_SawmillDecayC"]]
   LCCOnSiteDecay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_AnnGain_OnSiteDecayC"]]
   LCCSawmillDecay_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_SawmillDecayC"]]
-  LCCForestDecay_CumCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_OnSiteDecayC"]]
+  LCCOnSiteDecay_AnnCO2C <- out_atmos_df_list[["LCC_Atmos_CumGain_OnSiteDecayC"]]
   Wildfire_Decay_AnnCO2C <- out_atmos_df_list[["Fire_Atmos_AnnGain_NonBurnedC"]]
   Wildfire_Decay_CumCO2C <- out_atmos_df_list[["Fire_Atmos_CumGain_NonBurnedC"]]
   
@@ -4893,7 +4895,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
                   LCCSawmillDecay_AnnCO2C = LCCSawmillDecay_AnnCO2C,
                   LCCOnSiteDecay_AnnCO2C = LCCOnSiteDecay_AnnCO2C,
                   LCCSawmillDecay_CumCO2C = LCCSawmillDecay_CumCO2C,
-                  LCCForestDecay_CumCO2C = LCCForestDecay_CumCO2C,
+                  LCCOnSiteDecay_AnnCO2C = LCCOnSiteDecay_AnnCO2C,
                   
                   Wildfire_Decay_AnnCO2C = Wildfire_Decay_AnnCO2C,
                   Wildfire_Decay_CumCO2C = Wildfire_Decay_CumCO2C,
