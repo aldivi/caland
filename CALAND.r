@@ -3134,9 +3134,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
       # do only land here because ocean/seagrass is different
       if(current_region_ID != "Ocean") {
         
-        # didn't find this case yet, but it may happen somewhere at some point? in the delta?
-        ## try distributing generic transitions before specific adjustments (use base_area_change instead of area_change)
-        # this is so that the carbon transitions are correct# this also means that the specific transitions do not need to be redistributed
+        ## distribute generic transitions before specific adjustments (use base_area_change instead of area_change)
+        # this is so that the carbon transitions are correct
+        # this also means that the specific transitions do not need to be redistributed
         #  because they are not included yet, and by adding them area_change should be met
         
         # add up all positive area changes in new column "own_gain_sum" 
@@ -3166,7 +3166,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
         
-        ## end of sectoin where area_change was replaced with base_area_change
+        ## end of section where area_change was replaced with base_area_change
         
         
         # put the negative to-from values into conv_own
@@ -3188,174 +3188,95 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input.xls", indir = "", o
         if (num_avail_land_types < 0 ){num_avail_land_types = 0}
         for (l in 1:length(conv_own$Land_Type)) {
         	### afforestation
-        	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] > 0) {
-        	man_area_adj = min(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)], 
-        		conv_own$area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] -
-        		conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)])
-        	scalar = man_area_adj / conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
-        	if(FALSE) {
-        	# first distribute this adjusted loss area as gains to the changing columns proprtionally to maintain area_change
-        	# check for a net zero change for land type l to avoid an error
-        	# if no avail land types then this doesn't matter and will be cleaned up later
-        	if (conv_own$row_change_sum[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] == 0) {
-        		if (conv_col_names[l] != "Water" & conv_col_names[l] != "Ice") {
-        			conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        				conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        				abs(man_area_adj / num_avail_land_types)
-        		}
-        	} else {
-        		conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        			conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        			abs(man_area_adj * conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] /
-        			conv_own$row_change_sum[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)])	
-        	}
-        	} # end FALSE
-        	# scale the needed transitions by the adjusted managed area and subtract transition for the row value
-        	conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
-        		(conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        		scalar * conv_own$frst_need[conv_own$Land_Type == conv_col_names[l]])
-        	# fill in the column for this land type with the negative of the row value
-        	conv_own[l,"Forest"] = -conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] 
+        	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) > 0) {
+        		if (conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] > 0) {
+        			man_area_adj = min(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)], 
+        				conv_own$area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)])
+        			scalar = man_area_adj / conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+        			# scale the needed transitions by the adjusted managed area and subtract transition for the row value
+        			conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
+        				(conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
+        			scalar * conv_own$frst_need[conv_own$Land_Type == conv_col_names[l]])
+        			# fill in the column for this land type with the negative of the row value
+        			conv_own[l,"Forest"] = -conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] 
+        		} # end if non-zero man area
         	} # end afforestation
         	
         	### coastal marsh
-        	if (conv_col_names[l] != "Coastal_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
-        	man_area_adj = 
-        		min(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        		conv_own$area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        		conv_own$base_area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	scalar = man_area_adj / 
-        		conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-        	if(FALSE) {
-        	# first distribute this adjusted loss area as gains to the changing columns proprtionally to maintain area_change
-        	# check for a net zero change for land type l to avoid an error
-        	# if no avail land types then this doesn't matter and will be cleaned up later
-        	if (conv_own$row_change_sum[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] == 0) {
-        		if (conv_col_names[l] != "Water" & conv_col_names[l] != "Ice") {
-        			conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        				conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        				abs(man_area_adj / num_avail_land_types)
-        		}
-        	} else {
-				conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        			conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        			abs(man_area_adj * 
-        			conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] /
-        			conv_own$row_change_sum[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	}
-        	} # end FALSE
-        	# scale the needed transitions by the adjusted managed area and subtract transition
-        	conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
-        		(conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        		scalar * conv_own$cm_need[conv_own$Land_Type == conv_col_names[l]])
-        	# fill in the column for this land type with the negative of the row value
-        	conv_own[l,"Coastal_marsh"] = 
-        		-conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        	if (conv_col_names[l] != "Coastal_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        			man_area_adj = 
+        				min(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
+        				conv_own$area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
+        			scalar = man_area_adj / 
+        				conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        			# scale the needed transitions by the adjusted managed area and subtract transition
+        			conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
+        				(conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
+        				scalar * conv_own$cm_need[conv_own$Land_Type == conv_col_names[l]])
+        			# fill in the column for this land type with the negative of the row value
+        			conv_own[l,"Coastal_marsh"] = 
+        				-conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        		} # end if non-zero man area
         	} # end coastal marsh
         		
         	### fresh marsh
-        	if (conv_col_names[l] != "Fresh_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
-        	man_area_adj = 
-        		min(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        		conv_own$area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        		conv_own$base_area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	scalar = man_area_adj / 
-        		conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-        	if(FALSE) {
-        	# first distribute this adjusted loss area to the gain columns proprtionally to maintain area_change
-        	# check for a net zero change for land type l to avoid an error
-        	# if no avail land types then this doesn't matter and will be cleaned up later
-        	if (conv_own$row_change_sum[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] == 0) {
-        		if (conv_col_names[l] != "Water" & conv_col_names[l] != "Ice") {
-        			conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        				conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        				abs(man_area_adj / num_avail_land_types)
-        		}
-        	} else {
-           		conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        			conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        			abs(man_area_adj * 
-        			conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] /
-        			conv_own$row_change_sum[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	}
-        	} # end FALSE
-        	# scale the needed transitions by the adjusted managed area and subtract transition
-        	conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
-        		(conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        		scalar * conv_own$fm_need[conv_own$Land_Type == conv_col_names[l]])
-        	# fill in the column for this land type with the negative of the row value
-        	conv_own[l,"Fresh_marsh"] = 
-        		-conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        	if (conv_col_names[l] != "Fresh_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        			man_area_adj = 
+        				min(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
+        				conv_own$area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
+        			scalar = man_area_adj / 
+        				conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+		        	# scale the needed transitions by the adjusted managed area and subtract transition
+        			conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
+        				(conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
+        				scalar * conv_own$fm_need[conv_own$Land_Type == conv_col_names[l]])
+        			# fill in the column for this land type with the negative of the row value
+        			conv_own[l,"Fresh_marsh"] = 
+        				-conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        		} # end if non-zero man area
         	} # end fresh marsh
         		
         	### meadow
-        	if (conv_col_names[l] != "Meadow" & length(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
-        	man_area_adj = 
-        		min(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        		conv_own$area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        		conv_own$base_area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	scalar = man_area_adj / 
-        		conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-        	if(FALSE) {
-        	# first distribute this adjusted loss area to the gain columns proprtionally to maintain area_change
-        	# check for a net zero change for land type l to avoid an error
-        	# if no avail land types then this doesn't matter and will be cleaned up later
-        	if (conv_own$row_change_sum[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] == 0) {
-        		if (conv_col_names[l] != "Water" & conv_col_names[l] != "Ice") {
-        			conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        				conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        				abs(man_area_adj / num_avail_land_types)
-        		}
-        	} else {
-        		conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        			conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        			abs(man_area_adj * 
-        			conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] /
-        			conv_own$row_change_sum[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	}
-        	} # end FALSE
-        	# scale the needed transitions by the adjusted managed area and subtract transition
-        	conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
-        		(conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        		scalar * conv_own$mdw_need[conv_own$Land_Type == conv_col_names[l]])
-        	# fill in the column for this land type with the negative of the row value
-        	conv_own[l,"Meadow"] = 
-        		-conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        	if (conv_col_names[l] != "Meadow" & length(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        			man_area_adj = 
+        				min(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
+        				conv_own$area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
+        			scalar = man_area_adj / 
+        				conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        			# scale the needed transitions by the adjusted managed area and subtract transition
+        			conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
+        				(conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
+        				scalar * conv_own$mdw_need[conv_own$Land_Type == conv_col_names[l]])
+        			# fill in the column for this land type with the negative of the row value
+        			conv_own[l,"Meadow"] = 
+        				-conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        		} # end if non-zero man area
         	} # end meadow
         		
         	### woodland
-        	if (conv_col_names[l] != "Woodland" & length(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0 & conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
-        	man_area_adj = 
-        		min(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        		conv_own$area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        		conv_own$base_area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	scalar = man_area_adj / 
-        		conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
-        	if(FALSE) {
-        	# first distribute this adjusted loss area to the gain columns proprtionally to maintain area_change
-        	# check for a net zero change for land type l to avoid an error
-        	# if no avail land types then this doesn't matter and will be cleaned up later
-        	if (conv_own$row_change_sum[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] == 0) {
-        		if (conv_col_names[l] != "Water" & conv_col_names[l] != "Ice") {
-        			conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        				conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        				abs(man_area_adj / num_avail_land_types)
-        		}
-        	} else {
-        		conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] =
-        			conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] + 
-        			abs(man_area_adj * 
-        			conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] /
-        			conv_own$row_change_sum[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        	}
-        	} # end FALSE
-        	# scale the needed transitions by the adjusted managed area and subtract transition
-        	conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
-        		(conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        		scalar * conv_own$wd_need[conv_own$Land_Type == conv_col_names[l]])	
-        	# fill in the column for this land type with the negative of the row value
-        	conv_own[l,"Woodland"] = 
-        		-conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        	if (conv_col_names[l] != "Woodland" & length(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        			man_area_adj = 
+        				min(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
+        				conv_own$area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
+        			scalar = man_area_adj / 
+        				conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        			# scale the needed transitions by the adjusted managed area and subtract transition
+        			conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
+        				(conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
+        					scalar * conv_own$wd_need[conv_own$Land_Type == conv_col_names[l]])	
+        			# fill in the column for this land type with the negative of the row value
+        			conv_own[l,"Woodland"] = 
+        				-conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
+        		} # end if non-zero man area
         	} # end woodland
         		
         	### nonregen
