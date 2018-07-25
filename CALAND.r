@@ -156,8 +156,8 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "Private_understory_frst2Xmort_fire.xls"
 #scen_file_arg = "Private_clearcut_frst2Xmort_fire.xls"
 
-#scen_file_arg = "Historical_frst2Xmort_fire.xls"
-scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
+scen_file_arg = "Historical_frst2Xmort_fire.xls"
+#scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
 #scen_file_arg = "Ambitious_frst2Xmort_fire.xls"
 #c_file_arg = "carbon_input_nwl.xls"
 
@@ -176,7 +176,7 @@ ADD_accum = TRUE
 value_col_soilcon = 8
 ADD_soilcon = TRUE
 NR_Dist = -1
-WRITE_OUT_FILE = TRUE
+WRITE_OUT_FILE = FALSE
 # set GWP of black C equal to 900 (true) or 1 (false, default)
 blackC = FALSE
 

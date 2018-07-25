@@ -1765,6 +1765,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             ManNonBurn_AnnCO2 = brew_co2[7], Wildfire_AnnBCeq = brew_bc[8], Wildfire_AnnCH4eq = brew_ch4[9],
                             Wildfire_AnnCO2 = brew_co2[8], Wood_AnnCH4eq = brew_ch4[9], Wood_AnnCO2 = brew_co2[9]) 
                             } else {
+                            		brew_ch4 <- c(brewer.pal(9, "Blues"))
+                            	brew_co2 <- c(brewer.pal(9, "PRGn"))
                               ghg_colors = c(Eco_AnnCH4eq  = brew_ch4[2], Eco_AnnCO2  = brew_co2[2], 
                                              LCCTotEnergy_AnnCH4eq = brew_ch4[4], LCCTotEnergy_AnnCO2 = brew_co2[3], LCCNonBurn_AnnCO2 = brew_co2[4],
                                              ManTotEnergy_AnnCH4eq = brew_ch4[6], ManTotEnergy_AnnCO2 = brew_co2[5],
@@ -1938,6 +1940,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             Wildfire_CumCO2 = brew_co2[8], Wood_CumCH4eq = brew_ch4[9], Wood_CumCO2 = brew_co2[9])
                             cum_ghg_comp_df = na.omit(cum_ghg_comp_df[order(c(cum_ghg_comp_df$Component, cum_ghg_comp_df$Year)),])
                             } else {
+                            		brew_ch4 <- c(brewer.pal(9, "Blues"))
+                            	brew_co2 <- c(brewer.pal(9, "PRGn"))
                               ghg_colors = c(Eco_CumCH4eq  = brew_ch4[2], Eco_CumCO2  = brew_co2[2], 
                                              LCCTotEnergy_CumCH4eq = brew_ch4[4], LCCTotEnergy_CumCO2 = brew_co2[3], LCCNonBurn_CumCO2 = brew_co2[4],
                                              ManTotEnergy_CumCH4eq = brew_ch4[6], ManTotEnergy_CumCO2 = brew_co2[5],
