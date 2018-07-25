@@ -1025,6 +1025,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_area_sum$man_area = replace(man_area_sum$man_area, is.nan(man_area_sum$man_area), 0)
     # replace Inf values in man_area_sum with 0's 
     man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == Inf, 0)
+    man_area_sum$man_area = replace(man_area_sum$man_area, man_area_sum$man_area == -Inf, 0)
     # replace neg values in man_area_sum with 0's 
     man_area_sum$man_area[man_area_sum$Management != "Growth"] = replace(man_area_sum$man_area[man_area_sum$Management != "Growth"], man_area_sum$man_area[man_area_sum$Management != "Growth"] < 0, 0)   
     # (9) create a _trimmed_ aggregated (current year) areas dataframe (man_area_agg2): aggregate and sum man_area vector by Land_Cat_ID for all management activities 
@@ -1060,6 +1061,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     frst_ro_areas$lt_area_need[is.na(frst_ro_areas$lt_area_need)] = 0.00
     frst_ro_areas$lt_area_need[is.nan(frst_ro_areas$lt_area_need)] = 0.00
     frst_ro_areas$lt_area_need[frst_ro_areas$lt_area_need == Inf] = 0.00
+    frst_ro_areas$lt_area_need[frst_ro_areas$lt_area_need == -Inf] = 0.00
     frst_ro_areas_agg = aggregate(lt_area_need ~ Region + Ownership, frst_ro_areas, FUN=sum, na.rm = TRUE)
     
     # meadow comes out of shrub, grass, savanna, woodland
@@ -1076,6 +1078,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     mdw_ro_areas$lt_area_need[is.na(mdw_ro_areas$lt_area_need)] = 0.00
     mdw_ro_areas$lt_area_need[is.nan(mdw_ro_areas$lt_area_need)] = 0.00
     mdw_ro_areas$lt_area_need[mdw_ro_areas$lt_area_need == Inf] = 0.00
+    mdw_ro_areas$lt_area_need[mdw_ro_areas$lt_area_need == -Inf] = 0.00
     
     # fresh marsh and coastal marsh restoration both come from cultivated
     # if there is prescribed restoration, sum the restoration then scale the man_area and take the min of man_area and scaled man_area
@@ -1088,6 +1091,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     check_avail_df$avail_rest_area[is.na(check_avail_df$avail_rest_area)] = 0.00
     check_avail_df$avail_rest_area[is.nan(check_avail_df$avail_rest_area)] = 0.00
     check_avail_df$avail_rest_area[check_avail_df$avail_rest_area == Inf] = 0.00
+    check_avail_df$avail_rest_area[check_avail_df$avail_rest_area == -Inf] = 0.00
     # fresh marsh - do these separately due to ordering issues
     man_area_sum$man_area[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Fresh_marsh"] = apply(check_avail_df[check_avail_df$Land_Type.x == "Fresh_marsh", c("man_area", "avail_rest_area")], 1, FUN=min, na.rm=TRUE)
     # coastal marsh - do these separately due to ordering issues
@@ -1100,6 +1104,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     wet_ro_areas$wet_area_need[is.na(wet_ro_areas$wet_area_need)] = 0.00
     wet_ro_areas$wet_area_need[is.nan(wet_ro_areas$wet_area_need)] = 0.00
     wet_ro_areas$wet_area_need[wet_ro_areas$wet_area_need == Inf] = 0.00
+    wet_ro_areas$wet_area_need[wet_ro_areas$wet_area_need == -Inf] = 0.00
     } # end if there is prescribed restoration
     
     # woodland gets the leftovers of grassland and cultivated
@@ -1113,6 +1118,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 		avail_ro_area$wet_area_need[is.na(avail_ro_area$wet_area_need)] = 0.00
     	avail_ro_area$wet_area_need[is.nan(avail_ro_area$wet_area_need)] = 0.00
     	avail_ro_area$wet_area_need[avail_ro_area$wet_area_need == Inf] = 0.00
+    	avail_ro_area$wet_area_need[avail_ro_area$wet_area_need == -Inf] = 0.00
 		avail_ro_area$avail_ro_area = avail_ro_area$avail_ro_area - avail_ro_area$wet_area_need
 	}
     check_avail_df = merge(man_area_sum[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Woodland",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
@@ -1254,6 +1260,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum < 0, 0)   
     # replace Infinite values in man_area_sum with 0's 
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == Inf, 0)
+    man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == -Inf, 0)
     
     # if there are any other man areas create a _trimmed_ aggregated man_area_sum df (man_area_sum_agg2)
     if (nrow(man_area_sum[man_area_sum$Management != "Afforestation" & 
@@ -1414,7 +1421,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
          man_soilflux_agg$unman_area[man_soilflux_agg$Land_Type == "Cultivated"] * 
          man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type == "Cultivated"]) / 
       tot_area_df$tot_area[tot_area_df$Land_Type == "Cultivated"]
-    nan_inds = which(is.nan(man_soilflux_agg$fin_soilc_accum) | man_soilflux_agg$fin_soilc_accum == Inf)
+    nan_inds = which(is.nan(man_soilflux_agg$fin_soilc_accum) | man_soilflux_agg$fin_soilc_accum == Inf | man_soilflux_agg$fin_soilc_accum == -Inf)
     man_soilflux_agg$fin_soilc_accum[nan_inds] = man_soilflux_agg[nan_inds, "soilc_accum_val"]
     man_soilflux_agg$man_change_soilc_accum = man_soilflux_agg$fin_soilc_accum - man_soilflux_agg$soilc_accum_val
     
@@ -1479,7 +1486,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Developed_all"] = 
       man_vegflux_agg$vegcfluxXarea[man_vegflux_agg$Land_Type == "Developed_all"] / 
       tot_area_df$tot_area[man_vegflux_agg$Land_Type == "Developed_all"]
-    nan_inds = which(is.nan(man_vegflux_agg$fin_vegc_uptake) | man_vegflux_agg$fin_vegc_uptake == Inf)
+    nan_inds = which(is.nan(man_vegflux_agg$fin_vegc_uptake) | man_vegflux_agg$fin_vegc_uptake == Inf | man_vegflux_agg$fin_vegc_uptake == -Inf)
     man_vegflux_agg$fin_vegc_uptake[nan_inds] = man_vegflux_agg[nan_inds, "vegc_uptake_val"]
     # for cases without any prescribed management, fin_vegc_uptake should equal vegc_uptake_val, but due to rounding error the difference is not exactly 0
       # however, all(abs(man_vegflux_agg$fin_vegc_uptake-man_vegflux_agg$vegc_uptake_val)<0.000000000000001) == TRUE
@@ -1554,7 +1561,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # which is the area-weighted mortality_fraction to later apply to total above- and below-ground C in Forest, Savanna/Woodland, and shrubland
     man_deadfrac_agg$fin_deadc_frac = (man_deadfrac_agg$deadcfracXarea + man_deadfrac_agg$unman_area_sum * 
                                          man_deadfrac_agg$deadc_frac_in) / tot_area_df$tot_area
-    nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf)
+    nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf | man_deadfrac_agg$fin_deadc_frac == -Inf)
     # if NA or Inf, assign the interp_mort_frac to fin_deadc_frac
     man_deadfrac_agg$fin_deadc_frac[nan_inds] = man_deadfrac_agg[nan_inds, "deadc_frac_in"]
     }
@@ -1919,6 +1926,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.na(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
+    all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == -Inf, 0.00)})
     
     # loop over the out density tables to update the carbon pools based on the eco fluxes
     # carbon cannot go below zero
@@ -2047,6 +2055,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.nan(x), 0.00)})
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, x == Inf, 0.00)})
+    man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, x == -Inf, 0.00)})
     }
     
     # now consolidate the c density transfers to the pools
@@ -2209,6 +2218,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.na(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
+    all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == -Inf, 0.00)})
     
     # loop over the out density tables to update the carbon pools based on the management fluxes
     # carbon cannot go below zero
@@ -2229,6 +2239,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list manage" , i, "are", neginds, "\n")
       sum_neg_man = sum_neg_man + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+                                        out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+      sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                         out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       
       # replace any negative updated C densities with 0
@@ -2500,6 +2512,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     fire_nonreg_df[,c("sdc", "non_regen_area")] <- apply(fire_nonreg_df[,c("sdc", "non_regen_area")], 2, function (x) {replace(x, is.na(x), 0.00)})
     fire_nonreg_df[,c("sdc", "non_regen_area")] <- apply(fire_nonreg_df[,c("sdc", "non_regen_area")], 2, function (x) {replace(x, is.nan(x), 0.00)})
     fire_nonreg_df[,c("sdc", "non_regen_area")] <- apply(fire_nonreg_df[,c("sdc", "non_regen_area")], 2, function (x) {replace(x, x == Inf, 0.00)})
+    fire_nonreg_df[,c("sdc", "non_regen_area")] <- apply(fire_nonreg_df[,c("sdc", "non_regen_area")], 2, function (x) {replace(x, x == -Inf, 0.00)})
     
     ############################################################################################################
     ################# fifth, calc changes in C densities for each of the fire effects within the ###############
@@ -2526,6 +2539,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     fire_adjust_df[,is.na(c(8:ncol(fire_adjust_df)))] <- 0
     fire_adjust_df[,is.nan(c(8:ncol(fire_adjust_df)))] <- 0
     fire_adjust_df[,(c(8:ncol(fire_adjust_df))) == Inf] <- 0
+    fire_adjust_df[,(c(8:ncol(fire_adjust_df))) == -Inf] <- 0
    
     ############################################################################################################
     ################## sixth, apply some decay over time for newly added dead material #################
@@ -2684,6 +2698,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.na(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, is.nan(x), 0.00)})
     all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == Inf, 0.00)})
+    all_c_flux[,c(8:ncol(all_c_flux))] <- apply(all_c_flux[,c(8:ncol(all_c_flux))], 2, function (x) {replace(x, x == -Inf, 0.00)})
     
     # check that the fire Land2Atmos c flux is equal to the sum of burned and non-burned land2Atmos c flux in the all_c_flux dataframe
     # checks flase due to rounding error
@@ -2713,6 +2728,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list fire" , i, "are", neginds, "\n")
       sum_neg_fire = sum_neg_fire + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+                                          out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+      sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                           out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       # replace any negative updated C densities with 0
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
@@ -2985,8 +3002,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       } # end else calc land adjusments to baseline area change
       
       # clean up division numerical errors
+      conv_own$base_change_adjust[is.na(conv_own$base_change_adjust)] = 0
       conv_own$base_change_adjust[is.nan(conv_own$base_change_adjust)] = 0
       conv_own$base_change_adjust[conv_own$base_change_adjust == Inf] = 0
+      conv_own$base_change_adjust[conv_own$base_change_adjust == -Inf] = 0
       
       # calc the area change and the new area
       # recall AREA CHANGE [ha] starts as annual net area conversions ("base_area_change")
@@ -3159,6 +3178,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x < 0, 0.00)})
         conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == -Inf, 0.00)})
         
         # do it again to get the negative to-from values
         for (l in 1:length(conv_own$Land_Type)) {
@@ -3169,6 +3189,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x < 0, 0.00)})
         conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x == -Inf, 0.00)})
         
         ## end of section where area_change was replaced with base_area_change
         
@@ -3316,6 +3337,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.na(x), 0.00)})
         conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == -Inf, 0.00)})
         
         
         ############################# calc 'FROM' land type losses due to conversion to ag and developed ############################# 
@@ -3370,7 +3392,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
               conv_own$tot_area[conv_own$Cultivated > 0]
             conv_own[is.na(conv_own[,convc_trans_names[f]]),convc_trans_names[f]] <- 0.00
             conv_own[is.nan(conv_own[,convc_trans_names[f]]),convc_trans_names[f]] <- 0.00
-            conv_own[conv_own[,convc_trans_names[f]] == Inf,convc_trans_names[f]] <- 0.00 
+            conv_own[conv_own[,convc_trans_names[f]] == Inf,convc_trans_names[f]] <- 0.00
+            conv_own[conv_own[,convc_trans_names[f]] == -Inf,convc_trans_names[f]] <- 0.00 
             # repeat for developed
             temp_vals = conv_own[,convc_trans_names[f]]
             temp_vals[] = 0.00
@@ -3380,7 +3403,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
               conv_own$tot_area[conv_own$Developed_all > 0]
            	temp_vals[is.na(temp_vals)] <- 0.00
             temp_vals[is.nan(temp_vals)] <- 0.00
-            temp_vals[temp_vals == Inf] <- 0.00            
+            temp_vals[temp_vals == Inf] <- 0.00
+            temp_vals[temp_vals == -Inf] <- 0.00            
             conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] = 
               conv_own[conv_own$Developed_all > 0,convc_trans_names[f]] + temp_vals[conv_own$Developed_all > 0]
               
@@ -3389,6 +3413,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.nan(x), 0.00)})
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, is.na(x), 0.00)})
         conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own[,10:ncol(conv_own)] <- apply(conv_own[,10:ncol(conv_own)], 2, function (x) {replace(x, x == -Inf, 0.00)})
         conv_own = conv_own[order(conv_own$Land_Cat_ID),]
         # need a copy for below
         conv_own_static = conv_own
@@ -3570,6 +3595,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                 	lt_conv$area_adj[is.na(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[is.nan(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[lt_conv$area_adj == Inf] = 0.00
+                	lt_conv$area_adj[lt_conv$area_adj == -Inf] = 0.00
                 	# this shouldn't happen because non-reg is a subset of total loss, but check anyway
                 	if (TRUE %in% (lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] > 0)) {
                 		cat("Warning: nonregen error in land conversion at r, i, l\n", r, i, l)
@@ -3608,6 +3634,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                 conv_own[,atmosname] = replace(conv_own[,atmosname], is.na(conv_own[,atmosname]), 0.0)
                 conv_own[,atmosname] = replace(conv_own[,atmosname], is.nan(conv_own[,atmosname]), 0.0)
                 conv_own[,atmosname] = replace(conv_own[,atmosname], conv_own[,atmosname] == Inf, 0.0)
+                conv_own[,atmosname] = replace(conv_own[,atmosname], conv_own[,atmosname] == -Inf, 0.0)
               } # end else above ground for to-from
             } # end else to-from
             
@@ -3617,6 +3644,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
             conv_own[,chname] = replace(conv_own[,chname], is.na(conv_own[,chname]), 0.0)
             conv_own[,chname] = replace(conv_own[,chname], is.nan(conv_own[,chname]), 0.0)
             conv_own[,chname] = replace(conv_own[,chname], conv_own[,chname] == Inf, 0.0)
+            conv_own[,chname] = replace(conv_own[,chname], conv_own[,chname] == -Inf, 0.0)
           } # end for c loop over the c pools
           conv_df_list[[l]] = lt_conv
         } # end for l loop over the "to" conversion column names
@@ -3646,12 +3674,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "tot_area"]
         conv_own[,"Above_main_C_den_change"] = replace(conv_own[,"Above_main_C_den_change"], is.nan(conv_own[,"Above_main_C_den_change"]), 0.0)
         conv_own[,"Above_main_C_den_change"] = replace(conv_own[,"Above_main_C_den_change"], conv_own[,"Above_main_C_den_change"] == Inf, 0.0)
+        conv_own[,"Above_main_C_den_change"] = replace(conv_own[,"Above_main_C_den_change"], conv_own[,"Above_main_C_den_change"] == -Inf, 0.0)
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Soil_orgC_den_change"] = 
           conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "area_change"] * 
           conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "Soil_orgC_den"] / 
           conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change < 0), "tot_area"]
         conv_own[,"Soil_orgC_den_change"] = replace(conv_own[,"Soil_orgC_den_change"], is.nan(conv_own[,"Soil_orgC_den_change"]), 0.0)
         conv_own[,"Soil_orgC_den_change"] = replace(conv_own[,"Soil_orgC_den_change"], conv_own[,"Soil_orgC_den_change"] == Inf, 0.0)
+        conv_own[,"Soil_orgC_den_change"] = replace(conv_own[,"Soil_orgC_den_change"], conv_own[,"Soil_orgC_den_change"] == -Inf, 0.0)
         # expansion
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Above_main_C_den_change"] = 0
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
@@ -3790,8 +3820,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       neginds = which(out_density_df_list[[i]][, next_density_label] < 0)
       cat("neginds for out_density_df_list lcc" , i, "are", neginds, "\n")
       cat("total areas for neginds out_density_df_list lcc" , i, "are", all_c_flux[neginds, "new_area"], "\n")
-      #sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
-       #                                 out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
+      sum_neg_eco = sum_neg_eco + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
+                                        out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
       # sum all negative
       sum_neg_conv = sum_neg_conv + sum(all_c_flux$tot_area[out_density_df_list[[i]][,next_density_label] < 0] * 
                                           out_density_df_list[[i]][out_density_df_list[[i]][,next_density_label] < 0, next_density_label])
@@ -3805,6 +3835,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                                                                 is.nan(out_density_df_list[[i]][, next_density_label]), 0.00)
       out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
                                                                 out_density_df_list[[i]][, next_density_label] == Inf, 0.00)
+      out_density_df_list[[i]][, next_density_label] <- replace(out_density_df_list[[i]][, next_density_label], 
+                                                                out_density_df_list[[i]][, next_density_label] == -Inf, 0.00)
     } # end loop over out densities for updating due to conversion
     
     # Get total C lost to atmosphere from LCC via 3 potential flux pathways by the tot_area
@@ -3861,8 +3893,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     cat("lcc carbon change is ", sum_change, "\n")
     cat("lcc net carbon transfer to other land types is ", sum_change2, "\n")
     cat("lcc carbon to wood is ", sum(all_c_flux$Land2Wood_c_stock_conv), "\n")
-    cat("lcc carbon to atmos is ", sum(all_c_flux$Land2Atmos_c_stock_conv), "\n")
-    cat("lcc carbon to energy is ", sum(all_c_flux$Land2Energy_c_stock_conv), "\n")
+    cat("lcc carbon to atmos decayed is ", sum(all_c_flux$Land2Atmos_DecayC_stock_conv), "\n")
+    cat("lcc carbon to atmos burned is ", sum(all_c_flux$Land2Atmos_BurnC_stock_conv), "\n")
+    cat("lcc carbon to energy is ", sum(all_c_flux$Land2Atmos_TotEnergyC_stock_conv), "\n")
     cat("lcc negative carbon cleared is ", sum_neg_conv, "\n")
     
     # update the conversion wood tables
