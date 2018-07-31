@@ -909,7 +909,7 @@ orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
 for (s in 1:num_scenin_sheets) {
-for (s in c(39:42)) { 
+#for (s in c(39:42)) { 
   ###### scenario managed area table
 	
 	scenin = scenin_df_list[[s]]
