@@ -809,7 +809,7 @@ if(CLIMATE == "HIST") { climate_c_soil[,-c(1:4)] = 1 }
 out_scen_df_list[[7]] = cbind(out_scen_df_list[[7]], climate_c_soil[,c(5:ncol(climate_c_soil))])
 # set the column names
 for (i in c(5:ncol(out_scen_df_list[[7]]))) {
-	names(out_scen_df_list[[7]])[i] <- paste0(start_year+i-5,"_ha")
+	names(out_scen_df_list[[7]])[i] <- paste0(start_year+i-5)
 }
 
 ###### read the scenario definition file
