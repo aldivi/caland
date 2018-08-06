@@ -1816,8 +1816,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 
                                 # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                                # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                                #if (INDIVIDUAL & lt_lab != "All_land") {
+                                  if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -1986,8 +1987,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 
                                 # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                                # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                                #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2142,8 +2144,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             # use cumulative managed area
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2310,8 +2313,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             # plot the per area effects on carbon pools of individual practices
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2477,8 +2481,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             # use cumulative managed area
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2739,8 +2744,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             # use cumulative managed area
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2908,8 +2914,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                         		# plot the per area effects on carbon pools of individual practices
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -3076,8 +3083,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             # use cumulative managed area
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types
-                                if (INDIVIDUAL & lt_lab != "All_land") {
+                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                if (INDIVIDUAL) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
