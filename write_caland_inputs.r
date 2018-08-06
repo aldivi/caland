@@ -757,13 +757,16 @@ names(mortality_types)[year_col_start] <- paste0(start_year,"_frac")
 out_scen_df_list[[5]] = mortality_types
 
 ###### scen climate scalars tables
-# these values are the diret scalars
+# these values are the direct scalars
 # vegetation first, then soil
 
 climate_c_in = read.csv(paste0(in_dir,climate_c_file), stringsAsFactors = FALSE)
+# if landtype is "All" then it's the unitary file where all scalars are 1
 if(climate_c_in$Land_Type[1] == "All") {
 	UNITARY = TRUE
 	climate_c_in$Land_Type = NULL
+} else {
+  UNITARY = FALSE
 }
 clim_start_col = which(names(climate_c_in) == paste0("X", start_year))
 clim_end_col = which(names(climate_c_in) == paste0("X", end_year-1))
@@ -809,7 +812,7 @@ if(CLIMATE == "HIST") { climate_c_soil[,-c(1:4)] = 1 }
 out_scen_df_list[[7]] = cbind(out_scen_df_list[[7]], climate_c_soil[,c(5:ncol(climate_c_soil))])
 # set the column names
 for (i in c(5:ncol(out_scen_df_list[[7]]))) {
-	names(out_scen_df_list[[7]])[i] <- paste0(start_year+i-5,"_ha")
+	names(out_scen_df_list[[7]])[i] <- paste0(start_year+i-5)
 }
 
 ###### read the scenario definition file
@@ -909,7 +912,7 @@ orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
 for (s in 1:num_scenin_sheets) {
-for (s in c(39:42)) { 
+#for (s in c(39:42)) { 
   ###### scenario managed area table
 	
 	scenin = scenin_df_list[[s]]
