@@ -136,20 +136,23 @@ for( i in libs ) {
 }
 
 ########### set these here so that I can work without running the function
-scen_tag = "ind"
+#scen_tag = "ind"
+scen_tag = "ind_RCP85"
 c_file = "carbon_input_ind.xls"
 #c_file = "carbon_input.xls"
 start_year = 2010
 #end_year = 2101
 end_year = 2051
-CLIMATE = "HIST"
+#CLIMATE = "HIST"
+CLIMATE = "PROJ"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
-#scenarios_file = "prelim_nwl_scenarios_ac.xls"
-scenarios_file = "individual_proposed_sims.xls"
+#scenarios_file = "nwl_scenarios_v2_ac.xls"
+scenarios_file = "individual_proposed_sims_41_year_application_all.xls"
 #units_scenario <- "ac"
 units_scenario = "ha"
-climate_c_file = "climate_c_scalars_unitary.csv"
+#climate_c_file = "climate_c_scalars_unitary.csv"
+climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 mortality_file = "mortality_annual_july_2018.csv"
 land_change_method = "Landuse_Avg_Annual"
@@ -169,7 +172,7 @@ control_wildfire_lulcc <- TRUE
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv"
 
 write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
-                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "prelim_nwl_scenarios_ac.xls",
+                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v2_ac.xls",
                                 units_scenario = "ac",
                                 climate_c_file = "climate_c_scalars_unitary.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
@@ -911,8 +914,8 @@ if (control_wildfire_lulcc) {
 orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
-for (s in 1:num_scenin_sheets) {
-#for (s in c(39:42)) { 
+#for (s in 1:num_scenin_sheets) {
+for (s in c(32:42)) { 
   ###### scenario managed area table
 	
 	scenin = scenin_df_list[[s]]
