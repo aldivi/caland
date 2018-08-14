@@ -22,7 +22,7 @@
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
 #	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
 #	INDIVIDUAL		TRUE = output per area effects of individual practices based on model runs configured for this purpose
-# units         TRUE = output units in "ha", FALSE = "ac". Default is "ac".
+# units_ha         TRUE = output units in "ha", FALSE = "ac". Default is "ac".
 # blackC        TRUE = black GWP equal to 900, FALSE = black GWP equal to 1 (default)
 # blackC_plot   TRUE = plot BC, CO2, and CH4, FALSE = plot only CO2 and CH4 (BC added to CO2 which is only valid if black C is FALSE) (default)
 
@@ -54,7 +54,7 @@
 setwd("./")
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
-options(java.parameters = "-Xmx4g" )
+options(java.parameters = "-Xmx8g" )
 
 # Load all the required packages
 libs <- c( "XLConnect", "ggplot2", "grid", "RColorBrewer", "reshape2")
@@ -68,7 +68,7 @@ for( i in libs ) {
 }
 
 # set these here so the function does not have to be used
-data_dir = "./outputs"
+data_dir = "./outputs/aug7_2018_ind_41y"
 # scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
 scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
 scen_lnames = c("BAU_Eco","BAU_all")
@@ -80,7 +80,7 @@ scen_lnames = c("BAU_Fire","USFS_PartialCut")
 scen_snames = c("BAUFire","USFSPC")
 lt=c("All_land")
 own=c("All_own")
-units = FALSE
+units_ha = FALSE
 reg=c("All_region")
 
 reg="All_region"
@@ -88,14 +88,12 @@ lt="All_land"
 own = "All_own"
 
 figdir = "figures"
-INDIVIDUAL = FALSE
+INDIVIDUAL = TRUE
 blackC = FALSE
 blackC_plot = FALSE
 
-reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast",
-        "Ocean", "All_region")
-lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow",
-       "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
+#reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region")
+#lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 
 
@@ -118,15 +116,15 @@ plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./out
 "South_Coast", "Ocean", "All_region"),
 lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
 "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass", "All_land"),
-own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC = FALSE, blackC_plot = FALSE) {
+own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blackC = FALSE, blackC_plot = FALSE) {
     
     cat("Start plot_caland() at", date(), "\n")
     
-  # first check to make sure that the combination of blackC and backC_plot are valid 
-  if (blackC == TRUE & blackC_plot == FALSE) {
-    cat( "Invalid settings for black carbon\n" )
-    stop( "If black carbon GWP was computed as 900 (blackC==TRUE), it must be plotted as black carbon (blackC_plot==TRUE)\n" )
-  }
+  	# first check to make sure that the combination of blackC and backC_plot are valid 
+  	if (blackC == TRUE & blackC_plot == FALSE) {
+    	cat( "Invalid settings for black carbon\n" )
+    	stop( "If black carbon GWP was computed as 900 (blackC==TRUE), it must be plotted as black carbon (blackC_plot==TRUE)\n" )
+  	}
   
     outputdir = paste0(data_dir, "/")
     num_scen_names = length(scen_fnames)
@@ -143,6 +141,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
     
     # ha (or ac) to Thousand ha
     ha2kha = 1 / 1000
+    
+    # minimum area for less intensive forest management
+    # this is a threshold because conversion of ha to ac doesn't preserve the exact transfer
+    min_lim_area = 100
     
     c_lab = "MMT C"
     ha_lab = "kha"
@@ -231,7 +233,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                     #### no longer need to exclude any cases #####
                     # All_own is the default that sums all the ownerships, and it exists for All_region plus each individual land type
                     #  and for All_land plus each individual region
-                    # the individual ownerships are plotted only for individual regions and land types
+                    # the individual ownerships are plotted for individual regions and land types and for All_land and All_region
                       # if All_own or a specific region and land type (not All_region and not All_land), which includes:
                         # All_own, All_land and All_region (i.e. statewide)
                         # All_own for individual Land_Type in individual region 
@@ -294,7 +296,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                         Value=NULL)
                         ann_comp_df <- data.frame(Scenario=NULL, Region=NULL, Land_Type=NULL, Ownership=NULL, Component=NULL, Units=NULL, Year=NULL,
                         Value=NULL)
-                        dev_man_data_df = NULL
+                        #dev_man_data_df = NULL
+                        man_df = NULL
+                        al_area_df = NULL
                         
                         # loop over the scenario outputs to read them in and put the data into data frames for plotting
                         # aggregate the ownserhips to the land type
@@ -323,12 +327,12 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 yinds = which(substr(names(scen_df_list[[i]]),1,1) == "X")
                                 names(scen_df_list[[i]])[yinds] = substr(names(scen_df_list[[i]]),2,5)[yinds]
                                 
-                                # convert the 3 area sheets to from ha to ac if units == FALSE
-                                if (scen_sheets[i] %in% area_sheets & units == FALSE) {
+                                # convert the 3 area sheets to from ha to ac if units_ha == FALSE
+                                if (scen_sheets[i] %in% area_sheets & units_ha == FALSE) {
                                   if (i==1) { 
-                                  scen_df_list[[i]][,5:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,5:(ncol(scen_df_list[[i]])-1)] * 2.47105
+                                  scen_df_list[[i]][,5:(ncol(scen_df_list[[i]]))] <- scen_df_list[[i]][,5:(ncol(scen_df_list[[i]]))] * 2.47105
                                   } else {
-                                    scen_df_list[[i]][,6:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,6:(ncol(scen_df_list[[i]])-1)] * 2.47105
+                                    scen_df_list[[i]][,6:(ncol(scen_df_list[[i]]))] <- scen_df_list[[i]][,6:(ncol(scen_df_list[[i]]))] * 2.47105
                                   }
                                 }
                                 
@@ -375,19 +379,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                         } else { 
                                       ### (2) get individual statewide ownership ###
                                           # aggregate individual ownership across regions and Land_Types
-                                          if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                                        scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                          if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                             # sum specific ownership data across all Land_Types and regions except Seagrass
                                             val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                               startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                           } else { 
                                       ### (3) get individual statewide ownership-Land_Type ###
                                             # aggregate current ownership & Land_Type across regions
-                                            if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                            if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                         scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                               # sum specific ownership data across all regions for specific Land_Type (This can extract Seagrass: All_region, Other_Fed, Seagrass)
                                               val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                   scen_df_list[[i]][,"Land_Type"] == lt_lab, 
@@ -395,14 +399,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                            } else { # end statewide Land_Type-ownership level
                                       ### (4) get regional individual ownership ###
                                             # aggregate specific ownership within specific region across all landtypes
-                                            if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                            if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                         scen_df_list[[i]][,"Region"] == reg_lab &
-                                                                                                                        scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                               # sum data across Land_Types in current ownership and region excluding Ocean/Seagrass
                                               val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                   scen_df_list[[i]][,"Region"] == reg_lab & 
-                                                                                                scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                 startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                           } else { 
                                             # ownership does not exist in this land type and region
@@ -473,19 +477,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             } else {
                                               ### (2) get individual statewide ownership ###
                                               # aggregate individual ownership across regions and Land_Types
-                                              if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                                          scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                              if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                                          scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                 # sum specific ownership data across all Land_Types and regions except Seagrass
                                                 val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                    scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                    scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                   startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                               } else { 
                                                 ### (3) get individual statewide ownership-Land_Type ###
                                                 # aggregate current ownership & Land_Type across regions
-                                                if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                        scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                   # sum specific ownership data across all regions for specific Land_Type (This can extract Seagrass: All_region, Other_Fed, Seagrass)
                                                   val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                       scen_df_list[[i]][,"Land_Type"] == lt_lab, 
@@ -493,14 +497,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                 } else { # end statewide Land_Type-ownership level
                                                   ### (4) get regional individual ownership ###
                                                   # aggregate specific ownership within specific region across all landtypes
-                                                  if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                  if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                               scen_df_list[[i]][,"Region"] == reg_lab & 
-                                                                                                                              scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                              startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                              scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                              startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                     # sum data across Land_Types in current ownership and region excluding Ocean/Seagrass
                                                     val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                         scen_df_list[[i]][,"Region"] == reg_lab & 
-                                                                                                      scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                      scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                                   } else { 
                                                     # ownership does not exist in this land type and region
@@ -573,19 +577,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                         } else {
                                                           ### (2) get individual statewide ownership ###
                                                           # aggregate individual ownership across regions and Land_Types
-                                                          if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab &
-                                                                                                                            temp_df[,"Land_Type"] != "Seagrass", 
-                                                                                                                            startcol:(ncol(temp_df)-1)]) >=1)) {
+                                                          if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab &
+                                                                                                                            temp_df[,"Region"] != "Ocean", 
+                                                                                                                            startcol:(ncol(temp_df)-1)]) >=1) {
                                                             # sum specific ownership data across all Land_Types and regions
                                                             val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Ownership"] == own_lab &
-                                                                                                      temp_df[,"Land_Type"] != "Seagrass", 
+                                                                                                      temp_df[,"Region"] != "Ocean", 
                                                                                                               startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
                                                           } else { 
                                                             ### (3) get individual statewide ownership-Land_Type ###
                                                             # aggregate current ownership & Land_Type across regions
-                                                            if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
+                                                            if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                                                    temp_df[,"Land_Type"] == lt_lab, 
-                                                                                                                                   startcol:(ncol(temp_df)-1)]) >=1)) {
+                                                                                                                                   startcol:(ncol(temp_df)-1)]) >=1) {
                                                               # sum specific ownership data across all regions for specific Land_Type
                                                               val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                                   temp_df[,"Land_Type"] == lt_lab, 
@@ -593,14 +597,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                             } else { # end statewide Land_Type-ownership level
                                                               ### (4) get regional individual ownership ###
                                                               # aggregate specific ownership within specific region across all landtypes
-                                                              if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
+                                                              if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                                                      temp_df[,"Region"] == reg_lab &
-                                                                                                                                temp_df[,"Land_Type"] != "Seagrass", 
-                                                                                                                                     startcol:(ncol(temp_df)-1)]) >=1)) {
+                                                                                                                                temp_df[,"Region"] != "Ocean", 
+                                                                                                                                     startcol:(ncol(temp_df)-1)]) >=1) {
                                                                 # sum data across Land_Types in current ownership and region
                                                                 val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                                     temp_df[,"Region"] == reg_lab &
-                                                                                                          temp_df[,"Land_Type"] != "Seagrass",
+                                                                                                          temp_df[,"Region"] != "Ocean",
                                                                                                                   startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
                                                               } else { 
                                                                 # ownership does not exist in this land type and region
@@ -719,19 +723,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             } else {
                                           ### (2) get individual statewide ownership ###
                                               # aggregate individual ownership across regions and Land_Types
-                                              if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                                          scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                              if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                                          scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                 # sum specific ownership data across all Land_Types and regions
                                                 val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
-                                                                                                    scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                    scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                   startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                               } else { 
                                                 ### (3) get individual statewide ownership-Land_Type ###
                                                 # aggregate current ownership & Land_Type across regions
-                                                if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                             scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                            startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                            startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                   # sum specific ownership data across all regions for specific Land_Type
                                                   val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                       scen_df_list[[i]][,"Land_Type"] == lt_lab, 
@@ -739,14 +743,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                 } else { # end statewide Land_Type-ownership level
                                                   ### (4) get regional individual ownership ###
                                                   # aggregate specific ownership within specific region across all landtypes
-                                                  if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                  if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                          scen_df_list[[i]][,"Region"] == reg_lab &
-                                                                                                                         scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                         startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                         scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                         startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                     # sum specific ownership and region across Land_Types 
                                                     val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                         scen_df_list[[i]][,"Region"] == reg_lab &
-                                                                                                        scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                                   } else { 
                                                     # ownership does not exist in this land type and region
@@ -815,19 +819,19 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                       } else {
                                                         ### (2) get individual statewide ownership ###
                                                         # aggregate individual ownership across regions and Land_Types
-                                                        if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
-                                                                                                                          temp_df[,"Land_Type"] != "Seagrass", 
-                                                                                                                          startcol:(ncol(temp_df)-1)]) >=1)) {
+                                                        if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
+                                                                                                                          temp_df[,"Region"] != "Ocean", 
+                                                                                                                          startcol:(ncol(temp_df)-1)]) >=1) {
                                                           # sum specific ownership data across all Land_Types and regions
                                                           val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Ownership"] == own_lab &
-                                                                                                    temp_df[,"Land_Type"] != "Seagrass",
+                                                                                                    temp_df[,"Region"] != "Ocean",
                                                                                                        startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
                                                         } else { 
                                                           ### (3) get individual statewide ownership-Land_Type ###
                                                           # aggregate current ownership & Land_Type across regions
-                                                          if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
+                                                          if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                                                  temp_df[,"Land_Type"] == lt_lab, 
-                                                                                                                                 startcol:(ncol(temp_df)-1)]) >=1)) {
+                                                                                                                                 startcol:(ncol(temp_df)-1)]) >=1) {
                                                             # sum specific ownership and landtype across all regions 
                                                             val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                            temp_df[,"Land_Type"] == lt_lab, 
@@ -835,14 +839,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                           } else { # end statewide Land_Type-ownership level
                                                             ### (4) get regional individual ownership ###
                                                             # aggregate specific ownership within specific region across all landtypes
-                                                            if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
+                                                            if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                                               temp_df[,"Region"] == reg_lab &
-                                                                                                                              temp_df[,"Land_Type"] != "Seagrass", 
-                                                                                                                              startcol:(ncol(temp_df)-1)]) >=1)) {
+                                                                                                                              temp_df[,"Region"] != "Ocean", 
+                                                                                                                              startcol:(ncol(temp_df)-1)]) >=1) {
                                                               # sum specific ownership and region across Land_Types 
                                                               val_col = Mg2MMT * unlist(apply(temp_df[temp_df[,"Ownership"] == own_lab & 
                                                                                                              temp_df[,"Region"] == reg_lab &
-                                                                                                        temp_df[,"Land_Type"] != "Seagrass", 
+                                                                                                        temp_df[,"Region"] != "Ocean", 
                                                                                                            startcol:(ncol(temp_df)-1)], 2, sum)) - val_col
                                                             } else { 
                                                               # ownership does not exist in this land type and region
@@ -911,7 +915,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 
                                 ############### get the area data
                                 # store the total area data for All_own & individual ownerships; it is needed for the density data
-                                # also store the individual management areas for Developed_all
+                                # also store the individual management areas for this reg, lt, own
+                                # also store all individual land type data for this ownership and region if lt = "All_land"
                                 if (scen_sheets[i] %in% area_sheets) {
                                     oind = which(area_sheets == scen_sheets[i])
                                     if (scen_sheets[i] == "Area") {
@@ -919,6 +924,95 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     } else {
                                         startcol = 6
                                     }
+                                    
+                                    # need per management area in usable data frame for per area calcs
+                                    if (scen_sheets[i] == "Managed_area") {
+                                    	temp_man_df = scen_df_list[[i]][, 2:(ncol(scen_df_list[[i]])-1)]
+                                    	temp_man_df = temp_man_df[temp_man_df$Region != "All_region" & temp_man_df$Land_Type != "All_land" & temp_man_df$Ownership != "All_own",]
+                                    	if (lt_lab == "All_land") {
+                                    		temp_man_df = temp_man_df[temp_man_df$Region != "Ocean",]
+                                    		if (nrow(temp_man_df) > 0) {
+                                    			temp_df = aggregate(. ~ Region + Ownership + Management, data=temp_man_df[,-which(names(temp_man_df) == "Land_Type")], FUN=sum, na.rm = TRUE)
+                                    			temp_df$Land_Type = "All_land"
+                                    			temp_man_df = temp_df[,c("Region", "Land_Type", "Ownership", "Management", names(temp_man_df)[(startcol-1):ncol(temp_man_df)])]
+                                    		}
+                                    	} else {
+                                    		temp_man_df = temp_man_df[temp_man_df$Land_Type == lt_lab,]
+                                    	}
+                                    	if (reg_lab == "All_region") {
+                                    		if (nrow(temp_man_df) > 0) {
+                                    			temp_df = aggregate(. ~ Land_Type + Ownership + Management, data=temp_man_df[,-which(names(temp_man_df) == "Region")], FUN=sum, na.rm = TRUE)
+                                    			temp_df$Region = "All_region"
+                                    			temp_man_df = temp_df[,c("Region", "Land_Type", "Ownership", "Management", names(temp_man_df)[(startcol-1):ncol(temp_man_df)])]
+                                    		}
+                                    	} else {
+                                    		temp_man_df = temp_man_df[temp_man_df$Region == reg_lab,]
+                                    	}
+                                    	if (own_lab == "All_own") {
+                                    		if (nrow(temp_man_df) > 0) {
+                                    			temp_df = aggregate(. ~ Region + Land_Type + Management, data=temp_man_df[,-which(names(temp_man_df) == "Ownership")], FUN=sum, na.rm = TRUE)
+                                    			temp_df$Ownership = "All_own"
+                                    			temp_man_df = temp_df[,c("Region", "Land_Type", "Ownership", "Management", names(temp_man_df)[(startcol-1):ncol(temp_man_df)])]
+                                    		}
+                                    	} else {
+                                    		temp_man_df = temp_man_df[temp_man_df$Ownership == own_lab,]
+                                    	}
+                                    	
+                                    	# do not add anything to man_df if there are no data
+                                    	if (nrow(temp_man_df) > 0) {
+                                    		# need to reshape temp_man_df so that there is only one value column, and order it
+                                        	temp_man_df = melt(temp_man_df, variable.name = "Year", id.vars = names(temp_man_df)[1:4])
+                                        	names(temp_man_df)[ncol(temp_man_df)] = "Value"
+                                        	if (units_ha) { temp_man_df$Units = "ha"
+                                        	} else { temp_man_df$Units = "ac" }
+                                        	temp_man_df$Scenario = scen_lnames[s]
+                                        	temp_man_df = temp_man_df[,c("Scenario", "Region", "Land_Type", "Ownership", "Management", "Year", "Units", "Value")]
+                                        	temp_man_df = na.omit(temp_man_df[order(c(temp_man_df$Region, temp_man_df$Land_Type, temp_man_df$Ownership, temp_man_df$Management, temp_man_df$Year)),])
+                                        	# store all the scenarios
+                                        	man_df = rbind(man_df, temp_man_df)
+                                        }
+                                                
+                                    } # end if storemanagement area for per area calcs
+                                    
+                                    # store individual land type area for this ownership and region if lt = "All_land" - for individual practice per area calcs
+                                    if (lt == "All_land" & scen_sheets[i] == "Area") {
+                                    	temp_area_df = scen_df_list[[i]][, 2:(ncol(scen_df_list[[i]])-1)]
+                                    	temp_area_df = temp_area_df[temp_area_df$Region != "All_region" & temp_area_df$Land_Type != "All_land" &
+                                    						temp_area_df$Ownership != "All_own" & temp_area_df$Region != "Ocean",]
+            								if (reg_lab == "All_region") {
+                                    		if (nrow(temp_area_df) > 0) {
+                                    			temp_df = aggregate(. ~ Land_Type + Ownership, data= temp_area_df[,-which(names(temp_area_df) == "Region")], FUN=sum, na.rm = TRUE)
+                                    			temp_df$Region = "All_region"
+                                    			temp_area_df = temp_df[,c("Region", "Land_Type", "Ownership", names(temp_area_df)[(startcol-1):ncol(temp_area_df)])]
+                                    		}
+                                    	} else {
+                                    		temp_area_df = temp_area_df[temp_area_df$Region == reg_lab,]
+                                    	}      
+                                    	if (own_lab == "All_own") {
+                                    		if (nrow(temp_area_df) > 0) {
+                                    			temp_df = aggregate(. ~ Region + Land_Type, data= temp_area_df[,-which(names(temp_area_df) == "Ownership")], FUN=sum, na.rm = TRUE)
+                                    			temp_df$Ownership = "All_own"
+                                    			temp_area_df = temp_df[,c("Region", "Land_Type", "Ownership", names(temp_area_df)[(startcol-1):ncol(temp_area_df)])]
+                                    		}
+                                    	} else {
+                                    		temp_area_df = temp_area_df[temp_area_df$Ownership == own_lab,]
+                                    	}        
+                                    	
+                                    	# do not add anything to al_area_df if there are no data
+                                    	if (nrow(temp_area_df) > 0) {
+                                    		# need to reshape temp_area_df so that there is only one value column, and order it
+                                        	temp_area_df = melt(temp_area_df, variable.name = "Year", id.vars = names(temp_area_df)[1:3])
+                                        	names(temp_area_df)[ncol(temp_area_df)] = "Value"
+                                        	if (units_ha) { temp_area_df$Units = "ha"
+                                        	} else { temp_area_df$Units = "ac" }
+                                        	temp_area_df$Scenario = scen_lnames[s]
+                                        	temp_area_df = temp_area_df[,c("Scenario", "Region", "Land_Type", "Ownership", "Year", "Units", "Value")]
+                                        	temp_area_df = na.omit(temp_area_df[order(c(temp_area_df$Region, temp_area_df$Land_Type, temp_area_df$Ownership, temp_area_df$Year)),])
+                                        	# store all the scenarios
+                                        	al_area_df = rbind(al_area_df, temp_area_df)
+                                        }
+                                    	          	
+                                    } # end store land type areas for All_land
                                     
                                     # each land type, including seagrass
                                     
@@ -943,17 +1037,18 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             # first sum up the ownerships for the direct area values
                                             # more than one row (which means more than one ownership, and/or multiple fire severities)
                                           
-                                          # each area_df will include a row for All_region and all the individual regions combinations for the given landtype
+                                          # each area_df may include a row for All_region and each relevant land type, and a row for All_land and each relevant region;
+                                          	# with all of these having All_own ownership (and All management)
                                           # possible nrows in area_df for given lt_lab: (1) specific Land_Type (1 to multiple rows) or (2) All_land (1 to multiple rows) 
                                           
                                           ######## For Area and Wildfire_area and non-Developed_all and non-All_land Management_area ########
                                            ####### All_own ####### 
-                                             ####### (1) Single (non-developed_all) landtype #########
+                                             ####### (1) more than one region record (e.g., Forest) #########
                                             if (nrow(area_df[area_df[,"Region"] == reg_lab, ]) > 1) {
                                               # Sum across ownerships for given Land_Type & Region 
                                                 val_col = ha2kha * unlist(apply(area_df[area_df[,"Region"] == reg_lab,
                                                 startcol:ncol(area_df)], 2, sum))
-                                             ####### (2) All_land or All_region in Areas #########
+                                             ####### (2) single region record (e.g., Ocean-Seagrass; or All_region-All_own) #########
                                             } else if (nrow(area_df[area_df[,"Region"] == reg_lab, ]) == 1) {
                                               # Extract row for All_region or specific region 
                                                 val_col = ha2kha * unlist(area_df[area_df[,"Region"] == reg_lab,
@@ -1061,7 +1156,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                 # use this region-specific melted version for the per area calcs
                                                 # store all the scenarios
                                                 valcol_df = data.frame(Scenario = rep(scen_lnames[s], length(valcol_df$Year)), valcol_df, stringsAsFactors = FALSE)
-                                                dev_man_data_df = rbind(dev_man_data_df, valcol_df)
+                                                #dev_man_data_df = rbind(dev_man_data_df, valcol_df)
                                                 # store the baseline df for Urban_forest per area calcs
                                                 #if (s == 1) { base_dev_man_data_df = dev_man_data_df }
                                                 
@@ -1114,7 +1209,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                       if (scen_sheets[i] != "Managed_area" | lt_lab != "Developed_all") {
                                         
                                         # area and wildfire and non-dev managemenent, more than one row (so can be wildfire or management)
-                                        # this is also landcat but for Management or Wildfire
+                                        # this first case is also landcat but only for Management or Wildfire
                                         if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] ==
                                                                    lt_lab & scen_df_list[[i]][,"Region"] == reg_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 1) {
                                           val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
@@ -1124,20 +1219,27 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                         } else { 
                                           # one row, so area or wildfire or non-dev management
                                           ### (1) get landcat if it exists (this should work for single row in Area or multiple in Wildfire or Management) ###
-                                          if (all(lt_lab != "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
+                                          if (lt_lab != "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
                                                                                                                       scen_df_list[[i]][,"Land_Type"] == lt_lab &
                                                                                                                       scen_df_list[[i]][,"Region"] == reg_lab,
-                                                                                                                      startcol:(ncol(scen_df_list[[i]])-1)]) == 1)) {
+                                                                                                                      startcol:(ncol(scen_df_list[[i]])-1)]) == 1) {
                                             val_col = ha2kha * unlist(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
                                                                                                 scen_df_list[[i]][,"Land_Type"] == lt_lab &
                                                                                                 scen_df_list[[i]][,"Region"] == reg_lab,
                                                                                               startcol:(ncol(scen_df_list[[i]])-1)])
                                             
+                                            # I think this should be here
+                                            # store area data for density calcs
+                                              if (scen_sheets[i] == "Area") {
+                                              	# save all the area for this land cat
+                                              	area_data = area_df[area_df$Region == reg_lab & area_df$Land_Type == lt_lab, startcol:ncol(area_df)]
+                                              }
+                                            
                                           } else { # end landcat 
                                           ### (2) get individual statewide ownership ###
                                             # aggregate individual ownership across regions and Land_Types, excluding Seagrass
-                                            if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Region"] != "Ocean" &
-                                                scen_df_list[[i]][,"Ownership"] == own_lab, startcol:(ncol(scen_df_list[[i]])-1)])>=1)) {
+                                            if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Region"] != "Ocean" &
+                                                scen_df_list[[i]][,"Ownership"] == own_lab, startcol:(ncol(scen_df_list[[i]])-1)])>=1) {
                                               # sum specific ownership data across all Land_Types and regions
                                               # exclude Growth & Urban_forest for Developed_all if on Management sheet (i=2) due their overlapping areas with Dead_removal
                                               if (i==2) {
@@ -1160,9 +1262,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             } else { # end individual statewide ownership
                                           ### (3) get individual statewide ownership-Land_Type ###
                                               # aggregate current ownership & Land_Type across regions
-                                              if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                              if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                           scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                 # sum specific ownership and landtype across all regions
                                                 val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                     scen_df_list[[i]][,"Land_Type"] == lt_lab, 
@@ -1177,10 +1279,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                               } else { # end statewide Land_Type-ownership level
                                           ### (4) get regional individual ownership ###
                                                 # aggregate specific ownership and region across landtypes
-                                                if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                        scen_df_list[[i]][,"Region"] == reg_lab & 
                                                                                                                        scen_df_list[[i]][,"Region"] != "Ocean", 
-                                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                       startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                   # exclude Growth & Urban_forest for Developed_all if on Management sheet (i=2) due their overlapping areas with Dead_removal
                                                   if (i==2) {
                                                     val_col = ha2kha * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
@@ -1205,14 +1307,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                                 } else { 
                                                   # ownership does not exist in this land type and region
                                                   val_col = 0
-                                                  } # end individual ownership does not exist for this land type and region
-                                                } # end regional individual ownership
+                                                } # end individual ownership does not exist for this land type and region
+                                              } # end regional individual ownership
                                             } # end individual statewide ownership
                                           } # end not a landcat 
-                                        } # end landcat from Managed area or Wildfire
+                                        } # end not landcat from Managed area or Wildfire
                                         } else { # end Area, Managed_area without Developed_all, and Wilfire_area
                                           
-                                      ####### Get Developed_all Managed_area in individual oqwwnership #######
+                                      ####### Get Developed_all Managed_area in individual ownership #######
                                        # check if any Developed_all exists
                                           if (nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] ==
                                             lt_lab, startcol:(ncol(scen_df_list[[i]])-1)]) > 0) {
@@ -1282,7 +1384,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             
                                             # store all the scenarios
                                             temp_df = data.frame(Scenario = rep(scen_lnames[s], length(temp_df$Year)), temp_df, stringsAsFactors = FALSE)
-                                            dev_man_data_df = rbind(dev_man_data_df, temp_df)
+                                            #dev_man_data_df = rbind(dev_man_data_df, temp_df)
                                             
                                           } else { # end either type of Developed_all managed areas (landcat or All_region)     
                                             # this ownership does not exist in Developed_all and region
@@ -1295,7 +1397,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     reg_col = rep(reg_lab, length(val_col))
                                     lt_col = rep(lt_lab, length(val_col))
                                     own_col = rep(own_lab, length(val_col))
-                                    if (units==TRUE){
+                                    if (units_ha==TRUE){
                                       unit_col = rep(ha_lab, length(val_col))
                                     } else {
                                       unit_col = rep(ac_lab, length(val_col))
@@ -1311,9 +1413,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 if (scen_sheets[i] %in% den_sheets) {
                                     oind = which(den_sheets == scen_sheets[i])
                                     startcol = 5
-                                    # convert units from Mg/ha to Mg/ac if units==FALSE
-                                    if (units==FALSE) {
-                                      scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] <- scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]])-1)] / 2.47105
+                                    # convert units from Mg/ha to Mg/ac if units_ha==FALSE
+                                    if (units_ha==FALSE) {
+                                      scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]]))] <- scen_df_list[[i]][,startcol:(ncol(scen_df_list[[i]]))] / 2.47105
                                     }
                                     # all own
                                     # actually need the individual region/ownerships for area weighting;
@@ -1356,8 +1458,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             val_col = unlist(apply(temp_stock, 2, sum)) / area_sum
                                             nan_inds = which(is.nan(val_col))
                                             inf_inds = which(val_col == Inf)
+                                            neginf_inds = which(val_col == -Inf)
                                             val_col[nan_inds] = 0
                                             val_col[inf_inds] = 0
+                                            val_col[neginf_inds] = 0
                                             
                                         } else if (nrow(den_data) == 1){
                                             # this is the case only a single region has only one ownership (don't need to area-weight)
@@ -1383,8 +1487,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                       } else {
                                         ### (2) get individual statewide ownership ###
                                         # aggregate individual ownership across regions and Land_Types. Exclude Ocean because not land.
-                                        if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] != "Ocean", 
-                                                                                                               1:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                        if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
+                                        													scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                            1:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                           den_df = scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                      1:(ncol(scen_df_list[[i]])-1)]
                                           den_data = den_df[, startcol:ncol(den_df)]
@@ -1410,8 +1515,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                           }
                                         } else { # end if indiviual statewide ownership
                                       ### (3) get individual statewide ownership-Land_Type ###
-                                          if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                 1:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                          if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
+                                          														scen_df_list[[i]][,"Land_Type"] == lt_lab, 
+                                                                                                1:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                             den_df = scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Land_Type"] == lt_lab, 
                                                                        1:(ncol(scen_df_list[[i]])-1)]
                                             den_data = den_df[, startcol:ncol(den_df)]
@@ -1437,9 +1543,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             }
                                           } else { # end individual statewide ownership-Land_Type
                                        ### (4) get regional individual ownership ###
-                                            if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] == reg_lab & 
+                                            if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] == reg_lab & 
                                                                                                                         scen_df_list[[i]][,"Region"] != "Ocean", 
-                                                                                                                        1:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                        1:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                               den_df = scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] == reg_lab & 
                                                                            scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                          1:(ncol(scen_df_list[[i]])-1)]
@@ -1475,7 +1581,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     reg_col = rep(reg_lab, length(val_col))
                                     lt_col = rep(lt_lab, length(val_col))
                                     own_col = rep(own_lab, length(val_col))
-                                    if (units == TRUE){
+                                    if (units_ha == TRUE){
                                       unit_col = rep(dh_lab, length(val_col))
                                     } else {
                                       unit_col = rep(da_lab, length(val_col))
@@ -1542,35 +1648,35 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             startcol:(ncol(scen_df_list[[i]])-1)])
                                         } else {
                                           ### (2) get individual statewide ownership ###
-                                          # aggregate individual ownership across regions and Land_Types, excluding Seagrass
-                                          if (all(lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                                      scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                      startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                          # aggregate individual ownership across regions and Land_Types, excluding Ocean Seagrass
+                                          if (lt_lab == "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                                                                                                      scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                      startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                             # sum specific ownership data across all Land_Types and regions except Seagrass
                                             val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                               startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                           } else { 
                                             ### (3) get individual statewide ownership-Land_Type ###
                                             # aggregate current ownership & Land_Type across regions
-                                            if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                            if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                         scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                               # sum specific ownership and landtype across all regions (This can extract Seagrass: All_region, Other_Fed, Seagrass)
                                               val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                   scen_df_list[[i]][,"Land_Type"] == lt_lab, 
                                                                                                 startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                             } else { # end statewide Land_Type-ownership level
                                               ### (4) get regional individual ownership ###
-                                              # aggregate specific ownership and region across landtypes
-                                              if (all(lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                              # aggregate specific ownership and region across landtypes, excluding ocean seagrass
+                                              if (lt_lab == "All_land" & reg_lab != "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                           scen_df_list[[i]][,"Region"] == reg_lab & 
-                                                                                                                          scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
-                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                          scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                 # sum specific ownership and region across Land_Types excluding Ocean/Seagrass
                                                 val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                     scen_df_list[[i]][,"Region"] == reg_lab & 
-                                                                                                  scen_df_list[[i]][,"Land_Type"] != "Seagrass", 
+                                                                                                  scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                                   startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                               } else { 
                                             # this ownership does not exist in this land type and region
@@ -1670,18 +1776,20 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             startcol:(ncol(scen_df_list[[i]])-1)])
                                         } else { 
                                           ### (2) get individual statewide ownership ###
-                                          # aggregate individual ownership across regions and Land_Types
-                                          if (all(lt_lab == "All_land" & reg_lab == "All_region" & scen_df_list[[i]][,"Land_Type"] != "Seagrass" & 
-                                              nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab, startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
-                                            # sum ownership data across all Land_Types and regions
-                                            val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab, 
+                                          # aggregate individual ownership across regions and Land_Types, except Ocean seagrass
+                                          if (lt_lab == "All_land" & reg_lab == "All_region" & 
+                                              nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                              					scen_df_list[[i]][,"Region"] != "Ocean", startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
+                                            # sum ownership data across all Land_Types and regions, except seagrass
+                                            val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab &
+                                            												  scen_df_list[[i]][,"Region"] != "Ocean", 
                                                                                               startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                           } else { 
                                             ### (3) get individual statewide ownership-Land_Type ###
                                             # aggregate current ownership & Land_Type across regions
-                                            if (all(lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
+                                            if (lt_lab != "All_land" & reg_lab == "All_region" & nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                                         scen_df_list[[i]][,"Land_Type"] == lt_lab, 
-                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                                                                                                        startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                               # sum data across all regions for current ownership & Land_Type
                                               val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
                                                                                                   scen_df_list[[i]][,"Land_Type"] == lt_lab, 
@@ -1689,13 +1797,15 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                             } else { # end statewide Land_Type-ownership level
                                               ### (4) get regional individual ownership ###
                                               # aggregate specific ownership and region across landtypes, excluding Seagrass
-                                              if (all(lt_lab == "All_land" & reg_lab != "All_region" & scen_df_list[[i]][,"Land_Type"] != "Seagrass" & 
-                                                  nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] == reg_lab, 
-                                                                                                                          startcol:(ncol(scen_df_list[[i]])-1)]) >=1)) {
+                                              if (lt_lab == "All_land" & reg_lab != "All_region" & 
+                                                  nrow(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & scen_df_list[[i]][,"Region"] == reg_lab
+                                                  						 & scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                         startcol:(ncol(scen_df_list[[i]])-1)]) >=1) {
                                                 # sum data across Land_Types in current ownership and region
                                                 val_col = Mg2MMT * unlist(apply(scen_df_list[[i]][scen_df_list[[i]][,"Ownership"] == own_lab & 
-                                                                                                    scen_df_list[[i]][,"Region"] == reg_lab, 
-                                                                                                  startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
+                                                                                                	scen_df_list[[i]][,"Region"] == reg_lab &
+                                                                                                   	scen_df_list[[i]][,"Region"] != "Ocean", 
+                                                                                                  	startcol:(ncol(scen_df_list[[i]])-1)], 2, sum))
                                               } else { 
                                                 # ownership does not exist in this land type and region
                                                 val_col = 0
@@ -1816,9 +1926,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 
                                 # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                                # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
+                                # only apply to individual land types ==> actually we need All_land for restoration per area benefits
                                 #if (INDIVIDUAL & lt_lab != "All_land") {
-                                  if (INDIVIDUAL) {
+                                  #if (INDIVIDUAL) {
+                                  if (FALSE) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -1891,7 +2002,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(ann_ghg_comp_df$DiffPerArea == -Inf)
                                     ann_ghg_comp_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       ann_ghg_comp_df$units_dpa = "MgCO2eq/ha/yr"
                                       p <- ( ggplot(ann_ghg_comp_df, aes(x=Year))
                                              + geom_area(data = ann_ghg_comp_df[ann_ghg_comp_df$DiffPerArea > 0,], aes(x=Year, y=DiffPerArea, fill = Component), position = 'stack')
@@ -1989,7 +2100,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
                                 # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                                 #if (INDIVIDUAL & lt_lab != "All_land") {
-                                if (INDIVIDUAL) {
+                                #if (INDIVIDUAL) {
+                                if (FALSE) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2059,7 +2171,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(cum_ghg_comp_df$DiffPerArea == -Inf)
                                     cum_ghg_comp_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       cum_ghg_comp_df$units_dpa = "MgCO2eq/ha"
                                       
                                       p <- ( ggplot(cum_ghg_comp_df, aes(x=Year))
@@ -2146,7 +2258,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
                             # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                             #if (INDIVIDUAL & lt_lab != "All_land") {
-                                if (INDIVIDUAL) {
+                                #if (INDIVIDUAL) {
+                                if (FALSE) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2233,7 +2346,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       plot_df$units_dpa = "MgC/ha"
                                       p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
                                              + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
@@ -2315,7 +2428,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
                             # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                             #if (INDIVIDUAL & lt_lab != "All_land") {
-                                if (INDIVIDUAL) {
+                                #if (INDIVIDUAL) {
+                                if (FALSE) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2399,7 +2513,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       plot_df$units_dpa = "MgC/ha/yr"
                                       p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
                                              + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
@@ -2483,7 +2597,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
                             # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                             #if (INDIVIDUAL & lt_lab != "All_land") {
-                                if (INDIVIDUAL) {
+                                #if (INDIVIDUAL) {
+                                if (FALSE) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2570,7 +2685,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                     plot_df$units_dpa = "MgC/ha"
                                     p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
                                            + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
@@ -2612,7 +2727,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                               #2: Annual Managed Area, 2010-2050 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
                               #3: Annual Wildfire Area, 2010-2050 (Scenario, Reg, Land_Type, Ownership, Units, Year, Value)
                             plot_df = out_area_df_list[[i]][out_area_df_list[[i]][,"Land_Type"] == lt_lab,]
-                            if (units == TRUE) { 
+                            if (units_ha == TRUE) { 
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                             + geom_line(size = 0.3)
@@ -2647,7 +2762,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 diff_df$Value = temp_df$Value[temp_df$Scenario == scen_lnames[s]] - temp_df$Value[temp_df$Scenario == scen_lnames[1]]
                                 plot_df = rbind(plot_df, diff_df)
                             }
-                            if (units == TRUE) {
+                            if (units_ha == TRUE) {
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                             + geom_line(size = 0.3)
@@ -2679,7 +2794,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", den_sheets[i], "_output.pdf")
                             plot_df = out_den_df_list[[i]][out_den_df_list[[i]][,"Land_Type"] == lt_lab,]
-                            if (units == TRUE) {
+                            if (units_ha == TRUE) {
                               p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                                      + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                                      + geom_line(size = 0.3)
@@ -2714,7 +2829,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 diff_df$Value = temp_df$Value[temp_df$Scenario == scen_lnames[s]] - temp_df$Value[temp_df$Scenario == scen_lnames[1]]
                                 plot_df = rbind(plot_df, diff_df)
                             }
-                            if (units == TRUE) {
+                            if (units_ha == TRUE) {
                               p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                                      + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                                      + geom_line(size = 0.3)
@@ -2746,7 +2861,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
                             # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                             #if (INDIVIDUAL & lt_lab != "All_land") {
-                                if (INDIVIDUAL) {
+                                #if (INDIVIDUAL) {
+                                if (FALSE) {
                                 	# non-dev management can use the regular management area output table
                                 	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
@@ -2833,13 +2949,13 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       plot_df$units_dpa = "Mg/ha/ha"
                                     } else {
                                       plot_df$units_dpa = "Mg/ac/ac"
                                     }
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
                                              + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                                              + geom_line(size = 0.3)
@@ -2917,82 +3033,187 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                             # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                             #if (INDIVIDUAL & lt_lab != "All_land") {
                                 if (INDIVIDUAL) {
-                                	# non-dev management can use the regular management area output table
-                                	#   because the management areas are mutually exclusive and they don't need special treatment
                                 	
-                                    # dev_man_data_df has scenario, region, management, land type, year, and value in ha
-                                    # these data are specific to current region, land type, and ownership (but ownership is not in the df)
-                                    # need to filter the scenarios to get cumulative areas
-                                    # get the managed area, and the cumulative managed area as needed
-                                    # plot_df can have All_own and All_region; the managed area data have already been processed accordingly
-                                    # assume that the years are in order and are the same length for each scenario
-
-                                    # for everything except cultivated and developed:
-                                    # divide Value (difference) by cumulative managed area because of cumulative effects on carbon accumulation
-                                    # this applies for restoration activities and forest and rangeland practices
-                                    if (lt_lab != "Cultivated" & lt_lab != "Developed_all") {
-                                    		# need to get cumulative sums and calcs per scenario
-                                    		plot_df = merge(plot_df, out_area_df_list[[2]], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                	# man_df is managed area with scenario, region, land type, ownership, management, year, units, and value in ha or ac
+                                	# different management practices require different areas
+                                	
+                                	if (lt_lab == "Cultivated") {
+                                		# cultivated soil conservation uses annual area because effects occur in current year only
+                                		# for cultivated, divide diff by annual managed area
+                                        plot_df = merge(plot_df, man_df[man_df$Management == "Soil_conservation",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] =
+                                        plot_df$Value.x[plot_df$Land_Type == "Cultivated"] /
+                                        plot_df$Value.y[plot_df$Land_Type == "Cultivated"] / Mg2MMT
+                                	} else if (lt_lab == "Forest") {
+                                		# don't do afforestation here because it needs lt_lab == All_land
+                                		# first count how many practices there are
+                                		# man_df has already been pared down to current reg, lt, own, but with multiple scenarios
+                                		num_prac = NULL
+                                		num_prac_ok = TRUE
+                                		for (s in 2:num_scen_names) {
+                                			sub_man_df = man_df[man_df$Scenario == scen_lnames[s] & man_df$Year == man_df$Year[1],]
+                                			num_prac = c(num_prac, nrow(sub_man_df))
+                                			if (s > 2) {
+                                				if (num_prac[s-1] != num_prac[s-2]) {
+                                					cat("\nError: non-baseline forest simes have to have the same number of forest practices!\n")
+                                					stop()
+                                				}
+                                			}
+                                		}
+                                		
+                                		# biomass practices: need cumulative area
+                                		# only one type of land and management should be present
+                                		if (num_prac[1] == 1) {
+                                			plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                     		for (s in 2:num_scen_names) {
                                     			plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]])
                                     		}
-                                        	plot_df$DiffPerArea[plot_df$Land_Type != "Cultivated" & plot_df$Land_Type != "Developed_all"] =
-                                        	plot_df$Value.x[plot_df$Land_Type != "Cultivated" & plot_df$Land_Type != "Developed_all"] /
-                                        	plot_df$CumArea[plot_df$Land_Type != "Cultivated" & plot_df$Land_Type != "Developed_all"] / Mg2MMT * ha2kha
-                                    } else if (lt_lab == "Cultivated") {
-                                        # for cultivated, divide diff by annual managed area
-                                        plot_df = merge(plot_df, out_area_df_list[[2]], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                        plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] =
-                                        plot_df$Value.x[plot_df$Land_Type == "Cultivated"] /
-                                        plot_df$Value.y[plot_df$Land_Type == "Cultivated"] / Mg2MMT * ha2kha
-                                    } else if (lt_lab == "Developed_all") {
-                                        # for developed growth divide diff by cumulative difference in urban area between the scenario #2 and the baseline #1
-                                        # for developed urban forest divide diff by cumulative difference in urban forest area between the scenario #2 and the baseline #1
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                        } else {
+                                        	# less intensive management: need cumulative area of transferred managed area
+                                        	# should only be clearcut and partial_cut
+                                        	# this won't work for med or hi slash util
+                                        	cc_man_df = man_df[man_df$Management == "Clearcut",]
+                                        	pc_man_df = man_df[man_df$Management == "Partial_cut",]
+                                        	
+                                    		for (s in 2:num_scen_names) {
+                                    			man_df$DiffArea[man_df$Scenario == scen_lnames[s]] = 
+                                    				man_df$Value[man_df$Scenario == scen_lnames[s]] -
+                                            		man_df$Value[man_df$Scenario == scen_lnames[1]]                                    			
+                                    			cc_man_df$DiffArea[cc_man_df$Scenario == scen_lnames[s]] = 
+                                    				cc_man_df$Value[cc_man_df$Scenario == scen_lnames[s]] -
+                                            		cc_man_df$Value[cc_man_df$Scenario == scen_lnames[1]]
+                                    			pc_man_df$DiffArea[pc_man_df$Scenario == scen_lnames[s]] = 
+                                    				pc_man_df$Value[pc_man_df$Scenario == scen_lnames[s]] -
+                                            		pc_man_df$Value[pc_man_df$Scenario == scen_lnames[1]]
+                                            		
+                                            	cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]] = cumsum(cc_man_df$DiffArea[cc_man_df$Scenario == scen_lnames[s]])
+                                            	pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]] = cumsum(pc_man_df$DiffArea[pc_man_df$Scenario == scen_lnames[s]])
+                                            	check_cc_val = sum(cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]],na.rm = TRUE)
+                                            	check_pc_val = sum(pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]],na.rm = TRUE)
+                                            	if (check_cc_val != 0 & check_pc_val != 0) {
+                                            		# clearcut to partial
+                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]]
+                                            	} else if (check_cc_val != 0 & check_pc_val == 0) {
+                                            		# clearcut to reserve
+                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]]
+                                            	} else if (check_cc_val == 0 & check_pc_val != 0) {
+                                            		# partial to reserve
+                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            	} else {
+                                            		cat("\nError in less intensive management: prescription outside of available practices\n")
+                                            		stop()
+                                            	}
+                                    		} # end for s loop over non-base scenarios
+                                    		
+                                    		plot_df = merge(plot_df, cc_man_df[cc_man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    		plot_df$Management = "Less_intensive"
+                                    		
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$TranArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                        } # end else less intensive management
+                                		
+                                	} else if (lt_lab == "Developed_all") {
+                                		# do developed groth below with land cover change
+                                		# for now check whether dead removal has changed over time to determine which practice to calculate
+                                			# this is because for urban forest growth lulcc should be 0 (and only one practice at a time should change)
+                                        # for developed urban forest divide diff by difference in urban forest area between the scenario #2 and the baseline #1
                                         # for developed dead removal divide diff by annual dead removal area (this does not have a long-term effect on growth rates)
                                         # urban forest will always have non-zero area because it is a fraction of developed area
                                         # assume that the sum of annual growth over the period or scenarios doesn't cancel itself out
 
-                                        if ( sum(dev_man_data_df$value[dev_man_data_df$Management == "Dead_removal"]) > 0 ) {
+                                        if ( sum(man_df$Value[man_df$Management == "Dead_removal"]) > 0 &
+                                        	sum(man_df$Value[man_df$Management == "Dead_removal" & man_df$Year == man_df$Year[1]]) != 
+                                        		sum(man_df$Value[man_df$Management == "Dead_removal" & man_df$Year == man_df$Year[nrow(man_df)]])) {
                                             # Dead_removal practice
-                                            dev_man_data_sub_df = dev_man_data_df[dev_man_data_df$Management == "Dead_removal",]
-                                    			plot_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Year"), all.x = TRUE)
-                                            	plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
-                                            	plot_df$Value[plot_df$Land_Type == "Developed_all"] /
-                                            	plot_df$value[plot_df$Land_Type == "Developed_all"] / Mg2MMT
-
-                                        } else if ( sum(dev_man_data_df$value[dev_man_data_df$Management == "Growth"] ) != 0 ) {
-                                            # Growth
-                                            tot_area_scen_df = out_area_df_list[[1]]
-                                            # need to get cumulative sums and calcs per scenario; these data are also specific to region, land type, ownership
-                                            for (s in 2:num_scen_names) {
-                                            		tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]] =
-                                            			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] -
-                                            			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]]
-                                            		tot_area_scen_df$CumArea[tot_area_scen_df$Scenario == scen_lnames[s]] =
-                                            			cumsum(tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]])
-                                            }
-                                            plot_df = merge(plot_df, tot_area_scen_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    		plot_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                             plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
-                                            plot_df$Value.x[plot_df$Land_Type == "Developed_all"] /
-                                            plot_df$CumArea[plot_df$Land_Type == "Developed_all"] / Mg2MMT * ha2kha
+                                            		plot_df$Value.x[plot_df$Land_Type == "Developed_all"] /
+                                            plot_df$Value.y[plot_df$Land_Type == "Developed_all"] / Mg2MMT
+
                                         } else {
                                             # Urban_forest
-                                            # need to cumulate before merge with variable
-                                            dev_man_data_sub_df = dev_man_data_df[dev_man_data_df$Management == "Urban_forest",]
-                                            for (s in 2:num_scen_names) {
-                                            	dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
-                                            		dev_man_data_sub_df$value[dev_man_data_sub_df$Scenario == scen_lnames[s]] -
-                                            		dev_man_data_sub_df$value[dev_man_data_sub_df$Scenario == scen_lnames[1]]
-                                            	dev_man_data_sub_df$CumArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
-                                            		cumsum(dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]])	
-                                            }
-                                            plot_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Year"), all.x = TRUE)
-                                            plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
-                                            plot_df$Value[plot_df$Land_Type == "Developed_all"] /
-                                            plot_df$CumArea[plot_df$Land_Type == "Developed_all"] / Mg2MMT
-                                        }
-                                    } # end else Developed_all
-                                    
+                                            dev_man_data_sub_df = man_df[man_df$Management == "Urban_forest",]
+                                            if (length(nrow(dev_man_data_sub_df)) > 0) {
+                                            	for (s in 2:num_scen_names) {
+                                            		dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
+                                            			dev_man_data_sub_df$Value[dev_man_data_sub_df$Scenario == scen_lnames[s]] -
+                                            			dev_man_data_sub_df$Value[dev_man_data_sub_df$Scenario == scen_lnames[1]]
+                                            	}
+                                            	plot_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                            	plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
+                                            		plot_df$Value.x[plot_df$Land_Type == "Developed_all"] /
+                                            		plot_df$DiffArea[plot_df$Land_Type == "Developed_all"] / Mg2MMT
+                                            } # end if area exists
+                                        } # end else urban forest
+                                	} else if (lt_lab == "All_land") {
+                                		# restoration and afforestation and growth
+                                		
+                                		# need to associate the desired land type difference with the total benefit
+                                       	# so first find which land type is driving the change
+                                       		# this will be the one that is increasing or decreasing in isolation
+                                       	# al_area_df has individual land type areas for this region and ownership, by scenario
+                                     
+                                		tot_area_scen_df = out_area_df_list[[1]]
+                                		for (s in 2:num_scen_names) {
+                                            al_area_df$DiffArea[al_area_df$Scenario == scen_lnames[s]] = 
+                                            	al_area_df$Value[al_area_df$Scenario == scen_lnames[s]] -
+                                            	al_area_df$Value[al_area_df$Scenario == scen_lnames[1]]
+                                			pos_diffs = al_area_df[al_area_df$DiffArea > 0 & al_area_df$Scenario == scen_lnames[s],]
+                                			neg_diffs = al_area_df[al_area_df$DiffArea < 0 & al_area_df$Scenario == scen_lnames[s],]
+                                			if (nrow(pos_diffs) > nrow(neg_diffs)) {
+                                				# the driving land type is decreasing
+                                				lt_try = as.character( unique(neg_diffs$Land_Type) )
+                                				if (length(lt_try) > 1) {
+                                					cat("\nError: multiple lt drivers\n")
+                                					stop()
+                                				} else {
+                                					lt_drive = lt_try
+                                					lt_drive_sign = -1
+                                				}
+                                			} else {
+                                				# the driving land type is increasing
+                                				lt_try = as.character( unique(pos_diffs$Land_Type) )
+                                				if (length(lt_try) > 1) {
+                                					cat("\nError: multiple lt drivers\n")
+                                					stop()
+                                				} else {
+                                					lt_drive = lt_try
+                                					lt_drive_sign = 1
+                                				}
+                                			}
+                                			
+                                			# extract the driving land type and put these values into the all land placeholder df
+                                			# assume that the row order stays the same
+                                			temp_df = al_area_df[al_area_df$Land_Type == lt_drive,]
+                                			
+                                			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] = temp_df$Value[temp_df$Scenario == scen_lnames[s]]
+                                			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]] = temp_df$Value[temp_df$Scenario == scen_lnames[1]]
+                                		
+                                        	tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]] =
+                                            		(tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] -
+                                            		tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]] ) * lt_drive_sign
+                                       	} # end for s over scenarios
+                                       	
+                                		plot_df = merge(plot_df, tot_area_scen_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        plot_df$DiffPerArea[plot_df$Land_Type == "All_land"] =
+                                        	plot_df$Value.x[plot_df$Land_Type == "All_land"] /
+                                        	plot_df$DiffArea[plot_df$Land_Type == "All_land"] / Mg2MMT
+                                	} else if (lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") {
+                                		# rangeland compost management: need cumulative area
+                                		# only one type of land and management should be present
+                                		plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    	for (s in 2:num_scen_names) {
+                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]])
+                                    	}
+                                        plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        	plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        	plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                	} # end if-else land types
+                                	                                    
                                     # deal with NA, NaN and Inf
                                     na_inds = which(is.na(plot_df$DiffPerArea))
                                     nan_inds = which(is.nan(plot_df$DiffPerArea))
@@ -3000,13 +3221,13 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       plot_df$units_dpa = "MgCO2eq/ha/yr"
                                     } else {
                                       plot_df$units_dpa = "MgCO2eq/ac/yr"
                                     }
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
                                              + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                                              + geom_line(size = 0.3)
@@ -3025,13 +3246,13 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                              + ggtitle(paste(reg_lab, lt_lab, own_lab, ann_ghg_sheets[i], "Change from Baseline per man area per yr"))
                                       )
                                     }
-                            		p$save_args <- FIGURE_DIMS
-                            		#print(p)
-                            		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diffperarea_output.pdf")
-                            		do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
-                            		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diffperarea_output.csv")
-                            		write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
-                                } # end if cumulative per area effect of individual practice
+                            			p$save_args <- FIGURE_DIMS
+                            			#print(p)
+                            			out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diffperarea_output.pdf")
+                            			do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
+                            			out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diffperarea_output.csv")
+                            			write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
+                                } # end if per area effect of individual practice
                             } # end if plotting BC or plotting another GHG species
                         
                         } # end plot annual ghg line plot comparisons
@@ -3081,90 +3302,277 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                         
                         # plot the per area effects on carbon pools of individual practices
                             # use cumulative managed area
+                            		# the cumulative values are at the beginning of the labelled year
+                            		# the total areas are at the beginning of the lablelled year
+                            		# the managed areas are during the labelled year
+                            		# so need to use an offset a year for cum area so that correct outputs are at beginning of labelled year
+                            			# for restoration, and afforestation need to offset 2 years of cum years because there is no difference in year 1
+                            			# for growth need to offset 3 years of cum years because there is no difference in years 1 and 2
+                            	# also add the cumulative years and the final diff per area per year value
+                            		# this is the per area per year benefit for the period of CumYears (the years prior to the output labelled year)
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
                             # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
                             #if (INDIVIDUAL & lt_lab != "All_land") {
                                 if (INDIVIDUAL) {
-                                	# non-dev management can use the regular management area output table
-                                	#   because the management areas are mutually exclusive and they don't need special treatment
+                                	# man_df is managed area with scenario, region, land type, ownership, management, year, units, and value in ha or ac
+                                	# different management practices require different areas
                                 	
-                                    # dev_man_data_df has scenario, region, management, land type, year, and value in ha
-                                    # these data are specific to current region, land type, and ownership (but ownership is not in the df)
-                                    # need to filter the scenarios to get cumulative areas
-                                    # get the managed area, and the cumulative managed area
-                                    # plot_df can have All_own and All_region; the managed area data have already been processed accordingly
-                                    # assume that the years are in order and are the same length for each scenario
-
-                                    # divide plot_df$Value by cumulative managed area
-                                    # these values represent the beginning of the year
-                                    # so the first year diff is zero, and the last year is end_year+1
-                                    
-                                    first_year = plot_df$Year[1]
-                                    last_year = plot_df$Year[nrow(plot_df)]
-                                    
-                                    if (lt_lab != "Developed_all") {
-                                    	plot_df = merge(plot_df, out_area_df_list[[2]], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                    	# need to get cumulative sums and calcs per scenario
-                                    	for (s in 2:num_scen_names) {
-                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]])
+                                	if (lt_lab == "Cultivated") {
+                                		# cultivated soil conservation uses annual area because effects occur in current year only
+                                		# for cultivated, divide diff by cumulative managed area
+                                        plot_df = merge(plot_df, man_df[man_df$Management == "Soil_conservation",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        for (s in 2:num_scen_names) {
+                                        	cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
+                                        	cumyears = cumsum(cumyears)
+                                        	plot_df$CumYears[plot_df$Scenario == scen_lnames[s]] = cumyears
+                                        	plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = 0
+                                        	cumarea = c(0,cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]]))
+                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
                                     	}
-                                        plot_df$DiffPerArea[plot_df$Land_Type != "Developed_all" & plot_df$Year > first_year] =
-                                        plot_df$Value.x[plot_df$Land_Type != "Developed_all" & plot_df$Year > first_year] /
-                                        plot_df$CumArea[plot_df$Land_Type != "Developed_all" & plot_df$Year < last_year] / Mg2MMT * ha2kha
-                                    } else {
-                                        # for developed growth divide diff by cumulative difference in urban area between the scenario #2 and the baseline #1
-                                        # for developed urban forest divide diff by cumulative difference in urban forest area between the scenario #2 and the baseline #1
-                                        # for developed dead removal divide diff by cumulative dead removal area
+                                        plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] =
+                                        	plot_df$Value.x[plot_df$Land_Type == "Cultivated"] /
+                                        	plot_df$CumArea[plot_df$Land_Type == "Cultivated"] / Mg2MMT
+                                        # now add diff per area per year
+                                        plot_df$DiffPerAreaPerYr[plot_df$Land_Type == "Cultivated"] =
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] /
+                                        	plot_df$CumYears[plot_df$Land_Type == "Cultivated"]
+                                	} else if (lt_lab == "Forest") {
+                                		# don't do afforestation here because it needs lt_lab == All_land
+                                		# first count how many practices there are
+                                		# man_df has already been pared down to current reg, lt, own, but with multiple scenarios
+                                		num_prac = NULL
+                                		num_prac_ok = TRUE
+                                		for (s in 2:num_scen_names) {
+                                			sub_man_df = man_df[man_df$Scenario == scen_lnames[s] & man_df$Year == man_df$Year[1],]
+                                			num_prac = c(num_prac, nrow(sub_man_df))
+                                			if (s > 2) {
+                                				if (num_prac[s-1] != num_prac[s-2]) {
+                                					cat("\nError: non-baseline forest simes have to have the same number of forest practices!\n")
+                                					stop()
+                                				}
+                                			}
+                                		}
+                                		
+                                		# biomass practices: need cumulative area
+                                		# only one type of land and management should be present
+                                		if (num_prac[1] == 1) {
+                                			plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    		for (s in 2:num_scen_names) {
+                                    			cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
+                                        		cumyears = cumsum(cumyears)
+                                        		plot_df$CumYears[plot_df$Scenario == scen_lnames[s]] = cumyears
+                                    			plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = 0
+                                        		cumarea = c(0,cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]]))
+                                    			plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
+                                    		}
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                        	# now add diff per area per year
+                                        	plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$CumYears[plot_df$Land_Type == lt_lab]
+                                        } else {
+                                        	# less intensive management: need cumulative area of transferred managed area
+                                        	# should only be clearcut and partial_cut
+                                        	# this won't work for med or hi slash util
+                                        	cc_man_df = man_df[man_df$Management == "Clearcut",]
+                                        	pc_man_df = man_df[man_df$Management == "Partial_cut",]
+                                        	
+                                    		for (s in 2:num_scen_names) {
+                                    			cumyears = c(0,rep(1,(length(cc_man_df$Year[cc_man_df$Scenario == scen_lnames[s]])-1)))
+                                        		cumyears = cumsum(cumyears)
+                                        		cc_man_df$CumYears[cc_man_df$Scenario == scen_lnames[s]] = cumyears
+                                        		pc_man_df$CumYears[cc_man_df$Scenario == scen_lnames[s]] = cumyears
+                                    			
+                                    			man_df$DiffArea[man_df$Scenario == scen_lnames[s]] = 
+                                    				man_df$Value[man_df$Scenario == scen_lnames[s]] -
+                                            		man_df$Value[man_df$Scenario == scen_lnames[1]]                                    			
+                                    			cc_man_df$DiffArea[cc_man_df$Scenario == scen_lnames[s]] = 
+                                    				cc_man_df$Value[cc_man_df$Scenario == scen_lnames[s]] -
+                                            		cc_man_df$Value[cc_man_df$Scenario == scen_lnames[1]]
+                                    			pc_man_df$DiffArea[pc_man_df$Scenario == scen_lnames[s]] = 
+                                    				pc_man_df$Value[pc_man_df$Scenario == scen_lnames[s]] -
+                                            		pc_man_df$Value[pc_man_df$Scenario == scen_lnames[1]]
+                                            	
+                                            	cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]] = 0	
+                                            	cumarea = c(0, cumsum(cc_man_df$DiffArea[cc_man_df$Scenario == scen_lnames[s]]))
+                                            	cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
+                                            	pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]] = 0
+                                            	cumarea = c(0, cumsum(pc_man_df$DiffArea[pc_man_df$Scenario == scen_lnames[s]]))
+                                            	pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
+                                            	
+                                            	check_cc_val = sum(cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]],na.rm = TRUE)
+                                            	check_pc_val = sum(pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]],na.rm = TRUE)
+                                            	if (check_cc_val != 0 & check_pc_val != 0) {
+                                            		# clearcut to partial
+                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]]
+                                            	} else if (check_cc_val != 0 & check_pc_val == 0) {
+                                            		# clearcut to reserve
+                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]]
+                                            	} else if (check_cc_val == 0 & check_pc_val != 0) {
+                                            		# partial to reserve
+                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            	} else {
+                                            		cat("\nError in less intensive management: prescription outside of available practices\n")
+                                            		stop()
+                                            	}
+                                    		} # end for s loop over non-base scenarios
+                                    		
+                                    		plot_df = merge(plot_df, cc_man_df[cc_man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    		plot_df$Management = "Less_intensive"
+                                    		
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$TranArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                        	# now add diff per area per year
+                                        	plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$CumYears[plot_df$Land_Type == lt_lab]
+                                        } # end else less intensive management
+                                		
+                                	} else if (lt_lab == "Developed_all") {
+                                		# do developed groth below with land cover change
+                                		# for now check whether dead removal has changed over time to determine which practice to calculate
+                                			# this is because for urban forest growth lulcc should be 0 (and only one practice at a time should change)
+                                        # for developed urban forest divide diff by difference in urban forest area between the scenario #2 and the baseline #1
+                                        # for developed dead removal divide diff by cumulative dead removal area (this does not have a long-term effect on growth rates)
                                         # urban forest will always have non-zero area because it is a fraction of developed area
                                         # assume that the sum of annual growth over the period or scenarios doesn't cancel itself out
 
-                                        if ( sum(dev_man_data_df$value[dev_man_data_df$Management == "Dead_removal"]) > 0 ) {
+                                        if ( sum(man_df$Value[man_df$Management == "Dead_removal"]) > 0 & 
+                                        	sum(man_df$Value[man_df$Management == "Dead_removal" & man_df$Year == man_df$Year[1]]) != 
+                                        		sum(man_df$Value[man_df$Management == "Dead_removal" & man_df$Year == man_df$Year[nrow(man_df)]])) {
                                             # Dead_removal practice
-                                            dev_man_data_sub_df = dev_man_data_df[dev_man_data_df$Management == "Dead_removal",]
-                                            # need to get cumulative sums and calcs per scenario
+                                    		plot_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                             for (s in 2:num_scen_names) {
-                                    		dev_man_data_sub_df$CumArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
-                                    			cumsum(dev_man_data_sub_df$value[dev_man_data_sub_df$Scenario == scen_lnames[s]])
+                                            	cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
+                                        		cumyears = cumsum(cumyears)
+                                        		plot_df$CumYears[plot_df$Scenario == scen_lnames[s]] = cumyears
+                                        		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = 0
+                                        		cumarea = c(0,cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]]))
+                                    			plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
                                     		}
-                                    		plot_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Year"), all.x = TRUE)
-                                            plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all" & plot_df$Year > first_year] =
-                                            plot_df$Value[plot_df$Land_Type == "Developed_all" & plot_df$Year > first_year] /
-                                            plot_df$CumArea[plot_df$Land_Type == "Developed_all" & plot_df$Year < last_year] / Mg2MMT
+                                            plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
+                                            	plot_df$Value.x[plot_df$Land_Type == "Developed_all"] /
+                                            	plot_df$CumArea[plot_df$Land_Type == "Developed_all"] / Mg2MMT
+                                            # now add diff per area per year
+                                        	plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                        		plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                        		plot_df$CumYears[plot_df$Land_Type == lt_lab]
 
-                                        } else if ( sum(dev_man_data_df$value[dev_man_data_df$Management == "Growth"] ) != 0 ) {
-                                            # Growth
-                                            tot_area_scen_df = out_area_df_list[[1]]
-                                            # need to get cumulative sums and calcs per scenario; these data are also specific to region, land type, ownership
-                                            for (s in 2:num_scen_names) {
-                                            tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]] =
-                                            	tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] -
-                                            	tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]]
-                                            tot_area_scen_df$CumArea[tot_area_scen_df$Scenario == scen_lnames[s]] =
-                                            	cumsum(tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]])
-                                            }
-                                            plot_df = merge(plot_df, tot_area_scen_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                            plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all" & plot_df$Year > first_year] =
-                                            plot_df$Value.x[plot_df$Land_Type == "Developed_all" & plot_df$Year > first_year] /
-                                            plot_df$CumArea[plot_df$Land_Type == "Developed_all" & plot_df$Year < last_year] / Mg2MMT * ha2kha 
                                         } else {
                                             # Urban_forest
-                                            # need to cumulate before merge with variable
-                                            dev_man_data_sub_df = dev_man_data_df[dev_man_data_df$Management == "Urban_forest",]
-                                            for (s in 2:num_scen_names) {
-                                            	dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
-                                            		dev_man_data_sub_df$value[dev_man_data_sub_df$Scenario == scen_lnames[s]] -
-                                            		dev_man_data_sub_df$value[dev_man_data_sub_df$Scenario == scen_lnames[1]]
-                                            	dev_man_data_sub_df$CumArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
-                                            		cumsum(dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]])	
-                                            }
-                                            plot_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Year"), all.x = TRUE)
-                                            plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all" & plot_df$Year > first_year] =
-                                            plot_df$Value[plot_df$Land_Type == "Developed_all" & plot_df$Year > first_year] /
-                                            plot_df$CumArea[plot_df$Land_Type == "Developed_all" & plot_df$Year < last_year] / Mg2MMT
-                                        }
-                                    } # end else Developed_all
-                                    
+                                            dev_man_data_sub_df = man_df[man_df$Management == "Urban_forest",]
+                                            if (length(nrow(dev_man_data_sub_df)) > 0) {
+                                            	for (s in 2:num_scen_names) {
+                                            		cumyears = c(0, 0, rep(1,(length(dev_man_data_sub_df$Year[dev_man_data_sub_df$Scenario == scen_lnames[s]])-3)))
+                                        			cumyears = cumsum(cumyears)
+                                        			dev_man_data_sub_df$CumYears[dev_man_data_sub_df$Scenario == scen_lnames[s]] = cumyears
+                                            		dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] = 0
+                                            		diffarea = c(0,
+                                            			dev_man_data_sub_df$Value[dev_man_data_sub_df$Scenario == scen_lnames[s]] -
+                                            			dev_man_data_sub_df$Value[dev_man_data_sub_df$Scenario == scen_lnames[1]] )
+                                            		dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] = diffarea[-length(diffarea)]
+                                            	}
+                                            	plot_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                            	plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
+                                            		plot_df$Value.x[plot_df$Land_Type == "Developed_all"] /
+                                            		plot_df$DiffArea[plot_df$Land_Type == "Developed_all"] / Mg2MMT
+                                            	# now add diff per area per year
+                                        		plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                        			plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                        			plot_df$CumYears[plot_df$Land_Type == lt_lab]
+                                        	} # end if area exists
+                                        } # end if urban forest
+                                	} else if (lt_lab == "All_land") {
+                                		# restoration and afforestation and growth
+                                		
+                                		# need to associate the desired land type difference with the total benefit
+                                       	# so first find which land type is driving the change
+                                       		# this will be the one that is increasing or decreasing in isolation
+                                       	# al_area_df has individual land type areas for this region and ownership, by scenario
+                                     
+                                		tot_area_scen_df = out_area_df_list[[1]]
+                                		for (s in 2:num_scen_names) {
+                                            al_area_df$DiffArea[al_area_df$Scenario == scen_lnames[s]] = 
+                                            	al_area_df$Value[al_area_df$Scenario == scen_lnames[s]] -
+                                            	al_area_df$Value[al_area_df$Scenario == scen_lnames[1]]
+                                			pos_diffs = al_area_df[al_area_df$DiffArea > 0 & al_area_df$Scenario == scen_lnames[s],]
+                                			neg_diffs = al_area_df[al_area_df$DiffArea < 0 & al_area_df$Scenario == scen_lnames[s],]
+                                			if (nrow(pos_diffs) > nrow(neg_diffs)) {
+                                				# the driving land type is decreasing
+                                				lt_try = as.character( unique(neg_diffs$Land_Type) )
+                                				if (length(lt_try) > 1) {
+                                					cat("\nError: multiple lt drivers\n")
+                                					stop()
+                                				} else {
+                                					lt_drive = lt_try
+                                					lt_drive_sign = -1
+                                				}
+                                			} else {
+                                				# the driving land type is increasing
+                                				lt_try = as.character( unique(pos_diffs$Land_Type) )
+                                				if (length(lt_try) > 1) {
+                                					cat("\nError: multiple lt drivers\n")
+                                					stop()
+                                				} else {
+                                					lt_drive = lt_try
+                                					lt_drive_sign = 1
+                                				}
+                                			}
+                                			
+                                			# extract the driving land type and put these values into the all land placeholder df
+                                			# assume that the row order stays the same
+                                			temp_df = al_area_df[al_area_df$Land_Type == lt_drive,]
+                                			
+                                			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] = temp_df$Value[temp_df$Scenario == scen_lnames[s]]
+                                			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]] = temp_df$Value[temp_df$Scenario == scen_lnames[1]]
+                                			
+                                			if (lt_drive == "Developed_all") {
+                                				cumyears = c(0, 0, 0, rep(1,(length(tot_area_scen_df$Year[tot_area_scen_df$Scenario == scen_lnames[s]])-3)))
+                                			} else {
+                                				cumyears = c(0, 0, rep(1,(length(tot_area_scen_df$Year[tot_area_scen_df$Scenario == scen_lnames[s]])-2)))
+                                			}
+                                        	cumyears = cumsum(cumyears)
+                                        	tot_area_scen_df$CumYears[tot_area_scen_df$Scenario == scen_lnames[s]] = cumyears
+                                        	tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]] = 0
+                                            	diffarea = c(0,
+                                            		tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] -
+                                            		tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]] )
+                                            tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]] = lt_drive_sign * diffarea[-length(diffarea)]
+                                       	} # end for s over scenarios
+                                       	
+                                		plot_df = merge(plot_df, tot_area_scen_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        plot_df$DiffPerArea[plot_df$Land_Type == "All_land"] =
+                                        	plot_df$Value.x[plot_df$Land_Type == "All_land"] /
+                                        	plot_df$DiffArea[plot_df$Land_Type == "All_land"] / Mg2MMT
+                                        # now add diff per area per year
+                                        plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                        	plot_df$CumYears[plot_df$Land_Type == lt_lab]
+                                	} else if (lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") {
+                                		# rangeland compost management: need cumulative area
+                                		# only one type of land and management should be present
+                                		plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    	for (s in 2:num_scen_names) {
+                                    		cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
+                                        	cumyears = cumsum(cumyears)
+                                        	plot_df$CumYears[plot_df$Scenario == scen_lnames[s]] = cumyears
+                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = 0
+                                        	cumarea = c(0,cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]]))
+                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
+                                    	}
+                                        plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        	plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        	plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                        # now add diff per area per year
+                                        plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                        	plot_df$CumYears[plot_df$Land_Type == lt_lab]
+                                	} # end if-else land types
+                                	                                    
                                     # deal with NA, NaN and Inf
                                     na_inds = which(is.na(plot_df$DiffPerArea))
                                     nan_inds = which(is.nan(plot_df$DiffPerArea))
@@ -3172,13 +3580,16 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                     ninf_inds = which(plot_df$DiffPerArea == -Inf)
                                     plot_df$DiffPerArea[c(na_inds, nan_inds, inf_inds, ninf_inds)] = 0
                                     
-                                    if (units == TRUE) {
+                                    if (units_ha == TRUE) {
                                       plot_df$units_dpa = "MgCO2eq/ha"
+                                      plot_df$units_dpapy = "MgCO2eq/ha/yr"
                                     } else {
                                       plot_df$units_dpa = "MgCO2eq/ac"
+                                      plot_df$units_dpapy = "MgCO2eq/ac/yr"
                                     }
                                     
-                                    if (units == TRUE) {
+                                    # plot the cumulative per area benefit
+                                    if (units_ha == TRUE) {
                                       p <- ( ggplot(plot_df, aes(Year, DiffPerArea, color=Scenario))
                                              + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                                              + geom_line(size = 0.3)
@@ -3198,13 +3609,40 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units=FALSE, blackC 
                                       )
                                     }
                                     
-                            		p$save_args <- FIGURE_DIMS
-                            		#print(p)
-                            		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperarea_output.pdf")
-                            		do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
-                            		out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperarea_output.csv")
-                            		write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
-                                } # end if cumulative per area effect of individual practice
+                            			p$save_args <- FIGURE_DIMS
+                            			#print(p)
+                            			out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperarea_output.pdf")
+                            			do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
+                            			out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperarea_output.csv")
+                            			write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
+                            			
+                            			# plot the per area per year benefit
+                                    if (units_ha == TRUE) {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerAreaPerYr, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg CO2eq per ha per yr)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, cum_ghg_sheets[i], "Change from Baseline per man area per yr"))
+                                      )
+                                    } else {
+                                      p <- ( ggplot(plot_df, aes(Year, DiffPerAreaPerYr, color=Scenario))
+                                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
+                                             + geom_line(size = 0.3)
+                                             + geom_point(aes(shape=Scenario), size = 1.5)
+                                             + ylab( paste( "Change from Baseline (Mg CO2eq per ac per yr)" ) )
+                                             + theme(legend.key.size = unit(0.4,"cm"))
+                                             + ggtitle(paste(reg_lab, lt_lab, own_lab, cum_ghg_sheets[i], "Change from Baseline per man area per yr per "))
+                                      )
+                                    }
+                                    
+                            			p$save_args <- FIGURE_DIMS
+                            			#print(p)
+                            			out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diffperareaperyr_output.pdf")
+                            			do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
+                            			
+                                } # end if per area effect of individual practice
                           } # end if plotting BC or plotting another GHG species
                         } # end plot cumulative ghg line plot comparisons
                         

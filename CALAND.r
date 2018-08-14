@@ -143,6 +143,7 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "BAU_EcoFlux_ind.xls"
 #scen_file_arg = "BAU_All_ind.xls"
 #scen_file_arg = "BAU_Fire_ind.xls"
+#scen_file_arg = "BAU_LULCC_ind.xls"
 
 #scen_file_arg = "USFS_thinning_ind.xls"
 #scen_file_arg = "USFS_forest_expansion_ind.xls"
@@ -160,7 +161,17 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "Private_partial2reserve_ind.xls"
 #scen_file_arg = "Private_forest_expansion_ind.xls"
 
+#scen_file_arg = "Cultivated_soil_conservation_ind.xls"
+#scen_file_arg = "Grassland_compost_low_ind.xls"
+#scen_file_arg = "Grassland_compost_med_ind.xls"
+
+#scen_file_arg = "Woodland_restoration_ind.xls"
+#scen_file_arg = "Restore_delta_fresh_marsh_ind.xls"
+#scen_file_arg = "Restore_mountain_meadow_ind.xls"
+#scen_file_arg = "Restore_tidal_marsh_ind.xls"
+
 #scen_file_arg = "Urban_forest_expansion_ind.xls"
+#scen_file_arg = "Growth_reduction_ind.xls"
 
 #c_file_arg = "carbon_input_ind.xls"
 #outdir = "july26_2018_ind"
@@ -172,7 +183,7 @@ scen_file_arg = "Historical_frst2Xmort_fire.xls"
 
 c_file_arg = "carbon_input_nwl.xls"
 indir = ""
-outdir = "july24_2018_nwl"
+outdir = "aug8_2018_nwl_v2"
 start_year = 2010
 end_year = 2051
 #mean
@@ -191,7 +202,7 @@ blackC = FALSE
 
 
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2051, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
@@ -391,6 +402,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   } else {
     # subtract ".xls" and replace with GWP
     out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_BC1.xls")
+  }
+  
+  # paste extended name to output file to indicate non-regeneration
+  if (NR_Dist >0) {
+    # subtract ".xls" and replace with non-regen tag and distance to non-regen in meters
+    out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_NR", NR_Dist, ".xls")
   }
   
   #########################################################################################################################################
@@ -938,7 +955,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # column header of next target year
     ncol = soil_clim_targetyear_labels[nind]
     
-    # assign the fire target areas to fire_area_df
+    # assign the soil climate scalar identifier columns to climate_soil_df
     climate_soil_df = climate_soil_target_df[,c(1:4)]
     # if current year is a target year or past all target years, 
     if (prev_targetyear == next_targetyear | length(hinds) == 0) {
@@ -3596,18 +3613,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                 # this means that if the non-regen area has less carbon than the target (after burn), then a little extra carbon is transferred,
                 #  and if non-regen area has more carbon than the target (after burn), then a litte less carbon is transferred
                 # recall that this area is negative
-                # need to use the non_regen_area value to ensure the correct land type is adjusted for not regnerating
+                # need to use the non_regen_area value to ensure the correct land type is adjusted for not regenerating
                 lt_conv$area_adj = lt_conv[, conv_col_names[l]]
                 if (length(lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0]) > 0) {
                 	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] = lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] -
-                		lt_conv$non_regen_area[l] * lt_conv$nonreg_add[lt_conv[,conv_col_names[l]] < 0] / lt_conv$non_regen_area[l]
+                		lt_conv$nonreg_add[lt_conv[,conv_col_names[l]] < 0]
                 	lt_conv$area_adj[is.na(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[is.nan(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[lt_conv$area_adj == Inf] = 0.00
                 	lt_conv$area_adj[lt_conv$area_adj == -Inf] = 0.00
                 	# this shouldn't happen because non-reg is a subset of total loss, but check anyway
                 	if (TRUE %in% (lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] > 0)) {
-                		cat("Warning: nonregen error in land conversion at r, i, l\n", r, i, l)
+                		cat("Warning: nonregen error in land conversion at r, i, l, c", r, i, l, c, "\n")
                 	}
                 	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0 & lt_conv$area_adj > 0] = 0.00
                 }

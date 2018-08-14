@@ -136,15 +136,15 @@ for( i in libs ) {
 }
 
 ########### set these here so that I can work without running the function
-#scen_tag = "ind"
-scen_tag = "ind_RCP85"
+scen_tag = "ind"
+#scen_tag = "ind_RCP85"
 c_file = "carbon_input_ind.xls"
 #c_file = "carbon_input.xls"
 start_year = 2010
 #end_year = 2101
 end_year = 2051
-#CLIMATE = "HIST"
-CLIMATE = "PROJ"
+CLIMATE = "HIST"
+#CLIMATE = "PROJ"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
 #scenarios_file = "nwl_scenarios_v2_ac.xls"
@@ -772,7 +772,7 @@ if(climate_c_in$Land_Type[1] == "All") {
   UNITARY = FALSE
 }
 clim_start_col = which(names(climate_c_in) == paste0("X", start_year))
-clim_end_col = which(names(climate_c_in) == paste0("X", end_year-1))
+clim_end_col = ncol(climate_c_in)
 
 # veg
 # start building the output table
@@ -915,7 +915,7 @@ orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
 #for (s in 1:num_scenin_sheets) {
-for (s in c(32:42)) { 
+for (s in c(34)) { 
   ###### scenario managed area table
 	
 	scenin = scenin_df_list[[s]]
