@@ -174,7 +174,7 @@ GET.NAMES <- function(df, new.name) {
 #scen_file_arg = "Growth_reduction_ind.xls"
 
 #c_file_arg = "carbon_input_ind.xls"
-#outdir = "july26_2018_ind"
+#outdir = "aug7_2018_ind_41y"
 
 scen_file_arg = "Historical_frst2Xmort_fire.xls"
 #scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
@@ -185,7 +185,7 @@ c_file_arg = "carbon_input_nwl.xls"
 indir = ""
 outdir = "aug8_2018_nwl_v2"
 start_year = 2010
-end_year = 2051
+end_year = 2101
 #mean
 value_col_dens = 7
 ADD_dens = TRUE
@@ -689,10 +689,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   conv_area_df = scen_df_list[[2]]
   names(conv_area_df)[ncol(conv_area_df)] = "base_area_change"
   vegc_uptake_df = c_df_list[[10]]
-  vegc_uptake_df$vegc_uptake_val = vegc_uptake_df[,value_col_accum]
+  vegc_uptake_df$init_vegc_uptake_val = vegc_uptake_df[,value_col_accum]
   deadc_frac_df = c_df_list[[3]][,c("Land_Cat_ID", "Region", "Land_Type", "Ownership")]
   soilc_accum_df = c_df_list[[11]]
-  soilc_accum_df$soilc_accum_val = soilc_accum_df[,value_col_accum]
+  soilc_accum_df$init_soilc_accum_val = soilc_accum_df[,value_col_accum]
   conv_df = c_df_list[[12]]
   man_forest_df = c_df_list[[13]]
   forest_soilcaccumfrac_colind = which(names(man_forest_df) == "SoilCaccum_frac")
@@ -715,11 +715,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   # get the correct values for the baseline c accum tables if value is std dev
   if(value_col_accum == 8) { # std dev as value
     if(ADD_accum) {
-      vegc_uptake_df$vegc_uptake_val = vegc_uptake_df$vegc_uptake_val + vegc_uptake_df$Mean_Mg_ha_yr
-      soilc_accum_df$soilc_accum_val = soilc_accum_df$soilc_accum_val + soilc_accum_df$Mean_Mg_ha_yr
+      vegc_uptake_df$init_vegc_uptake_val = vegc_uptake_df$init_vegc_uptake_val + vegc_uptake_df$Mean_Mg_ha_yr
+      soilc_accum_df$init_soilc_accum_val = soilc_accum_df$init_soilc_accum_val + soilc_accum_df$Mean_Mg_ha_yr
     } else {
-      vegc_uptake_df$vegc_uptake_val = vegc_uptake_df$Mean_Mg_ha_yr - vegc_uptake_df$vegc_uptake_val
-      soilc_accum_df$soilc_accum_val = soilc_accum_df$Mean_Mg_ha_yr - soilc_accum_df$soilc_accum_val
+      vegc_uptake_df$init_vegc_uptake_val = vegc_uptake_df$Mean_Mg_ha_yr - vegc_uptake_df$init_vegc_uptake_val
+      soilc_accum_df$init_soilc_accum_val = soilc_accum_df$Mean_Mg_ha_yr - soilc_accum_df$init_soilc_accum_val
     }
   }
   
@@ -738,10 +738,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   ### Thus, for cultivated lands, man_frac = man_soilc_flux/baseline_soilc_flux
   
   # subset baseline c accum values and landcat ID's to be merged into man_ag_df
-  df <- soilc_accum_df[,c("Land_Cat_ID","soilc_accum_val")]
+  df <- soilc_accum_df[,c("Land_Cat_ID","init_soilc_accum_val")]
   man_ag_df <- merge(man_ag_df, df, by="Land_Cat_ID")
   # calc the dummy cultivated soil c flux frac
-  man_ag_df$SoilCaccum_frac <- man_ag_df$soilc_accum_val_soilcon/man_ag_df$soilc_accum_val
+  man_ag_df$SoilCaccum_frac <- man_ag_df$soilc_accum_val_soilcon/man_ag_df$init_soilc_accum_val
   
   # create lists of the output tables
   # change the NA value to zero for calculations
@@ -1395,7 +1395,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # soil
     # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
       # note that the soil conservation flux will be modified too: man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * (baseline_soilc_flux * soil climate scalar)
-    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,as.character(year)]
+    soilc_accum_df$soilc_accum_val <- soilc_accum_df$init_soilc_accum_val * climate_soil_df[,as.character(year)]
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
@@ -1462,7 +1462,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
     
     # apply this year's veg climate effect to baseline veg c flux (first year clim factor col ind is 5)
-    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$vegc_uptake_val * climate_veg_df[,as.character(year)]
+    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$init_vegc_uptake_val * climate_veg_df[,as.character(year)]
     # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df 
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Land_Cat_ID, man_veg_df$Management),] 
