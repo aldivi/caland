@@ -865,7 +865,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   ##########################################################################
   # loop over the years
   for (year in start_year:(end_year-1)) {
-
+for (year in 2011:2020) {
     cat("\nStarting year ", year, "...\n")
     
     cur_density_label = paste0(year, "_Mg_ha")
@@ -1157,7 +1157,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     #  dead_removal values are assigned to the "aggregate" dev_all values for man_area and man_area_sum; these are not used either
     # current ag management does not use sum area because they are annual practices to maintain the benefits
     # Afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
-    #  these use the sum to ensure protection of restored area
+    #  these use the man area sum to ensure protection of restored area
+    #		but man area sum cannot be used to calculate weighted fluxes for afforestaion and restoration because it isn't counted as actual managed area
     # forest and rangeland compost use the cumulative area for adjusting c accumulation
     #  calculate these cumulative sums based on the current and previous years up to the benefit period limit
     # range_lowfreq_period = 30
@@ -1403,17 +1404,20 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     if (nrow(man_adjust_df)>0) {
       # soil C flux * area = cumulative managed area * soil C mgmt frac * baseline soil c flux
       # for rows with NA management or NA soilc_accum_val, this equals NA
-    man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Cultivated"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Cultivated"] * 
-      man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Cultivated"] * 
-      man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Cultivated"]
-    # for cultivated lands: soilcfluxXarea = current year managed area * modified-SoilCaccum_frac * climate-affected baseline soil C flux
-    man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Cultivated"] = man_soil_df$man_area[man_soil_df$Land_Type == "Cultivated"] * 
-      man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Cultivated"] * 
-      man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"]
-      } else {
+      man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Cultivated"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Cultivated"] * 
+      	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Cultivated"] * 
+      	man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Cultivated"]
+      # for cultivated lands: soilcfluxXarea = current year managed area * modified-SoilCaccum_frac * climate-affected baseline soil C flux
+      man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Cultivated"] = man_soil_df$man_area[man_soil_df$Land_Type == "Cultivated"] * 
+      	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Cultivated"] * 
+      	man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"]
+      # this needs to be zero for afforestation and restoration because these areas are not included in actual managed area for flux adjustment
+      # 	the man_area_sum values are used later for protection area, so they can't be zeroed out above
+      man_soil_df$soilcfluxXarea[man_soil_df$Management == "Afforestation" | man_soil_df$Management == "Restoration"] = 0.00
+    } else {
         # if there are no prescribed management practices assign 0 to "soil C flux * managed area"
         man_soil_df$soilcfluxXarea <- 0.00  
-      }
+    }
     
     # replace all NA soilcfluxXarea values with 0, otherwise they will not aggregate properly below
     na_inds <- which(is.na(man_soil_df$soilcfluxXarea))
@@ -1485,6 +1489,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
         man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * 
         man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
+      # this needs to be zero for afforestation and restoration because these areas are not included in actual managed area for flux adjustment
+      # 	the man_area_sum values are used later for protection area, so they can't be zeroed out above
+      man_veg_df$vegcfluxXarea[man_veg_df$Management == "Afforestation" | man_veg_df$Management == "Restoration"] = 0.00  
     }
     # aggregate sum veg C uptake across Land_Cat_ID + Region + Land_Type + Ownership 
     man_vegflux_agg = aggregate(vegcfluxXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
@@ -2391,10 +2398,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # if assigned FIRE TARGET AREA BY OWNERSHIP [ha] > TOTAL AREA OF OWNERSHIP [ha],
     #	set target aggregated burn area equal to the total ownership area by scaling the severity areas
     fire_adjust_df$fire_own_area <- replace(fire_adjust_df$fire_own_area, fire_adjust_df$fire_own_area_agg > fire_adjust_df$avail_own_area, 
-                                            fire_adjust_df$fire_own_area * fire_adjust_df$avail_own_area / fire_adjust_df$fire_own_area_agg)
+                                            fire_adjust_df$fire_own_area[fire_adjust_df$fire_own_area_agg > fire_adjust_df$avail_own_area] * 
+                                            fire_adjust_df$avail_own_area[fire_adjust_df$fire_own_area_agg > fire_adjust_df$avail_own_area] / 
+                                            fire_adjust_df$fire_own_area_agg[fire_adjust_df$fire_own_area_agg > fire_adjust_df$avail_own_area])
     # create column for BURNED AREA [ha] for each landtype-ownership combination and proportinally distribute burned areas 
     # BURNED AREA [ha] = (FIRE TARGET AREA BY OWNERSHIP [ha]) * (landtype area / ownership area)
     fire_adjust_df$fire_burn_area = fire_adjust_df$fire_own_area * fire_adjust_df$tot_area / fire_adjust_df$avail_own_area
+    # Remove delayed fire decay from grassland
+    fire_adjust_df$Above2Atmos_frac[fire_adjust_df$Land_Type == "Grassland"] = 
+    	fire_adjust_df$Above2Atmos_frac[fire_adjust_df$Land_Type == "Grassland"] +
+    	fire_adjust_df$Above2StandDead_frac[fire_adjust_df$Land_Type == "Grassland"]
+    fire_adjust_df$Above2StandDead_frac[fire_adjust_df$Land_Type == "Grassland"] = 0.00
+	fire_adjust_df$Understory2Atmos_frac[fire_adjust_df$Land_Type == "Grassland"] = 
+    	fire_adjust_df$Understory2Atmos_frac[fire_adjust_df$Land_Type == "Grassland"] +
+    	fire_adjust_df$Understory2DownDead_frac[fire_adjust_df$Land_Type == "Grassland"]
+    fire_adjust_df$Understory2DownDead_frac[fire_adjust_df$Land_Type == "Grassland"] = 0.00
+
     
     ############################################################################################################
     ################## third, adjust fire severity for managed forest #################
@@ -2404,12 +2423,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       # man_adjust_df: 78 variables, and fire_adjust_df: 19 variables (including fire_burn_area)
     fire_sevadj_df = merge(fire_adjust_df, man_adjust_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"))
     
+    # keep only valid forest management practices
+    fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation",]
+    
     # burned area for adjusted severity = burned_area/forest_area * man_area_sum/forest_area * forest_area
     # this is per management practice, per severity, based on managed area and total forest area in the land cat
     # need to calculate decreases/increases based on input fractions, then scale increases so that total man burn area doesn't change
       # check that there are prescribed mmgmt practices relevant to wildfire severity and that there is prescribed wildfire
-    if (nrow(fire_sevadj_df[fire_sevadj_df$Land_Type=="Forest" & fire_sevadj_df$Management != "Afforestation",])>0 & 
-        all(fire_sevadj_df$fire_burn_area!=0)) {
+    if ( nrow(fire_sevadj_df[fire_sevadj_df$Land_Type=="Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation",])>0 ) {
+    # remove afforestation  because it is not an acutal managed area
+    fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Management != "Afforestation",]
     # if there are prescribed management practices, create man_burn_area for variable for fire_sevadj_df (79 variables total)
       fire_sevadj_df$man_burn_area = 0.0
     # man_burn_area = fire_burn_area * (man_area_sum/tot_area)
@@ -2474,7 +2497,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       fire_sevadj_df$man_burn_area_new_inc_agg <- 0
     }
     
-    # 2b. ADJUST INCREAED SEVERITY AREAS
+    # 2b. ADJUST INCREASED SEVERITY AREAS
     # scale the increased severities so that total man burn area doesn't change
     # man burn area new = man_burn area new * (total man burn area - total man burn area new decreased) / total man burn area new increased
     fire_sevadj_df$man_burn_area_new[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area] =
@@ -2500,7 +2523,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     } else {
       # if there are not prescribed mmgmt practices and prescribed wildfire
       # assign 0's to fire_burn_area_adj and update fire_burn_area (may not even be necessary)
-      # and fire_furn_area stays the same
+      # and fire_burn_area stays the same
       fire_adjust_df$fire_burn_area_adj <- 0
       # reorder columns to match fire_adjust_df for cases with prescribed management
       fire_adjust_df <- fire_adjust_df[,c("Land_Cat_ID","Region","Land_Type","Ownership","Severity",
@@ -2815,7 +2838,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | 
                                   man_adjust_df$Management == "Growth",1:7]
       # check if there any prescribed management practices
-    if (nrow(man_adjust_df)>0) {
+    if (nrow(man_conv_df)>0) {
       man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"))
       names(man_conv_df)[names(man_conv_df) == start_area_label] = "initial_man_area"
     } # don't merge if there aren't any as there are only 5 columns in man_target_df (no column for start_area_label)
@@ -2888,10 +2911,24 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         # for each landtype except developed and fresh marsh (not affected by these manipulations since all of it is protected): 
         # base_change_adjust [ha] = base_change_adjust - (sum of adjustments to baseline urban growth rate) *
         # (total area of landtype)/(total area of all the other landtypes)
-        conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] = 
-          conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] - 
-          sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] / 
-          sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"])
+        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"])
+        if ( ta_lt > 0) {
+        	conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] = 
+          		conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] - 
+          		sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] / 
+          		ta_lt
+         } else {
+         	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"])
+         	if (nlt > 0) {
+         		# can add area evenly
+         		conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] = 
+          			conv_own$base_change_adjust[conv_own$Land_Type != "Developed_all" & conv_own$Land_Type != "Fresh_marsh" & conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"] - 
+          			sum(temp_adjust) / nlt
+          	} else {
+          		# developed can't change
+          		conv_own$base_change_adjust[conv_own$Management == "Growth" & !is.na(conv_own$Management)] = 0.00
+          	}
+         } # end if ta_lt > 0
           
 ##################################  AFFORESTATION  #####################################################
         # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
@@ -2903,10 +2940,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
         # for Afforestation (temp_adjust) in shrubland and grassland
         # store the needed land type area
+        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
         conv_own$frst_need = 0.00
-        conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = sum(temp_adjust) * 
-          conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / 
-          sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
+        if ( ta_lt > 0) {
+        	conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = sum(temp_adjust) * 
+        		conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / ta_lt
+        } else {
+        	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
+        	if ( sum(temp_adjust) > 0) {
+        		# forest can't expand
+        		conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] = 0.00
+        	} else if (nlt > 0) {
+        		# but it can contract if negative afforestation is prescribed
+        		conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = sum(temp_adjust) * 
+        			conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / nlt
+        	}
+        } # end else no available lt area
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
           conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] - 
           conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"]
@@ -2922,9 +2971,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           temp_adjust
         # subtract this area propotionally from Cultivated
         # store the needed land type area
+        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type == "Cultivated"])
         conv_own$cm_need = 0.00
-        conv_own$cm_need[conv_own$Land_Type == "Cultivated"] =
-        	sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Cultivated"] / sum(conv_own$tot_area[conv_own$Land_Type == "Cultivated"])
+        if ( ta_lt > 0) {
+        	conv_own$cm_need[conv_own$Land_Type == "Cultivated"] =
+        		sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Cultivated"] / ta_lt
+        } else {
+        	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Cultivated"])
+        	if ( sum(temp_adjust) > 0) {
+        		# coastal marsh can't expand
+        		conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 0.00
+        	} else if (nlt > 0) {
+        		# but it can contract if negative restoration is prescribed
+        		conv_own$cm_need[conv_own$Land_Type == "Cultivated"] =
+        			sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Cultivated"] / nlt
+        	}
+        } # end else no available lt area
         conv_own$base_change_adjust[conv_own$Land_Type == "Cultivated"] = conv_own$base_change_adjust[conv_own$Land_Type == "Cultivated"] - 
           conv_own$cm_need[conv_own$Land_Type == "Cultivated"]
         
@@ -2937,9 +2999,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           temp_adjust
         # subtract this area propotionally from Cultivated
         # store the needed land type area
+        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type == "Cultivated"])
         conv_own$fm_need = 0.00
-        conv_own$fm_need[conv_own$Land_Type == "Cultivated"] =
-        	sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Cultivated"] / sum(conv_own$tot_area[conv_own$Land_Type == "Cultivated"])
+        if ( ta_lt > 0) {
+        	conv_own$fm_need[conv_own$Land_Type == "Cultivated"] =
+        		sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Cultivated"] / ta_lt
+        } else {
+        	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Cultivated"])
+        	if ( sum(temp_adjust) > 0) {
+        		# fresh marsh can't expand
+        		conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 0.00
+        	} else if (nlt > 0) {
+        		# but it can contract if negative restoration is prescribed
+        		conv_own$fm_need[conv_own$Land_Type == "Cultivated"] =
+        			sum(temp_adjust) * conv_own$tot_area[conv_own$Land_Type == "Cultivated"] / nlt
+        	}
+        } # end else no available lt area
         conv_own$base_change_adjust[conv_own$Land_Type == "Cultivated"] = conv_own$base_change_adjust[conv_own$Land_Type == "Cultivated"] - 
           conv_own$fm_need[conv_own$Land_Type == "Cultivated"]
         
@@ -2953,15 +3028,31 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         # subtract this area propotionally from SHRUBLAND, GRASSLAND, & SAVANNA and woodland
         # subtract the available area needed for afforestation
         # store the needed land type area
+        ta_lt = sum( (conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+          			conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
+          			conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) )
         conv_own$mdw_need = 0.00
-        conv_own$mdw_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
-        	conv_own$Land_Type == "Woodland"] = sum(temp_adjust) * 
-          	(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
-          		conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
-          		conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / 
-          	sum( (conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
-          		conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
-          		conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) )
+        if ( ta_lt > 0) {
+        	conv_own$mdw_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+        		conv_own$Land_Type == "Woodland"] = sum(temp_adjust) * 
+        	  		(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+        	  			conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
+        	  			conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / ta_lt
+        } else {
+        	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+        					conv_own$Land_Type == "Woodland"])
+        	if ( sum(temp_adjust) > 0) {
+        		# meadow can't expand
+        		conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 0.00
+        	} else if (nlt > 0) {
+        		# but it can contract if negative restoration is prescribed
+        		conv_own$mdw_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+        			conv_own$Land_Type == "Woodland"] = sum(temp_adjust) * 
+        	  			(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
+        	  				conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
+        	  				conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / nlt
+        	}
+        } # end else no available lt area
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
         	conv_own$Land_Type == "Woodland"] = 
           	conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" |
@@ -2979,18 +3070,34 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         # subtract this area propotionally from GRASSLAND, & cultivated
         # subtract the available area needed for afforestation and meadow and wetland
         # store the needed land type area
+        ta_lt = sum( (conv_own$tot_area[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] - 
+          			conv_own$frst_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+          			conv_own$mdw_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+          			conv_own$cm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+          			conv_own$fm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]) )
         conv_own$wd_need = 0.00
-        conv_own$wd_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] = sum(temp_adjust) * 
-          	(conv_own$tot_area[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] - 
-          		conv_own$frst_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
-          		conv_own$mdw_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
-          		conv_own$cm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
-          		conv_own$fm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]) / 
-          	sum( (conv_own$tot_area[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] - 
-          		conv_own$frst_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
-          		conv_own$mdw_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
-          		conv_own$cm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
-          		conv_own$fm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]) )
+        if ( ta_lt > 0) {
+        	conv_own$wd_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] = sum(temp_adjust) * 
+        	  	(conv_own$tot_area[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] - 
+        	  		conv_own$frst_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+        	  		conv_own$mdw_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+        	  		conv_own$cm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+        	  		conv_own$fm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]) / ta_lt
+        } else {
+        	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"])
+        	if ( sum(temp_adjust) > 0) {
+        		# woodland can't expand
+        		conv_own$base_change_adjust[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] = 0.00
+        	} else if (nlt > 0) {
+        		# but it can contract if negative restoration is prescribed
+        		conv_own$wd_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] = sum(temp_adjust) * 
+        	  		(conv_own$tot_area[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] - 
+        	  			conv_own$frst_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+        	  			conv_own$mdw_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+        	  			conv_own$cm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] -
+        	  			conv_own$fm_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]) / nlt
+        	}
+        } # end else no available lt area  	
         conv_own$base_change_adjust[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] = 
           	conv_own$base_change_adjust[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"] - 
             conv_own$wd_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]
