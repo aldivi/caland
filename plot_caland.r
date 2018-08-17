@@ -13,9 +13,8 @@
 #	where <data_dir> and <figdir> are arguments to the function
 
 # plot_caland() has 12 arguments:
-#	scen_fnames		array of scenario output file names; assumed to be in data_dir
-#	scen_lnames		array of scenario labels associated with scen_fnames
-#	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs) *must be different from scen_lnames
+#	scen_fnames		array of scenario output file names; assumed to be in data_dir; scen_lnames is automatically determined from this by extracting text before "_output_..."
+#	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs)
 #	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
 #	reg				array of regions to plot; can be any number of available regions (all are below as default)
 #	lt				array of land types to plot; can be any number of available types (all are below as default)
@@ -71,12 +70,9 @@ for( i in libs ) {
 data_dir = "./outputs/aug7_2018_ind_41y"
 # scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
 scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
-scen_lnames = c("BAU_Eco","BAU_all")
 scen_snames = c("BAUEco","BAUall")
-#scen_lnames = c("BAU_Eco","Wood_Restoration")
 #scen_snames = c("BAUEco","WoodRest")
 scen_fnames = c("BAU_Fire_frst2Xmort_fire_output_mean_BC1.xls","USFS_partial_cut_frst2Xmort_fire_output_mean_BC1.xls") 
-scen_lnames = c("BAU_Fire","USFS_PartialCut")
 scen_snames = c("BAUFire","USFSPC")
 lt=c("All_land")
 own=c("All_own")
@@ -92,8 +88,8 @@ INDIVIDUAL = TRUE
 blackC = FALSE
 blackC_plot = FALSE
 
-#reg = c("Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region")
-#lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass", "All_land")
+#reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean")
+#lt = c("All_land", "Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass")
 #own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
 
 
@@ -101,19 +97,17 @@ blackC_plot = FALSE
 scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls",
                 "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls",
                 "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
-scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
 scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
 
 scen_fnames = c("Historical_frst2Xmort_fire_output_mean_BC1.xls", "BAU_NWL_frst2Xmort_fire_output_mean_BC1.xls", "Ambitious_frst2Xmort_fire_output_mean_BC1.xls")
-scen_lnames = c("Historical", "BAU_NWL", "Ambitious")
 scen_snames = c("HIST", "BAU", "AMB")
 
 ############# main function
 
-plot_caland <- function(scen_fnames, scen_lnames, scen_snames, data_dir = "./outputs", reg = c("Central_Coast", "Central_Valley",
-"Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean", "All_region"),
-lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
-"Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass", "All_land"),
+plot_caland <- function(scen_fnames, scen_snames, data_dir = "./outputs", reg = c("All_region", "Central_Coast", "Central_Valley",
+"Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean"),
+lt = c("All_land", "Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
+"Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass"),
 own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blackC = FALSE, blackC_plot = FALSE) {
     
     cat("Start plot_caland() at", date(), "\n")
@@ -130,6 +124,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
     num_reg = length(reg)
     num_own = length(own)
     
+    # create the long scenario names for the outfiles from the input file names
+    # get the text before "_output..."
+    scen_lnames = substr(scen_fnames, 1, regexpr("_output_", scen_fnames)-1)
+    
     theme_set( theme_bw() )
     
     FIGURE_DIMS <- list(dpi=300, width=2560/300, height=1440/300)
@@ -139,10 +137,6 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
     
     # ha (or ac) to Thousand ha
     ha2kha = 1 / 1000
-    
-    # minimum area for less intensive forest management
-    # this is a threshold because conversion of ha to ac doesn't preserve the exact transfer
-    min_lim_area = 100
     
     c_lab = "MMT C"
     ha_lab = "kha"

@@ -136,43 +136,45 @@ for( i in libs ) {
 }
 
 ########### set these here so that I can work without running the function
-scen_tag = "ind"
+scen_tag = "frst2Xmort_fire"
+#scen_tag = "ind"
 #scen_tag = "ind_RCP85"
-c_file = "carbon_input_ind.xls"
+c_file = "carbon_input_nwl.xls"
+#c_file = "carbon_input_ind.xls"
 #c_file = "carbon_input.xls"
 start_year = 2010
-#end_year = 2101
-end_year = 2051
+end_year = 2101
+#end_year = 2051
 CLIMATE = "HIST"
 #CLIMATE = "PROJ"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
-#scenarios_file = "nwl_scenarios_v2_ac.xls"
-scenarios_file = "individual_proposed_sims_41_year_application_all.xls"
-#units_scenario <- "ac"
-units_scenario = "ha"
-#climate_c_file = "climate_c_scalars_unitary.csv"
-climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
+scenarios_file = "nwl_scenarios_v3_ac.xls"
+#scenarios_file = "individual_proposed_sims_41_year_application_all.xls"
+units_scenario <- "ac"
+#units_scenario = "ha"
+climate_c_file = "climate_c_scalars_unitary.csv"
+#climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 mortality_file = "mortality_annual_july_2018.csv"
+area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv"
 land_change_method = "Landuse_Avg_Annual"
 # land_change_method = "Landcover"
 area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
-area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv"
 carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                      "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
-forest_mort_fact = 1
+forest_mort_fact = 2
 forest_mort_adj_first = 2015
 forest_mort_adj_last = 2024
-control_wildfire_lulcc <- TRUE
+control_wildfire_lulcc <- FALSE
 #control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv"
 
 write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
-                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v2_ac.xls",
+                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v3_ac.xls",
                                 units_scenario = "ac",
                                 climate_c_file = "climate_c_scalars_unitary.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",

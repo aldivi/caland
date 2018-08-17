@@ -183,7 +183,7 @@ scen_file_arg = "Historical_frst2Xmort_fire.xls"
 
 c_file_arg = "carbon_input_nwl.xls"
 indir = ""
-outdir = "aug8_2018_nwl_v2"
+outdir = "aug18_2018_nwl_v3"
 start_year = 2010
 end_year = 2101
 #mean
@@ -195,7 +195,7 @@ ADD_accum = TRUE
 #mean
 value_col_soilcon = 8
 ADD_soilcon = TRUE
-NR_Dist = -1
+NR_Dist = 120
 WRITE_OUT_FILE = FALSE
 # set GWP of black C equal to 900 (true) or 1 (false, default)
 blackC = FALSE
@@ -865,7 +865,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   ##########################################################################
   # loop over the years
   for (year in start_year:(end_year-1)) {
-for (year in 2011:2020) {
+
     cat("\nStarting year ", year, "...\n")
     
     cur_density_label = paste0(year, "_Mg_ha")
@@ -3711,7 +3711,7 @@ for (year in 2011:2020) {
                   lt_conv[l, cind] / lt_conv$tot_area[l]
                 
                 # the diff matters here - negative diff values mean some carbon is sent to atmosphere  
-                # adjust area change to account for nonregen area
+                # adjust area change to account for nonregen area, if the from lt is Forest
                 # this is to avoid double counting emissions due to fire then conversion
                 # basically, do not emit to atmosphere for the non-regen area
                 # distribute to appropriate land type transitions
@@ -3722,7 +3722,7 @@ for (year in 2011:2020) {
                 # recall that this area is negative
                 # need to use the non_regen_area value to ensure the correct land type is adjusted for not regenerating
                 lt_conv$area_adj = lt_conv[, conv_col_names[l]]
-                if (length(lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0]) > 0) {
+                if (length(lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0]) > 0 & conv_col_names[l] == "Forest") {
                 	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] = lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] -
                 		lt_conv$nonreg_add[lt_conv[,conv_col_names[l]] < 0]
                 	lt_conv$area_adj[is.na(lt_conv$area_adj)] = 0.00
