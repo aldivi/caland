@@ -125,8 +125,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
     num_own = length(own)
     
     # create the long scenario names for the outfiles from the input file names
-    # get the text before "_output..."
-    scen_lnames = substr(scen_fnames, 1, regexpr("_output_", scen_fnames)-1)
+    # just drop the .xls because some output file distinctions are at the end
+    scen_lnames = substr(scen_fnames, 1, regexpr(".xls", scen_fnames)-1)
     
     theme_set( theme_bw() )
     

@@ -176,9 +176,9 @@ GET.NAMES <- function(df, new.name) {
 #c_file_arg = "carbon_input_ind.xls"
 #outdir = "aug7_2018_ind_41y"
 
-scen_file_arg = "Historical_frst2Xmort_fire.xls"
-#scen_file_arg = "BAU_NWL_frst2Xmort_fire.xls"
-#scen_file_arg = "Ambitious_frst2Xmort_fire.xls"
+scen_file_arg = "Historical_v3_frst2Xmort_fire.xls"
+#scen_file_arg = "NWL_BAU_v3_frst2Xmort_fire.xls"
+#scen_file_arg = "NWL_Alt_A_v3_frst2Xmort_fire.xls"
 #c_file_arg = "carbon_input_nwl.xls"
 
 c_file_arg = "carbon_input_nwl.xls"
@@ -202,7 +202,7 @@ blackC = FALSE
 
 
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
@@ -884,8 +884,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     #  this is because the management changes the flux for an extended period of time, especially if the management is repeated later
     #  rangeland amendment is repeated on 10, 30, or 100 year periods
     # but ag is annual, and developed has its own system of independent areas
-    # restoration and Afforestation practices are not dependent on existing area, and are applied in land conversion
-    #  Afforestation area should not be included in forest aggregate managed area and aggregate managed area sum
+    # restoration and Afforestation and reforestation practices are not dependent on existing area, and are applied in land conversion
+    #  Afforestation and reforestation area and prescribed burn area should not be included in forest aggregate managed area and aggregate managed area sum
     # store the difference between the unmanaged and averaged with management eco fluxes, per ag, soil, and forest
     
     # this is the current year total area by category id
@@ -1018,7 +1018,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     
     ######## New:  check for excess man_area before man_area_sum ######## 
     # Check that the sum of man_area is not > tot_area
-    man_area_agg_pre = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
+    man_area_agg_pre = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" &
                                                                            man_area_sum$Management != "Restoration",], FUN=sum)
     # update aggregated column name (man_area) to man_area_agg_pre
     names(man_area_agg_pre)[ncol(man_area_agg_pre)] <- "man_area_agg_pre"
@@ -1036,8 +1036,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # (note: dead removal in Dev_all = tot_area; urban_forest = fraction of tot_area that's urban forest)
     man_area_sum$man_area_agg_pre[man_area_sum$Land_Type == "Developed_all"] = 
       man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
-    # (8) assign 0's to aggregate (untrimmed) areas for afforestation and restoration 
-    man_area_sum$man_area_agg_pre[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
+    # (8) assign 0's to aggregate (untrimmed) areas for afforestation and reforestation and restoration 
+    man_area_sum$man_area_agg_pre[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration"] = 0
     
      # add new column "excess_area", which is equal to the aggregated areas minus total land type areas 
     man_area_sum$excess_area_pre = man_area_sum$man_area_agg_pre - man_area_sum$tot_area
@@ -1055,11 +1055,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # replace neg values in man_area_sum with 0's 
     man_area_sum$man_area[man_area_sum$Management != "Growth"] = replace(man_area_sum$man_area[man_area_sum$Management != "Growth"], man_area_sum$man_area[man_area_sum$Management != "Growth"] < 0, 0)   
     # (9) create a _trimmed_ aggregated (current year) areas dataframe (man_area_agg2): aggregate and sum man_area vector by Land_Cat_ID for all management activities 
-    # _except_ afforestation and restoration areas
-    man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
+    # _except_ afforestation and reforestation and restoration areas
+    man_area_agg2 = aggregate(man_area ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Restoration",], FUN=sum)
     # rename header of _trimmed_ aggregate (current year) areas to "man_area_agg" in man_area_agg2 dataframe
     names(man_area_agg2)[ncol(man_area_agg2)] <- "man_area_agg"
-    # (10) add column of _trimmed_ aggregated current areas called "man_area_agg" (Developed_all = _untrimmed_ agg areas, & afforestation and restoration excluded)
+    # (10) add column of _trimmed_ aggregated current areas called "man_area_agg" (Developed_all = _untrimmed_ agg areas, & afforestation and reforestation and restoration excluded)
     # merge man_area_sum & man_area_agg2 dataframes by Land_Cat_ID
     man_area_sum = merge(man_area_sum, man_area_agg2, by = "Land_Cat_ID", all.x =TRUE)
     # replace NA's in the man_area_agg column with 0's
@@ -1068,83 +1068,136 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     # (11) don't use trimmed aggregated current year areas for Developed_all: replace man_area_agg column with individual man_area 
     man_area_sum$man_area_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area[man_area_sum$Land_Type == "Developed_all"]
-    # (12) assign 0's to aggregate (untrimmed) areas for afforestation and restoration 
-    man_area_sum$man_area_agg[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
+    # (12) assign 0's to aggregate (untrimmed) areas for afforestation and reforestation and restoration 
+    man_area_sum$man_area_agg[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration"] = 0
     
-    ##### adjust afforestation and restoration man_area values to available area if necessary
+    ##### adjust afforestation and reforestation and restoration man_area values to available area if necessary
     # these same prioritizations are used in the land conversion section
+    
+    # prioritize reforestation over afforestation and meadow because these come from more types (reforestation is only from shrubland)
+    # first get shrubland areas for each region-ownership, then take the min of man_area and avail area
+    avail_ro_area = aggregate(tot_area ~ Region + Ownership, tot_area_df[tot_area_df$Land_Type == "Shrubland",], FUN=sum)
+    names(avail_ro_area)[ncol(avail_ro_area)] <- "tot_ro_area"
+    avail_ro_area$avail_ro_area = avail_ro_area$tot_ro_area
+    check_avail_df = merge(man_area_sum[man_area_sum$Management == "Reforestation",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
+    man_area_sum$man_area[man_area_sum$Management == "Reforestation"] = apply(check_avail_df[,c("man_area", "avail_ro_area")], 1, FUN=min, na.rm=TRUE)
+    # also calc the amount of shrub needed
+    rfrst_ro_areas = merge(tot_area_df[tot_area_df$Land_Type == "Shrubland",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
+    rfrst_ro_areas = merge(rfrst_ro_areas, check_avail_df, by = c("Region", "Ownership"), all.x = TRUE)
+    rfrst_ro_areas$lt_area_need = rfrst_ro_areas$man_area * rfrst_ro_areas$tot_area.x / rfrst_ro_areas$tot_ro_area.x
+    rfrst_ro_areas$lt_area_need[is.na(rfrst_ro_areas$lt_area_need)] = 0.00
+    rfrst_ro_areas$lt_area_need[is.nan(rfrst_ro_areas$lt_area_need)] = 0.00
+    rfrst_ro_areas$lt_area_need[rfrst_ro_areas$lt_area_need == Inf] = 0.00
+    rfrst_ro_areas$lt_area_need[rfrst_ro_areas$lt_area_need == -Inf] = 0.00
+    rfrst_ro_areas = rfrst_ro_areas[,c("Region", "Ownership", "Land_Cat_ID.x", "Land_Type.x", "lt_area_need")]
+    # need all shrubs for afforestation and meadow
+	rfrst_ro_areas_agg = aggregate(lt_area_need ~ Region + Ownership, rfrst_ro_areas, FUN=sum, na.rm = TRUE)
+	names(rfrst_ro_areas_agg)[ncol(rfrst_ro_areas_agg)] <- "ro_area_need"
     
     # prioritize afforestation over meadow because meadow comes from more types
     # first get shrubland + grassland areas for each region-ownership, then take the min of man_area and avail area
     avail_ro_area = aggregate(tot_area ~ Region + Ownership, tot_area_df[tot_area_df$Land_Type == "Shrubland" | tot_area_df$Land_Type == "Grassland",], FUN=sum)
-    names(avail_ro_area)[ncol(avail_ro_area)] <- "avail_ro_area"
+    names(avail_ro_area)[ncol(avail_ro_area)] <- "tot_ro_area"
+    avail_ro_area$avail_ro_area = avail_ro_area$tot_ro_area
+    avail_ro_area = merge(avail_ro_area, rfrst_ro_areas_agg, by = c("Region", "Ownership"), all.x = TRUE)
+    avail_ro_area$avail_ro_area = avail_ro_area$avail_ro_area - avail_ro_area$ro_area_need
     check_avail_df = merge(man_area_sum[man_area_sum$Management == "Afforestation",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
     man_area_sum$man_area[man_area_sum$Management == "Afforestation"] = apply(check_avail_df[,c("man_area", "avail_ro_area")], 1, FUN=min, na.rm=TRUE)
     # also calc the amount of shrub and grass needed
     frst_ro_areas = merge(tot_area_df[tot_area_df$Land_Type == "Shrubland" | tot_area_df$Land_Type == "Grassland",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
     frst_ro_areas = merge(frst_ro_areas, check_avail_df, by = c("Region", "Ownership"), all.x = TRUE)
-    frst_ro_areas$lt_area_need = frst_ro_areas$man_area * frst_ro_areas$tot_area.x / frst_ro_areas$avail_ro_area.x
+    frst_ro_areas = merge(frst_ro_areas, rfrst_ro_areas, by = c("Region", "Ownership", "Land_Cat_ID.x", "Land_Type.x"), all.x = TRUE)
+    # need to clean up the land types that don't exist in the previous ro_areas df
+    frst_ro_areas$lt_area_need[is.na(frst_ro_areas$lt_area_need)] = 0.00
+    frst_ro_areas$lt_area_need[is.nan(frst_ro_areas$lt_area_need)] = 0.00
+    # now replace lt_area_need
+    frst_ro_areas$lt_area_need = frst_ro_areas$man_area * (frst_ro_areas$tot_area.x - frst_ro_areas$lt_area_need) / frst_ro_areas$avail_ro_area.x
     frst_ro_areas$lt_area_need[is.na(frst_ro_areas$lt_area_need)] = 0.00
     frst_ro_areas$lt_area_need[is.nan(frst_ro_areas$lt_area_need)] = 0.00
     frst_ro_areas$lt_area_need[frst_ro_areas$lt_area_need == Inf] = 0.00
     frst_ro_areas$lt_area_need[frst_ro_areas$lt_area_need == -Inf] = 0.00
+    frst_ro_areas = frst_ro_areas[,c("Region", "Ownership", "Land_Cat_ID.x", "Land_Type.x", "lt_area_need")]
+    # need all shrubs and grass for meadow
     frst_ro_areas_agg = aggregate(lt_area_need ~ Region + Ownership, frst_ro_areas, FUN=sum, na.rm = TRUE)
+    names(frst_ro_areas_agg)[ncol(frst_ro_areas_agg)] <- "ro_area_need"
     
     # meadow comes out of shrub, grass, savanna, woodland
     avail_ro_area = aggregate(tot_area ~ Region + Ownership, tot_area_df[tot_area_df$Land_Type == "Shrubland" | tot_area_df$Land_Type == "Grassland" | tot_area_df$Land_Type == "Savanna" | tot_area_df$Land_Type == "Woodland",], FUN=sum)
-    names(avail_ro_area)[ncol(avail_ro_area)] <- "avail_ro_area"
-    avail_ro_area = merge(avail_ro_area, frst_ro_areas_agg, by = c("Region", "Ownership"), all.x = TRUE)
-    avail_ro_area$avail_ro_area = avail_ro_area$avail_ro_area - avail_ro_area$lt_area_need
+    names(avail_ro_area)[ncol(avail_ro_area)] <- "tot_ro_area"
+    avail_ro_area$avail_ro_area = avail_ro_area$tot_ro_area
+    prev_ro_areas_agg = merge(rfrst_ro_areas_agg, frst_ro_areas_agg, by = c("Region", "Ownership"), all = TRUE)
+    avail_ro_area = merge(avail_ro_area, prev_ro_areas_agg, by = c("Region", "Ownership"), all.x = TRUE)
+    avail_ro_area$avail_ro_area = avail_ro_area$avail_ro_area - avail_ro_area$ro_area_need.x - avail_ro_area$ro_area_need.y
     check_avail_df = merge(man_area_sum[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Meadow",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
     man_area_sum$man_area[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Meadow"] = apply(check_avail_df[,c("man_area", "avail_ro_area")], 1, FUN=min, na.rm=TRUE)
-    # calc the meadow grassland need
-    mdw_ro_areas = merge(tot_area_df[tot_area_df$Land_Type == "Grassland",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
+    # calc the meadow land_type needs
+    mdw_ro_areas = merge(tot_area_df[tot_area_df$Land_Type == "Shrubland" | tot_area_df$Land_Type == "Grassland" | tot_area_df$Land_Type == "Savanna" | tot_area_df$Land_Type == "Woodland",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
     mdw_ro_areas = merge(mdw_ro_areas, check_avail_df, by = c("Region", "Ownership"), all.x = TRUE)
-    mdw_ro_areas$lt_area_need = mdw_ro_areas$man_area * mdw_ro_areas$tot_area.x / mdw_ro_areas$avail_ro_area.x
+    prev_ro_areas = merge(rfrst_ro_areas, frst_ro_areas, by = c("Region", "Ownership", "Land_Cat_ID.x", "Land_Type.x"), all = TRUE)
+    # clean up the NAs from merging
+    prev_ro_areas[,c("lt_area_need.x", "lt_area_need.y")] <- apply(prev_ro_areas[,c("lt_area_need.x", "lt_area_need.y")], 2, function (x) {replace(x, is.na(x), 0.00)})
+    prev_ro_areas[,c("lt_area_need.x", "lt_area_need.y")] <- apply(prev_ro_areas[,c("lt_area_need.x", "lt_area_need.y")], 2, function (x) {replace(x, is.nan(x), 0.00)})
+    prev_ro_areas$lt_area_need = prev_ro_areas$lt_area_need.x + prev_ro_areas$lt_area_need.y
+    mdw_ro_areas = merge(mdw_ro_areas, prev_ro_areas, by = c("Region", "Ownership", "Land_Cat_ID.x", "Land_Type.x"), all.x = TRUE)
+    # need to clean up the land types that don't exist in the previous ro_areas df
+    mdw_ro_areas$lt_area_need[is.na(mdw_ro_areas$lt_area_need)] = 0.00
+    mdw_ro_areas$lt_area_need[is.nan(mdw_ro_areas$lt_area_need)] = 0.00
+    # now replace lt_area_need
+    mdw_ro_areas$lt_area_need = mdw_ro_areas$man_area * (mdw_ro_areas$tot_area.x - mdw_ro_areas$lt_area_need) / mdw_ro_areas$avail_ro_area.x
     mdw_ro_areas$lt_area_need[is.na(mdw_ro_areas$lt_area_need)] = 0.00
     mdw_ro_areas$lt_area_need[is.nan(mdw_ro_areas$lt_area_need)] = 0.00
     mdw_ro_areas$lt_area_need[mdw_ro_areas$lt_area_need == Inf] = 0.00
     mdw_ro_areas$lt_area_need[mdw_ro_areas$lt_area_need == -Inf] = 0.00
+    mdw_ro_areas = mdw_ro_areas[,c("Region", "Ownership", "Land_Cat_ID.x", "Land_Type.x", "lt_area_need")]
+    # aggregate the meadow needs, but don't need this right now
+    mdw_ro_areas_agg = aggregate(lt_area_need ~ Region + Ownership, mdw_ro_areas, FUN=sum, na.rm = TRUE)
+    names(mdw_ro_areas_agg)[ncol(mdw_ro_areas_agg)] <- "ro_area_need"
     
     # fresh marsh and coastal marsh restoration both come from cultivated
     # if there is prescribed restoration, sum the restoration then scale the man_area and take the min of man_area and scaled man_area
     if (nrow(man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | man_area_sum$Land_Type == "Coastal_marsh"),])>0) {
-    tot_rest_area = aggregate(man_area ~ Region + Ownership, man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | man_area_sum$Land_Type == "Coastal_marsh"),], FUN=sum)
-    names(tot_rest_area)[ncol(tot_rest_area)] <- "tot_rest_area"
-    check_avail_df = merge(man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | man_area_sum$Land_Type == "Coastal_marsh"),], tot_rest_area, by = c("Region", "Ownership"), all.x = TRUE)
-    check_avail_df = merge(check_avail_df, tot_area_df[tot_area_df$Land_Type == "Cultivated",], by = c("Region", "Ownership"), all.x = TRUE)
-    check_avail_df$avail_rest_area = check_avail_df$tot_area.y / check_avail_df$tot_rest_area * check_avail_df$man_area
-    check_avail_df$avail_rest_area[is.na(check_avail_df$avail_rest_area)] = 0.00
-    check_avail_df$avail_rest_area[is.nan(check_avail_df$avail_rest_area)] = 0.00
-    check_avail_df$avail_rest_area[check_avail_df$avail_rest_area == Inf] = 0.00
-    check_avail_df$avail_rest_area[check_avail_df$avail_rest_area == -Inf] = 0.00
-    # fresh marsh - do these separately due to ordering issues
-    man_area_sum$man_area[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Fresh_marsh"] = apply(check_avail_df[check_avail_df$Land_Type.x == "Fresh_marsh", c("man_area", "avail_rest_area")], 1, FUN=min, na.rm=TRUE)
-    # coastal marsh - do these separately due to ordering issues
-    man_area_sum$man_area[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Coastal_marsh"] = apply(check_avail_df[check_avail_df$Land_Type.x == "Coastal_marsh", c("man_area", "avail_rest_area")], 1, FUN=min, na.rm=TRUE)
-    # calc the wetland cultivated need
-    if (length(man_area_sum$man_area[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | man_area_sum$Land_Type == "Coastal_marsh")]) > 0) {
-    	wet_ro_areas = aggregate(man_area ~ Region + Ownership, man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | man_area_sum$Land_Type == "Coastal_marsh"),], FUN = sum)
+    	tot_rest_area = aggregate(man_area ~ Region + Ownership, man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | 
+    					man_area_sum$Land_Type == "Coastal_marsh"),], FUN=sum)
+    	names(tot_rest_area)[ncol(tot_rest_area)] <- "tot_rest_area"
+    	check_avail_df = merge(man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | man_area_sum$Land_Type == "Coastal_marsh"),], 
+    					tot_rest_area, by = c("Region", "Ownership"), all.x = TRUE)
+    	check_avail_df = merge(check_avail_df, tot_area_df[tot_area_df$Land_Type == "Cultivated",], by = c("Region", "Ownership"), all.x = TRUE)
+    	check_avail_df$avail_rest_area = check_avail_df$tot_area.y / check_avail_df$tot_rest_area * check_avail_df$man_area
+    	check_avail_df$avail_rest_area[is.na(check_avail_df$avail_rest_area)] = 0.00
+    	check_avail_df$avail_rest_area[is.nan(check_avail_df$avail_rest_area)] = 0.00
+    	check_avail_df$avail_rest_area[check_avail_df$avail_rest_area == Inf] = 0.00
+    	check_avail_df$avail_rest_area[check_avail_df$avail_rest_area == -Inf] = 0.00
+    	# fresh marsh - do these separately due to ordering issues
+    	man_area_sum$man_area[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Fresh_marsh"] = 
+    		apply(check_avail_df[check_avail_df$Land_Type.x == "Fresh_marsh", c("man_area", "avail_rest_area")], 1, FUN=min, na.rm=TRUE)
+    	# coastal marsh - do these separately due to ordering issues
+    	man_area_sum$man_area[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Coastal_marsh"] = 
+    		apply(check_avail_df[check_avail_df$Land_Type.x == "Coastal_marsh", c("man_area", "avail_rest_area")], 1, FUN=min, na.rm=TRUE)
+    	# calc the wetland cultivated need
+    	wet_ro_areas = aggregate(man_area ~ Region + Ownership, man_area_sum[man_area_sum$Management == "Restoration" & (man_area_sum$Land_Type == "Fresh_marsh" | 
+    				man_area_sum$Land_Type == "Coastal_marsh"),], FUN = sum)
     	names(wet_ro_areas)[ncol(wet_ro_areas)] <- "wet_area_need"
-    }
-    wet_ro_areas$wet_area_need[is.na(wet_ro_areas$wet_area_need)] = 0.00
-    wet_ro_areas$wet_area_need[is.nan(wet_ro_areas$wet_area_need)] = 0.00
-    wet_ro_areas$wet_area_need[wet_ro_areas$wet_area_need == Inf] = 0.00
-    wet_ro_areas$wet_area_need[wet_ro_areas$wet_area_need == -Inf] = 0.00
+    	wet_ro_areas$wet_area_need[is.na(wet_ro_areas$wet_area_need)] = 0.00
+    	wet_ro_areas$wet_area_need[is.nan(wet_ro_areas$wet_area_need)] = 0.00
+    	wet_ro_areas$wet_area_need[wet_ro_areas$wet_area_need == Inf] = 0.00
+   		wet_ro_areas$wet_area_need[wet_ro_areas$wet_area_need == -Inf] = 0.00
     } # end if there is prescribed restoration
     
     # woodland gets the leftovers of grassland and cultivated
     avail_ro_area = aggregate(tot_area ~ Region + Ownership, tot_area_df[tot_area_df$Land_Type == "Grassland" | tot_area_df$Land_Type == "Cultivated",], FUN=sum)
-    names(avail_ro_area)[ncol(avail_ro_area)] <- "avail_ro_area"
+    names(avail_ro_area)[ncol(avail_ro_area)] <- "tot_ro_area"
+    avail_ro_area$avail_ro_area = avail_ro_area$tot_ro_area
     avail_ro_area = merge(avail_ro_area, frst_ro_areas[frst_ro_areas$Land_Type.x == "Grassland", c("Region", "Ownership", "lt_area_need")], by = c("Region", "Ownership"), all.x = TRUE)
     avail_ro_area = merge(avail_ro_area, mdw_ro_areas[mdw_ro_areas$Land_Type.x == "Grassland", c("Region", "Ownership", "lt_area_need")], by = c("Region", "Ownership"), all.x = TRUE)
+    avail_ro_area$lt_area_need.x[is.na(avail_ro_area$lt_area_need.x)] = 0.00
+    avail_ro_area$lt_area_need.x[is.nan(avail_ro_area$lt_area_need.x)] = 0.00
+    avail_ro_area$lt_area_need.y[is.na(avail_ro_area$lt_area_need.y)] = 0.00
+    avail_ro_area$lt_area_need.y[is.nan(avail_ro_area$lt_area_need.y)] = 0.00
     avail_ro_area$avail_ro_area = avail_ro_area$avail_ro_area - avail_ro_area$lt_area_need.x - avail_ro_area$lt_area_need.y
     if (exists("wet_ro_areas")) {
 		avail_ro_area = merge(avail_ro_area, wet_ro_areas, by = c("Region", "Ownership"), all.x = TRUE)
 		avail_ro_area$wet_area_need[is.na(avail_ro_area$wet_area_need)] = 0.00
     	avail_ro_area$wet_area_need[is.nan(avail_ro_area$wet_area_need)] = 0.00
-    	avail_ro_area$wet_area_need[avail_ro_area$wet_area_need == Inf] = 0.00
-    	avail_ro_area$wet_area_need[avail_ro_area$wet_area_need == -Inf] = 0.00
 		avail_ro_area$avail_ro_area = avail_ro_area$avail_ro_area - avail_ro_area$wet_area_need
 	}
     check_avail_df = merge(man_area_sum[man_area_sum$Management == "Restoration" & man_area_sum$Land_Type == "Woodland",], avail_ro_area, by = c("Region", "Ownership"), all.x = TRUE)
@@ -1156,7 +1209,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # the developed practices are independent of each other and so calc cum sum independently, even though they are not currently used
     #  dead_removal values are assigned to the "aggregate" dev_all values for man_area and man_area_sum; these are not used either
     # current ag management does not use sum area because they are annual practices to maintain the benefits
-    # Afforestation and restoration are not dependent on existing area and are not included in aggregate managed area
+    # prescribed burn is not included in man_area sum for long-term benefits
+    #	it is assumed that prescribed burn occurs on land that has been managed during the prior benefit period
+    # Afforestation and reforestation and restoration are not dependent on existing area and are not included in aggregate managed area
     #  these use the man area sum to ensure protection of restored area
     #		but man area sum cannot be used to calculate weighted fluxes for afforestaion and restoration because it isn't counted as actual managed area
     # forest and rangeland compost use the cumulative area for adjusting c accumulation
@@ -1167,7 +1222,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   	# urban_forest_benefit_period = 20
   	
   	# first add the current year management as the general calculation of man_area_sum
+  	# prescribed burn man_area_sum needs to be set to zero becaue it isn't included in the cumulative managed area below; later years also exclude it)
 	man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
+	man_area_sum$man_area_sum[man_area_sum$Management == "Prescribed_burn"] = 0.00
 	man_area_sum$man_area_sum[man_area_sum$man_area_sum > man_area_sum$tot_area] = man_area_sum$tot_area[man_area_sum$man_area_sum > man_area_sum$tot_area]
   	
     # now make some calculations for specific practices
@@ -1197,17 +1254,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 			temp_df$sum[temp_df$Management == "Med_frequency"] = temp_df[temp_df$Management == "Med_frequency",sum_start_col]
 		} else { temp_df$sum[temp_df$Management == "Med_frequency"] = rowSums(temp_df[temp_df$Management == "Med_frequency", c(sum_start_col:sum_end_col)]) }
     	
-    	# forest non-afforestation
+    	# forest non-afforestation and non-reforestation and non-prescribed burn
+    	# the assumption is that all prescribed burn is applied to land that has been managed within the past benefit period
     	sum_start = year - forest_benefit_period + 1
 		if (sum_start < start_year) { sum_start = start_year }
 		sum_start_col = which(names(temp_df) == paste0(sum_start, "_ha"))
 		if (sum_start_col == sum_end_col) {
 			# only one year in sum, so rowSums() won't work
-			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation"] =
-				temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation",sum_start_col]
+			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn"] =
+				temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn",sum_start_col]
 		} else { 
-			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation"] =
-				rowSums(temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation", c(sum_start_col:sum_end_col)])
+			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn"] =
+				rowSums(temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn", c(sum_start_col:sum_end_col)])
 		}
 		
 		# developed_all dead_removal
@@ -1226,9 +1284,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 		# update man_area_sum by adding the previous years sum and the current year man area
     	man_area_sum = merge(man_area_sum, temp_df[,c(1:5,ncol(temp_df))], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
     	man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
-    	man_area_sum$man_area_sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] = 
-    		man_area_sum$sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] +
-    		man_area_sum$man_area[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")]
+    	man_area_sum$man_area_sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Prescribed_burn") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] = 
+    		man_area_sum$sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Prescribed_burn") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] +
+    		man_area_sum$man_area[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Prescribed_burn") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")]
     	man_area_sum$sum = NULL
 	} #end if second year or more
 	
@@ -1236,22 +1294,26 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # this is only an issue for forest and rangeland and cultivated, where the practices are assumed to be mutually exclusive in area,
     #  and the cum sum matters
     # developed_all cum man area is ultimately limited to dev_all total area, and dead_removal man area is the only one that matters
-    # afforestation and restoration are already limited by man area above, so man_area_sum is already limited
+    # afforestation and reforestation and restoration are already limited by man area above, so man_area_sum is already limited
     
     ### merge df's man_area_sum & tot_area_df, and assign to man_area_sum dataframe (essentially, add additional 
     ### tot_area column to man_area_sum), excludes any land types from tot_area that are not in man_area_sum
     ### man_area_sum = merge(man_area_sum, tot_area_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
     ### sort man_area_sum dataframe by Land_Type_ID, then by Manage_ID 
     ###man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
-    # (1) [if there are any other man areas] aggregate cumulative areas by landcat for all management except afforestation & restoration $ developd_all...
+    # (1) [if there are any other man areas] aggregate cumulative areas by landcat for all management except afforestation & reforestation & restoration & developd_all & prescribed burn
     # create df of aggregated cumulative areas (man_area_sum_agg): aggregate by summing man_area_sum with the same Land_Cat_ID _except_ 
-    # for areas with Afforestation and Restoration management
+    # 	for areas with Afforestation and reforestation and Restoration and prescribed burn management
 	  if (nrow(man_area_sum[man_area_sum$Management != "Afforestation" & 
-	                        man_area_sum$Management != "Restoration" & 
+	  						man_area_sum$Management != "Reforestation" &
+	                        man_area_sum$Management != "Restoration" &
+	                        man_area_sum$Management != "Prescribed_burn" & 
 	                        man_area_sum$Land_Type != "Developed_all",])>0) { 
     man_area_sum_agg = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
-                                                                             man_area_sum$Management != "Restoration" & 
-                                                                             man_area_sum$Land_Type != "Developed_all",], FUN=sum)
+    																		man_area_sum$Management != "Reforestation" &
+                                                                            man_area_sum$Management != "Restoration" &
+                                                                            man_area_sum$Management != "Prescribed_burn" & 
+                                                                            man_area_sum$Land_Type != "Developed_all",], FUN=sum)
     # update aggregated sums column name (man_area_sum) to man_area_sum_agg_extra
     names(man_area_sum_agg)[ncol(man_area_sum_agg)] <- "man_area_sum_agg_extra"
     # end if other type of prescribed management	
@@ -1269,10 +1331,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # For developed_all land type only, replace values in (extra) aggregated areas column with values in man_area_sum 
     # (i.e. don't aggregate for developed_all, use individual cumulative mangagement areas)
     man_area_sum$man_area_sum_agg_extra[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
-    # (3) assign 0's to aggregate cumulative areas for afforestation and restoration 
+    # (3) assign 0's to aggregate cumulative areas for afforestation and reforestation and restoration and prescribed burn
     # For afforestation or restoration management activities only, replace values in the (extra) aggregated area column with 0 
     # (i.e. afforestation and restoration not included in aggregate sum)
-    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
+    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration" | man_area_sum$Management == "Prescribed_burn"] = 0
     # add new column "excess_sum_area", which is equal to the (extra) aggregated areas minus total land type areas 
     man_area_sum$excess_sum_area = man_area_sum$man_area_sum_agg_extra - man_area_sum$tot_area
     # if excess_sum_area > 0, assign the index to excess_sum_area_inds
@@ -1290,13 +1352,17 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_area_sum$man_area_sum = replace(man_area_sum$man_area_sum, man_area_sum$man_area_sum == -Inf, 0)
     
     # if there are any other man areas create a _trimmed_ aggregated man_area_sum df (man_area_sum_agg2)
-    if (nrow(man_area_sum[man_area_sum$Management != "Afforestation" & 
-                          man_area_sum$Management != "Restoration" & 
+    if (nrow(man_area_sum[man_area_sum$Management != "Afforestation" &
+    					  man_area_sum$Management != "Reforestation" & 
+                          man_area_sum$Management != "Restoration" &
+                          man_area_sum$Management != "Prescribed_burn" &
                           man_area_sum$Land_Type != "Developed_all",])>0) {
-    # aggregate sum man_area_sum vector by Land_Cat_ID for all management activities _except_ afforestation and restoration areas 
+    # aggregate sum man_area_sum vector by Land_Cat_ID for all management activities _except_ afforestation and restoration and prescribed burn areas 
     man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
-                                                                              man_area_sum$Management != "Restoration" & 
-                                                                             man_area_sum$Land_Type != "Developed_all",], FUN=sum)
+    																		man_area_sum$Management != "Reforestation" &
+                                                                            man_area_sum$Management != "Restoration" &
+                                                                            man_area_sum$Management != "Prescribed_burn" &
+                                                                            man_area_sum$Land_Type != "Developed_all",], FUN=sum)
     # rename _trimmed_ aggregate cumulative areas to "man_area_sum_agg" in man_area_sum_agg2 df
     names(man_area_sum_agg2)[ncol(man_area_sum_agg2)] <- "man_area_sum_agg"
     # end if there are other prescribed management practices
@@ -1304,7 +1370,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       # create empty man_area_sum_agg2
       man_area_sum_agg2 <- data.frame(Land_Cat_ID=numeric(0), man_area_sum_agg=numeric(0))
     }
-    # (4) add column "man_area_sum_agg" (Developed_all = _untrimmed_ individual cummulative areas, & afforestation and restoration excluded)
+    # (4) add column "man_area_sum_agg" (Developed_all = _untrimmed_ individual cummulative areas, & afforestation and reforestation and restoration and prescribed burn excluded)
     # by merging man_area_sum & man_area_sum_agg2 dataframes by Land_Type_ID
     man_area_sum = merge(man_area_sum, man_area_sum_agg2, by = "Land_Cat_ID", all.x =TRUE)
     # replace NA's in the man_area_sum_agg column with 0's
@@ -1313,10 +1379,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
     # (5) don't use man_area_sum_agg for Developed_all: replace (trimmed & aggregated) man_area_sum_agg column with individual (trimmed) man_area_sum 
     man_area_sum$man_area_sum_agg[man_area_sum$Land_Type == "Developed_all"] = man_area_sum$man_area_sum[man_area_sum$Land_Type == "Developed_all"]
-    # (6) assign 0's to aggregate cumulative areas for afforestation and restoration 
-    # For afforestation or restoration management activities only, replace values in the (extra) aggregated area column with 0 
-    # (i.e. afforestation and restoration not included in aggregate sum)
-    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Restoration"] = 0
+    # (6) assign 0's to aggregate cumulative areas for afforestation and reforestation and restoration and prescribed burn
+    # For afforestation or restoration or prescribed burn management activities only, replace values in the aggregated area column with 0 
+    # (i.e. afforestation and restoration and prescribed burn not included in aggregate sum)
+    man_area_sum$man_area_sum_agg[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration" | man_area_sum$Management == "Prescribed_burn"] = 0
     
     } # end if there are any prescribed management practices
     
@@ -1384,24 +1450,51 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       apply(man_adjust_df[,c("SoilCaccum_frac", "VegCuptake_frac", "DeadCaccum_frac")], 2, function (x) {replace(x, is.na(x), 1.00)})
     man_adjust_df[,c(6:ncol(man_adjust_df))] <- apply(man_adjust_df[,c(6:ncol(man_adjust_df))], 2, function (x) {replace(x, is.na(x), 0.00)})
     }
+    
+    # set the working c accumulation values to the initial values for adjustments below
+    vegc_uptake_df$vegc_uptake_val = vegc_uptake_df$init_vegc_uptake_val
+    soilc_accum_df$soilc_accum_val = soilc_accum_df$init_soilc_accum_val
+    
     # the proportional increase in urban forest area is represented as a proportional increase in veg c uptake
+    # apply this to developed all using the iniital value
+    # and this needs to be applied dirtectly to the value, not the frac, in case not all developed land has dead removal
+    # if there were a soil c accum value it would have to be adjusted also
+    man_adjust_df$start_urban_forest_fraction = 1
+    man_adjust_df$current_urban_forest_fraction = 1
     if (year == start_year) {
       start_urban_forest_fraction = man_adjust_df[man_adjust_df$Management == "Urban_forest", "man_area"] / 
         man_adjust_df[man_adjust_df$Management == "Urban_forest", "tot_area"]
     }
-    man_adjust_df[man_adjust_df$Management == "Urban_forest", "VegCuptake_frac"] = 
-      man_adjust_df[man_adjust_df$Management == "Urban_forest", "man_area"] / 
-      man_adjust_df[man_adjust_df$Management == "Urban_forest", "tot_area"] / start_urban_forest_fraction
+    man_adjust_df$start_urban_forest_fraction[man_adjust_df$Management == "Urban_forest"] = start_urban_forest_fraction
+    man_adjust_df$current_urban_forest_fraction[man_adjust_df$Management == "Urban_forest"] = man_adjust_df[man_adjust_df$Management == "Urban_forest", "man_area"] / 
+        man_adjust_df[man_adjust_df$Management == "Urban_forest", "tot_area"]
+    # veg
+    vegc_uptake_df = merge(vegc_uptake_df, man_adjust_df[man_adjust_df$Management == "Urban_forest", c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "start_urban_forest_fraction", "current_urban_forest_fraction")], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+    vegc_uptake_df$vegc_uptake_val[vegc_uptake_df$Land_Type == "Developed_all"] <- vegc_uptake_df$vegc_uptake_val[vegc_uptake_df$Land_Type == "Developed_all"] * 
+    	vegc_uptake_df$current_urban_forest_fraction[vegc_uptake_df$Land_Type == "Developed_all"] / 
+    	vegc_uptake_df$start_urban_forest_fraction[vegc_uptake_df$Land_Type == "Developed_all"]
+    # soil
+    soilc_accum_df = merge(soilc_accum_df, man_adjust_df[man_adjust_df$Management == "Urban_forest", c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "start_urban_forest_fraction", "current_urban_forest_fraction")], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x = TRUE)
+    soilc_accum_df$soilc_accum_val[soilc_accum_df$Land_Type == "Developed_all"] <- soilc_accum_df$soilc_accum_val[soilc_accum_df$Land_Type == "Developed_all"] * 
+    	soilc_accum_df$current_urban_forest_fraction[soilc_accum_df$Land_Type == "Developed_all"] / 
+    	soilc_accum_df$start_urban_forest_fraction[soilc_accum_df$Land_Type == "Developed_all"]
+	# these are not needed any more, and they need to be replaced each year
+	vegc_uptake_df$start_urban_forest_fraction = NULL
+	vegc_uptake_df$current_urban_forest_fraction = NULL
+	soilc_accum_df$start_urban_forest_fraction = NULL
+	soilc_accum_df$current_urban_forest_fraction = NULL
     
     # soil
     # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
       # note that the soil conservation flux will be modified too: man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * (baseline_soilc_flux * soil climate scalar)
-    soilc_accum_df$soilc_accum_val <- soilc_accum_df$init_soilc_accum_val * climate_soil_df[,as.character(year)]
+    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,as.character(year)]
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
+    # omit growth and urban forest because only dead removal determines managed area
+    man_soil_df = man_soil_df[(man_soil_df $Management != "Urban_forest" & man_soil_df$Management != "Growth") | is.na(man_soil_df$Management),]
     # if there are  prescribed management practice(s),
-    if (nrow(man_adjust_df)>0) {
+    if (nrow(man_soil_df)>0) {
       # soil C flux * area = cumulative managed area * soil C mgmt frac * baseline soil c flux
       # for rows with NA management or NA soilc_accum_val, this equals NA
       man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Cultivated"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Cultivated"] * 
@@ -1411,9 +1504,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Cultivated"] = man_soil_df$man_area[man_soil_df$Land_Type == "Cultivated"] * 
       	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Cultivated"] * 
       	man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"]
-      # this needs to be zero for afforestation and restoration because these areas are not included in actual managed area for flux adjustment
-      # 	the man_area_sum values are used later for protection area, so they can't be zeroed out above
-      man_soil_df$soilcfluxXarea[man_soil_df$Management == "Afforestation" | man_soil_df$Management == "Restoration"] = 0.00
+      # this needs to be zero for afforestation and reforestation and restoration and prescribed burn because these areas are not included in actual managed area for flux adjustment
+      # 	the man_area_sum values for afforestation and reforestation and restoration are used later for protection area, so they can't be zeroed out above
+      man_soil_df$soilcfluxXarea[man_soil_df$Management == "Afforestation" | man_soil_df$Management == "Reforestation" | man_soil_df$Management == "Restoration" | man_soil_df$Management == "Prescribed_burn"] = 0.00
     } else {
         # if there are no prescribed management practices assign 0 to "soil C flux * managed area"
         man_soil_df$soilcfluxXarea <- 0.00  
@@ -1466,32 +1559,29 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     #  so remove the other developed managements from this table and multiply by total area and use unman area = 0
     
     # apply this year's veg climate effect to baseline veg c flux (first year clim factor col ind is 5)
-    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$init_vegc_uptake_val * climate_veg_df[,as.character(year)]
+    vegc_uptake_df$vegc_uptake_val <- vegc_uptake_df$vegc_uptake_val * climate_veg_df[,as.character(year)]
     # merge man_adjust_df and vegc_uptake_df and assign to man_veg_df 
     man_veg_df = merge(man_adjust_df, vegc_uptake_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_veg_df = man_veg_df[order(man_veg_df$Land_Cat_ID, man_veg_df$Management),] 
-    # omit all records for Dead_removal & Growth and keep all others
-    man_veg_df = man_veg_df[(man_veg_df$Management != "Dead_removal" & man_veg_df$Management != "Growth") | is.na(man_veg_df$Management),]
+    # omit all records for Urban forest & Growth and keep all others because dead removal determines developed managed area
+    # maybe need to keep dead removal and not urban forest
+    man_veg_df = man_veg_df[(man_veg_df$Management != "Urban_forest" & man_veg_df$Management != "Growth") | is.na(man_veg_df$Management),]
     
     ################ First, calc MANAGED AREA VEG C UPTAKE [MgC/y]  (vegcfluxXarea) #############################
     
     # calc managed area's total veg C uptake for all landtypes using cumulative areas: 
    
       # first check if there are no prescribed management practices and assign 0 to man_area_sum
-    if (nrow(man_adjust_df)==0) {
+    if (nrow(man_veg_df)==0) {
       man_veg_df$man_area_sum <- 0
       man_veg_df$vegcfluxXarea <- 0
     } else {
       # vegcfluxXarea = cumulative_management_area x VegCuptake_frac x vegc_uptake_val 
+      # recall that only dead removal is here for developed and man_area_sum is correct
       man_veg_df$vegcfluxXarea = man_veg_df$man_area_sum * man_veg_df$VegCuptake_frac * man_veg_df$vegc_uptake_val
-      # special calc for managed area's total veg C uptake in developed landtype using total area (managed + unmanaged)   
-      man_veg_df$vegcfluxXarea[man_veg_df$Land_Type == "Developed_all"] = 
-        man_veg_df$tot_area[man_veg_df$Land_Type == "Developed_all"] * 
-        man_veg_df$VegCuptake_frac[man_veg_df$Land_Type == "Developed_all"] * 
-        man_veg_df$vegc_uptake_val[man_veg_df$Land_Type == "Developed_all"]
-      # this needs to be zero for afforestation and restoration because these areas are not included in actual managed area for flux adjustment
-      # 	the man_area_sum values are used later for protection area, so they can't be zeroed out above
-      man_veg_df$vegcfluxXarea[man_veg_df$Management == "Afforestation" | man_veg_df$Management == "Restoration"] = 0.00  
+      # this needs to be zero for afforestation and reforestation and restoration and prescribed burn because these areas are not included in actual managed area for flux adjustment
+      # 	the man_area_sum values for lcc are used later for protection area, so they can't be zeroed out above
+      man_veg_df$vegcfluxXarea[man_veg_df$Management == "Afforestation" | man_veg_df$Management == "Reforestation" | man_veg_df$Management == "Restoration" | man_veg_df$Management == "Prescribed_burn"] = 0.00  
     }
     # aggregate sum veg C uptake across Land_Cat_ID + Region + Land_Type + Ownership 
     man_vegflux_agg = aggregate(vegcfluxXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
@@ -1516,9 +1606,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # add column "fin_vegc_uptake" = ((veg C uptake due to mangement) + (cumulative unmanaged area)(vegc_uptake_val)) /  (total area)
     man_vegflux_agg$fin_vegc_uptake = (man_vegflux_agg$vegcfluxXarea + man_vegflux_agg$unman_area_sum * 
                                          man_vegflux_agg$vegc_uptake_val) / tot_area_df$tot_area
-    man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Developed_all"] = 
-      man_vegflux_agg$vegcfluxXarea[man_vegflux_agg$Land_Type == "Developed_all"] / 
-      tot_area_df$tot_area[man_vegflux_agg$Land_Type == "Developed_all"]
+    #man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type == "Developed_all"] = 
+    #  man_vegflux_agg$vegcfluxXarea[man_vegflux_agg$Land_Type == "Developed_all"] / 
+    #  tot_area_df$tot_area[man_vegflux_agg$Land_Type == "Developed_all"]
     nan_inds = which(is.nan(man_vegflux_agg$fin_vegc_uptake) | man_vegflux_agg$fin_vegc_uptake == Inf | man_vegflux_agg$fin_vegc_uptake == -Inf)
     man_vegflux_agg$fin_vegc_uptake[nan_inds] = man_vegflux_agg[nan_inds, "vegc_uptake_val"]
     # for cases without any prescribed management, fin_vegc_uptake should equal vegc_uptake_val, but due to rounding error the difference is not exactly 0
@@ -1558,7 +1648,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_dead_df = merge(man_adjust_df, deadc_frac_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     # remove all but Dead_removal (i.e. Growth and Urban_forest) for Developed_all, which is the total Developed_all landcat area. 
       # this will ensure the aggregated management areas are correct (not larger than total landcat area)
-    man_dead_df <- man_dead_df[man_dead_df$Management!="Growth" & man_dead_df$Management!="Urban_forest" | is.na(man_dead_df$Management),]
+    man_dead_df <- man_dead_df[(man_dead_df$Management!="Growth" & man_dead_df$Management!="Urban_forest") | is.na(man_dead_df$Management),]
     man_dead_df = man_dead_df[order(man_dead_df$Land_Cat_ID, man_dead_df$Management),]
     
     # deadCaccum_frac is from the forest_manage tab in c_input, which is the effect of forest management on mortality 
@@ -1572,6 +1662,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     	man_dead_df$adjDeadCfrac = man_dead_df$DeadCaccum_frac * man_dead_df$deadc_frac_in
     	man_dead_df$adjDeadCfrac[man_dead_df$adjDeadCfrac >= 1] = 1
       	man_dead_df$deadcfracXarea = man_dead_df$man_area_sum * man_dead_df$adjDeadCfrac
+      	# set these to zero becasue they are not included in managed sums
+      	man_dead_df$deadcfracXarea[man_dead_df$Management == "Afforestation" | man_dead_df$Management == "Reforestation" | man_dead_df$Management == "Restoration" | man_dead_df$Management == "Prescribed_burn"] = 0.00
     }
     # aggregate all the man_dead_area
     man_deadfrac_agg = aggregate(deadcfracXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_dead_df, FUN=sum)
@@ -1594,7 +1686,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # which is the area-weighted mortality_fraction to later apply to total above- and below-ground C in Forest, Savanna/Woodland, and shrubland
     man_deadfrac_agg$fin_deadc_frac = (man_deadfrac_agg$deadcfracXarea + man_deadfrac_agg$unman_area_sum * 
                                          man_deadfrac_agg$deadc_frac_in) / tot_area_df$tot_area
-    nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf | man_deadfrac_agg$fin_deadc_frac == -Inf)
+    nan_inds = which(is.nan(man_deadfrac_agg$fin_deadc_frac) | is.na(man_deadfrac_agg$fin_deadc_frac) | man_deadfrac_agg$fin_deadc_frac == Inf | man_deadfrac_agg$fin_deadc_frac == -Inf)
     # if NA or Inf, assign the interp_mort_frac to fin_deadc_frac
     man_deadfrac_agg$fin_deadc_frac[nan_inds] = man_deadfrac_agg[nan_inds, "deadc_frac_in"]
     }
@@ -1822,7 +1914,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # use mortality only if there is veg c accum due to growth
     # assume soil c flux is net density change - so the below is simply a net root density change,
     #	and the calculated or implicit mortality implicitly goes to soil
-    # the developed all flux input includes above and below, so separate it accordingly
+    # the developed all flux input includes above and below, so separate it accordingly, and use the initial ratio for all years rather than the current to maintain input ratio of density
     
     # Above main C dens
     above_vals = out_density_df_list[[3]][out_density_df_list[[3]]$Land_Type != "Savanna" & out_density_df_list[[3]]$Land_Type != "Woodland" & 
@@ -1847,14 +1939,20 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                                            out_density_df_list[[9]]$Land_Type != "Forest", cur_density_label]
     # above and below C fluxes
     # Above main c flux = area-weighted above-main C flux
-    dev_inds = which(man_vegflux_agg$Land_Type[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
-                                                        man_vegflux_agg$Land_Type != "Forest"] == "Developed_all")
     above_flux_vals = man_vegflux_agg$fin_vegc_uptake[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
                                                         man_vegflux_agg$Land_Type != "Forest"]
-    above_flux_vals[dev_inds] = above_flux_vals[dev_inds] * above_vals[dev_inds] / (above_vals[dev_inds] + below_vals[dev_inds])
+    # developed                                                    
+    dev_inds = which(man_vegflux_agg$Land_Type[man_vegflux_agg$Land_Type != "Savanna" & man_vegflux_agg$Land_Type != "Woodland" & 
+                                                        man_vegflux_agg$Land_Type != "Forest"] == "Developed_all")
+    if(year == start_year) {                                                    
+    	initial_dev_a2t_ratio = above_vals[dev_inds] / (above_vals[dev_inds] + below_vals[dev_inds])
+    	initial_dev_b2a_ratio = below_vals[dev_inds] / above_vals[dev_inds]
+    }
+    above_flux_vals[dev_inds] = above_flux_vals[dev_inds] * initial_dev_a2t_ratio
     
     # Root main C flux = area-weighted above-main C flux * root C dens/above main C dens
     below_flux_vals = above_flux_vals * below_vals / above_vals
+    below_flux_vals[dev_inds] = above_flux_vals[dev_inds] * initial_dev_b2a_ratio
     # index NA values
     naninds = which(is.nan(below_flux_vals))
     # For NA root C flux, assume default root to above frac (0.2) 
@@ -2404,6 +2502,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # create column for BURNED AREA [ha] for each landtype-ownership combination and proportinally distribute burned areas 
     # BURNED AREA [ha] = (FIRE TARGET AREA BY OWNERSHIP [ha]) * (landtype area / ownership area)
     fire_adjust_df$fire_burn_area = fire_adjust_df$fire_own_area * fire_adjust_df$tot_area / fire_adjust_df$avail_own_area
+    # clean up zero area effects
+    fire_adjust_df[,c("fire_own_area", "fire_burn_area")] <- apply(fire_adjust_df[,c("fire_own_area", "fire_burn_area")], 2, function (x) {replace(x, is.na(x), 0.00)})
+    fire_adjust_df[,c("fire_own_area", "fire_burn_area")] <- apply(fire_adjust_df[,c("fire_own_area", "fire_burn_area")], 2, function (x) {replace(x, is.nan(x), 0.00)})
+    fire_adjust_df[,c("fire_own_area", "fire_burn_area")] <- apply(fire_adjust_df[,c("fire_own_area", "fire_burn_area")], 2, function (x) {replace(x, x == Inf, 0.00)})
+    fire_adjust_df[,c("fire_own_area", "fire_burn_area")] <- apply(fire_adjust_df[,c("fire_own_area", "fire_burn_area")], 2, function (x) {replace(x, x == -Inf, 0.00)})
     # Remove delayed fire decay from grassland
     fire_adjust_df$Above2Atmos_frac[fire_adjust_df$Land_Type == "Grassland"] = 
     	fire_adjust_df$Above2Atmos_frac[fire_adjust_df$Land_Type == "Grassland"] +
@@ -2424,15 +2527,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     fire_sevadj_df = merge(fire_adjust_df, man_adjust_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"))
     
     # keep only valid forest management practices
-    fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation",]
+    # remove afforestation and reforestation because it is not an actual managed area
+    # also remove prescribed burn for now becuse it has been removed from cum managed sum (and man_area_sum is zero)
+    #	plan to put it back in with valid man_area_sum and then substitute it for other managed area
+    fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation" &
+    	 fire_sevadj_df$Management != "Reforestation" & fire_sevadj_df$Management != "Prescribed_burn",]
     
     # burned area for adjusted severity = burned_area/forest_area * man_area_sum/forest_area * forest_area
     # this is per management practice, per severity, based on managed area and total forest area in the land cat
     # need to calculate decreases/increases based on input fractions, then scale increases so that total man burn area doesn't change
       # check that there are prescribed mmgmt practices relevant to wildfire severity and that there is prescribed wildfire
-    if ( nrow(fire_sevadj_df[fire_sevadj_df$Land_Type=="Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation",])>0 ) {
-    # remove afforestation  because it is not an acutal managed area
-    fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Management != "Afforestation",]
+    if ( nrow(fire_sevadj_df)>0 ) {
+    
     # if there are prescribed management practices, create man_burn_area for variable for fire_sevadj_df (79 variables total)
       fire_sevadj_df$man_burn_area = 0.0
     # man_burn_area = fire_burn_area * (man_area_sum/tot_area)
@@ -2440,6 +2546,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     	fire_sevadj_df$fire_burn_area[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)] *
     	fire_sevadj_df$man_area_sum[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)] /
     	fire_sevadj_df$tot_area.x[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)]
+    # clean up divide by zero	
+    fire_sevadj_df$man_burn_area[is.na(fire_sevadj_df$man_burn_area)] = 0
+    fire_sevadj_df$man_burn_area[is.nan(fire_sevadj_df$man_burn_area)] = 0
+    fire_sevadj_df$man_burn_area[fire_sevadj_df$man_burn_area == Inf] = 0
+    fire_sevadj_df$man_burn_area[fire_sevadj_df$man_burn_area == -Inf] = 0
     	
     # sum the managed burn area across severities for normalization later
       # man_burn_agg (6 variables: Land_Cat_ID, Region, Land_Type, Ownership, Management, man_burn_area)
@@ -2500,6 +2611,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # 2b. ADJUST INCREASED SEVERITY AREAS
     # scale the increased severities so that total man burn area doesn't change
     # man burn area new = man_burn area new * (total man burn area - total man burn area new decreased) / total man burn area new increased
+    # due to the condition, the denominator should always be > 0 if it is calculated, so it shouldn't create any bad values
     fire_sevadj_df$man_burn_area_new[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area] =
     	fire_sevadj_df$man_burn_area_new[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area] *
     	(fire_sevadj_df$man_burn_area_agg[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area] -
@@ -2532,7 +2644,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                                           "DownDead2Atmos_frac", "Litter2Atmos_frac", "Above2StandDead_frac",    
                                           "Understory2DownDead_frac", "Below2Atmos_frac", "Soil2Atmos_frac",        
                                           "fire_burn_area", "fire_burn_area_adj")]
-    }
+    
+    } # end if there are valid forest practices else not
     
     ############################################################################################################
     ################## fourth, estimate non-regenerated area #################
@@ -2803,12 +2916,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # need to adjust historical baseline by the management targets
     # managed adjustments are assumed to be independent of each other so the net adjustments are calculated
     # these initial annual rates are assumed to be included in the baseline annual change numbers:
-    #  Growth (Afforestation was removed from this assumption in v2 and is now treated like a direct prescribed annual change)
+    #  Growth
     #  so the adjustment is based on a difference between the target annual change and the baseline annual change
     #  the baseline annual change is the year 2010 for these management types
     # urban forest is only tracked internally to determine the carbon accumulation rate,
     #  it is not used here in the context of land type converison
-    # Restoration & Afforestation is an annual addition of a land type
+    # Restoration & Afforestation & reforestation is an annual addition of a land type
     # assume that these entries do not need aggregation with other similar management activities within land type id
     #  in other words, there is only one area-changing management per land type id and each is dealt with uniquely
     
@@ -2823,11 +2936,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     conv_adjust_df$new_area = conv_adjust_df$tot_area
     
     ############################################################################################################
-    #########  FIRST, ADJUST BASELINE AREA CHANGE FOR RESTORATION, Afforestation, LIMITED GROWTH, & non-regen forest ######
+    #########  FIRST, ADJUST BASELINE AREA CHANGE FOR RESTORATION, Afforestation, Reforestation, LIMITED GROWTH, & non-regen forest ######
     ############################################################################################################
     
     # These area change activities have a priority for available land type area that is set above when calculating man_area
     # Order:
+    #	Reforestation (from shrubland)
     #	Afforestation (from shrubland, grassland)
     #	Meadow (from shrubland, grassland, woodland, savanna)
     #	Fresh_marsh and Coastal_marsh jointly (from cultivated)
@@ -2836,7 +2950,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     
     # merge the appropriate management data
     man_conv_df = man_adjust_df[man_adjust_df$Management == "Restoration" | man_adjust_df$Management == "Afforestation" | 
-                                  man_adjust_df$Management == "Growth",1:7]
+                                  man_adjust_df$Management == "Reforestation" | man_adjust_df$Management == "Growth",1:7]
       # check if there any prescribed management practices
     if (nrow(man_conv_df)>0) {
       man_conv_df = merge(man_conv_df, man_target_df[,1:6], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"))
@@ -2929,6 +3043,36 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           		conv_own$base_change_adjust[conv_own$Management == "Growth" & !is.na(conv_own$Management)] = 0.00
           	}
          } # end if ta_lt > 0
+ 
+##################################  REFORESTATION  #####################################################
+        # Reforestation activities will come proportionally out of _shrub_ only
+        # calc area adjustment for Reforestation (temp_adjust) [ha] = current year Reforestation area 
+        temp_adjust = conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] 
+        # add the prescribed Reforestation area to the column for base_change_adjust 
+        conv_own$base_change_adjust[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] = 
+          conv_own$base_change_adjust[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] + temp_adjust
+        # subset the base_change_adjust areas for shrub, and subtract, proportionally, the sum of all the area adjustments 
+        # for Reforestation (temp_adjust) in shrubland
+        # store the needed land type area
+        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland"])
+        conv_own$rfrst_need = 0.00
+        if ( ta_lt > 0) {
+        	conv_own$rfrst_need[conv_own$Land_Type == "Shrubland"] = sum(temp_adjust) * 
+        		conv_own$tot_area[conv_own$Land_Type == "Shrubland"] / ta_lt
+        } else {
+        	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland"])
+        	if ( sum(temp_adjust) > 0) {
+        		# forest can't expand
+        		conv_own$base_change_adjust[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] = 0.00
+        	} else if (nlt > 0) {
+        		# but it can contract if negative reforestation is prescribed
+        		conv_own$rfrst_need[conv_own$Land_Type == "Shrubland"] = sum(temp_adjust) * 
+        			conv_own$tot_area[conv_own$Land_Type == "Shrubland"] / nlt
+        	}
+        } # end else no available lt area
+        conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland"] = 
+          conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland"] - 
+          conv_own$rfrst_need[conv_own$Land_Type == "Shrubland"]
           
 ##################################  AFFORESTATION  #####################################################
         # Afforestation activities will come proportionally out of _shrub_ and _grassland_ only
@@ -2939,12 +3083,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] + temp_adjust
         # subset the base_change_adjust areas for shrub and grass, and subtract, proportionally, the sum of all the area adjustments 
         # for Afforestation (temp_adjust) in shrubland and grassland
-        # store the needed land type area
-        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
+        # store the needed land type area - subtract the reforestation needs
+        ta_lt = sum(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] -
+        	conv_own$rfrst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
         conv_own$frst_need = 0.00
         if ( ta_lt > 0) {
         	conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = sum(temp_adjust) * 
-        		conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / ta_lt
+        		(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] -
+        		conv_own$rfrst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"]) / ta_lt
         } else {
         	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"])
         	if ( sum(temp_adjust) > 0) {
@@ -2953,7 +3099,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         	} else if (nlt > 0) {
         		# but it can contract if negative afforestation is prescribed
         		conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = sum(temp_adjust) * 
-        			conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] / nlt
+        			(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] -
+        			conv_own$rfrst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"]) / nlt
         	}
         } # end else no available lt area
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland"] = 
@@ -3026,18 +3173,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] + 
           temp_adjust
         # subtract this area propotionally from SHRUBLAND, GRASSLAND, & SAVANNA and woodland
-        # subtract the available area needed for afforestation
+        # subtract the available area needed for afforestation and reforestation
         # store the needed land type area
-        ta_lt = sum( (conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
-          			conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
-          			conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) )
+        ta_lt = sum( (conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] - 
+        	conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] -
+        	conv_own$rfrst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) )
         conv_own$mdw_need = 0.00
         if ( ta_lt > 0) {
         	conv_own$mdw_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
         		conv_own$Land_Type == "Woodland"] = sum(temp_adjust) * 
-        	  		(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
-        	  			conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
-        	  			conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / ta_lt
+        	  		(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] - 
+        	  		conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] -
+        	  		conv_own$rfrst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / ta_lt
         } else {
         	nlt = length(conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
         					conv_own$Land_Type == "Woodland"])
@@ -3048,9 +3195,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		# but it can contract if negative restoration is prescribed
         		conv_own$mdw_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
         			conv_own$Land_Type == "Woodland"] = sum(temp_adjust) * 
-        	  			(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
-        	  				conv_own$Land_Type == "Woodland"] - conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" |
-        	  				conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / nlt
+        	  			(conv_own$tot_area[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] - 
+        	  			conv_own$frst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"] -
+        	  			conv_own$rfrst_need[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | conv_own$Land_Type == "Woodland"]) / nlt
         	}
         } # end else no available lt area
         conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland" | conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Savanna" | 
@@ -3103,9 +3250,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
             conv_own$wd_need[conv_own$Land_Type == "Grassland" | conv_own$Land_Type == "Cultivated"]
         		
 ##################################  Non-regeneration of forest after fire  #####################################################
-        # non-regenerated forest will become shrubland, or grassland if shrubland does not exist in this region-ownership
+        # non-regenerated forest will become shrubland, or will regenerate if shrubland does not exist in this region-ownership
+        # Currently there are shrubland land cats where there are foresta land cats
+        # test with a flavor of version 3 that shifted to grassland as needed did not have any shifts to grasslands
         # so make the adjustment negative
-        # i don't think it is necessary, based on the input land categories, but use savanna as a fall-back
         temp_adjust = - conv_own$non_regen_area[conv_own$Land_Type == "Forest"] 
         # add the negative value for non-regen area to the column for base_change_adjust 
         conv_own$base_change_adjust[conv_own$Land_Type == "Forest"] = 
@@ -3117,20 +3265,20 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         	conv_own$nonreg_add[conv_own$Land_Type == "Shrubland"] = sum(temp_adjust)
         	conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland"] = 
         		conv_own$base_change_adjust[conv_own$Land_Type == "Shrubland"] - conv_own$nonreg_add[conv_own$Land_Type == "Shrubland"]       
-      	} else if (nrow(conv_own[conv_own$Land_Type == "Grassland",]) > 0) {
-      		conv_own$nonreg_add[conv_own$Land_Type == "Grassland"] = sum(temp_adjust)
-      		conv_own$base_change_adjust[conv_own$Land_Type == "Grassland"] = 
-        		conv_own$base_change_adjust[conv_own$Land_Type == "Grassland"] - conv_own$nonreg_add[conv_own$Land_Type == "Grassland"]
-        		cat("Warning: forest to grassland due to lack of potential converted land types\n")
-      	} else if (nrow(conv_own[conv_own$Land_Type == "Savanna",]) > 0) {
-      		conv_own$nonreg_add[conv_own$Land_Type == "Savanna"] = sum(temp_adjust)
-      		conv_own$base_change_adjust[conv_own$Land_Type == "Savanna"] = 
-        		conv_own$base_change_adjust[conv_own$Land_Type == "Savanna"] - conv_own$nonreg_add[conv_own$Land_Type == "Savanna"]
-        		cat("Warning: forest to savanna due to lack of potential converted land types\n")
+#      	} else if (nrow(conv_own[conv_own$Land_Type == "Grassland",]) > 0) {
+#      		conv_own$nonreg_add[conv_own$Land_Type == "Grassland"] = sum(temp_adjust)
+#      		conv_own$base_change_adjust[conv_own$Land_Type == "Grassland"] = 
+#        		conv_own$base_change_adjust[conv_own$Land_Type == "Grassland"] - conv_own$nonreg_add[conv_own$Land_Type == "Grassland"]
+#        		cat("Warning: forest to grassland due to lack of potential converted land types\n")
+#      	} else if (nrow(conv_own[conv_own$Land_Type == "Savanna",]) > 0) {
+#      		conv_own$nonreg_add[conv_own$Land_Type == "Savanna"] = sum(temp_adjust)
+#      		conv_own$base_change_adjust[conv_own$Land_Type == "Savanna"] = 
+#        		conv_own$base_change_adjust[conv_own$Land_Type == "Savanna"] - conv_own$nonreg_add[conv_own$Land_Type == "Savanna"]
+#        		cat("Warning: forest to savanna due to lack of potential converted land types\n")
       	} else {
       		conv_own$base_change_adjust[conv_own$Land_Type == "Forest"] = 
           		conv_own$base_change_adjust[cconv_own$Land_Type == "Forest"] - temp_adjust
-      		cat("Warning: regenerating all forest after fire due to lack of potential converted land types\n")
+      		cat("Warning: regenerating all forest after fire due to lack of potential converted land types; reg =", region.names[r], ", own =", own_names[i], "\n")
       	}        
       } # end else calc land adjusments to baseline area change
       
@@ -3148,21 +3296,20 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       conv_own$new_area = conv_own$tot_area + conv_own$area_change
       
       ######### ENSURE PROTECTION OF AFFORESTED AREA & RESTORED MARSH & MEADOW & WOODLAND AREA VIA AREA CHANGE ADJUSTMENT ########################  
-      # first adjust the new area and area change to account for the protection of afforested area & restored fresh marsh, meadow and coastal 
+      # first adjust the new area and area change to account for the protection of afforested and reforested area & restored fresh marsh, meadow and coastal 
       # marsh
       # this also accounts for new area going negative
-      # new area should always be greater than the cumulative afforested & restored management area so there is no loss of protected area over time.
-      # thus, for forest afforestation, fresh or coastal marsh, or meadow, if new area < cumulative management area, do the following two steps: 
+      # new area should always be greater than the cumulative afforested & reforested & restored management area so there is no loss of protected area over time.
+      # thus, for forest afforestation, reforestation, fresh or coastal marsh, or meadow, if new area < cumulative management area, do the following two steps: 
       # (1) CORRECT "AREA CHANGE" for PROTECTED AREA by adding the deficit area to the area change
       # get indices for land categories that don't have at least new area equal to the cumulative protected area
       
-      # assume that non-regen areas are replanted to meet these overall restoration targets that are "protected"
+      # assume that reforested (and afforested) non-regen areas that re-burn are replanted to meet these overall restoration targets that are "protected"
       #		the fire c losses are still incurred this year, but the cumulative restored area is replanted as necessary
+      #		effectively the non-regen area will be a different patch each year, but when enough non-regenerates it could start to encroach upon the "protected" area
       
-      protected_deficit_inds <- which((conv_own$new_area < conv_own$man_area_sum) & 
-                                        ((conv_own$Management == "Afforestation" & !is.na(conv_own$Management)) | conv_own$Land_Type == "Fresh_marsh" | 
-                                           conv_own$Land_Type == "Meadow" | conv_own$Land_Type == "Coastal_marsh" |
-                                           conv_own$Land_Type == "Woodland")) 
+      protected_deficit_inds <- which((conv_own$new_area < conv_own$man_area_sum) & !is.na(conv_own$Management) &
+                                        (conv_own$Management == "Afforestation" | conv_own$Management == "Reforestation" | conv_own$Management == "Restoration")) 
       # if these indices exist, then
       if (length(protected_deficit_inds)>0) { 
       # add the deficit to the area change (effectively will set new_area = man_area_sum)  
@@ -3187,13 +3334,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       # sum_neg_new = SUM NEGATIVE NEW AREAS + PROTECTED AREA DEFICIT
       sum_neg_new = sum(conv_own$new_area[conv_own$new_area < 0]) + sum_restored_neg
      
-      # (6) From expanding forest (with afforestation), meadow and marsh, where new_area >= man_area_sum & man_area_sum >= tot_area, temporarily set aside whatever 
+      # (6) From expanding forest (with afforestation/reforestation), meadow and marsh, where new_area >= man_area_sum & man_area_sum >= tot_area, temporarily set aside whatever 
       # area is required for: (new_area - area_change >= man_area_sum), so that these cases can have the unprotected portion of area_change adjusted, and what is 
       # excluded from adjustments and changes
-      area_change_protect_inds <- which((conv_own$new_area >= conv_own$man_area_sum) & (conv_own$man_area_sum >= conv_own$tot_area) & (conv_own$area_change > 0) & 
-                                          ((conv_own$Management == "Afforestation" & !is.na(conv_own$Management)) | 
-                                             conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
-                                             conv_own$Land_Type == "Coastal_marsh" | conv_own$Land_Type == "Woodland"))
+      area_change_protect_inds <- which((conv_own$new_area >= conv_own$man_area_sum) & (conv_own$man_area_sum >= conv_own$tot_area) & (conv_own$area_change > 0) &
+      										!is.na(conv_own$Management) &
+      										(conv_own$Management == "Afforestation" | conv_own$Management == "Reforestation" | conv_own$Management == "Restoration"))
+
       		conv_own$area_change[area_change_protect_inds] <- conv_own$area_change[area_change_protect_inds] - 
       		(conv_own$man_area_sum[area_change_protect_inds] - conv_own$tot_area[area_change_protect_inds]) 
      
@@ -3222,16 +3369,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         # create temporary column for new_area: new_area_temp_df$new_area
         new_area_temp_df <- conv_own
         # get row indices for land categories with protected area and additional unprotected area
-        unprotected_inds <- which((new_area_temp_df$new_area > new_area_temp_df$man_area_sum) & 
-                                    ((new_area_temp_df$Management == "Afforestation" & !is.na(new_area_temp_df$Management)) |
-                                    new_area_temp_df$Land_Type == "Fresh_marsh" | new_area_temp_df$Land_Type == "Meadow" | 
-                                    new_area_temp_df$Land_Type == "Coastal_marsh" | new_area_temp_df$Land_Type == "Woodland")) 
+        unprotected_inds <- which((new_area_temp_df$new_area > new_area_temp_df$man_area_sum) & !is.na(conv_own$Management) &
+                                   (conv_own$Management == "Afforestation" | conv_own$Management == "Reforestation" | conv_own$Management == "Restoration"))
         # get row indices to exclude from area correction because they are fully protected
-        exclude_inds <- which((conv_own$new_area == conv_own$man_area_sum) & ((conv_own$Management == "Afforestation" & !is.na(conv_own$Management)) | 
-                                                                                conv_own$Land_Type == "Fresh_marsh" | conv_own$Land_Type == "Meadow" | 
-                                                                                conv_own$Land_Type == "Coastal_marsh" | 
-                                                                                conv_own$Land_Type == "Woodland"))
-        # temporarily replace new_area with the excess unprotected area (man_area_sum - new_area) for forest/afforestation & fresh_marsh, meadow and coastal_marsh
+        exclude_inds <- which((conv_own$new_area == conv_own$man_area_sum) & !is.na(conv_own$Management) &
+        						(conv_own$Management == "Afforestation" | conv_own$Management == "Reforestation" | conv_own$Management == "Restoration"))
+        # temporarily replace new_area with the excess unprotected area (man_area_sum - new_area) for reforestation/afforestation & fresh_marsh, meadow and coastal_marsh
         new_area_temp_df$new_area[unprotected_inds] <- new_area_temp_df$new_area[unprotected_inds] - new_area_temp_df$man_area_sum[unprotected_inds]
         # sum all the positive new areas, excluding protected area
         sum_pos_new_area <- sum(new_area_temp_df$new_area[new_area_temp_df$new_area > 0 & 
@@ -3332,7 +3475,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         zinds = which(apply(conv_own[,conv_col_names],2,sum) == 0)
         conv_own[,conv_col_names][,zinds] = -conv_own2[,conv_col_names][,zinds]
 
-        # now adjust these conversions based on the specific non-growth conversions above (restoration and non-regen), after area adjustment
+        # now adjust these conversions based on the specific non-growth conversions above (afforestation/reforestaion and restoration and non-regen), after area adjustment
         #  growth has already been distributed proportionally to the appriate land types
         # the actual gross managed value is the smaller of: area_change minus base_area_change, and man_area
         #  assuming man_area is constrained by the available area to expand into
@@ -3345,6 +3488,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         num_avail_land_types = length(conv_own$Land_Type[conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"]) - 1
         if (num_avail_land_types < 0 ){num_avail_land_types = 0}
         for (l in 1:length(conv_own$Land_Type)) {
+        	### reforestation
+        	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]) > 0) {
+        		if (conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] > 0) {
+        			man_area_adj = min(conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)], 
+        				conv_own$area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)])
+        			scalar = man_area_adj / conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]
+        			# scale the needed transitions by the adjusted managed area and subtract transition for the row value
+        			conv_own[conv_own$Management == "Reforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
+        				(conv_own[conv_own$Management == "Reforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
+        			scalar * conv_own$rfrst_need[conv_own$Land_Type == conv_col_names[l]])
+        			# fill in the column for this land type with the negative of the row value
+        			conv_own[l,"Forest"] = -conv_own[conv_own$Management == "Reforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] 
+        		} # end if non-zero man area
+        	} # end reforestation
+        	
         	### afforestation
         	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) > 0) {
         		if (conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] > 0) {
@@ -3439,23 +3598,6 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		
         	### nonregen
         	if (conv_col_names[l] != "Forest" & length(conv_own$Land_Type[conv_own$Land_Type == "Forest"]) > 0) {
-        	if(FALSE) {
-        	# first distribute this gain area to the loss columns proprtionally to maintain area_change
-        	# check for a net zero change for land type l to avoid an error
-        	# if no avail land types then this doesn't matter and will be cleaned up later
-        	if (conv_own$row_change_sum[conv_own$Land_Type == "Forest"] == 0) {
-        		if (conv_col_names[l] != "Water" & conv_col_names[l] != "Ice") {
-        			conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] =
-        				conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] - 
-        				abs(conv_own$non_regen_area[conv_own$Land_Type == "Forest"] / num_avail_land_types)
-        		}
-        	} else {
-        		conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] =
-        			conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] - 
-        			abs(conv_own$non_regen_area[conv_own$Land_Type == "Forest"] * conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] /
-        			conv_own$row_change_sum[conv_own$Land_Type == "Forest"])
-        	}
-        	} # end FALSE
         	# add transition - recall that this nonreg_add value is negative
         	conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] = 
         		(conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] -

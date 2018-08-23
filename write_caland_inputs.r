@@ -110,6 +110,7 @@
 # meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, savanna, and woodland
 # woodland comes from cultivated and grassland
 # afforestation is forest area expansion and comes from shrubland and grassland
+# reforestation is forest area expansion that comes from shrubland only to match non-regeneration of forest
 
 # output files
 # areas are in ha (scenario files)
@@ -1153,10 +1154,10 @@ for (s in 1:num_scenin_sheets) {
 	num_man_years = length(man_years)
 	
 	# split the manage table based on cumulative area, annual managed area, or area fraction input
-	  # select rows which have existing starting area (annual type)
-	manage_annareain = manage[!is.na(manage$start_area) & manage$start_area > 0,]
-	  # select rows which have no existing starting area (cumulative type)
-	manage_cumareain = manage[!is.na(manage$start_area) & manage$start_area == 0,]
+	  # select annual type
+	manage_annareain = manage[!is.na(manage$start_area) & manage$Management != "Restoration" & manage$Management != "Reforestation" & manage$Management != "Afforestation",]
+	  # select cumulative type
+	manage_cumareain = manage[!is.na(manage$start_area) & (manage$Management == "Restoration" | manage$Management == "Reforestation" | manage$Management == "Afforestation"),]
 	  # select rows which have area fraction input
 	manage_fracin = manage[!is.na(manage$start_area_frac),]
 	
@@ -1286,7 +1287,7 @@ for (s in 1:num_scenin_sheets) {
 				
 				# assign all Growth management records that have _expanding_ Urban area to growth_temp
 				growth_temp = manage_fracin[manage_fracin$Management == "Growth" & manage_fracin$Area_change_ha >= 0,]
-				# assign the previous year's Growth management area to rowth_temp$growth_val
+				# assign the previous year's Growth management area to growth_temp$growth_val
 				growth_temp$growth_val = growth_temp[,prev_pyear_lab]
 				# check if any expanding Urban areas exist before aggregating them
 				if (nrow(growth_temp) != 0) {
@@ -1296,7 +1297,7 @@ for (s in 1:num_scenin_sheets) {
 				
 				# assign all Growth management records that have _contracting_ Urban area to growth_temp
 				growth_temp = manage_fracin[manage_fracin$Management == "Growth" & manage_fracin$Area_change_ha < 0,]
-				# assign the previous year's Growth management area to rowth_temp$growth_val
+				# assign the previous year's Growth management area to growth_temp$growth_val
 				growth_temp$growth_val = growth_temp[,prev_pyear_lab]
 				# check if any contracting Urban areas exist before aggregating them
 				if (nrow(growth_temp) != 0) {
@@ -1363,54 +1364,74 @@ for (s in 1:num_scenin_sheets) {
 	
 	} # end y loop over the management year columns
 	
-	# put the separate tables back together and drop extra columns
-	manage_out = rbind(manage_annareain, manage_cumareain, manage_fracin)
-	manage_out$Area_ha = NULL
-	manage_out$start_year = NULL
-	manage_out$end_year = NULL
-	manage_out$start_area = NULL
-	manage_out$end_area = NULL
-	manage_out$start_area_frac = NULL
-	manage_out$end_area_frac = NULL
-	manage_out$Area_norm_ha = NULL
-	
 	### merge the rows containing the same practice but for different start and end years
-	# non-assigned fields are zero, so these can just be summed
-	if (nrow(manage_out)!=0) {
-		manage_out$Area_change_ha = NULL
-		manage_out = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, manage_out, FUN=sum)
-	}
 	
+	# for ann and cum area tyeps, non-assigned fields are zero, so these can just be summed
+	if (nrow(manage_annareain)!=0) {
+		manage_annareain$Area_ha = NULL
+		manage_annareain$Area_change_ha = NULL	
+		manage_annareain$start_year = NULL
+		manage_annareain$end_year = NULL
+		manage_annareain$start_area = NULL
+		manage_annareain$end_area = NULL
+		manage_annareain$start_area_frac = NULL
+		manage_annareain$end_area_frac = NULL
+		manage_annareain$Area_norm_ha = NULL
+		manage_annareain = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, manage_annareain, FUN=sum)
+	} else { manage_annareain = NULL }
 	
-	##################### should delete this;  not sure why min and max were used; must not have thought through summing with zeros or overlap
-	if(FALSE){
-	# need to do this separately for negative growth
-	  # reassign growth_temp to records with Growth management area and _contracting_ Urban area  
-	growth_temp = manage_out[manage_out$Management == "Growth" & manage_out$Area_change_ha < 0,]
-	  # set the area change to NULL
-	growth_temp$Area_change_ha = NULL
-	if (nrow(growth_temp)!=0) {
-	  # aggregate the _minimum_ values for the Growth management areas by landcat, region, landtype, ownership, and management
-	  growth_neg_agg = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, growth_temp, FUN=min)
-	}
-	  
-
-	# For positive growth
-	  # assign all the other records for non-Growth management areas that have _expanding_ area changes to manage_temp
-	manage_temp = manage_out[!(manage_out$Management == "Growth" & manage_out$Area_change_ha < 0),]
-	  # set the area change to NULL
-	manage_temp$Area_change_ha = NULL
-	#aggregate the _maximum_ values for the other management areas by landcat, region, landtype, ownership, and management
-	manage_agg = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, manage_temp, FUN=max)
+	if (nrow(manage_cumareain)!=0) {
+		manage_cumareain$Area_ha = NULL
+		manage_cumareain$Area_change_ha = NULL	
+		manage_cumareain$start_year = NULL
+		manage_cumareain$end_year = NULL
+		manage_cumareain$start_area = NULL
+		manage_cumareain$end_area = NULL
+		manage_cumareain$start_area_frac = NULL
+		manage_cumareain$end_area_frac = NULL
+		manage_cumareain$Area_norm_ha = NULL
+		manage_cumareain = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, manage_cumareain, FUN=sum)
+	} else { manage_cumareain = NULL }
 	
-	if (nrow(growth_temp)!=0) {
-	# combine the manage_agg and growth_neg_agg
-	manage_out = rbind(manage_agg, growth_neg_agg)
-	} else {
-	  manage_out <- manage_agg
-	}
-	} ################ end FALSE - should delete this section
+	# for fractional types the only overlap should be during a transition year, which should have equal values
+	#	so get only only values and use max for positive and min for negative growth
+	#	and use the same rule (with respect growth) for dead removal and urban forest so that they are all consistent
 	
+	if (nrow(manage_fracin)!=0) {
+		manage_fracin$Area_ha = NULL
+		manage_fracin$start_year = NULL
+		manage_fracin$end_year = NULL
+		manage_fracin$start_area = NULL
+		manage_fracin$end_area = NULL
+		manage_fracin$start_area_frac = NULL
+		manage_fracin$end_area_frac = NULL
+		manage_fracin$Area_norm_ha = NULL
+		
+		# need to do this separately for negative growth
+	  	# assign values for _contracting_ Urban area land cats
+	  	land_cats = unique(manage_fracin$Land_Cat_ID[manage_fracin$Management == "Growth" & manage_fracin$Area_change_ha < 0])	  	
+		neg_temp = manage_fracin[manage_fracin$Land_Cat_ID %in% land_cats,]
+	  	# set the area change to NULL
+		neg_temp$Area_change_ha = NULL
+		if (nrow(neg_temp)!=0) {
+	  		# aggregate the _minimum_ values for the fractional management areas by landcat, region, landtype, ownership, and management
+	  		neg_agg = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, neg_temp, FUN=min)
+		} else { neg_agg = NULL }
+		
+		# For positive growth
+		# assign values for _expanding_ Urban area land cats
+		land_cats = unique(manage_fracin$Land_Cat_ID[manage_fracin$Management == "Growth" & manage_fracin$Area_change_ha >= 0])
+		pos_temp = manage_fracin[manage_fracin$Land_Cat_ID %in% land_cats,]
+	 	# set the area change to NULL
+		pos_temp$Area_change_ha = NULL
+		if (nrow(pos_temp)!=0) {
+			#aggregate the _maximum_ values for the other management areas by landcat, region, landtype, ownership, and management
+			pos_agg = aggregate(. ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, pos_temp, FUN=max)
+		} else { pos_agg = NULL }
+	} # end combine fraction rows
+	
+	manage_out = rbind(manage_annareain, manage_cumareain, neg_agg, pos_agg)
+		
 	# change order of rows 
 	manage_out = manage_out[order(manage_out$Land_Cat_ID, manage_out$Management),]
 	# assign to output sheet
