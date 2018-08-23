@@ -1222,9 +1222,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   	# urban_forest_benefit_period = 20
   	
   	# first add the current year management as the general calculation of man_area_sum
-  	# prescribed burn man_area_sum needs to be set to zero becaue it isn't included in the cumulative managed area below; later years also exclude it)
+  	# keep track of prescribed burn man_area_sum for fire severity adjustment, but omit it from c accum adjustment (similarly to restoration/etc.)
 	man_area_sum$man_area_sum = man_area_sum$man_area_sum + man_area_sum$man_area
-	man_area_sum$man_area_sum[man_area_sum$Management == "Prescribed_burn"] = 0.00
 	man_area_sum$man_area_sum[man_area_sum$man_area_sum > man_area_sum$tot_area] = man_area_sum$tot_area[man_area_sum$man_area_sum > man_area_sum$tot_area]
   	
     # now make some calculations for specific practices
@@ -1261,11 +1260,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 		sum_start_col = which(names(temp_df) == paste0(sum_start, "_ha"))
 		if (sum_start_col == sum_end_col) {
 			# only one year in sum, so rowSums() won't work
-			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn"] =
-				temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn",sum_start_col]
+			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & 
+					temp_df$Management != "Prescribed_burn" & temp_df$Management != "Prescribed_burn_med_slash_util" & temp_df$Management != "Prescribed_burn_hi_slash_util"] =
+				temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & 
+					temp_df$Management != "Prescribed_burn" & temp_df$Management != "Prescribed_burn_med_slash_util" & temp_df$Management != "Prescribed_burn_hi_slash_util",sum_start_col]
 		} else { 
-			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn"] =
-				rowSums(temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & temp_df$Management != "Prescribed_burn", c(sum_start_col:sum_end_col)])
+			temp_df$sum[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & 
+					temp_df$Management != "Prescribed_burn" & temp_df$Management != "Prescribed_burn_med_slash_util" & temp_df$Management != "Prescribed_burn_hi_slash_util"] =
+				rowSums(temp_df[temp_df$Land_Type == "Forest" & temp_df$Management != "Afforestation" & temp_df$Management != "Reforestation" & 
+					temp_df$Management != "Prescribed_burn" & temp_df$Management != "Prescribed_burn_med_slash_util" & temp_df$Management != "Prescribed_burn_hi_slash_util", 
+					c(sum_start_col:sum_end_col)])
 		}
 		
 		# developed_all dead_removal
@@ -1281,12 +1285,21 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 				rowSums(temp_df[temp_df$Land_Type == "Developed_all" & temp_df$Management == "Dead_removal", c(sum_start_col:sum_end_col)])
 		}
 		
-		# update man_area_sum by adding the previous years sum and the current year man area
+		# update man_area_sum by adding the previous years sum and the current year man area - but only for the appropriate practices
     	man_area_sum = merge(man_area_sum, temp_df[,c(1:5,ncol(temp_df))], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
     	man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
-    	man_area_sum$man_area_sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Prescribed_burn") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] = 
-    		man_area_sum$sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Prescribed_burn") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] +
-    		man_area_sum$man_area[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | (man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & man_area_sum$Management != "Prescribed_burn") | (man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")]
+    	man_area_sum$man_area_sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | 
+    			(man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & 
+    			man_area_sum$Management != "Prescribed_burn" & man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util") | 
+    			(man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] = 
+    		man_area_sum$sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | 
+    			(man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & 
+    			man_area_sum$Management != "Prescribed_burn" & man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util") |
+    			(man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")] +
+    		man_area_sum$man_area[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | 
+    			(man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & 
+    			man_area_sum$Management != "Prescribed_burn" & man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util") | 
+    			(man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")]
     	man_area_sum$sum = NULL
 	} #end if second year or more
 	
@@ -1308,10 +1321,13 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	  						man_area_sum$Management != "Reforestation" &
 	                        man_area_sum$Management != "Restoration" &
 	                        man_area_sum$Management != "Prescribed_burn" & 
+	                        man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util" & 
 	                        man_area_sum$Land_Type != "Developed_all",])>0) { 
     man_area_sum_agg = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
     																		man_area_sum$Management != "Reforestation" &
                                                                             man_area_sum$Management != "Restoration" &
+                                                                            man_area_sum$Management != "Prescribed_burn_med_slash_util" & 
+                                                                            man_area_sum$Management != "Prescribed_burn_hi_slash_util" &
                                                                             man_area_sum$Management != "Prescribed_burn" & 
                                                                             man_area_sum$Land_Type != "Developed_all",], FUN=sum)
     # update aggregated sums column name (man_area_sum) to man_area_sum_agg_extra
@@ -1334,7 +1350,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # (3) assign 0's to aggregate cumulative areas for afforestation and reforestation and restoration and prescribed burn
     # For afforestation or restoration management activities only, replace values in the (extra) aggregated area column with 0 
     # (i.e. afforestation and restoration not included in aggregate sum)
-    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration" | man_area_sum$Management == "Prescribed_burn"] = 0
+    man_area_sum$man_area_sum_agg_extra[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration" | 
+    	man_area_sum$Management == "Prescribed_burn" | man_area_sum$Management == "Prescribed_burn_med_slash_util" | man_area_sum$Management == "Prescribed_burn_hi_slash_util"] = 0
     # add new column "excess_sum_area", which is equal to the (extra) aggregated areas minus total land type areas 
     man_area_sum$excess_sum_area = man_area_sum$man_area_sum_agg_extra - man_area_sum$tot_area
     # if excess_sum_area > 0, assign the index to excess_sum_area_inds
@@ -1356,12 +1373,15 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     					  man_area_sum$Management != "Reforestation" & 
                           man_area_sum$Management != "Restoration" &
                           man_area_sum$Management != "Prescribed_burn" &
+                          man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util" &
                           man_area_sum$Land_Type != "Developed_all",])>0) {
     # aggregate sum man_area_sum vector by Land_Cat_ID for all management activities _except_ afforestation and restoration and prescribed burn areas 
     man_area_sum_agg2 = aggregate(man_area_sum ~ Land_Cat_ID, man_area_sum[man_area_sum$Management != "Afforestation" & 
     																		man_area_sum$Management != "Reforestation" &
                                                                             man_area_sum$Management != "Restoration" &
                                                                             man_area_sum$Management != "Prescribed_burn" &
+                                                                            man_area_sum$Management != "Prescribed_burn_med_slash_util" & 
+                                                                            man_area_sum$Management != "Prescribed_burn_hi_slash_util" &
                                                                             man_area_sum$Land_Type != "Developed_all",], FUN=sum)
     # rename _trimmed_ aggregate cumulative areas to "man_area_sum_agg" in man_area_sum_agg2 df
     names(man_area_sum_agg2)[ncol(man_area_sum_agg2)] <- "man_area_sum_agg"
@@ -1382,7 +1402,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # (6) assign 0's to aggregate cumulative areas for afforestation and reforestation and restoration and prescribed burn
     # For afforestation or restoration or prescribed burn management activities only, replace values in the aggregated area column with 0 
     # (i.e. afforestation and restoration and prescribed burn not included in aggregate sum)
-    man_area_sum$man_area_sum_agg[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration" | man_area_sum$Management == "Prescribed_burn"] = 0
+    man_area_sum$man_area_sum_agg[man_area_sum$Management == "Afforestation" | man_area_sum$Management == "Reforestation" | man_area_sum$Management == "Restoration" | 
+    	man_area_sum$Management == "Prescribed_burn" | man_area_sum$Management == "Prescribed_burn_med_slash_util" | man_area_sum$Management == "Prescribed_burn_hi_slash_util"] = 0
     
     } # end if there are any prescribed management practices
     
@@ -1506,7 +1527,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       	man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"]
       # this needs to be zero for afforestation and reforestation and restoration and prescribed burn because these areas are not included in actual managed area for flux adjustment
       # 	the man_area_sum values for afforestation and reforestation and restoration are used later for protection area, so they can't be zeroed out above
-      man_soil_df$soilcfluxXarea[man_soil_df$Management == "Afforestation" | man_soil_df$Management == "Reforestation" | man_soil_df$Management == "Restoration" | man_soil_df$Management == "Prescribed_burn"] = 0.00
+      man_soil_df$soilcfluxXarea[man_soil_df$Management == "Afforestation" | man_soil_df$Management == "Reforestation" | man_soil_df$Management == "Restoration" | 
+      	man_soil_df$Management == "Prescribed_burn" | man_soil_df$Management == "Prescribed_burn_med_slash_util" | man_soil_df$Management == "Prescribed_burn_hi_slash_util"] = 0.00
     } else {
         # if there are no prescribed management practices assign 0 to "soil C flux * managed area"
         man_soil_df$soilcfluxXarea <- 0.00  
@@ -1581,7 +1603,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       man_veg_df$vegcfluxXarea = man_veg_df$man_area_sum * man_veg_df$VegCuptake_frac * man_veg_df$vegc_uptake_val
       # this needs to be zero for afforestation and reforestation and restoration and prescribed burn because these areas are not included in actual managed area for flux adjustment
       # 	the man_area_sum values for lcc are used later for protection area, so they can't be zeroed out above
-      man_veg_df$vegcfluxXarea[man_veg_df$Management == "Afforestation" | man_veg_df$Management == "Reforestation" | man_veg_df$Management == "Restoration" | man_veg_df$Management == "Prescribed_burn"] = 0.00  
+      man_veg_df$vegcfluxXarea[man_veg_df$Management == "Afforestation" | man_veg_df$Management == "Reforestation" | man_veg_df$Management == "Restoration" | 
+      	man_veg_df$Management == "Prescribed_burn" | man_veg_df$Management == "Prescribed_burn_med_slash_util" | man_veg_df$Management == "Prescribed_burn_hi_slash_util"] = 0.00
     }
     # aggregate sum veg C uptake across Land_Cat_ID + Region + Land_Type + Ownership 
     man_vegflux_agg = aggregate(vegcfluxXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_veg_df, FUN=sum)
@@ -1663,7 +1686,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     	man_dead_df$adjDeadCfrac[man_dead_df$adjDeadCfrac >= 1] = 1
       	man_dead_df$deadcfracXarea = man_dead_df$man_area_sum * man_dead_df$adjDeadCfrac
       	# set these to zero becasue they are not included in managed sums
-      	man_dead_df$deadcfracXarea[man_dead_df$Management == "Afforestation" | man_dead_df$Management == "Reforestation" | man_dead_df$Management == "Restoration" | man_dead_df$Management == "Prescribed_burn"] = 0.00
+      	man_dead_df$deadcfracXarea[man_dead_df$Management == "Afforestation" | man_dead_df$Management == "Reforestation" | man_dead_df$Management == "Restoration" | 
+      		man_dead_df$Management == "Prescribed_burn" | man_dead_df$Management == "Prescribed_burn_med_slash_util" | man_dead_df$Management == "Prescribed_burn_hi_slash_util"] = 0.00
     }
     # aggregate all the man_dead_area
     man_deadfrac_agg = aggregate(deadcfracXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_dead_df, FUN=sum)
@@ -2528,10 +2552,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     
     # keep only valid forest management practices
     # remove afforestation and reforestation because it is not an actual managed area
-    # also remove prescribed burn for now becuse it has been removed from cum managed sum (and man_area_sum is zero)
-    #	plan to put it back in with valid man_area_sum and then substitute it for other managed area
+    # prescribed burn cumulative area will replace the other forest fuel reduciton cumulative area for this adjustment
+    # the assumption is that prescribed burn is applied to area that has undergone fuel reduction practices within the past 20 years
+    #	so rx burn doesn't add new managed area (see c accum adjustments above), but it adjusts the fire severity on previously managed areas
+    # if there is more prescribed burn cum area than thin+understory, then assume that the extra rx burn area represents either:
+    #	a) previous, untracked managed area, as could happen early in the simulation
+    #	b) rx burns not on previously managed area
+    #	c) frequent repeat rx burns that inflate the cum sum faster than other management sums
+    #	d) there was never any prior management, which is unlikely, but should be counted (although the c accum increase would be underestimated in this case)
+    #	in all three cases retain the extra rx burn area for fire severity reduction as they all would give valid extra benefits (although (c)'s benefits might be less)
+    # even with any extra rx burn area, this is likely fmore realistic than the case where all rx burn added to the other practices for severity adjustment
     fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation" &
-    	 fire_sevadj_df$Management != "Reforestation" & fire_sevadj_df$Management != "Prescribed_burn",]
+    	 fire_sevadj_df$Management != "Reforestation",]
     
     # burned area for adjusted severity = burned_area/forest_area * man_area_sum/forest_area * forest_area
     # this is per management practice, per severity, based on managed area and total forest area in the land cat
@@ -2542,11 +2574,66 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # if there are prescribed management practices, create man_burn_area for variable for fire_sevadj_df (79 variables total)
       fire_sevadj_df$man_burn_area = 0.0
     # man_burn_area = fire_burn_area * (man_area_sum/tot_area)
+    # subtract rx burn man_area_sum from thinning and understory man_area_sums proportionally
+    # first get the fuel reduction sum and add it to the df
+    thin_undr_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
+                             fire_sevadj_df[fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+                             	fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+                             	fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util",], FUN=sum, na.rm = TRUE)
+    names(thin_undr_agg)[names(thin_undr_agg) == "man_area_sum"] = "thin_undr_man_area_sum"                         	
+    fire_sevadj_df = merge(fire_sevadj_df, thin_undr_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    # then get the rx burn sum and add it to the df
+    rxb_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
+                             fire_sevadj_df[fire_sevadj_df$Management == "Prescribed_burn" | fire_sevadj_df$Management == "Prescribed_burn_med_slash_util" | 
+                             fire_sevadj_df$Management == "Prescribed_burn_hi_slash_util",], FUN=sum, na.rm = TRUE)
+    names(rxb_agg)[names(rxb_agg) == "man_area_sum"] = "rxb_man_area_sum"
+    fire_sevadj_df = merge(fire_sevadj_df, rxb_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    # calc the man_area_sum adjustment
+    fire_sevadj_df$thin_undr_mas_adj = 0.00
+    fire_sevadj_df$thin_undr_mas_adj[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")] =
+    	fire_sevadj_df$rxb_man_area_sum[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")] *
+    	fire_sevadj_df$man_area_sum[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")] /
+    	fire_sevadj_df$thin_undr_man_area_sum[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")]
+    # first calculate all to get the non-thinning and non-understory values                  	
     fire_sevadj_df$man_burn_area[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)] = 
     	fire_sevadj_df$fire_burn_area[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)] *
     	fire_sevadj_df$man_area_sum[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)] /
     	fire_sevadj_df$tot_area.x[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management)]
-    # clean up divide by zero	
+    # second calculate the adjusted thinning and understory values     (which replaces the previous calc)              	
+    fire_sevadj_df$man_burn_area[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")] = 
+    	fire_sevadj_df$fire_burn_area[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")] *
+    	(fire_sevadj_df$man_area_sum[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")] -
+    	fire_sevadj_df$thin_undr_mas_adj[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")]) /
+    	fire_sevadj_df$tot_area.x[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
+    		(fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+    		fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+    		fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util")]
+    # clean up divide by zero and negative values (where rx burn cum area exceeds thin+under cum area)
+    fire_sevadj_df$man_burn_area[fire_sevadj_df$man_burn_area < 0] = 0
     fire_sevadj_df$man_burn_area[is.na(fire_sevadj_df$man_burn_area)] = 0
     fire_sevadj_df$man_burn_area[is.nan(fire_sevadj_df$man_burn_area)] = 0
     fire_sevadj_df$man_burn_area[fire_sevadj_df$man_burn_area == Inf] = 0
