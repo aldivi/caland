@@ -156,7 +156,7 @@ CLIMATE = "HIST"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
 scenarios_file = "nwl_scenarios_v3_ac.xls"
-#scenarios_file = "individual_proposed_sims_41_year_application_all.xls"
+#scenarios_file = "individual_proposed_sims_aug2018.xls"
 units_scenario <- "ac"
 #units_scenario = "ha"
 inputs_dir = ""
@@ -178,7 +178,7 @@ forest_mort_adj_first = 2015
 forest_mort_adj_last = 2024
 control_wildfire_lulcc <- FALSE
 #control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
-control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv"
+control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv"
 
 write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
                                 CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v3_ac.xls",
@@ -200,7 +200,7 @@ write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl
 								forest_mort_adj_first = 2015,
 								forest_mort_adj_last = 2024,
 								control_wildfire_lulcc = FALSE,
-								control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv") {
+								control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv") {
 	
 cat("Start write_caland_inputs at", date(), "\n")
 
