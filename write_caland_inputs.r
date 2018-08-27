@@ -17,17 +17,22 @@
 #	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
 # 	units_scenario: 	specify units for input areas in scenarios_file - must be ac or ha.
+#	inputs_dir:			the directory within "./inputs" to put the generated input files; the default is "" so they go into "./inputs"
 #	climate_c_file:		the climate scalars for vegetation and soil carbon accumulation; future scenario must match the fire input file
 #	fire_area_file:		annual burned area by region-ownership; future scenario must match the climate c file
 #	mortality_file:		mortality rate as annual fraction of above ground biomass; includes values for all woody land types that have c accumulation in vegetation
 #	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
 #	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m)
 #	carbon_gis_files:	vector of 13 csv file names of gis stats carbon density by land category (t C per ha)
-#	forest_mort_fact:		the value by which to adjust the forest mortality during the period specified by forest_mort_adj_first/last
-#	forest_mort_adj_first:	the first year to adjust forest mortality
-#	forest_mort_adj_last:	the last year to adjust forest mortality
-# 	control_wildfire_lulcc:	if TRUE, read control_wildfire_lulcc_file to shut off wildfire, or lulcc, or both
+#	forest_mort_fact:		the value by which to adjust the forest mortality during the period specified by forest_mort_adj_first/last; default is 2
+#	forest_mort_adj_first:	the first year to adjust forest mortality; default is 2015
+#	forest_mort_adj_last:	the last year to adjust forest mortality; default is 2024
+# 	control_wildfire_lulcc:	if TRUE, read control_wildfire_lulcc_file to shut off wildfire, or lulcc, or both; default is FALSE
 #	control_wildfire_lulcc_file: file with flags for each scenario in scenarios_file to control wildfire and lulcc
+
+# NOTE:
+#	The default simulation includes 2X forest mortality from 2015 through 2024 to emulate the recent and ongoing die off due to beetles and drought
+#	Individual practice sims also include this doubled mortality (should check without it to find out how much difference it makes)
 
 # parameter_file
 #	8 tables
@@ -154,6 +159,7 @@ scenarios_file = "nwl_scenarios_v3_ac.xls"
 #scenarios_file = "individual_proposed_sims_41_year_application_all.xls"
 units_scenario <- "ac"
 #units_scenario = "ha"
+inputs_dir = ""
 climate_c_file = "climate_c_scalars_unitary.csv"
 #climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
@@ -174,9 +180,10 @@ control_wildfire_lulcc <- FALSE
 #control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire.csv"
 
-write_caland_inputs <- function(scen_tag = "frst2Xmort_fire", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
+write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
                                 CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v3_ac.xls",
                                 units_scenario = "ac",
+                                inputs_dir = "",
                                 climate_c_file = "climate_c_scalars_unitary.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
                                 mortality_file = "mortality_annual_july_2018.csv",
@@ -215,7 +222,9 @@ diff_years = start_year - ref_year
 scen_end_year = end_year - 1
 
 in_dir = "raw_data/"
-out_dir = "inputs/"
+out_dir = paste0("inputs/", inputs_dir)
+if(substr(out_dir,nchar(out_dir), nchar(out_dir)) != "/") { out_dir = paste0(out_dir, "/") }
+dir.create(out_dir, recursive=TRUE)
 
 xltag = ".xls"
 
