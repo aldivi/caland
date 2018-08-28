@@ -928,7 +928,6 @@ orig_fire<- out_scen_df_list[[4]]
 
 for (s in 1:num_scenin_sheets) {
   ###### scenario managed area table
-	
 	scenin = scenin_df_list[[s]]
   	scenin_name = scenin_sheets[s]
   
