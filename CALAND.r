@@ -3575,28 +3575,44 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 
         # now adjust these conversions based on the specific non-growth conversions above (afforestation/reforestaion and restoration and non-regen), after area adjustment
         #  growth has already been distributed proportionally to the appriate land types
-        # the actual gross managed value is the smaller of: area_change minus base_area_change, and man_area
-        #  assuming man_area is constrained by the available area to expand into
-        # and use the non-regen area directly
-        # first get the initial sum of row gains for redistributing the transitions
+        # need to scale management by the ratio of the final difference between area_change and base_area_change to base_change_adjust
         # don't operate on the diagnonal, which should always be 0
-        conv_own$row_gain_sum = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x[which(x > 0)], na.rm=TRUE)})
-        conv_own$row_loss_sum = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x[which(x < 0)], na.rm=TRUE)})
-        conv_own$row_change_sum = conv_own$row_gain_sum - conv_own$row_loss_sum
-        num_avail_land_types = length(conv_own$Land_Type[conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"]) - 1
-        if (num_avail_land_types < 0 ){num_avail_land_types = 0}
+        # all transitions except forest-shrubland result form a single process
+        # base_change_adjust will always be non-zero if man_area is non-zero, except for the forest-shrubland transitions where multiple processes may be involved
+        # forest shrubland transitions are unique because three different processes contribute
+        #	reforestation, afforestation, and nonregen
+        #	only overlap between one listed practice and an unlisted practice is accounted for - basically non-regen + either afforestation or reforestation
+        # but only one of afforestation and reforestation can be prescribed at a time! Otherwise the code will break
+        
+        #conv_own$row_gain_sum = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x[which(x > 0)], na.rm=TRUE)})
+        #conv_own$row_loss_sum = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x[which(x < 0)], na.rm=TRUE)})
+        #conv_own$row_change_sum = conv_own$row_gain_sum - conv_own$row_loss_sum
+        #num_avail_land_types = length(conv_own$Land_Type[conv_own$Land_Type != "Water" & conv_own$Land_Type != "Ice"]) - 1
+        #if (num_avail_land_types < 0 ){num_avail_land_types = 0}
+        
         for (l in 1:length(conv_own$Land_Type)) {
         	### reforestation
         	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]) > 0) {
-        		if (conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] > 0) {
-        			man_area_adj = min(conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)], 
-        				conv_own$area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] -
-        					conv_own$base_area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)])
-        			scalar = man_area_adj / conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]
-        			# scale the needed transitions by the adjusted managed area and subtract transition for the row value
+        		if (conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] != 0) {
+        			if (conv_own$base_change_adjust[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] != 0) {
+        				man_area_adj = (conv_own$area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]) /
+        					conv_own$base_change_adjust[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]
+        			} else if ((conv_own$area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]) == 0) {
+        				man_area_adj = 1
+        			} else {
+        				# this shouldn't happen, but set up to adjust management based on difference, and the assumption that only either afforestation or reforestation is being used
+        				cat("Warning: net forest change is non-zero due to protection adjustment; r, i, l = ", r, i, l, "\n")
+        				man_area_adj = ( conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] - 
+        					(conv_own$area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]) ) /
+        					conv_own$man_area[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)]
+        			}
+        			# scale the needed transitions by the adjusted managed area and subtract transition from the row value
         			conv_own[conv_own$Management == "Reforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
         				(conv_own[conv_own$Management == "Reforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        			scalar * conv_own$rfrst_need[conv_own$Land_Type == conv_col_names[l]])
+        				man_area_adj * conv_own$rfrst_need[conv_own$Land_Type == conv_col_names[l]])
         			# fill in the column for this land type with the negative of the row value
         			conv_own[l,"Forest"] = -conv_own[conv_own$Management == "Reforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] 
         		} # end if non-zero man area
@@ -3604,15 +3620,26 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         	
         	### afforestation
         	if (conv_col_names[l] != "Forest" & length(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) > 0) {
-        		if (conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] > 0) {
-        			man_area_adj = min(conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)], 
-        				conv_own$area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] -
-        					conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)])
-        			scalar = man_area_adj / conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
-        			# scale the needed transitions by the adjusted managed area and subtract transition for the row value
+        		if (conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] != 0) {
+        			if (conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] != 0) {
+        				man_area_adj = (conv_own$area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) /
+        					conv_own$base_change_adjust[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+        			} else if ((conv_own$area_change[conv_own$Management == "Reforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) == 0) {
+        				man_area_adj = 1
+        			} else {
+        				# this shouldn't happen, but set up to adjust management based on difference, and the assumption that only either afforestation or reforestation is being used
+        				cat("Warning: net forest change is non-zero due to protection adjustment; r, i, l = ", r, i, l, "\n")
+        				man_area_adj = ( conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] - 
+        					(conv_own$area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)] -
+        					conv_own$base_area_change[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]) ) /
+        					conv_own$man_area[conv_own$Management == "Afforestation" & !is.na(conv_own$Management)]
+        			}
+        			# scale the needed transitions by the adjusted managed area and subtract transition from the row value
         			conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
         				(conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        			scalar * conv_own$frst_need[conv_own$Land_Type == conv_col_names[l]])
+        				man_area_adj * conv_own$frst_need[conv_own$Land_Type == conv_col_names[l]])
         			# fill in the column for this land type with the negative of the row value
         			conv_own[l,"Forest"] = -conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] 
         		} # end if non-zero man area
@@ -3620,17 +3647,15 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         	
         	### coastal marsh
         	if (conv_col_names[l] != "Coastal_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
-        		if (conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] != 0) {
         			man_area_adj = 
-        				min(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        				conv_own$area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        				conv_own$base_area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        			scalar = man_area_adj / 
-        				conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        				(conv_own$area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) /
+        				conv_own$base_change_adjust[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
         			# scale the needed transitions by the adjusted managed area and subtract transition
         			conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
         				(conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        				scalar * conv_own$cm_need[conv_own$Land_Type == conv_col_names[l]])
+        				man_area_adj * conv_own$cm_need[conv_own$Land_Type == conv_col_names[l]])
         			# fill in the column for this land type with the negative of the row value
         			conv_own[l,"Coastal_marsh"] = 
         				-conv_own[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
@@ -3639,17 +3664,15 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		
         	### fresh marsh
         	if (conv_col_names[l] != "Fresh_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
-        		if (conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] != 0) {
         			man_area_adj = 
-        				min(conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        				conv_own$area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        				conv_own$base_area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        			scalar = man_area_adj / 
-        				conv_own$man_area[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        				(conv_own$area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) /
+        				conv_own$base_change_adjust[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
 		        	# scale the needed transitions by the adjusted managed area and subtract transition
         			conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
         				(conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        				scalar * conv_own$fm_need[conv_own$Land_Type == conv_col_names[l]])
+        				man_area_adj * conv_own$fm_need[conv_own$Land_Type == conv_col_names[l]])
         			# fill in the column for this land type with the negative of the row value
         			conv_own[l,"Fresh_marsh"] = 
         				-conv_own[conv_own$Land_Type == "Fresh_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
@@ -3658,17 +3681,15 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		
         	### meadow
         	if (conv_col_names[l] != "Meadow" & length(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
-        		if (conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] != 0) {
         			man_area_adj = 
-        				min(conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        				conv_own$area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        				conv_own$base_area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        			scalar = man_area_adj / 
-        				conv_own$man_area[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        				(conv_own$area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) /
+        				conv_own$base_change_adjust[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
         			# scale the needed transitions by the adjusted managed area and subtract transition
         			conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
         				(conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        				scalar * conv_own$mdw_need[conv_own$Land_Type == conv_col_names[l]])
+        				man_area_adj * conv_own$mdw_need[conv_own$Land_Type == conv_col_names[l]])
         			# fill in the column for this land type with the negative of the row value
         			conv_own[l,"Meadow"] = 
         				-conv_own[conv_own$Land_Type == "Meadow" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
@@ -3677,17 +3698,15 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		
         	### woodland
         	if (conv_col_names[l] != "Woodland" & length(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {
-        		if (conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] > 0) {
+        		if (conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] != 0) {
         			man_area_adj = 
-        				min(conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)], 
-        				conv_own$area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
-        				conv_own$base_area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)])
-        			scalar = man_area_adj / 
-        				conv_own$man_area[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
+        				(conv_own$area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)] -
+        				conv_own$base_area_change[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) /
+        				conv_own$base_change_adjust[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]
         			# scale the needed transitions by the adjusted managed area and subtract transition
         			conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] = 
         				(conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]] -
-        					scalar * conv_own$wd_need[conv_own$Land_Type == conv_col_names[l]])	
+        				man_area_adj * conv_own$wd_need[conv_own$Land_Type == conv_col_names[l]])	
         			# fill in the column for this land type with the negative of the row value
         			conv_own[l,"Woodland"] = 
         				-conv_own[conv_own$Land_Type == "Woodland" & conv_own$Management == "Restoration" & !is.na(conv_own$Management),conv_own$Land_Type[l]]
@@ -3696,13 +3715,27 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		
         	### nonregen
         	if (conv_col_names[l] != "Forest" & length(conv_own$Land_Type[conv_own$Land_Type == "Forest"]) > 0) {
-        	# add transition - recall that this nonreg_add value is negative
-        	conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] = 
-        		(conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] -
-        		conv_own$nonreg_add[conv_own$Land_Type == conv_col_names[l]])
-        	# fill in the column for this land type with the negative of the row value
-        	conv_own[l,"Forest"] =
-        		-conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]]
+        		# need to scale this also to be consistent with the overlapping processes because the overall net value might have been adjusted
+        		# unless the special case exists where the adjustment ratio is unknown
+        		if (conv_own$base_change_adjust[conv_own$Land_Type == "Forest"] != 0) {
+        				temp_area_adj = (conv_own$area_change[conv_own$Land_Type == "Forest"] -
+        					conv_own$base_area_change[conv_own$Land_Type == "Forest"]) /
+        					conv_own$base_change_adjust[conv_own$Land_Type == "Forest"]
+        		} else if ((conv_own$area_change[conv_own$Land_Type == "Forest"] - conv_own$base_area_change[conv_own$Land_Type == "Forest"]) == 0) {
+        				temp_area_adj = 1
+        		} else {
+        			# this shouldn't happen, but don't need to scale here because the management above takes it all
+        			cat("Warning: net forest change is non-zero due to protection adjustment; r, i, l = ", r, i, l, "\n")
+        			temp_area_adj = 1
+        		}
+
+        		# add scaled transition - recall that this nonreg_add value is negative
+        		conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] = 
+        			(conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]] -
+        			temp_area_adj * conv_own$nonreg_add[conv_own$Land_Type == conv_col_names[l]])
+        		# fill in the column for this land type with the negative of the row value
+        		conv_own[l,"Forest"] =
+        			-conv_own[conv_own$Land_Type == "Forest",conv_own$Land_Type[l]]
         	} # end non regen
         		
         } # end for l loop over land types to incorporate specific transitions
@@ -3900,7 +3933,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
               } # end else underground
               # else for land types losing area or for a static scenatio where nothing changes....
             #} else if (sum(lt_conv[,conv_col_names[l]]) <= 0) {
-            	}
+            	} # end if(TRUE) for from-to
             	if (TRUE) { # this should work fine because ther are checks throughought to make sure operating rows are < 0
               # to-from
               # only operate where the "from" area is < 0
@@ -3969,10 +4002,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                 	lt_conv$area_adj[is.nan(lt_conv$area_adj)] = 0.00
                 	lt_conv$area_adj[lt_conv$area_adj == Inf] = 0.00
                 	lt_conv$area_adj[lt_conv$area_adj == -Inf] = 0.00
-                	# this shouldn't happen because non-reg is a subset of total loss, but check anyway
-                	if (TRUE %in% (lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] > 0)) {
-                		cat("Warning: nonregen error in land conversion at r, i, l, c", r, i, l, c, "\n")
-                	}
+                	# this happens when there is reforestation or afforestation that is less than the non-regen area
+                	# so need to ensure that no emissions are released below
+                	# if the restoration is greater than the non-regen area, area_adj is greater than zero and doesn't need adjustment because the calculations below don't operate on it
+                	#if (TRUE %in% (lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0] > 0)) {
+                	#	cat("Warning: nonregen error in land conversion at r, i, l, c", r, i, l, c, "\n")
+                	#}
                 	lt_conv$area_adj[lt_conv[,conv_col_names[l]] < 0 & lt_conv$area_adj > 0] = 0.00
                 }
                 # the diff matters here - negative diff values mean some carbon is sent to atmosphere
@@ -4060,9 +4095,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         conv_own[(conv_own$Land_Type == "Seagrass" & conv_own$area_change > 0), "Soil_orgC_den_change"] = 0
       } # end if land own else ocean/seagrass
       # do not include the extra columns for calculating the transitions
-      conv_own$row_gain_sum = NULL
-      conv_own$row_loss_sum = NULL
-      conv_own$row_change_sum = NULL
+      #conv_own$row_gain_sum = NULL
+      #conv_own$row_loss_sum = NULL
+      #conv_own$row_change_sum = NULL
       own_conv_df_list_pre[[i]] = conv_own
       # get column number of last column before all the land types - this attempts to make the following routine more generic to allow changes to 
       # the c_input file structure without updating the for loop below.
