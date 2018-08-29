@@ -2575,19 +2575,30 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       fire_sevadj_df$man_burn_area = 0.0
     # man_burn_area = fire_burn_area * (man_area_sum/tot_area)
     # subtract rx burn man_area_sum from thinning and understory man_area_sums proportionally
-    # first get the fuel reduction sum and add it to the df
-    thin_undr_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
+    # first get the fuel reduction sum and add it to the df, if there is fuel reduction
+    if (nrow(fire_sevadj_df[fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
+                             	fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
+                             	fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util",]) > 0) {
+    	thin_undr_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
                              fire_sevadj_df[fire_sevadj_df$Management == "Thinning" | fire_sevadj_df$Management == "Understory_treatment" |
                              	fire_sevadj_df$Management == "Thinning_med_slash_util" | fire_sevadj_df$Management == "Understory_treatment_med_slash_util" |
                              	fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util",], FUN=sum, na.rm = TRUE)
-    names(thin_undr_agg)[names(thin_undr_agg) == "man_area_sum"] = "thin_undr_man_area_sum"                         	
-    fire_sevadj_df = merge(fire_sevadj_df, thin_undr_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
-    # then get the rx burn sum and add it to the df
+    	names(thin_undr_agg)[names(thin_undr_agg) == "man_area_sum"] = "thin_undr_man_area_sum"                         	
+    	fire_sevadj_df = merge(fire_sevadj_df, thin_undr_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    } else {
+    	fire_sevadj_df$thin_undr_man_area_sum = 0
+    }
+    # then get the rx burn sum and add it to the df, if it exists
+    if (nrow(fire_sevadj_df[fire_sevadj_df$Management == "Prescribed_burn" | fire_sevadj_df$Management == "Prescribed_burn_med_slash_util" | 
+                             fire_sevadj_df$Management == "Prescribed_burn_hi_slash_util",]) > 0) {
     rxb_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
                              fire_sevadj_df[fire_sevadj_df$Management == "Prescribed_burn" | fire_sevadj_df$Management == "Prescribed_burn_med_slash_util" | 
                              fire_sevadj_df$Management == "Prescribed_burn_hi_slash_util",], FUN=sum, na.rm = TRUE)
     names(rxb_agg)[names(rxb_agg) == "man_area_sum"] = "rxb_man_area_sum"
     fire_sevadj_df = merge(fire_sevadj_df, rxb_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    } else {
+    	fire_sevadj_df$rxb_man_area_sum = 0
+    }
     # calc the man_area_sum adjustment
     fire_sevadj_df$thin_undr_mas_adj = 0.00
     fire_sevadj_df$thin_undr_mas_adj[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) &
