@@ -10,7 +10,7 @@
 #	start_year:			this is the initial year of the simulation, one of the area files needs to be for this year
 #	end_year:			this is the final year output from the caland simulation (matches the caland end_year argument)
 #	CLIMATE:				projected climate or BAU climate; "HIST" or "PROJ"; affects wildfire and veg and soil carbon accum values;
-#		the projected scenario is determined by the fire and climate input files
+#		the projected scenario is determined by the fire and climate input files; HIST uses RCP85 fire for historical average burn area, and sets all climate scalars to 1
 # 	land_change_method: "Landcover" will use original method of remote sensing landcover change from 2001 to 2010. "Landuse_Avg_Annual" will 
 #    use avg annual area change from 2010 to 2050 based on projected land use change of cultivated and developed lands (USGS data). 
 
@@ -18,8 +18,8 @@
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
 # 	units_scenario: 	specify units for input areas in scenarios_file - must be ac or ha.
 #	inputs_dir:			the directory within "./inputs" to put the generated input files; the default is "" so they go into "./inputs"
-#	climate_c_file:		the climate scalars for vegetation and soil carbon accumulation; future scenario must match the fire input file
-#	fire_area_file:		annual burned area by region-ownership; future scenario must match the climate c file
+#	climate_c_file:		the climate scalars for vegetation and soil carbon accumulation; future scenario must match the fire input file; needs to be a valid proj file for CLIMATE="HIST"
+#	fire_area_file:		annual burned area by region-ownership; future scenario must match the climate c file; needs to be rcp85 for CLIMATE="HIST"
 #	mortality_file:		mortality rate as annual fraction of above ground biomass; includes values for all woody land types that have c accumulation in vegetation
 #	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
 #	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m)
@@ -57,12 +57,14 @@
 #	Then one column for each year, starting with 2010
 #	The component is either "Vegetation" or "Soil"
 #	These values directly scale the vegetation and soil c accumulation values in CALAND
+# 	Must be a valid projected climate file, even for CLIMATE=HIST that sets all climate scalars to 1
 
 # fire_area_file
 #	Two ID columns: Region, Ownership; all possible Region-Ownership combos are included (81), even if they don't exist
 #	Then one column for each year, starting with 2010
 #	The initial year fire area is an average from 2001-2015
 #	The BAU fire is the initial fire area extrapolated through the sim (same value, no trend)
+#		Are using the RCP85 file for the historical average; it is ~10,000 ha per year less than the RCP45 file average
 #	Fire severity is estimated as fractions of the annual totals, and high sev frac increases at a historical rate
 #	Non-regen area is parameterized as a function of the high severity fraction and a threshold distance from burn edge
 #	Projected climate fire is directly from the area file, and is currently area only, so other aspects are estimated as for BAU fire
@@ -160,8 +162,7 @@ scenarios_file = "nwl_scenarios_v3_ac.xls"
 units_scenario <- "ac"
 #units_scenario = "ha"
 inputs_dir = ""
-climate_c_file = "climate_c_scalars_unitary.csv"
-#climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
+climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
 mortality_file = "mortality_annual_july_2018.csv"
 area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv"
@@ -176,15 +177,15 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
 forest_mort_fact = 2
 forest_mort_adj_first = 2015
 forest_mort_adj_last = 2024
-control_wildfire_lulcc <- FALSE
+control_wildfire_lulcc <- TRUE
 #control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv"
 
 write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
-                                CLIMATE = "HIST", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v3_ac.xls",
+                                CLIMATE = "PROJ", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v3_ac.xls",
                                 units_scenario = "ac",
                                 inputs_dir = "",
-                                climate_c_file = "climate_c_scalars_unitary.csv",
+                                climate_c_file = "climate_c_scalars_iesm_rcp85.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
                                 mortality_file = "mortality_annual_july_2018.csv",
                                 area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", land_change_method = "Landuse_Avg_Annual",
@@ -206,14 +207,9 @@ cat("Start write_caland_inputs at", date(), "\n")
 
 num_c_in_files = length(carbon_gis_files)
 
-# give warning if the climate_c_file does not correspond correctly with the historic CLIMATE setting 
-if (CLIMATE == "HIST" & climate_c_file != "climate_c_scalars_unitary.csv") {
-  stop("Historic climate (CLIMATE = 'HIST') must be paired with climate_c_file = 'climate_c_scalars_unitary.csv'")
-}
-
-# give warning if the climate_c_file does not correspond correctly with the projected CLIMATE setting 
-if (CLIMATE == "PROJ" & climate_c_file == "climate_c_scalars_unitary.csv") {
-  stop("Projected climate (CLIMATE = 'PROJ') must be paired with the RCP4.5 or RCP8.8 climate_c_file (not climate_c_scalars_unitary.csv)")
+# give warning if the fire_area_file does not correspond correctly with the historic CLIMATE setting 
+if (CLIMATE == "HIST" & fire_area_file != "fire_area_canESM2_85_bau_2001_2100.csv") {
+  stop("Historic climate (CLIMATE = 'HIST') must be paired with fire_area_file = 'fire_area_canESM2_85_bau_2001_2100.csv'")
 }
 
 # reference year for calculating area changes from start year
@@ -776,13 +772,6 @@ out_scen_df_list[[5]] = mortality_types
 # vegetation first, then soil
 
 climate_c_in = read.csv(paste0(in_dir,climate_c_file), stringsAsFactors = FALSE)
-# if landtype is "All" then it's the unitary file where all scalars are 1
-if(climate_c_in$Land_Type[1] == "All") {
-	UNITARY = TRUE
-	climate_c_in$Land_Type = NULL
-} else {
-  UNITARY = FALSE
-}
 clim_start_col = which(names(climate_c_in) == paste0("X", start_year))
 clim_end_col = ncol(climate_c_in)
 
@@ -791,13 +780,10 @@ clim_end_col = ncol(climate_c_in)
 out_scen_df_list[[6]] = out_scen_df_list[[1]][,c(1:4)]
 
 climate_c_veg = out_scen_df_list[[1]][,c(1:4)]
-if(UNITARY) {
-	climate_c_veg = merge(climate_c_veg, climate_c_in[climate_c_in$Component == "Vegetation", c(1:2,clim_start_col:clim_end_col)], by = c("Region", "Ownership"), all.x = TRUE)
-	climate_c_veg = climate_c_veg[order(climate_c_veg$Land_Cat_ID),]
-} else {
-	climate_c_veg = merge(climate_c_veg, climate_c_in[climate_c_in$Component == "Vegetation", c(1:3,clim_start_col:clim_end_col)], by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
-	climate_c_veg = climate_c_veg[order(climate_c_veg$Land_Cat_ID),]
-}
+
+climate_c_veg = merge(climate_c_veg, climate_c_in[climate_c_in$Component == "Vegetation", c(1:3,clim_start_col:clim_end_col)], by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+climate_c_veg = climate_c_veg[order(climate_c_veg$Land_Cat_ID),]
+
 climate_c_veg$Component = NULL
 climate_c_veg[is.na(climate_c_veg)] = 1
 if(CLIMATE == "HIST") { climate_c_veg[,-c(1:4)] = 1 }
@@ -813,13 +799,10 @@ for (i in c(5:ncol(out_scen_df_list[[6]]))) {
 out_scen_df_list[[7]] = out_scen_df_list[[1]][,c(1:4)]
 
 climate_c_soil = out_scen_df_list[[1]][,c(1:4)]
-if(UNITARY) {
-	climate_c_soil = merge(climate_c_soil, climate_c_in[climate_c_in$Component == "Soil", c(1:2,clim_start_col:clim_end_col)], by = c("Region", "Ownership"), all.x = TRUE)
-	climate_c_soil = climate_c_soil[order(climate_c_soil$Land_Cat_ID),]
-} else {
-	climate_c_soil = merge(climate_c_soil, climate_c_in[climate_c_in$Component == "Soil", c(1:3,clim_start_col:clim_end_col)], by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
-	climate_c_soil = climate_c_soil[order(climate_c_soil$Land_Cat_ID),]
-}
+
+climate_c_soil = merge(climate_c_soil, climate_c_in[climate_c_in$Component == "Soil", c(1:3,clim_start_col:clim_end_col)], by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+climate_c_soil = climate_c_soil[order(climate_c_soil$Land_Cat_ID),]
+
 climate_c_soil$Component = NULL
 climate_c_soil[is.na(climate_c_soil)] = 1
 if(CLIMATE == "HIST") { climate_c_soil[,-c(1:4)] = 1 }
@@ -926,7 +909,8 @@ if (control_wildfire_lulcc) {
 orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
-for (s in 1:num_scenin_sheets) {
+#for (s in 1:num_scenin_sheets) {
+for (s in c(29, 48:50)) {
   ###### scenario managed area table
 	scenin = scenin_df_list[[s]]
   	scenin_name = scenin_sheets[s]
