@@ -144,9 +144,8 @@ for( i in libs ) {
 }
 
 ########### set these here so that I can work without running the function
-scen_tag = "frst2Xmort_fire"
+scen_tag = "default"
 #scen_tag = "ind"
-#scen_tag = "ind_RCP85"
 c_file = "carbon_input_nwl.xls"
 #c_file = "carbon_input_ind.xls"
 #c_file = "carbon_input.xls"
@@ -157,7 +156,7 @@ CLIMATE = "HIST"
 #CLIMATE = "PROJ"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
-scenarios_file = "nwl_scenarios_v3_ac.xls"
+scenarios_file = "nwl_scenarios_v4_ac.xls"
 #scenarios_file = "individual_proposed_sims_aug2018.xls"
 units_scenario <- "ac"
 #units_scenario = "ha"
@@ -177,12 +176,12 @@ carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tph
 forest_mort_fact = 2
 forest_mort_adj_first = 2015
 forest_mort_adj_last = 2024
-control_wildfire_lulcc <- TRUE
+control_wildfire_lulcc <- FALSE
 #control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv"
 
 write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
-                                CLIMATE = "PROJ", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v3_ac.xls",
+                                CLIMATE = "PROJ", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v4_ac.xls",
                                 units_scenario = "ac",
                                 inputs_dir = "",
                                 climate_c_file = "climate_c_scalars_iesm_rcp85.csv",
@@ -209,7 +208,15 @@ num_c_in_files = length(carbon_gis_files)
 
 # give warning if the fire_area_file does not correspond correctly with the historic CLIMATE setting 
 if (CLIMATE == "HIST" & fire_area_file != "fire_area_canESM2_85_bau_2001_2100.csv") {
-  stop("Historic climate (CLIMATE = 'HIST') must be paired with fire_area_file = 'fire_area_canESM2_85_bau_2001_2100.csv'")
+  stop("Historic climate (CLIMATE = 'HIST') must be paired with fire_area_file = 'fire_area_canESM2_85_bau_2001_2100.csv'\n")
+}
+
+# give warning if the fire_area_file does not correspond correctly with the projected CLIMATE setting 
+if (CLIMATE == "PROJ") {
+	if ( (climate_c_file == "climate_c_scalars_iesm_rcp85.csv" & fire_area_file != "fire_area_canESM2_85_bau_2001_2100.csv") | 
+		 (climate_c_file == "climate_c_scalars_iesm_rcp45.csv" & fire_area_file != "fire_area_canESM2_45_bau_2001_2100.csv") ){
+  		stop("Projected climate and fire files must match\n")
+	}
 }
 
 # reference year for calculating area changes from start year
@@ -223,6 +230,17 @@ if(substr(out_dir,nchar(out_dir), nchar(out_dir)) != "/") { out_dir = paste0(out
 dir.create(out_dir, recursive=TRUE)
 
 xltag = ".xls"
+
+# set the climate tag for the input file name
+if (CLIMATE == "HIST") {
+		climtag = "_hist"
+} else {
+	if (climate_c_file == "climate_c_scalars_iesm_rcp85.csv") {
+		climtag = "_RCP85"
+	} else if (climate_c_file == "climate_c_scalars_iesm_rcp45.csv") {
+		climtag = "_RCP45"
+	} else {climtag = "_climNA"}
+}
 
 c_file_out = paste0(out_dir, c_file)
 # c_map_file_out = "local_files/carbon_density_map_source.xlsx" 
@@ -909,8 +927,8 @@ if (control_wildfire_lulcc) {
 orig_LULCC<- out_scen_df_list[[2]]
 orig_fire<- out_scen_df_list[[4]]
 
-#for (s in 1:num_scenin_sheets) {
-for (s in c(29, 48:50)) {
+for (s in 1:num_scenin_sheets) {
+
   ###### scenario managed area table
 	scenin = scenin_df_list[[s]]
   	scenin_name = scenin_sheets[s]
@@ -1431,12 +1449,12 @@ for (s in c(29, 48:50)) {
   } else { # end if there are management practices
     out_scen_df_list[[3]] <- data.frame(Land_Cat_ID=numeric(0), Region=character(0), Land_Type=character(0), 
                                                  Ownership=character(0), Management=character(0), stringsAsFactors=FALSE)
-  }
+  } # end if rows > 0 else no management practices
 	
   # write the scenario file
 	# write the headers also
 	
-	out_file = paste0(out_dir, scenin_name, "_", scen_tag, xltag)
+	out_file = paste0(out_dir, scenin_name, "_", scen_tag, climtag, xltag)
 	# out_file = paste0(out_dir, scenin_name, "_", xltag)
 	# put the output tables in a workbook
 	out_wrkbk =  loadWorkbook(out_file, create = TRUE)
