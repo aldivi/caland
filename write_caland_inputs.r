@@ -1303,6 +1303,8 @@ for (s in 1:num_scenin_sheets) {
 				if (nrow(growth_temp) != 0) {
 				# extract the previous year's _max_ Growth management area for each landcat, region, landtype, ownership combination
 				growth_pos_agg = aggregate(growth_val ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, growth_temp, FUN=max)
+				} else {
+					growth_pos_agg = NULL
 				}
 				
 				# assign all Growth management records that have _contracting_ Urban area to growth_temp
@@ -1313,6 +1315,8 @@ for (s in 1:num_scenin_sheets) {
 				if (nrow(growth_temp) != 0) {
 				  # extract the previous year's _min_ Growth management area for each landcat, region, landtype, ownership combination
 				  growth_neg_agg = aggregate(growth_val ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, growth_temp, FUN=min)
+				} else {
+					growth_neg_agg = NULL
 				}
 			  
 				# assign the aggregated Growth management areas accordingly to growth_temp

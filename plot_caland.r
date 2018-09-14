@@ -333,7 +333,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 # remove the years that are not to be plotted
                                 #  need to keep the extra change column because it is removed throughout the code
                                 #  i don't think it is used at all
-                                scen_df_list[[i]] = scen_df_list[[i]][,-which( as.integer(names(scen_df_list[[i]])) > last_year )]
+                                remove_cols = which( as.integer(names(scen_df_list[[i]])) > last_year )
+                                if (length(remove_cols) > 0) {
+                                	scen_df_list[[i]] = scen_df_list[[i]][,-remove_cols]
+                                }
                                 
                                 # convert the 3 area sheets to from ha to ac if units_ha == FALSE
                                 if (scen_sheets[i] %in% area_sheets & units_ha == FALSE) {
@@ -555,7 +558,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                                     # remove the years that are not to be plotted
                                 					#  need to keep the extra change column because it is removed throughout the code
                                 					#  i don't think it is used at all
-                                					temp_df = temp_df[,-which( as.integer(names(temp_df)) > last_year )]
+                                					remove_cols = which( as.integer(names(temp_df)) > last_year )
+                                					if (length(remove_cols) > 0) {
+                                						temp_df = temp_df[,-remove_cols]
+                                					}
                                                     
                                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                                     # 3) All_own & All_land, 4) All_own & All_region
@@ -803,7 +809,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                                     # remove the years that are not to be plotted
                                 					#  need to keep the extra change column because it is removed throughout the code
                                 					#  i don't think it is used at all
-                                					temp_df = temp_df[,-which( as.integer(names(temp_df)) > last_year )]
+                                					remove_cols = which( as.integer(names(temp_df)) > last_year )
+                                					if (length(remove_cols) > 0) {
+                                						temp_df = temp_df[,-remove_cols]
+                                					}
                                                     
                                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                                     # 3) All_own & All_land, 4) All_own & All_region 
