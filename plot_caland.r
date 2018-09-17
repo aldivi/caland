@@ -3196,6 +3196,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                        	# al_area_df has individual land type areas for this region and ownership, by scenario
                                      
                                 		tot_area_scen_df = out_area_df_list[[1]]
+                                		tot_area_scen_df$Units = as.character(tot_area_scen_df$Units)
                                 		for (s in 2:num_scen_names) {
                                             al_area_df$DiffArea[al_area_df$Scenario == scen_lnames[s]] = 
                                             	al_area_df$Value[al_area_df$Scenario == scen_lnames[s]] -
@@ -3249,9 +3250,13 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 			temp_df = al_area_df[al_area_df$Land_Type == lt_drive,]
                                 			
                                 			# if nothing is changing in this case then set the values to 0
+                                			# values from al_area_df are in ha or ac, so get the Units too
                                 			if (nrow(temp_df) > 0) {
                                 				tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] = temp_df$Value[temp_df$Scenario == scen_lnames[s]]
                                 				tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]] = temp_df$Value[temp_df$Scenario == scen_lnames[1]]
+                                				
+                                				tot_area_scen_df$Units[tot_area_scen_df$Scenario == scen_lnames[s]] = temp_df$Units[temp_df$Scenario == scen_lnames[s]]
+                                				tot_area_scen_df$Units[tot_area_scen_df$Scenario == scen_lnames[1]] = temp_df$Units[temp_df$Scenario == scen_lnames[1]]
                                 		
                                         		tot_area_scen_df$DiffArea[tot_area_scen_df$Scenario == scen_lnames[s]] =
                                             		(tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] -
@@ -3589,6 +3594,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                        	# al_area_df has individual land type areas for this region and ownership, by scenario
                                      
                                 		tot_area_scen_df = out_area_df_list[[1]]
+                                		tot_area_scen_df$Units = as.character(tot_area_scen_df$Units)
                                 		for (s in 2:num_scen_names) {
                                             al_area_df$DiffArea[al_area_df$Scenario == scen_lnames[s]] = 
                                             	al_area_df$Value[al_area_df$Scenario == scen_lnames[s]] -
@@ -3642,10 +3648,14 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 			temp_df = al_area_df[al_area_df$Land_Type == lt_drive,]
                                 			
                                 			# if nothing is changing in this case then set the values to 0
+                                			# units in al_area_df are ha or ac, so get the untis too
                                 			if (nrow(temp_df) > 0) {
 
                                 			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[s]] = temp_df$Value[temp_df$Scenario == scen_lnames[s]]
                                 			tot_area_scen_df$Value[tot_area_scen_df$Scenario == scen_lnames[1]] = temp_df$Value[temp_df$Scenario == scen_lnames[1]]
+                                			
+                                			tot_area_scen_df$Units[tot_area_scen_df$Scenario == scen_lnames[s]] = temp_df$Units[temp_df$Scenario == scen_lnames[s]]
+                                			tot_area_scen_df$Units[tot_area_scen_df$Scenario == scen_lnames[1]] = temp_df$Units[temp_df$Scenario == scen_lnames[1]]
                                 			
                                 			if (lt_drive == "Developed_all") {
                                 				cumyears = c(0, 0, 0, rep(1,(length(tot_area_scen_df$Year[tot_area_scen_df$Scenario == scen_lnames[s]])-3)))
