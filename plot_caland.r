@@ -1637,7 +1637,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     # do the following if plotting BC is TRUE or if it's FALSE, not on one of the BC sheets
                                     
                                     if (blackC_plot == TRUE | blackC_plot == FALSE & !(scen_sheets[i] %in% c("Total_AnnBCeq","Wildfire_AnnBCeq", "ManTotEnergy_AnnBCeq", "LCCTotEnergy_AnnBCeq", 
-                                                                                     "Eco_AnnBCeq", "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) { 
+                                                                                     "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) { 
                                     
                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                     # 3) All_own & All_land, 4) All_own & All_region
@@ -1764,7 +1764,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     # do the following if plotting BC is TRUE or if it's FALSE, not on one of the BC sheets
                                     
                                     if (blackC_plot == TRUE | blackC_plot == FALSE & !(scen_sheets[i] %in% c("Total_CumBCeq","Wildfire_CumBCeq", "ManTotEnergy_CumBCeq", "LCCTotEnergy_CumBCeq", 
-                                                                                                             "Eco_CumBCeq", "ManFire_CumBCeq", "LCCFire_CumBCeq"))) { 
+                                                                                                             "ManFire_CumBCeq", "LCCFire_CumBCeq"))) { 
                                     
                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                     # 3) All_own & All_land, 4) All_own & All_region
