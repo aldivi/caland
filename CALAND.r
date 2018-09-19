@@ -2561,7 +2561,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     #	c) frequent repeat rx burns that inflate the cum sum faster than other management sums
     #	d) there was never any prior management, which is unlikely, but should be counted (although the c accum increase would be underestimated in this case)
     #	in all three cases retain the extra rx burn area for fire severity reduction as they all would give valid extra benefits (although (c)'s benefits might be less)
-    # even with any extra rx burn area, this is likely fmore realistic than the case where all rx burn added to the other practices for severity adjustment
+    # even with any extra rx burn area, this is likely more realistic than the case where all rx burn added to the other practices for severity adjustment
     fire_sevadj_df = fire_sevadj_df[fire_sevadj_df$Land_Type == "Forest" & !is.na(fire_sevadj_df$Management) & fire_sevadj_df$Management != "Afforestation" &
     	 fire_sevadj_df$Management != "Reforestation",]
     
@@ -2585,17 +2585,29 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                              	fire_sevadj_df$Management == "Thinning_hi_slash_util" | fire_sevadj_df$Management == "Understory_treatment_hi_slash_util",], FUN=sum, na.rm = TRUE)
     	names(thin_undr_agg)[names(thin_undr_agg) == "man_area_sum"] = "thin_undr_man_area_sum"                         	
     	fire_sevadj_df = merge(fire_sevadj_df, thin_undr_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    	# clean up bad values due to aggregation and merging
+    	fire_sevadj_df$thin_undr_man_area_sum[fire_sevadj_df$thin_undr_man_area_sum < 0] = 0
+    	fire_sevadj_df$thin_undr_man_area_sum[is.na(fire_sevadj_df$thin_undr_man_area_sum)] = 0
+    	fire_sevadj_df$thin_undr_man_area_sum[is.nan(fire_sevadj_df$thin_undr_man_area_sum)] = 0
+    	fire_sevadj_df$thin_undr_man_area_sum[fire_sevadj_df$thin_undr_man_area_sum == Inf] = 0
+    	fire_sevadj_df$thin_undr_man_area_sum[fire_sevadj_df$thin_undr_man_area_sum == -Inf] = 0
     } else {
     	fire_sevadj_df$thin_undr_man_area_sum = 0
     }
     # then get the rx burn sum and add it to the df, if it exists
     if (nrow(fire_sevadj_df[fire_sevadj_df$Management == "Prescribed_burn" | fire_sevadj_df$Management == "Prescribed_burn_med_slash_util" | 
                              fire_sevadj_df$Management == "Prescribed_burn_hi_slash_util",]) > 0) {
-    rxb_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
+    	rxb_agg = aggregate(man_area_sum ~ Land_Cat_ID + Region + Land_Type + Ownership + Severity, 
                              fire_sevadj_df[fire_sevadj_df$Management == "Prescribed_burn" | fire_sevadj_df$Management == "Prescribed_burn_med_slash_util" | 
                              fire_sevadj_df$Management == "Prescribed_burn_hi_slash_util",], FUN=sum, na.rm = TRUE)
-    names(rxb_agg)[names(rxb_agg) == "man_area_sum"] = "rxb_man_area_sum"
-    fire_sevadj_df = merge(fire_sevadj_df, rxb_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    	names(rxb_agg)[names(rxb_agg) == "man_area_sum"] = "rxb_man_area_sum"
+    	fire_sevadj_df = merge(fire_sevadj_df, rxb_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    	# clean up bad values due to aggregation and merging
+    	fire_sevadj_df$rxb_man_area_sum[fire_sevadj_df$rxb_man_area_sum < 0] = 0
+    	fire_sevadj_df$rxb_man_area_sum[is.na(fire_sevadj_df$rxb_man_area_sum)] = 0
+    	fire_sevadj_df$rxb_man_area_sum[is.nan(fire_sevadj_df$rxb_man_area_sum)] = 0
+    	fire_sevadj_df$rxb_man_area_sum[fire_sevadj_df$rxb_man_area_sum == Inf] = 0
+    	fire_sevadj_df$rxb_man_area_sum[fire_sevadj_df$rxb_man_area_sum == -Inf] = 0
     } else {
     	fire_sevadj_df$rxb_man_area_sum = 0
     }
@@ -2658,6 +2670,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # merge the aggregated burn areas with the fire_sevadj_df
       # fire_sevadj_df has 95 variables 
     fire_sevadj_df = merge(fire_sevadj_df, man_burn_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)	
+    # clean up divide by zero and negative values (where rx burn cum area exceeds thin+under cum area)
+    fire_sevadj_df$man_burn_area_agg[fire_sevadj_df$man_burn_area_agg < 0] = 0
+    fire_sevadj_df$man_burn_area_agg[is.na(fire_sevadj_df$man_burn_area_agg)] = 0
+    fire_sevadj_df$man_burn_area_agg[is.nan(fire_sevadj_df$man_burn_area_agg)] = 0
+    fire_sevadj_df$man_burn_area_agg[fire_sevadj_df$man_burn_area_agg == Inf] = 0
+    fire_sevadj_df$man_burn_area_agg[fire_sevadj_df$man_burn_area_agg == -Inf] = 0
     
     # new adjusted man burn area = managed burn area * adjusted fraction for severity
       # add new column for the new adjusted man burn area (fire_sevadj_df: 96 variables)
@@ -2680,12 +2698,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       # store in mban_dec_agg (Land_Cat_ID, Region, Land_Type, Ownership, Management, man_burn_area_new)
       # 
     if (nrow(fire_sevadj_df[fire_sevadj_df$man_burn_area_new <= fire_sevadj_df$man_burn_area,])>0) {
-    mban_dec_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
+   		mban_dec_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
                              fire_sevadj_df[fire_sevadj_df$man_burn_area_new <= fire_sevadj_df$man_burn_area,], FUN=sum, na.rm = TRUE)
-    # rename the new aggreagated man_burn_area_new in mban_dec_agg: "man_burn_area_new_dec_agg"
-    names(mban_dec_agg)[names(mban_dec_agg) == "man_burn_area_new"] = "man_burn_area_new_dec_agg"
-    # merge mban_dec_agg with fire_sevadj_df (fire_sevadj_df: 97 variables)
-    fire_sevadj_df = merge(fire_sevadj_df, mban_dec_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+    	# rename the new aggreagated man_burn_area_new in mban_dec_agg: "man_burn_area_new_dec_agg"
+    	names(mban_dec_agg)[names(mban_dec_agg) == "man_burn_area_new"] = "man_burn_area_new_dec_agg"
+    	# merge mban_dec_agg with fire_sevadj_df (fire_sevadj_df: 97 variables)
+    	fire_sevadj_df = merge(fire_sevadj_df, mban_dec_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+    	# clean up bad values due to aggregation and merging
+    	fire_sevadj_df$man_burn_area_new_dec_agg[fire_sevadj_df$man_burn_area_new_dec_agg < 0] = 0
+    	fire_sevadj_df$man_burn_area_new_dec_agg[is.na(fire_sevadj_df$man_burn_area_new_dec_agg)] = 0
+    	fire_sevadj_df$man_burn_area_new_dec_agg[is.nan(fire_sevadj_df$man_burn_area_new_dec_agg)] = 0
+    	fire_sevadj_df$man_burn_area_new_dec_agg[fire_sevadj_df$man_burn_area_new_dec_agg == Inf] = 0
+    	fire_sevadj_df$man_burn_area_new_dec_agg[fire_sevadj_df$man_burn_area_new_dec_agg == -Inf] = 0
     } else {
       # assign 0 to decreased severity area if there isn't any
       fire_sevadj_df$man_burn_area_new_dec_agg <- 0
@@ -2695,12 +2719,18 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # sum the new increased severities to normalize the increases so man burn area doesn't change
       # before aggregating, check that fire_sevadj_df has rows which have new burn areas with higher severity than originally
     if (nrow(fire_sevadj_df[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area,])>0) {
-    mban_inc_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
+    	mban_inc_agg = aggregate(man_burn_area_new ~ Land_Cat_ID + Region + Land_Type + Ownership + Management, 
                              fire_sevadj_df[fire_sevadj_df$man_burn_area_new > fire_sevadj_df$man_burn_area,], FUN=sum, na.rm = TRUE)
-    # call it "man_burn_area_new_inc_agg"
-    names(mban_inc_agg)[names(mban_inc_agg) == "man_burn_area_new"] = "man_burn_area_new_inc_agg"
-    # add it to fire_sevadj_df (fire_sevadj_df: 98 variables)
-    fire_sevadj_df = merge(fire_sevadj_df, mban_inc_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+    	# call it "man_burn_area_new_inc_agg"
+    	names(mban_inc_agg)[names(mban_inc_agg) == "man_burn_area_new"] = "man_burn_area_new_inc_agg"
+    	# add it to fire_sevadj_df (fire_sevadj_df: 98 variables)
+    	fire_sevadj_df = merge(fire_sevadj_df, mban_inc_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
+    	# clean up bad values due to aggregation and merging
+    	fire_sevadj_df$man_burn_area_new_inc_agg[fire_sevadj_df$man_burn_area_new_inc_agg < 0] = 0
+    	fire_sevadj_df$man_burn_area_new_inc_agg[is.na(fire_sevadj_df$man_burn_area_new_inc_agg)] = 0
+    	fire_sevadj_df$man_burn_area_new_inc_agg[is.nan(fire_sevadj_df$man_burn_area_new_inc_agg)] = 0
+    	fire_sevadj_df$man_burn_area_new_inc_agg[fire_sevadj_df$man_burn_area_new_inc_agg == Inf] = 0
+    	fire_sevadj_df$man_burn_area_new_inc_agg[fire_sevadj_df$man_burn_area_new_inc_agg == -Inf] = 0
     } else {
       # assign 0 to increased severity area if there isn't any
       fire_sevadj_df$man_burn_area_new_inc_agg <- 0
@@ -2726,6 +2756,12 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # put the severity adjustments ("fire_burn_area_adj") from man_burn_area_new_agg into fire_adjust_df (19 to 20 variables) 
     fire_adjust_df = merge(fire_adjust_df, man_burn_area_new_agg[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity", "fire_burn_area_adj")], 
                            by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Severity"), all.x = TRUE)
+    # clean up divide by zero and negative values (where rx burn cum area exceeds thin+under cum area)
+    fire_adjust_df$fire_burn_area_adj[is.na(fire_adjust_df$fire_burn_area_adj)] = 0
+    fire_adjust_df$fire_burn_area_adj[is.nan(fire_adjust_df$fire_burn_area_adj)] = 0
+    fire_adjust_df$fire_burn_area_adj[fire_adjust_df$fire_burn_area_adj == Inf] = 0
+    fire_adjust_df$fire_burn_area_adj[fire_adjust_df$fire_burn_area_adj == -Inf] = 0
+    
     # update fire_burn_area
     fire_adjust_df$fire_burn_area[!is.na(fire_adjust_df$fire_burn_area_adj)] =
     	fire_adjust_df$fire_burn_area[!is.na(fire_adjust_df$fire_burn_area_adj)] +

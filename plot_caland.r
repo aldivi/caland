@@ -3126,7 +3126,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                             		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]]
                                             	} else if (check_cc_val == 0 & check_pc_val != 0) {
                                             		# partial to reserve
-                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            		# put this in the cc data frame for output
+                                            		cc_man_df$DiffArea[cc_man_df$Scenario == scen_lnames[s]] = pc_man_df$DiffArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            		cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]] = pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            		cc_man_df$TranArea[pc_man_df$Scenario == scen_lnames[s]] = -pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
                                             	} else {
                                             		cat("\nError in less intensive management: prescription outside of available practices\n")
                                             		stop()
@@ -3458,7 +3461,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     			cumyears = c(0,rep(1,(length(cc_man_df$Year[cc_man_df$Scenario == scen_lnames[s]])-1)))
                                         		cumyears = cumsum(cumyears)
                                         		cc_man_df$CumYears[cc_man_df$Scenario == scen_lnames[s]] = cumyears
-                                        		pc_man_df$CumYears[cc_man_df$Scenario == scen_lnames[s]] = cumyears
+                                        		pc_man_df$CumYears[pc_man_df$Scenario == scen_lnames[s]] = cumyears
                                     			
                                     			man_df$DiffArea[man_df$Scenario == scen_lnames[s]] = 
                                     				man_df$Value[man_df$Scenario == scen_lnames[s]] -
@@ -3487,7 +3490,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                             		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]]
                                             	} else if (check_cc_val == 0 & check_pc_val != 0) {
                                             		# partial to reserve
-                                            		cc_man_df$TranArea[cc_man_df$Scenario == scen_lnames[s]] = -pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            		# put this in the cc data frame for output
+                                            		cc_man_df$DiffArea[cc_man_df$Scenario == scen_lnames[s]] = pc_man_df$DiffArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            		cc_man_df$CumArea[cc_man_df$Scenario == scen_lnames[s]] = pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
+                                            		cc_man_df$TranArea[pc_man_df$Scenario == scen_lnames[s]] = -pc_man_df$CumArea[pc_man_df$Scenario == scen_lnames[s]]
                                             	} else {
                                             		cat("\nError in less intensive management: prescription outside of available practices\n")
                                             		stop()
