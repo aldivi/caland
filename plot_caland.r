@@ -69,7 +69,7 @@ for( i in libs ) {
 }
 
 # set these here so the function does not have to be used
-data_dir = "./outputs/aug7_2018_ind_41y"
+data_dir = "./outputs/sep11_2018_nwl_v4"
 # scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
 scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
 scen_snames = c("BAUEco","BAUall")
@@ -1627,7 +1627,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     
                                     # if blackC was output as GWP=1 and blackC_plot is FALSE, add BC to CO2 sheets
                                     if (blackC == FALSE & blackC_plot == FALSE & scen_sheets[i] %in% c("Total_AnnCO2","Wildfire_AnnCO2", "ManTotEnergy_AnnCO2", "LCCTotEnergy_AnnCO2", 
-                                                                                                       "Eco_AnnCO2", "ManFire_AnnCO2", "LCCFire_AnnCO2")) {
+                                                                                                       "ManFire_AnnCO2", "LCCFire_AnnCO2")) {
                                       # read the BC sheet
                                       BC_df <- readWorksheet(scen_wrkbk, i+2, startRow = 1)
                                       # add the respective BC sheet to CO2
@@ -1637,7 +1637,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     # do the following if plotting BC is TRUE or if it's FALSE, not on one of the BC sheets
                                     
                                     if (blackC_plot == TRUE | blackC_plot == FALSE & !(scen_sheets[i] %in% c("Total_AnnBCeq","Wildfire_AnnBCeq", "ManTotEnergy_AnnBCeq", "LCCTotEnergy_AnnBCeq", 
-                                                                                     "Eco_AnnBCeq", "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) { 
+                                                                                     "ManFire_AnnBCeq", "LCCFire_AnnBCeq"))) { 
                                     
                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                     # 3) All_own & All_land, 4) All_own & All_region
@@ -1754,7 +1754,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     
                                     # if blackC was output as GWP=1 and blackC_plot is FALSE, add BC to CO2 sheets
                                     if (blackC == FALSE & blackC_plot == FALSE & scen_sheets[i] %in% c("Total_CumCO2","Wildfire_CumCO2", "ManTotEnergy_CumCO2", "LCCTotEnergy_CumCO2", 
-                                                                                                       "Eco_CumCO2", "ManFire_CumCO2", "LCCFire_CumCO2")) {
+                                                                                                       "ManFire_CumCO2", "LCCFire_CumCO2")) {
                                       # read the BC sheet
                                       BC_df <- readWorksheet(scen_wrkbk, i+2, startRow = 1)
                                       # add the respective BC sheet to CO2
@@ -1764,7 +1764,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                     # do the following if plotting BC is TRUE or if it's FALSE, not on one of the BC sheets
                                     
                                     if (blackC_plot == TRUE | blackC_plot == FALSE & !(scen_sheets[i] %in% c("Total_CumBCeq","Wildfire_CumBCeq", "ManTotEnergy_CumBCeq", "LCCTotEnergy_CumBCeq", 
-                                                                                                             "Eco_CumBCeq", "ManFire_CumBCeq", "LCCFire_CumBCeq"))) { 
+                                                                                                             "ManFire_CumBCeq", "LCCFire_CumBCeq"))) { 
                                     
                                     #  For all All_own cases: 1) All_own in specific region & landtype, 2) All_own, All_land & All_region, 
                                     # 3) All_own & All_land, 4) All_own & All_region
