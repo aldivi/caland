@@ -5,3 +5,11 @@ outputs/
 .Rapp.history
 inputs/prev_nwl_inputs
 raw_data/prev_nwl_raw_scenarios
+inputs/v1_nov2016
+inputs/temp_prev_inputs_aug2018
+inputs/temp_prev_inputs_feb2018
+inputs/temp_prev_inputs_july2018
+inputs/temp_prev_inputs_sep2017
+.RData
+.Rhistory
+inputs/ind_rslc_sims_13sep2018/
