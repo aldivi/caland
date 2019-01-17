@@ -13,7 +13,7 @@
 #	reg				array of region names to plot (see below)
 #	lt				array of land types to plot; can be any number of available types (all but Seagrass are below as default; All_land is excluded)
 #	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
-#	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
+#	figdir			the directory within data_dir containing the data to plot, and where to write the figures; do not include the "/" character at the end
 
 # available regions:
 #	"Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"
@@ -59,7 +59,7 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
-plot_scen_types <- function(scen_lname, varname, ylabel, data_dir = "./outputs", file_tag="", reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures") {
+plot_scen_types <- function(varname, ylabel, data_dir = "./outputs", file_tag="", reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast"), lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all"), own = c("All_own"), figdir = "figures") {
 
 outputdir = paste0(data_dir, "/")
 

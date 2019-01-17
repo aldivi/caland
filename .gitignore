@@ -3,3 +3,5 @@ local_files/
 outputs/
 .DS_Store
 .Rapp.history
+inputs/prev_nwl_inputs
+raw_data/prev_nwl_raw_scenarios
