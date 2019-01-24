@@ -5,17 +5,22 @@
 # CAlifornia natural and working LANDs carbon and greenhouse gas model
 
 # Inputs
-# carbon_input.xls
+# carbon_input_nwl.xls
 #	The initial carbon density, carbon fluxes, and management/fire/conversion carbon adjustments
 # <scenario_name>.xls
-#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates and
-# climate effect parameters for vegetation and soil
+#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates and climate scalar effects for vegetation and soil
 #	Name the file something appropriate
 # These files have matching formats, including the number of preceding rows, the land types, the ownership, the management, the fire
 
 # Outputs
-# <scenario_name>_output_###.xls
-# "_output_" is appended to the input scenario name, then a tag to denote which input values were used (e.g., the default ### = "mean")
+# <scenario_name>_output_<tags>.xlsx
+# "_output_" is appended to the input scenario name, then tags to denote which input values were used (e.g., the default <tags> = "mean")
+#	Tags key:
+#		sd = standard deviation; mean, max, min are self explanatory
+#		D=density, A=accumulation, S=soil conservation
+#		+ means add, - means substract; applied to standard deviation only
+#		BC1 = black carbon treated like CO2; BC900 = black carbon segregated as ghg
+#		NR# = non-regeneration (i.e., conversion to shrubland) of burned forest area greater than # meters from high severity patch edge
 # output precision is to the integer (for ha and Mg C and their ratios)
 
 # This model follows basic density (stock) and flow guidelines similar to IPCC protocols
@@ -322,40 +327,36 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           if(ADD_dens == ADD_accum) {
             # both std_dev add
             if (ADD_dens) { 
-              out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_add", ".xls")
+              out_file = paste0(outputdir, scen_name, "_output_D+" , ftag[value_col_dens], "_A+", ftag[value_col_dens], ".xls")
             } else { 
               # both std_dev subtract
-                out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_sub", ".xls") }
+                out_file = paste0(outputdir, scen_name, "_output_D-" , ftag[value_col_dens], "_A-", ftag[value_col_dens], ".xls") }
             # otherwise both std_dev but different sign
           } else { 
           # dens add and accum subtract
               if (ADD_dens) {
-                out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_add_" , "dens_", ftag[value_col_accum], 
-                                  "_sub_", "accum", ".xls")
+                out_file = paste0(outputdir, scen_name, "_output_D+" , ftag[value_col_dens], "_A-", ftag[value_col_accum], ".xls")
               } else { 
                   # dens sub and accum add
-                  out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_sub_" , "dens_", ftag[value_col_accum], 
-                                    "_add_", "accum", ".xls") 
+                  out_file = paste0(outputdir, scen_name, "_output_D-" , ftag[value_col_dens], "_A+_", ftag[value_col_accum], ".xls") 
               } # end else sub
           } # end else not same sign
       } # end else value_col_dens == 8 (std_dev)
   # otherwise they are _not_ same statisitic
   } else { 
     # first case: neither is std_dev
-    if (!(value_col_dens != 8 & value_col_accum == 8) & !(value_col_dens == 8 & value_col_accum != 8)) {
-      out_file = paste0(outputdir, scen_name, "_output_" , ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_accum", ".xls")
+    if (value_col_dens != 8 & value_col_accum != 8) {
+      out_file = paste0(outputdir, scen_name, "_output_D=" , ftag[value_col_dens], "_A=", ftag[value_col_accum], ".xls")
       # second case, one is std_dev and accum is something else
     } else {
       # std_dev dens and accum something else
       if (value_col_dens == 8) {
         # std_dev add dens
         if (ADD_dens) { 
-          out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_add_" , "dens_", ftag[value_col_accum], 
-                            "_accum", ".xls")
+          out_file = paste0(outputdir, scen_name, "_output_D+", ftag[value_col_dens], "_A=", ftag[value_col_accum], ".xls")
           # std_dev sub dens
         } else { 
-          out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_sub_" , "dens_", ftag[value_col_accum], 
-                            "_accum", ".xls")
+          out_file = paste0(outputdir, scen_name, "_output_D-", ftag[value_col_dens], "_A=", ftag[value_col_accum], ".xls")
         }
           # third case, std_dev accum and dens something else  
       } else { 
@@ -363,12 +364,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
             # label them each 
             # std_dev add accum
             if (ADD_accum) { 
-              out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_add_" ,
-                                "accum", ".xls")
+              out_file = paste0(outputdir, scen_name, "_output_D=", ftag[value_col_dens], "_A+", ftag[value_col_accum], ".xls")
             # std_dev sub accum
             } else { 
-              out_file = paste0(outputdir, scen_name, "_output_", ftag[value_col_dens], "_dens_", ftag[value_col_accum], "_sub_", 
-                                "accum", ".xls")
+              out_file = paste0(outputdir, scen_name, "_output_D=", ftag[value_col_dens], "_A-", ftag[value_col_accum], ".xls")
             } # end else sub accum
           } # end if accum is std dev
       } # end else accum is std dev
@@ -381,16 +380,22 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   } else {
     # otherwise subtract ".xls" and replace with [mean, add, or sub]_soilcon.xls
     delete.xls <- ".xls"
-    if (value_col_soilcon==8) {
+    if (value_col_soilcon == 8) {
       # mean soil conservation
-      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_mean_soilcon.xls")
-    } else {
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=mean.xls")
+    } else if(value_col_soilcon == 6) {
+    	# min soil conservation
+      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=min.xls")
+    } else if(value_col_soilcon == 7) {
+    	# max soil conservation
+      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=max.xls")
+	} else {
       if (ADD_soilcon) {
         # plus sd soil conservation
-        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_add_soilcon.xls")
+        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S+sd.xls")
       } else {
         # sub sd soil conservation
-        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_sub_soilcon.xls")
+        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S-sd.xls")
       }
     }
   }
@@ -3119,7 +3124,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     ############ START BIG LOOP that ultimately calc C TRANSFER for land conversions ############ 
     # outer loop over regions
     for (r in 1:length(unique(conv_adjust_df$Region))) {
-    # get region-specific ownerships to send to inner ownership loop
+      # get region-specific ownerships to send to inner ownership loop
       region.names <- unique(conv_adjust_df$Region) 
       # subset rows in conv_adjust_df that have the region ID equal to region.sames[[r]]
       # first get row indices 
@@ -3611,15 +3616,17 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 
         # now adjust these conversions based on the specific non-growth conversions above (afforestation/reforestaion and restoration and non-regen), after area adjustment
         #  growth has already been distributed proportionally to the appriate land types
-        # need to scale management by the ratio of the final difference between area_change and base_area_change to base_change_adjust
+        # need to scale management by the ratio of the final difference between area_change and base_area_change, to base_change_adjust
         # don't operate on the diagnonal, which should always be 0
         # all transitions except forest-shrubland result form a single process
-        # base_change_adjust will always be non-zero if man_area is non-zero, except for the forest-shrubland transitions where multiple processes may be involved
+        # base_change_adjust is not the same as man_area: base_change_adjust includes adjustments due to growth rate change and limitations due to available land
         # forest shrubland transitions are unique because three different processes contribute
         #	reforestation, afforestation, and nonregen
         #	only overlap between one listed practice and an unlisted practice is accounted for - basically non-regen + either afforestation or reforestation
         # but only one of afforestation and reforestation can be prescribed at a time! Otherwise the code will break
         
+        # this code is not needed any more
+        ########## actually need this check below!!!!!
         #conv_own$row_gain_sum = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x[which(x > 0)], na.rm=TRUE)})
         #conv_own$row_loss_sum = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x[which(x < 0)], na.rm=TRUE)})
         #conv_own$row_change_sum = conv_own$row_gain_sum - conv_own$row_loss_sum
@@ -3680,6 +3687,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         			conv_own[l,"Forest"] = -conv_own[conv_own$Management == "Afforestation" & !is.na(conv_own$Management),conv_own$Land_Type[l]] 
         		} # end if non-zero man area
         	} # end afforestation
+        	######## todo:
+        	######## use base_change_adjust and area_change to determine adjustments
+        	# can keep the same code for these non-forest land types, may need to add a case for the remaining land types, and a case within to trap the divide by zero
+        	#	maybe use base_area_change instead of base_change_adjust when no restoration?
+        	#	'need' variables are based on management
+        	#	so the whole difference of base-change_adjust and area_change needs to be adjusted
+        	#		just changing the 'need' update doesn't include the other parts of base_change_adjust
+        	# the forest ones need to be updated to deal with the limits that switch the sign
         	
         	### coastal marsh
         	if (conv_col_names[l] != "Coastal_marsh" & length(conv_own$man_area[conv_own$Land_Type == "Coastal_marsh" & conv_own$Management == "Restoration" & !is.na(conv_own$Management)]) > 0) {

@@ -3,22 +3,23 @@
 # plot the mean output with shaded uncertainty region for a given variable
 # the inputs to this function are diagnostic output csv files from plot_caland()
 # this script includes 2 functions: wrapper and plot_uncertainty
+#	wrapper manipulates text for the plots
 
-# plot_uncertainty() takes ## arguments:
+# plot_uncertainty() takes 14 arguments:
 
 ##	start_year  year to start plotting
 ##  end_year    year to end plotting
-##  varname			name of variable to plot (see the outputs from plot_caland)
+##  varname		name of variable to plot (see the outputs from plot_caland)
                 # this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
-##	ylabel			y label for the plot (assign value 1 to 3); this indicates the units and whether it is a difference from baseline. Current options:
+##	ylabel		y label for the plot (assign value 1 to 4); this indicates the units and whether it is a difference from baseline. Current options:
                 # 1 = "Change from Baseline (MMT CO2e)"
                 # 2 = "MMT CO2e"
                 # 3 = "Change from Baseline (MMT C)"
                 # 4 = "MMT C"
 ##	data_dir		the path to the directory containing the three folders of plot_caland outputs (mean, low, and high); do not include the "/" character at 
                 # the end; default is "./outputs"
-##	figdirs			the three folders within data_dir containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
-                # be writted to the folder representing the mean; do not include the "/" character at the end
+##	figdirs		the three folders within data_dir containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
+                # be written to the folder representing the mean; do not include the "/" character at the end
                 # the csv files are assumed to be in <data_dir>/<figdir>, in the appropriate region and land type and ownership directories
 ##  scen_labs   scenario labels; must include three, end with the reference baseline, and correspond to files assigned to scen_a, scen_b, and base arguments;
                 # default = c("A", "B", "Baseline")
@@ -26,12 +27,12 @@
 ##  scen_b      filename corresponding to second scenario in scen_labs
 ##  base        filename corresponding to third scenario in scen_labs; must be the reference baseline scenario
 ##	file_tag		tag to add to end of new file names (e.g., to note what time period is plotted); default is "" (nothing added)
-##	reg				  array of region names to plot; default = "All_region", but can be any number of available types:
+##	reg			array of region names to plot; default = "All_region", but can be any number of available types:
                 #	"All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", 
                 # Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
-##	lt				  array of land types to plot;  default = "All_land", but can be any number of available types 
+##	lt			array of land types to plot;  default = "All_land", but can be any number of available types 
                 # Note: Seagrass has only a subset of the output files, so if including for All_region make sure that the desired varname is available
-##	own				  array of ownerships to plot;  default = "All_own", but can be any number of available types 
+##	own			array of ownerships to plot;  default = "All_own", but can be any number of available types 
 
 
 # make sure that the working directory is caland/

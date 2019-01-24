@@ -156,7 +156,7 @@ CLIMATE = "HIST"
 #CLIMATE = "PROJ"
 parameter_file = "lc_params.xls"
 #scenarios_file = "orig_scenarios.xls"
-scenarios_file = "nwl_scenarios_v4_ac.xls"
+scenarios_file = "nwl_scenarios_v6_ac.xls"
 #scenarios_file = "individual_proposed_sims_aug2018.xls"
 units_scenario <- "ac"
 #units_scenario = "ha"
@@ -181,7 +181,7 @@ control_wildfire_lulcc <- FALSE
 control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv"
 
 write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
-                                CLIMATE = "PROJ", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v4_ac.xls",
+                                CLIMATE = "PROJ", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v6_ac.xls",
                                 units_scenario = "ac",
                                 inputs_dir = "",
                                 climate_c_file = "climate_c_scalars_iesm_rcp85.csv",
