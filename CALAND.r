@@ -339,7 +339,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                 out_file = paste0(outputdir, scen_name, "_output_D+" , ftag[value_col_dens], "_A-", ftag[value_col_accum], ".xls")
               } else { 
                   # dens sub and accum add
-                  out_file = paste0(outputdir, scen_name, "_output_D-" , ftag[value_col_dens], "_A+_", ftag[value_col_accum], ".xls") 
+                  out_file = paste0(outputdir, scen_name, "_output_D-" , ftag[value_col_dens], "_A+", ftag[value_col_accum], ".xls") 
               } # end else sub
           } # end else not same sign
       } # end else value_col_dens == 8 (std_dev)
