@@ -13,8 +13,6 @@
 
 # CAlifornia natural and working LANDs carbon and greenhouse gas model
 
-# Note that the full technical description is in three files
-
 # There are five scripts in the caland/ directory, and each define a function
 #	1) CALAND.r: This is the carbon accounting model
 #	2) plot_caland.r: This generates many diagnostic output plots from two or more CALAND() output files
