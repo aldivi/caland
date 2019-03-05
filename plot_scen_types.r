@@ -6,7 +6,7 @@
 
 # plot_scen_types() has 8 arguments:
 #	varname			name of variable to plot (see the outputs from plot_caland)
-#						this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
+#						this name is between the ownership and "_output" in these file names; do not include the surrounding "_" characters
 #	ylabel			y label for the plot; this indicates the units and whether it is a difference from baseline
 #	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
 #	file_tag		additional tag to file name to note what regions/lts/ownerships are included; default is "" (nothing added)
