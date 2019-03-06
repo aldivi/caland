@@ -57,7 +57,7 @@ B. **Alternative B Scenario without Avoided Conversion**
 ### Downloading CALAND from github  
 1. Sign up for a free [github account] (github.com)  
 
-2. Go to the [CALAND github repository] (https://github.com/aldivi/caland)  (where CALAND was developed)
+2. Go to the [CALAND github repository] (https://github.com/aldivi/caland)  
 
 3. Under repository name, click Clone or download  
 
