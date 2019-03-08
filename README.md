@@ -1,60 +1,90 @@
-## The CALAND model and diagnostics ##
-# Version 3
+# CAlifornia natural and working LANDs carbon and greenhouse gas model (CALAND), diagnostics, and data pre-processing 
+### Version 3
 
-## written by:
-# Alan Di Vittorio
-# Maegen Simmonds
-# Lawrence Berkeley National Laboratory
-## for:
-# California Natural Resources Agency
-# copyright 2016-2017
-
-# This is the carbon and ghg accounting model for CA natural and working lands
-
-# CAlifornia natural and working LANDs carbon and greenhouse gas model
-
-# There are five scripts in the caland/ directory, and each define a function
-#	1) CALAND.r: This is the carbon accounting model
-#	2) plot_caland.r: This generates many diagnostic output plots from two or more CALAND() output files
-#	3) plot_scen_types.r: This plots land types on a single graph for a single scenario, using outputs from plot_caland()
-#	4) write_caland_inputs.r: This writes the detailed input files (carbon_input.xls and multiple scenario files) from the specific area and carbon density files and from more generic C parameters and management scenarios
-#	5) plot_uncertainty.r: This plots shaded uncertainty bounds around an output, using outputs from plot_caland()
-
-# These functions are designed to be run in the order above, with all desired scenarios completed with CALAND before plotting figures
-
-# The initial carbon state and all the carbon flow parameters are in an xls file in the inputs/ directory. This file is created by write_caland_inputs(), and it does not change unless lc_params.xls is modified. The default name is carbon_input_nwl.xls.
-
-# There are five scenario input files in the inputs/ directory
-# These are excel files
-#	These scenarios are the ones used for the draft Natural and Working Lands Implementation Plan (dec 2018), and incorporate RCP8.5 climate effects on carbon exchange and wildfire area
-#		Default means that the scenarios include doubled forest mortality from 2015 to 2024 to emulate recent and ongoing die-off due to insects and drought
-#	The historical Baseline scenario does not include any state-funded management, nor increases in urban forest fraction: NWL_Historical_v6_default_RCP85.xls
-#		It does include non-regeneration (i.e., conversion to shrubland) of some burned forest area greater than a threshold distance of 120m from the edge of high severity wildfire patches 
-#	Alternative A includes desired, low levels of state-funded management (except for agricultural): NWL_Alt_A_v6_default_RCP85.xls
-#		Any potential non-regenerated forest areas are assumed to be reforested and so wildfire does not convert some forest to shrubland
-#	Alternative B includes desired, high levels of state-funded management (except for agricultural): NWL_Alt_B_v6_default_RCP85.xls
-#		Any potential non-regenerated forest areas are assumed to be reforested and so wildfire does not convert some forest to shrubland
-#	Alternative A, no avoided conversion includes desired, low levels of state-funded management, but without reduced urban growth rates (except for agricultural): NWL_Alt_A_v6_NoAC_default_RCP85.xls
-#		Any potential non-regenerated forest areas are assumed to be reforested and so wildfire does not convert some forest to shrubland
-#	Alternative B, no avoided conversion includes desired, high levels of state-funded management, but without reduced urban growth rates (except for agricultural): NWL_Alt_B_v6_No_AC_default_RCP85.xls
-#		Any potential non-regenerated forest areas are assumed to be reforested and so wildfire does not convert some forest to shrubland
+## Authors 
+Alan Di Vittorio  
+Maegen Simmonds  
+Lawrence Berkeley National Laboratory  
+  
+## Funding 
+The California Natural Resources Agency  
+Copyright (c) 2016-2019
 
 
-############################
-# downloading CALAND from github #
+## Motivation
+The CALAND model was developed to quantify the impacts of various suites of State-funded land use and land management strategies on landscape carbon and greenhouse gas emissions relative to a baseline scenario for the California Natural and Working Lands Implementation Plan. 
 
-#	1) Sign up for a free github account on github.com
-#	2) Navigate to the main page of the caland repository (put URL here)
-#	3) Under repository name, click Clone or download
-#	4) In the Clone with HTTPs section, click the clipboard icon to copy the clone URL for the repository
-#	5) Open Terminal (MAC and Linux), or Git Bash (Windows)
-#	6) Change the current working directory to the location where you want the cloned directory to be made
-#	7) Type “git clone” (no quotes) and then paste the URL you copied in Step 3
-#	8) Press Enter. Your local clone will be created
+## R Files
+These are the five R files in the caland/ directory, which contain scripts (commands) for you to do the following:  
 
-# Once you have a local copy on your machine, open and source the R scripts in R (to load the functions), make sure that the working directory in R is caland/, run CALAND for at least two scenarios using CALAND(), and make some plots using plot_caland() and plot_scen_types()
-# Read the details and use the examples below to run the functions successfully
+1. **write\_caland\_inputs.r**: Contains the `write_caland_inputs` function, which writes the detailed input files (carbon\_input.xls and xls files for each scenario) that you need to run the `CALAND` function. `write_caland_inputs` will create the input files by reformatting and merging a suite of data files found in the caland\raw directory. These data files define the management scenarios, initial land category areas and carbon densities; annual area changes; ecosystem carbon fluxes; management parameters; parameters for land conversion to cultivated or developed lands; wildfire parameters; wildfire areas; and climate change scalars.  There are several options for each of these categories that you choose when running  `write_caland_inputs`.
 
+2. **CALAND.r**: Contains the `CALAND` function, which is the carbon and greenhouse gas accounting model. It uses the input files generated by `write_caland_inputs`. One scenario file is simulated each time  `CALAND` is run, producing a single output xls file that summarizes the annual outputs for 214 variables, each in an individual Excel worksheet.  There are several options that you select when running  `CALAND`, such as which carbon values to use from the carbon inputs file (i.e. mean, mean+sd, mean-sd, min, or max) and what level of non-regeneration to assume post-wildfire.
+
+3. **plot_caland.r**: Contains the `plot_caland` function that plots a subset of the outputs from `CALAND`. `plot_caland` generates many diagnostic output plots (pdf files) and corresoponding spreadhseets (csv files) by reading two or more `CALAND` scenario output xls files. It is designed to compare any number of scenarios to a single reference baseline scenario. 
+
+4. **plot\_scen\_types.r**: Contains the `plot_scen_types` function, which plots land types onto a single graph for a designated scenario.  `plot_scen_types` uses the csv outputs from  `plot_caland`.  
+
+5. **plot\_uncertainty.r**: Contains the `plot_uncertainty` function, which plots shaded uncertainty bounds around a single output variable from `plot_caland` in individual plots for each scenario as well as combined in a single plot for comparison. Three sets of  `plot_caland` outputs are required per scenario that represent the mean, lower uncertainty bounds, and upper uncertainty bounds. Both `plot_caland` and `CALAND` must be run 3 times per scenario to produce these.
+
+These files are designed to be used in the order above. However all desired scenarios must be completed with CALAND before plotting figures. Either `plot_scen_types` or `plot_uncertainty` can be run after `plot_caland`.
+
+## Input files
+### Carbon input file 
+The initial carbon state (carbon densities) and all the carbon flow parameters (fluxes and scalars) are in an xls file in the inputs/ directory. This file is created by `write_caland_inputs`, and it does not change unless the raw land carbon input file lc_params.xls is modified. The default name is **carbon\_input\_nwl.xls**.  
+
+### Scenario input files
+There are five scenario input xls files in the caland/inputs/ directory that were created using `write_caland_inputs` for the draft Natural and Working Lands Implementation Plan (Dec 2018). These scenarios incorporate RCP8.5 climate effects on carbon exchange and wildfire area. 'Default' in the filename means that the scenarios include doubled forest mortality from 2015 to 2024 to emulate recent and ongoing die-off due to insects and drought.  
+
+1. **Historical Baseline Scenario** **NWL\_Historical\_v6\_default\_RCP85.xls** is the reference scenario used to compare the changes in management that are prescribed in the following alternative scenarios. It does not include any California State-funded management or increases in the forest fraction of urban lands. Note that this scenario was intended to run in  `CALAND` with the setting for maximum non-regeneration (i.e., forest conversion to shrubland) in forest areas burned by high-severity wildfire.  
+
+2. **Alternative A Scenario**  
+**NWL\_Alt\_A\_v6\_default\_RCP85.xls**: adds desired, *low levels* of California State-funded management to the Historical Baseline Scenario. Note that agricultural management is limited in scope, and only represents California Natural Resources Agency-funded areas for soil conservation in cultivated lands. Note that this scenario was intended to run in  `CALAND` with the setting for full regeneration post-wildfire to represent maximum reforestation of forest areas that would not otherwise recover fully following high-severity wildfire.  
+
+3. **Alternative B Scenario**  
+**NWL\_Alt\_B\_v6\_default\_RCP85.xls**: adds desired, *high levels* of California State-funded management to the Historical Baseline Scenario. Note that agricultural management is limited in scope, and only represents California Natural Resources Agency-funded areas for soil conservation in cultivated lands. Note that this scenario was intended to run in  `CALAND` with the setting for full regeneration post-wildfire to represent maximum reforestation of forest areas that would not otherwise recover fully following high-severity wildfire.  
+
+4. **Alternative A Scenario without Avoided Conversion**  
+**NWL\_Alt\_A\_v6\_NoAC\_default\_RCP85.xls**: mimics the *low levels* of state-funded management in Alternative A, but *without avoided conversion*.
+
+B. **Alternative B Scenario without Avoided Conversion**  
+**NWL\_Alt\_B\_v6\_NoAC\_default\_RCP85.xls**: mimics the *high levels* of state-funded management in Alternative B, but *without avoided conversion*.
+
+## Instructions for downloading R and CALAND
+###Downloading R Studio 
+(in progress)
+
+### Downloading CALAND from github  
+1. Sign up for a free [github account] (github.com)  
+
+2. Go to the [CALAND github repository] (https://github.com/aldivi/caland)  
+
+3. Under repository name, click Clone or download  
+
+4. In the Clone with HTTPs section, click the clipboard icon to copy the clone URL for the repository
+
+5. Open Terminal (MAC and Linux), or Git Bash (Windows) 
+
+6. Change the current working directory to the location where you want the cloned directory to be made  
+
+7. Type `git clone` and then paste the URL you copied in Step 4  
+
+8. Press Enter. Your local clone will be created
+
+## Instructions for your first test runs with CALAND
+
+Once you have completed downloading CALAND, you will have a local copy of all the R scripts, four example input scenario files (described above), a carbon input file, and all the raw files for creating new input files, on your local computer. Now you can use the carbon and scenario input files that were already created with `write_caland_inputs` to do a test run with  `CALAND` and the three plotting functions: `plot_caland`, `plot_scen_types` , and  `plot_uncertainty`.
+
+#### Load the functions in R
+1. Open the four R files in R.  
+2. Make sure that the working directory in R is caland/ (add instructions)  
+3. To load the functions in each file, click the Source button in the top-right corner of the editor window or choose Edit→Source.  
+4. Run `CALAND` for at least two scenarios by typing `CALAND(<settings here>). See below for instructions with settings (arguments).  
+5. Make some plots using `plot_caland` and `plot_scen_types`
+
+**Read the details below and use the examples to run the functions successfully**
+
+(updates below this line are in progress) 
 
 ############################
 # CALAND() #
@@ -74,7 +104,7 @@
 #		sd = standard deviation; mean, max, min are self explanatory
 #		D=density, A=accumulation, S=soil conservation
 #		+ means add, - means substract; applied to standard deviation only
-#		BC1 = black carbon treated like CO2; BC900 = black carbon segregated as ghg
+#		BC1 = black carbon treated like CO2; BC900 = black carbon segregated as GHG
 #		NR# = non-regeneration (i.e., conversion to shrubland) of burned forest area greater than # meters from high severity patch edge
 # output precision is to the integer (for ha and Mg C and their ratios)
 
