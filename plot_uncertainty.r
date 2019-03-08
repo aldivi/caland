@@ -10,7 +10,7 @@
 ##	start_year  year to start plotting
 ##  end_year    year to end plotting
 ##  varname		name of variable to plot (see the outputs from plot_caland)
-                # this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
+                # this name is between the ownership and "_output" in these file names; do not include the surrounding "_" characters
 ##	ylabel		y label for the plot (assign value 1 to 4); this indicates the units and whether it is a difference from baseline. Current options:
                 # 1 = "Change from Baseline (MMT CO2e)"
                 # 2 = "MMT CO2e"
@@ -149,9 +149,9 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			  # replace the names of scenarios for plotting
 			  levels(all_df$Scenario)[levels(all_df$Scenario)==scen_a] <- scen_labs[1]
 			  levels(all_df$Scenario)[levels(all_df$Scenario)==scen_b] <- scen_labs[2]
-        levels(all_df$Scenario)[levels(all_df$Scenario)==base] <- scen_labs[3]
+        	  levels(all_df$Scenario)[levels(all_df$Scenario)==base] <- scen_labs[3]
 			    
-        ### plot scenarios on one plot  
+        	  ### plot scenarios on one plot  
 			  p <- ggplot(all_df) + geom_line(aes(x=Year, y=Value, colour=Scenario)) +
 			    geom_ribbon(data=all_df,aes(x=Year, y=Value, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
 			    ggtitle(wrapper(title, width=40)) + theme_bw() + theme(legend.text=element_text(size=12),
@@ -179,16 +179,16 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			  ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
 			  
 			  #### plot scenarios individually
-			  for ( i in 1:num_scen) {
+			  for ( s in 1:num_scen) {
 			    
 			    # get scehnario name for labeling
-			    scen_lab <- paste0("Scenario_",scen_labs[i])
+			    scen_lab <- paste0("Scenario_",scen_labs[s])
 			    
 			    # create plot tile combining the geography, scenario, version/assumptions, and variable
 			    title <- paste(reg_lab, own_lab, lt_lab, scen_lab, file_lab, varname)
 			   
-			    p <- ggplot(all_df[all_df$Scenario==scen_labs[i],]) + geom_line(aes(x=Year, y=Value, colour=Scenario)) +
-			       geom_ribbon(data=all_df[all_df$Scenario==scen_labs[i],],
+			    p <- ggplot(all_df[all_df$Scenario==scen_labs[s],]) + geom_line(aes(x=Year, y=Value, colour=Scenario)) +
+			       geom_ribbon(data=all_df[all_df$Scenario==scen_labs[s],],
 			                   aes(x=Year, y=Value, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
 			       ggtitle(wrapper(title, width=40)) + theme_bw() + theme(legend.text=element_text(size=12),
 			                                                              plot.title = element_text(size=8),
@@ -215,7 +215,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			                       varname, "_scen_comp_uncert_bands", added_file_tag, ".pdf")
 			     ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
 			     
-			     } # end plot individual scenarios
+			     } # end s loop plot individual scenarios
 			  } # end for i loop over reading land types
 		  } # end o loop over ownerships
     } # end r loop over regions
