@@ -1,14 +1,36 @@
 # plot_uncertainty.r
 
-# plot the mean output with shaded uncertainty region for a given variable
-# the inputs to this function are diagnostic output csv files from plot_caland()
+# plot the uncertainty range (low and high emsissions) around average values for chosen variable over time for each scenario 
+# variables are plotted using the .csv outputs from plot_caland.r 
+
+# Inputs
+# (1) Mean output folder from plot_caland: <figdir[1]>/<reg_lab>_<lt_lab>_<own_lab>_<varname>_output.csv 
+# (2) Low output folder from plot_caland: <figdir[2]><reg_lab>_<lt_lab>_<own_lab>_<varname>_output.csv 
+# (3) High output folder from plot_caland: <figdir[3]><reg_lab>_<lt_lab>_<own_lab>_<varname>_output.csv 
+# These files have matching formats
+# The three input .csv files for mean, low, and high are assumed to be in caland/outputs/mean, caland/outputs/low, 
+# caland/outputs/high, respectively, unless <figdir> is specified differently than the default: figdir = c("mean","low","high")
+
+# Outputs
+# Scenarios plotted on same graph
+# (1) <reg_lab>_<own_lab>_<lt_lab>_<varname>_scen_comp_uncert_bands<added_file_tag>.pdf
+# (2) <reg_lab>_<own_lab>_<lt_lab>_<varname>_scen_comp_uncert_bands<added_file_tag>.csv
+# Scenarios plotted individually (scen_lab is assigned based on inputs)
+# (3) <reg_lab>_<own_lab>_<lt_lab>_<scen_a>_<varname>_scen_comp_uncert_bands<added_file_tag>.pdf
+# (4) <reg_lab>_<own_lab>_<lt_lab>_<scen_b>_<varname>_scen_comp_uncert_bands<added_file_tag>.pdf
+# (5) <reg_lab>_<own_lab>_<lt_lab>_<base>_<varname>_scen_comp_uncert_bands<added_file_tag>.pdf *only written if varname does not end in "_diff"
+
+# Output .pdf and .csv files are written to caland/outputs/<figdir[1]> where figdir[1] is the folder containing the mean plot_caland outputs
+
 # this script includes 2 functions: wrapper and plot_uncertainty
 #	wrapper manipulates text for the plots
+# plot_uncertainty generates the plots 
 
 # plot_uncertainty() takes 14 arguments:
 
 ##	start_year  year to start plotting
 ##  end_year    year to end plotting
+<<<<<<< HEAD
 ##  varname		name of variable to plot (see the outputs from plot_caland)
                 # this name is between the ownership and "_output" in these file names; do not include the surrounding "_" characters
 ##	ylabel		y label for the plot (assign value 1 to 4); this indicates the units and whether it is a difference from baseline. Current options:
@@ -16,24 +38,40 @@
                 # 2 = "MMT CO2e"
                 # 3 = "Change from Baseline (MMT C)"
                 # 4 = "MMT C"
+=======
+##  varname		  name of variable to plot (see the outputs from plot_caland)
+                  # this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
+##	ylabel		  y label for the plot (assign value 1 to 8) corresponding to the units of your outputs and whether they are changes from baseline (varnmae ending in "diff") 
+                  # or absolute values. Note that this function does not convert units so the output units of your desired plotting variable must be correctly matched with 
+                  # one of the following labels:
+                  # 1 = "Change from Baseline (MMT CO2e)"
+                  # 2 = "MMT CO2e"
+                  # 3 = "Change from Baseline (MMT C)"
+                  # 4 = "MMT C"
+                  # 5 = "Change from Baseline (Mg C/ha)"
+                  # 6 = "Mg C/ha"
+                  # 7 = "Change from Baseline (Mg C/ac)"
+                  # 8 = "Mg C/ac"
+>>>>>>> 727abfcdb2ef2ddd7a61ab2a9f38abccd6509e52
 ##	data_dir		the path to the directory containing the three folders of plot_caland outputs (mean, low, and high); do not include the "/" character at 
-                # the end; default is "./outputs"
-##	figdirs		the three folders within data_dir containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
-                # be written to the folder representing the mean; do not include the "/" character at the end
-                # the csv files are assumed to be in <data_dir>/<figdir>, in the appropriate region and land type and ownership directories
+                  # the end; default is "./outputs"
+##	figdirs		  the three folders within data_dir containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
+                  # be written to the folder representing the mean; do not include the "/" character at the end
+                  # the csv files are assumed to be in <data_dir>/<figdir>, in the appropriate region and land type and ownership directories
 ##  scen_labs   scenario labels; must include three, end with the reference baseline, and correspond to files assigned to scen_a, scen_b, and base arguments;
-                # default = c("A", "B", "Baseline")
-##  scen_a      filename corresponding to first scenario in scen_labs
-##  scen_b      filename corresponding to second scenario in scen_labs
-##  base        filename corresponding to third scenario in scen_labs; must be the reference baseline scenario
-##	file_tag		tag to add to end of new file names (e.g., to note what time period is plotted); default is "" (nothing added)
-##	reg			array of region names to plot; default = "All_region", but can be any number of available types:
-                #	"All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", 
-                # Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
-##	lt			array of land types to plot;  default = "All_land", but can be any number of available types 
-                # Note: Seagrass has only a subset of the output files, so if including for All_region make sure that the desired varname is available
-##	own			array of ownerships to plot;  default = "All_own", but can be any number of available types 
+                  # default = c("A", "B", "Baseline")
+##  scen_a      Scenario name corresponding to first alternative scenario in scen_labs in the csv file containing varname for the mean
+##  scen_b      Scenario name corresponding to second alternative scenario in scen_labs in the csv file containing varname for the mean
+##  base        Scenario name corresponding to the _baseline_ scenario in scen_labs in the csv file containing varname for the mean 
+##	file_tag	  tag to add to end of new file names (e.g., to note what time period is plotted); default is "" (nothing added)
+##	reg			    array of region names to plot; default = "All_region", but can be any number of available types:
+                  #	"All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", 
+                  # Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
+##	lt			    array of land types to plot;  default = "All_land", but can be any number of available types 
+                  # Note: Seagrass has only a subset of the output files, so if including for All_region make sure that the desired varname is available
+##	own			    array of ownerships to plot;  default = "All_own", but can be any number of available types 
 
+###################################################################################################################################################
 
 # make sure that the working directory is caland/
 # setwd("<your_path>/caland/")
@@ -52,6 +90,7 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
+
 ###################################################################################################################################################
 ################################################### Assign function to wrap text in plot titles ################################################### 
 ###################################################################################################################################################
@@ -64,8 +103,9 @@ wrapper <- function(x, ...)
 ########################### Assign function to plot variables over time with shaded uncertainty range for each scenario ###########################
 ###################################################################################################################################################
 
-plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, data_dir = "./outputs", figdirs, scen_labs = c("A", "B", "Baseline"), 
-                             scen_a, scen_b, base, file_tag="", reg = "All_region", lt = "All_land", own="All_own") {
+plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, data_dir = "./outputs", figdirs=c("mean","low","high"), 
+                             scen_labs = c("A", "B", "Baseline"), scen_a, scen_b, base, file_tag="", 
+                             reg = "All_region", lt = "All_land", own="All_own") {
   
   if (length(scen_labs) == 2 & substr(varname, nchar(varname)-3, nchar(varname)) != "diff") {
     cat( "Scenario names are incomplete for variable with absolute units: see scen_labs\n" )
@@ -125,6 +165,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 				  # mean
 				  if (f==1) {
 				    all_df <- rbind(all_df, in_df)
+				    colnames(all_df)[ncol(all_df)] <- "Mean"
 				    } else if (f==2) {
 				      all_df <- cbind(all_df,in_df$Value)
 				      colnames(all_df)[ncol(all_df)] <- "Min"
@@ -151,9 +192,15 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			  levels(all_df$Scenario)[levels(all_df$Scenario)==scen_b] <- scen_labs[2]
         	  levels(all_df$Scenario)[levels(all_df$Scenario)==base] <- scen_labs[3]
 			    
+<<<<<<< HEAD
         	  ### plot scenarios on one plot  
 			  p <- ggplot(all_df) + geom_line(aes(x=Year, y=Value, colour=Scenario)) +
 			    geom_ribbon(data=all_df,aes(x=Year, y=Value, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
+=======
+        ### plot scenarios on one plot  
+			  p <- ggplot(all_df) + geom_line(aes(x=Year, y=Mean, colour=Scenario)) +
+			    geom_ribbon(data=all_df,aes(x=Year, y=Mean, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
+>>>>>>> 727abfcdb2ef2ddd7a61ab2a9f38abccd6509e52
 			    ggtitle(wrapper(title, width=40)) + theme_bw() + theme(legend.text=element_text(size=12),
 			                                                              plot.title = element_text(size=8),
 			                                                              axis.text=element_text(size=12), 
@@ -173,10 +220,24 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			  if (ylabel == 4) {
 			    p <- p  + ylab(expression("MMT C"))  
 			    } 
-			  
-			  
-			  out_file = paste0(outputdir, figdirs[1], "/", reg_lab, "/", reg_lab, "_", own_lab, "_", lt_lab, "_", varname, "_scen_comp_uncert_bands", added_file_tag, ".pdf")
+			  if (ylabel == 5) {
+			    p <- p  + ylab(expression("Change from Baseline (Mg C/ha)"))  
+			  } 
+			  if (ylabel == 6) {
+			    p <- p  + ylab(expression("Mg C/ha"))  
+			  } 
+			  if (ylabel == 7) {
+			    p <- p  + ylab(expression("Change from Baseline (Mg C/ac)"))  
+			  } 
+			  if (ylabel == 8) {
+			    p <- p  + ylab(expression("Mg C/ac"))  
+			  } 
+			  # save plot as pdf
+			  out_file <- paste0(outputdir, figdirs[1], "/", reg_lab, "/", reg_lab, "_", own_lab, "_", lt_lab, "_", varname, "_scen_comp_uncert_bands", added_file_tag, ".pdf")
 			  ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
+		    # save df as csv
+			  out_csv <- gsub(".pdf", ".csv", out_file) 
+			  write.csv(all_df, out_csv)
 			  
 			  #### plot scenarios individually
 			  for ( s in 1:num_scen) {
@@ -187,9 +248,15 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			    # create plot tile combining the geography, scenario, version/assumptions, and variable
 			    title <- paste(reg_lab, own_lab, lt_lab, scen_lab, file_lab, varname)
 			   
+<<<<<<< HEAD
 			    p <- ggplot(all_df[all_df$Scenario==scen_labs[s],]) + geom_line(aes(x=Year, y=Value, colour=Scenario)) +
 			       geom_ribbon(data=all_df[all_df$Scenario==scen_labs[s],],
 			                   aes(x=Year, y=Value, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
+=======
+			    p <- ggplot(all_df[all_df$Scenario==scen_labs[i],]) + geom_line(aes(x=Year, y=Mean, colour=Scenario)) +
+			       geom_ribbon(data=all_df[all_df$Scenario==scen_labs[i],],
+			                   aes(x=Year, y=Mean, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
+>>>>>>> 727abfcdb2ef2ddd7a61ab2a9f38abccd6509e52
 			       ggtitle(wrapper(title, width=40)) + theme_bw() + theme(legend.text=element_text(size=12),
 			                                                              plot.title = element_text(size=8),
 			                                                              axis.text=element_text(size=12), 
@@ -210,7 +277,18 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, da
 			     if (ylabel == 4) {
 			       p <- p  + ylab(expression("MMT C"))  
 			     }
-			    
+			    if (ylabel == 5) {
+			      p <- p  + ylab(expression("Change from Baseline (Mg C/ha)"))  
+			    } 
+			    if (ylabel == 6) {
+			      p <- p  + ylab(expression("(Mg C/ha)"))  
+			    }
+			    if (ylabel == 7) {
+			      p <- p  + ylab(expression("Change from Baseline (Mg C/ac)"))  
+			    } 
+			    if (ylabel == 8) {
+			      p <- p  + ylab(expression("Mg C/ac"))  
+			    } 
 			     out_file = paste0(outputdir, figdirs[1], "/", reg_lab, "/", reg_lab, "_", own_lab, "_", lt_lab, "_", scen_lab, "_", 
 			                       varname, "_scen_comp_uncert_bands", added_file_tag, ".pdf")
 			     ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
