@@ -1,5 +1,10 @@
 # write_caland_inputs.r
 
+# Copyright (c) 2016-2019, Alan Di Vittorio and Maegen Simmonds
+
+# This software and its associated input data are licensed under the 3-Clause BSD open source license
+# Please see license.txt for details
+
 # generate the caland input files based on the gis stats and parameters from the literature
 #	make .xls files
 

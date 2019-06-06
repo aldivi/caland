@@ -1,5 +1,10 @@
 # plot_caland.r
 
+# Copyright (c) 2016-2019, Alan Di Vittorio and Maegen Simmonds
+
+# This software and its associated input data are licensed under the 3-Clause BSD open source license
+# Please see license.txt for details
+
 # make diagnostic plots (.pdf files) and associated text files (.csv files) of two or more CALAND scenario outputs
 
 # this script loops over all the regions and land types

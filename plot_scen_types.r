@@ -1,5 +1,10 @@
 # plot_scen_types.r
 
+# Copyright (c) 2016-2019, Alan Di Vittorio and Maegen Simmonds
+
+# This software and its associated input data are licensed under the 3-Clause BSD open source license
+# Please see license.txt for details
+
 # put a variable for specified land types within a region and ownership on the same plot, for each scenario in the diagnostic output file
 
 # this script reads the csv files produced by plot_caland()

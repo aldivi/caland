@@ -1,5 +1,10 @@
 # CALAND.r
 
+# Copyright (c) 2016-2019, Alan Di Vittorio and Maegen Simmonds
+
+# This software and its associated input data are licensed under the 3-Clause BSD open source license
+# Please see license.txt for details
+
 # This is the carbon accounting model for CA
 
 # CAlifornia natural and working LANDs carbon and greenhouse gas model

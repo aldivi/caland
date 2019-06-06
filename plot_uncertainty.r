@@ -1,5 +1,10 @@
 # plot_uncertainty.r
 
+# Copyright (c) 2016-2019, Alan Di Vittorio and Maegen Simmonds
+
+# This software and its associated input data are licensed under the 3-Clause BSD open source license
+# Please see license.txt for details
+
 # plot the uncertainty range (low and high emsissions) around average values for chosen variable over time for each scenario 
 # variables are plotted using the .csv outputs from plot_caland.r 
 
@@ -177,7 +182,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				  if (f==1) {
 				  	# mean
 				  	# extract the years specified between start_year and end_year for each desired scenario
-          		  	in_df <- in_df_pre[in_df_pre$Scenario %in% scenarios & scen$Year %in% start_year:end_year,]
+          		  	in_df <- in_df_pre[in_df_pre$Scenario %in% scenarios & in_df_pre$Year %in% start_year:end_year,]
 				  	# subset the current region and ownership for given land type
 				  	in_df = in_df[in_df$Region == reg_lab & in_df$Ownership == own_lab,]
 				    # add these to the group df
@@ -198,7 +203,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop ove desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
-          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & scen$Year %in% start_year:end_year,]		    	
+          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]		    	
 				    } else { # carbon input uncertainty
 				    	# just match the scenario name, the soil tag, the BC tag, and the NR tag
 				    	snames_all = NULL
@@ -214,7 +219,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
-          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & scen$Year %in% start_year:end_year,]				  		
+          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]				  		
 				    } # end if-else soil cons vs carbon uncertainty
 				    # subset the current region and ownership for given land type
 				    in_df = in_df[in_df$Region == reg_lab & in_df$Ownership == own_lab,]
@@ -236,7 +241,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop ove desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
-          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & scen$Year %in% start_year:end_year,]		    	
+          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]		    	
 				    } else { # carbon input uncertainty
 				    	# just match the scenario name, the soil tag, the BC tag, and the NR tag
 				    	snames_all = NULL
@@ -252,7 +257,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
-          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & scen$Year %in% start_year:end_year,]				  		
+          		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]				  		
 				    } # end if-else soil cons vs carbon uncertainty
 				    # subset the current region and ownership for given land type
 				    in_df = in_df[in_df$Region == reg_lab & in_df$Ownership == own_lab,]
