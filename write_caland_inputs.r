@@ -17,7 +17,7 @@
 #	CLIMATE:				projected climate or BAU climate; "HIST" or "PROJ"; affects wildfire and veg and soil carbon accum values;
 #		the projected scenario is determined by the fire and climate input files; HIST uses RCP85 fire for historical average burn area, and sets all climate scalars to 1
 # 	land_change_method: "Landcover" will use original method of remote sensing landcover change from 2001 to 2010. "Landuse_Avg_Annual" will 
-#    use avg annual area change from 2010 to 2050 based on projected land use change of cultivated and developed lands (USGS data). 
+#    use avg annual area change based on the years in area_gis_files_new, which is from projected land use change of cultivated and developed lands (USGS data). 
 
 #	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
 #	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
@@ -27,7 +27,7 @@
 #	fire_area_file:		annual burned area by region-ownership; future scenario must match the climate c file; needs to be rcp85 for CLIMATE="HIST"
 #	mortality_file:		mortality rate as annual fraction of above ground biomass; includes values for all woody land types that have c accumulation in vegetation
 #	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
-#	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m)
+#	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m); default is 2010 through 2100, can also use 2010 through 2050
 #	carbon_gis_files:	vector of 13 csv file names of gis stats carbon density by land category (t C per ha)
 #	forest_mort_fact:		the value by which to adjust the forest mortality during the period specified by forest_mort_adj_first/last; default is 2
 #	forest_mort_adj_first:	the first year to adjust forest mortality; default is 2015
@@ -192,7 +192,7 @@ write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl
                                 climate_c_file = "climate_c_scalars_iesm_rcp85.csv",
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
                                 mortality_file = "mortality_annual_july_2018.csv",
-                                area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", land_change_method = "Landuse_Avg_Annual",
+                                area_gis_files_new = "CALAND_Area_Changes_2010_to_2101.csv", land_change_method = "Landuse_Avg_Annual",
                                 area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), 
                                 carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", 
