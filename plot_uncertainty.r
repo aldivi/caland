@@ -57,13 +57,23 @@
 ##  scenarios_a   one or more scenario names for group 'a' that are listed in the Scenario column in the csv file containing varname for the mean
 ##  scen_labs_a   scenario labels; must have the same number and correspond directly in order with scenarios_a
 ##	data_dir_b	  the path to the directory containing the three folders of plot_caland outputs (mean, low, and high) for scenario group b;
-				  #NA is the default, which means that only one scenario group (group a) is plotted; do not include the "/" character at 
+				  # use this if plotting two or three groups
+				  # NA is the default, which means that only one scenario group (group a) is plotted; do not include the "/" character at 
                   # the end; default is "./outputs"
 ##	figdirs_b	  the three folders within data_dir_b containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
                   # be written to the folder representing the mean; do not include the "/" character at the end
                   # the csv files are assumed to be in <data_dir_b>/<figdirs_b[f]>, in the appropriate region and land type and ownership directories
 ##  scenarios_b   one or more scenario names for group 'b' that are listed in the Scenario column in the csv file containing varname for the mean
 ##  scen_labs_b   scenario labels; must have the same number and correspond directly in order with scenarios_b
+##	data_dir_c	  the path to the directory containing the three folders of plot_caland outputs (mean, low, and high) for scenario group c;
+				  # use this only if plotting three groups
+				  # NA is the default, which means that only group a or groups a and b are plotted; do not include the "/" character at 
+                  # the end; default is "./outputs"
+##	figdirs_c	  the three folders within data_dir_c containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
+                  # be written to the folder representing the mean; do not include the "/" character at the end
+                  # the csv files are assumed to be in <data_dir_c>/<figdirs_c[f]>, in the appropriate region and land type and ownership directories
+##  scenarios_c   one or more scenario names for group 'c' that are listed in the Scenario column in the csv file containing varname for the mean
+##  scen_labs_c   scenario labels; must have the same number and correspond directly in order with scenarios_c
 ##	reg			    array of region names to plot; default = "All_region", but can be any number of available types:
                   #	"All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", 
                   # Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
@@ -106,15 +116,18 @@ wrapper <- function(x, ...)
 plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, file_tag="", 
 							data_dir_a = "./outputs", figdirs_a=c("mean","low","high"), scenarios_a, scen_labs_a,
 							data_dir_b = NA, figdirs_b = NA, scenarios_b = NA, scen_labs_b = NA,
+							data_dir_c = NA, figdirs_c = NA, scenarios_c = NA, scen_labs_c = NA,
                           	reg = "All_region", lt = "All_land", own="All_own") {
   
   outputdir_a = paste0(data_dir_a, "/")
   outputdir_b = paste0(data_dir_b, "/")
+  outputdir_c = paste0(data_dir_c, "/")
   num_reg = length(reg)
   num_lt = length(lt)
   num_own = length(own)
   num_scen_a = length(scenarios_a)
   num_scen_b = length(scenarios_b)
+  num_scen_c = length(scenarios_c)
   
   if(num_scen_a != length(scen_labs_a)) {
   	stop( "Ensure that the length and content of scen_labs_a matches scenarios_a\n" )
@@ -122,10 +135,14 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
   if(num_scen_b != length(scen_labs_b)) {
   	stop( "Ensure that the length and content of scen_labs_b matches scenarios_b\n" )
   }
+  if(num_scen_c != length(scen_labs_c)) {
+  	stop( "Ensure that the length and content of scen_labs_c matches scenarios_c\n" )
+  }
   
   # determine how many scenario groups to plot
-  if(is.na(data_dir_b)) {num_groups = 1
-  	} else {num_groups = 2}
+  if(is.na(data_dir_b) & is.na(data_dir_c)) { num_groups = 1
+  } else if ( (!is.na(data_dir_b) & is.na(data_dir_c)) | (is.na(data_dir_b) & !is.na(data_dir_c)) ) { num_groups = 2  	
+  } else {num_groups = 3}
   
   # need to add an underscore if an optional file tag is input
   if (nchar(file_tag) > 0) { added_file_tag = paste0("_", file_tag)
@@ -158,11 +175,16 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			  	figdirs = figdirs_a
 			  	scenarios = scenarios_a
 			  	num_scen = num_scen_a
-			  } else {
+			  } else if (g==2) {
 			  	outputdir = outputdir_b
 			  	figdirs = figdirs_b
 			  	scenarios = scenarios_b
 			  	num_scen = num_scen_b
+			  } else {
+			  	outputdir = outputdir_c
+			  	figdirs = figdirs_c
+			  	scenarios = scenarios_c
+			  	num_scen = num_scen_c
 			  }
 			  
 			  # create empty group_df table to fill with the mean, low and hi outputs below
