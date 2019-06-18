@@ -311,6 +311,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			  for(n in 1:num_scen_all) {
 			  	all_df$Scenario[all_df$Scenario==scenarios_a[n]] = scen_labs_a[n]
 			  	all_df$Scenario[all_df$Scenario==scenarios_b[n]] = scen_labs_b[n]
+			  	all_df$Scenario[all_df$Scenario==scenarios_c[n]] = scen_labs_c[n]
 			  }
 			  
 			  # get list of scenario labels
