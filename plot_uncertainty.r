@@ -175,16 +175,19 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			  	figdirs = figdirs_a
 			  	scenarios = scenarios_a
 			  	num_scen = num_scen_a
+			  	group_label = figdirs_a[1]
 			  } else if (g==2) {
 			  	outputdir = outputdir_b
 			  	figdirs = figdirs_b
 			  	scenarios = scenarios_b
 			  	num_scen = num_scen_b
+			  	group_label = figdirs_b[1]
 			  } else {
 			  	outputdir = outputdir_c
 			  	figdirs = figdirs_c
 			  	scenarios = scenarios_c
 			  	num_scen = num_scen_c
+			  	group_label = figdirs_c[1]
 			  }
 			  
 			  # create empty group_df table to fill with the mean, low and hi outputs below
@@ -223,7 +226,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		snames = grep("S-", snames, value = TRUE)
 				    		snames = unique(snames)
 				    		snames_all = c(snames_all, snames)
-				    	} # end n loop ove desired scenarios
+				    	} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
           		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]		    	
 				    } else { # carbon input uncertainty
@@ -289,6 +292,9 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				  } # end if-else for figdirs
 			  } # end f loop reading in each file for a scenario group (mean, lo, hi)
 			  
+			  # add group label column
+			  group_df$Group = group_label
+			  
 			  # add group_df to all_df
 			  all_df <- rbind(all_df, group_df)
 		    
@@ -318,8 +324,8 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			  scen_labels = as.character(unique(all_df$Scenario))
 			    
         ### plot scenarios on one plot  
-			  p <- ggplot(all_df) + geom_line(aes(x=Year, y=Mean, linetype=Scenario)) + ylab(ylabel) +
-			    geom_ribbon(data=all_df,aes(x=Year, y=Mean, ymin=Min,ymax=Max, group=Scenario),alpha=0.2) +
+			  p <- ggplot(all_df) + geom_line(aes(x=Year, y=Mean, linetype=Scenario, color=Scenario)) + ylab(ylabel) +
+			    geom_ribbon(data=all_df,aes(x=Year, y=Mean, ymin=Min,ymax=Max, group=Scenario, fill=Scenario, color=Scenario, linetype=Scenario),alpha=0.075) +
 			    ggtitle(wrapper(title, width=40)) + theme_bw() + theme(legend.text=element_text(size=12),
 			                                                              plot.title = element_text(size=8),
 			                                                              axis.text=element_text(size=12), 
@@ -332,7 +338,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			  ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
 		    # save df as csv
 			  out_csv <- gsub(".pdf", ".csv", out_file) 
-			  write.csv(all_df, out_csv)
+			  write.csv(all_df, out_csv, row.names=FALSE)
 			  
 			  #### plot scenarios individually
 			  for ( s in 1:num_scen_all) {
