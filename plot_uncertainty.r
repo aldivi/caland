@@ -325,7 +325,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			    
         ### plot scenarios on one plot  
 			  p <- ggplot(all_df) + geom_line(aes(x=Year, y=Mean, linetype=Scenario, color=Scenario)) + ylab(ylabel) +
-			    geom_ribbon(data=all_df,aes(x=Year, y=Mean, ymin=Min,ymax=Max, group=Scenario, fill=Scenario, color=Scenario, linetype=Scenario),alpha=0.075) +
+			    geom_ribbon(data=all_df,aes(x=Year, y=Mean, ymin=Min,ymax=Max, group=Scenario, color=Scenario, linetype=Scenario),alpha=0.075) +
 			    ggtitle(wrapper(title, width=40)) + theme_bw() + theme(legend.text=element_text(size=12),
 			                                                              plot.title = element_text(size=8),
 			                                                              axis.text=element_text(size=12), 
