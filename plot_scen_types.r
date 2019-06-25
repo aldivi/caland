@@ -5,54 +5,55 @@
 # This software and its associated input data are licensed under the 3-Clause BSD open source license
 # Please see license.txt for details
 
-# put a variable for specified land types within a region and ownership on the same plot, for each scenario in the diagnostic output file
+# put a variable for specified land types within a region and ownership on the same plot, for each scenario in 
+# the diagnostic output file
 
 # this script reads the csv files produced by plot_caland()
 
-# plot_scen_types() has 8 arguments:
-#	varname			name of variable to plot (see the outputs from plot_caland)
-#						this name is between the ownership and "_output" in these file names; do not include the surrounding "_" characters
-#	ylabel			y label for the plot; this indicates the units and whether it is a difference from baseline
-#	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
-#	file_tag		additional tag to file name to note what regions/lts/ownerships are included; default is "" (nothing added)
-#	reg				array of region names to plot (see below)
-#	lt				array of land types to plot; can be any number of available types (all but Seagrass are below as default; All_land is excluded)
-#	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
-#	figdir			the directory within data_dir containing the data to plot, and where to write the figures; do not include the "/" character at the end
+############################################ Overview of `plot_scen_types()` ###########################################
 
-# available regions:
-#	"Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "All_region"
+# The `plot_scen_types()` function is designed to use the .csv outputs from `plot_caland()` to plot individual land types 
+# for a designated variable and all available scenarios in the .csv file. You also specify which land types, region 
+# (or all regions aggregated), and ownership (or all ownerships aggregated) to plot for each scenario.
 
-# Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
+############################################## Inputs to `plot_scen_types()` ############################################
 
-# Note: Seagrass has only a subset of the output files, so if including for All_region make sure that the desired varname is available
-#	Seagrass is not in the default land type list
+# The .csv input files, created by `plot_caland()`, are assumed to be in caland/`data_dir`/`figdir`, in the appropriate 
+# land type and ownership directories. The `plot_scen_types()` output files will go directly into 
+# caland/`data_dir`/`figdir`/`reg`/`own`, which should be the same as used in `plot_caland()`.
 
-# make sure that the working directory is caland/
-# the csv files are assumed to be in <data_dir>/<figdir>, in the appropriate region and land type and ownership directories
-# resulting output will go directly into <data_dir>/<figdir>/<region>/<own>, which should be the same as used in plot_caland()
+########################################### Arguments in `plot_scen_types()`############################################# 
+# 1. `varname`: name of variable to plot. See the outputs from `plot_caland()`; the name is between the land type and 
+#     "_output" in these file names; do not include the surrounding "_" characters.
+# 2. `ylabel`: Label for the y-axis; it should indicate the units and whether it is a difference from baseline.
+# 3. `data_dir`: The path to the directory containing the `CALAND()` output files, which also contains `figdir`; do not 
+#     include the "/" character at the end; default is `data_dir = "./outputs"`.
+# 4. `file_tag`: Additional tag to file name to note what regions, landtypes, and/or ownerships are included; default 
+#     is "" (nothing added).
+# 5. `reg`: Vector of region names to plot; default is: 
+#       `reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", 
+#         "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast")`.
+# 6. `lt`: Vector of land types to plot; can be any number of available land types; default is: 
+#       `lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", 
+#         "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all")`. 
+# 7. `own`: Vector of ownerships to plot; can be any number of available ownerships; default is: `own = c("All_own")`
+# 8. `figdir`: The directory within `data_dir` containing the .csv data to plot, and where to save the figures that 
+#     `plot_scen_types()` creates; do not include the "/" character at the end.
+
+# Notes on `plot_scen_types()`: 
+#   Plotting the Ocean region does not provide any comparison with land types because only Seagrass exists in the Ocean
+#   Seagrass has only a subset of the `plot_caland()` output files, so if including All_region make sure that the desired 
+#     `varname` is available for Seagrass.
+#   Seagrass is not in the default land type list.
+
+
+####################################################### start script ####################################################
+
 # setwd("<your_path>/caland/")
 setwd("./")
 
-# set these here also so the script can be run without using the function
-#scen_lnames = c("Baseline", "LowProtect", "HighProtect", "LowManage", "HighManage")
-
-#varname = "All_orgC_stock_diff"
-varname = "Area"
-
-ylabel = "Thousand ha"
-#ylabel = "Change from Baseline (MMT C)"
-
-data_dir = "./outputs/oct_3_2018_nwl_v5"
-file_tag = ""
-reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast")
-lt = c("Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all")
-#own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
-own = c("All_own")
-figdir = "scen_rcp85_2051"
-
-  # this enables java to use up to 4GB of memory for reading and writing excel files
-  options(java.parameters = "-Xmx4g" )
+# this enables java to use up to 4GB of memory for reading and writing excel files
+options(java.parameters = "-Xmx4g" )
 
 # Load all the required packages
 libs <- c( "ggplot2", "grid", "RColorBrewer" )
