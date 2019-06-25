@@ -5,84 +5,191 @@
 # This software and its associated input data are licensed under the 3-Clause BSD open source license
 # Please see license.txt for details
 
-# This is the carbon accounting model for CA
+# This is the carbon accounting model for California
 
-# CAlifornia natural and working LANDs carbon and greenhouse gas model
+# CAlifornia natural and working LANDs carbon and greenhouse gas model 
 
-# Inputs
-# carbon_input_nwl.xls
-#	The initial carbon density, carbon fluxes, and management/fire/conversion carbon adjustments
-# <scenario_name>.xls
-#	The initial land area, managed area, fire area, and annual changes to these areas; also the annual mortality rates and climate scalar effects for vegetation and soil
-#	Name the file something appropriate
-# These files have matching formats, including the number of preceding rows, the land types, the ownership, the management, the fire
+############################################# Overview of `CALAND()`############################################# 
 
-# Outputs
-# <scenario_name>_output_<tags>.xlsx
-# "_output_" is appended to the input scenario name, then tags to denote which input values were used (e.g., the default <tags> = "mean")
-#	Tags key:
-#		sd = standard deviation; mean, max, min are self explanatory
-#		D=density, A=accumulation, S=soil conservation
-#		+ means add, - means substract; applied to standard deviation only
-#		BC1 = black carbon treated like CO2; BC900 = black carbon segregated as ghg
-#		NR# = non-regeneration (i.e., conversion to shrubland) of burned forest area greater than # meters from high severity patch edge
-# output precision is to the integer (for ha and Mg C and their ratios)
+# The `CALAND()` function is the carbon and greenhouse gas accounting model. It uses the input files generated 
+# by `write_caland_inputs()`. A single scenario file is simulated each time  `CALAND()` is run, producing a 
+# single main output .xls file that summarizes outputs for 214 variables including annual and cumulative metrics, 
+# each in an individual worksheet.  There is a suite of settings (arguments) with various options that you choose 
+# when running  `CALAND()`, such as which carbon values to use from the carbon inputs file (i.e., mean, mean+sd, 
+# mean-sd, min, or max) and which level of forest non-regeneration to assume following high severity wildfire.
+  
+# Model structure & order of operations:
+#   This model follows basic density (stock) and flow guidelines similar to IPCC Tier 3 protocols by integrating 
+#     observed historical carbon flows (fluxes) and initial carbon densities with wildfire, climate effects, and 
+#     land cover change derived from external models.
+#   Resolution is at the land category level (region-landtype-ownership combination), which only has a spatial 
+#     boundary for the intial simulation year. Beyond that, processes within each land category are implemented 
+#     on non-spatially explicit _areas_  within static region-ownership boundaries. In other words, there are 
+#     no grid-cell level computations. This highlights how `CALAND()` is not a stand-level model.  
+#   Carbon calculations occur in `start_year` up to `end_year - 1`
+#   `end_year` denotes the final area after the changes in  `end_year - 1 `
+#   Initial carbon density input values are the univariate statistics of the total pixel population within each 
+#     land category (i.e., land type-region-ownership combination)
+#   Carbon accumulation (flux) input values are univariate statistics of literature values for a given land type 
+#     (coarse resolution) or land category (fine resolution), depending on the availability of data
+#   The initial land category area data are used for carbon operations in the first year  
+#   Annual ecosystem carbon fluxes are calculated for each land category using inputs for historic carbon fluxes 
+#     and mortality rates, scaled up to the annual input area data with adjustments made for (in order of 
+#     operation) climate, management, and wildfire. 
+#   Land conversion carbon fluxes for each land category are calculated after ecosystem carbon fluxes within the 
+#     same year  
+#   Each subsequent step uses the updated carbon values from the previous step 
+#   The new carbon density and area for each land category are assigned to the beginning of the next year 
+#   All wood products are lumped together and labeled as "wood" 
+#   Wood product emissions are based on landfill decay of discarded products
+#   Bioenergy emissions are based on combustion of biomass feedstock by current California bioenergy plants
+  
+############################################# Input files to `CALAND()`###########################################
+  
+# The input .xls files for `CALAND()` are in caland/inputs/ (unless a sub-directory `indir` is specified 
+# differently from the default of no subdirectory (`indir = ""`) (see Arguments section below). The following 
+# Excel input files have matching number of header rows (rows preceding the first row of data): 
+                                                               
+#   Carbon input file: The initial carbon state (carbon densities) of the seven carbon pools, and all the carbon 
+#     flow parameters (fluxes and scalars) are in a .xls file in the inputs/ directory. This file is created by 
+#     `write_caland_inputs`, and it does not change unless the raw land carbon input file lc_params.xls is 
+#     modified.  
+#       `carbon_input_nwl.xls` is default filename, containing the initial carbon densities (mean, min, max, SD) 
+#         in seven carbon pools and the historical soil and vegetation carbon fluxes (mean, min, max, SD) for 
+#         each land category, the carbon adjustment parameters for wildfire, conversion of any land type to 
+#         Cultivated or Developed lands, and Forest, Developed, and Rangeland (Grassland, Savanna, Woodland) 
+#         management, and the soil carbon fluxes (mean, min, max, SD) in Cultivated lands under the 
+#         'soil conservation' practice. 
+                                                             
+#   Scenario input file: The scenario that will be simulated.
+#     `<scenario_name>.xls` contains the initial areas of each land type per region-ownership combination 
+#     (i.e., land category), annual net area changes per land category; annual wildfire area per region-ownership 
+#     combination; annual mortality per land category; annual managed area per land category; and climate change 
+#     scalars for vegetation and soil carbon fluxes per land category.  
 
-# This model follows basic density (stock) and flow guidelines similar to IPCC protocols
-# The initial year area data are used for the first year for carbon operations
-# The area data for each year are operated on by the carbon (density & flux) adjustments for climate, management, fires, and land conversion 
-# within that year
-#	Order of operations (Each subsequent step uses the updated carbon values from the previous step): 
-# 1) climate effects are applied to input soil and vegetation carbon fluxes 
-# 2) management effects are applied to climate-adjusted carbon fluxes resulting in an area-weighted eco C flux 
-# 3) fire effects are applied to area-weighted eco C flux 
-# 4) land conversion area changes are applied after the carbon operations, and their effects on carbon fluxes are assigned to that same year
-# 5) new carbon density and area are assigned to the beginning of next year
+#       Example scenario input files: There are five scenario input xls files in the caland/inputs/ directory 
+#       that were created using `write_caland_inputs()` for the Draft California 2030 Natural and Working Lands 
+#       Climate Change Implementation Plan (2019). These scenarios incorporate RCP8.5 climate effects on carbon 
+#       exchange and wildfire area. 'Default' in the filename means that the scenarios include doubled forest 
+#       mortality from 2015 to 2024 to emulate recent and ongoing die-off due to insects and drought.  
+#         - Historical Baseline Scenario: The NWL_Historical_v6_default_RCP85.xls file is the reference scenario 
+#           used to compare the changes in management that are prescribed in the following alternative scenarios. 
+#           It does not include any California State-funded management or increases in the forest fraction of urban 
+#           lands. Note that this scenario was intended to run in  `CALAND()` with the setting for maximum 
+#           non-regeneration (i.e., forest conversion to shrubland) in forest areas burned by high-severity 
+#           wildfire.  
+#         - Alternative A Scenario: The NWL_Alt_A_v6_default_RCP85.xls file adds desired, *low levels* of 
+#           California State-funded management to the Historical Baseline Scenario. Note that agricultural 
+#           management is limited in scope, and only represents California Natural Resources Agency-funded areas 
+#           for soil conservation in cultivated lands. Note that this scenario was intended to run in  `CALAND()` 
+#           with the setting for full regeneration post-wildfire to represent maximum reforestation of forest 
+#           areas that would not otherwise recover fully following high-severity wildfire.  
+#         - Alternative B Scenario: The NWL_Alt_B_v6_default_RCP85.xls file adds desired, *high levels* 
+#           of California State-funded management to the Historical Baseline Scenario. Note that agricultural 
+#           management is limited in scope, and only represents California Natural Resources Agency-funded 
+#           areas for soil conservation in cultivated lands. Note that this scenario was intended to run in 
+#           `CALAND()` with the setting for full regeneration post-wildfire to represent maximum reforestation 
+#           of forest areas that would not otherwise recover fully following high-severity wildfire.  
+#         - Alternative A Scenario without Avoided Conversion: The NWL_Alt_A_v6_NoAC_default_RCP85.xls file 
+#           mimics the *low levels* of state-funded management in Alternative A, but *without avoided conversion*.  
+#         - Alternative B Scenario without Avoided Conversion: The NWL_Alt_B_v6_NoAC_default_RCP85.xls file 
+#           mimics the *high levels* of state-funded management in Alternative B, but *without avoided conversion*.
+                                                             
+############################################# Arguments in `CALAND()`################################################
 
-# Output positive flux values are land uptake; negative values are losses to the atmosphere
+# `CALAND()` has 15 arguments that control which input files and values are used, and how the model will operate for 
+# each run. A single scenario is simulated at a time. At a minimum, you must specify the scenario filename each 
+# time you run `CALAND()` and the other arguments will automatically be assigned default values explained here:
+                                                               
+# 1. `scen_file_arg`: Assigns the scenario .xls file; assumed to be in caland/inptus/`indir`. This is the only 
+#     argument that does not have a default value. Thus, it is required that you assign it. All other arguments will 
+#     be assigned default values unless you change them.
+# 2. `c_file_arg`: Assigns the carbon parameter input file; assumed to be in caland/inputs/`outdir`. If nothing is 
+#     specified, default is: `c_file_arg = "carbon_input_nwl.xls"`. 
+# 3. `indir`: Assigns the directory in caland/inputs/ that contains `scen_file` and `c_file`; do not include "/" 
+#     character at the end. If nothing is specified, the default is: `indir = ""` meaning that it is located in 
+#     caland/inputs/.
+# 4. `outdir`: Assigns the directory in caland/outputs/ to save `CALAND()` output files; do not include "/" 
+#     character at the end. If nothing is specified, default is blank: `outdir = ""` meaning that output files 
+#     will be saved in caland/outputs/.
+# 5. `start_year`: Simulation begins at the beginning of this year. If nothing is specified, default is: 
+#     `start_year = 2010`. 
+# 6. `end_year`: Simulation ends at the beginning of this year (so the simulation goes through the end of 
+#     end_year - 1). If nothing is specified, default is: `end_year = 2101`. 
+# 7. `value_col_dens`: Selects which carbon density values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev.  
+#     If nothing is specified, default is the mean: `value_col_dens = 7`. 
+# 8. `value_col_accum`: Integer code identifying which soil and vegetation carbon flux values to use (i.e., 
+#     5 = min, 6 = max, 7 = mean, 8 = std dev). If nothing is specified, default is the mean: 
+#     `value_col_accum = 7`. 
+# 9. `value_col_soilcon`: Integer code identifying which soil carbon flux values to use for the cultivated 
+#     soil conservation practice (i.e., 6 = min, 7 = max, 8 = mean, 9 = std dev). If nothing is specified, 
+#     default is the mean: `value_col_soilcon = 8`. 
+# 10. `ADD_dens`: For use with `value_col_dens = 8`; assign `ADD_dens = TRUE` to add the std dev to the 
+#     mean carbon density values, or assign `ADD_dens = FALSE` to subtract the std dev from the mean carbon 
+#     density values. If nothing is specified, default is addition: `ADD_dens = TRUE`. 
+# 11. `ADD_accum`: For use with `value_col_accum = 8`; assign `ADD_accum = TRUE` to add the std dev to the 
+#     mean carbon flux values, or assign `ADD_accum = FALSE` to subtract the std dev from the mean carbon 
+#     flux values. If nothing is specified, default is addition: `ADD_accum = TRUE`.  
+# 12. `ADD_soilcon`: For use with `value_col_soilcon = 9`; assign `ADD_soilcon = TRUE` to add the std dev 
+#     to the mean carbon flux value of the cultivated soil conservation practice, or assign 
+#     `ADD_soilcon = FALSE` to subtract the std dev from the mean carbon flux of the cultivated soil 
+#     conservation practice. If nothing is specified, default is addition: `ADD_soilcon = TRUE`.  
+# 13. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
+#     -1 for full regeneration (i.e., no non-rengeration) or 120 for maximum non-regeneration, which is 
+#     the threshold distance (m) to the edge of a burn patch, beyond which the forest will not regenerate 
+#     and will convert to shrubland. The default is maximum non-regeneration: `NR_Dist = 120`. A shorter 
+#     distance increases non-regenerated area, and a longer distance decreases non-regenerated area.
+# 14. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
+#     file, and `WRITE_OUT_FILE = FALSE` does not save the output file. If nothing is specified, default 
+#     is to save: `WRITE_OUT_FILE = TRUE`. 
+# 15. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
+#     assigns a GWP of 900, and `blackC = FALSE` assigns a GWP of 1 (equivalent to CO2). If 
+#     nothing is specified, default is to treat black C the same as CO2: `blackC = FALSE`, which is 
+#     recommended as our current understanding is that black C does not behave like the main greenhouse 
+#     gases.
+                                                             
+############################################# Outputs from `CALAND()`###########################################
 
-# all wood products are lumped together and labeled as "wood"
-
-# This R script is in the caland directory, which should be the working directory
-#	Open R by opening this R script, or set the working the directory to caland/
-# setwd("<your_path>/caland/")
-
-# The input excel files are in caland/inputs/ (unless <indir> is specified as different from the default of "")
-# Output excel file is written to caland/outputs/<outdir> (unless <outdir> is specified as different from the default of "")
-
-# CALAND is now a function!
-# 15  arguments (see function definition for default values):
-#	scen_file_arg		name of the scenario file; assumed to be in caland/inptus/<indir>
-#	c_file_arg			name of the carbon parameter input file; assumed to be in caland/inputs/<outdir>
-#	indir				name only of directory in caland/inputs/ that contains scen_file and c_file; do not include "/" character at the end
-#	outdir				name only of directory in caland/outputs/ that contains scen_file and c_file; do not include "/" character at the end
-#	start_year		  	simulation begins at the beginning of this year
-#	end_year		    simulation ends at the beginning of this year (so the simulation goes through the end of end_year - 1)
-#	value_col_dens		select which carbon density values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev
-# 	value_col_accum 	select which carbon accumulation values to use; 5 = min, 6 = max, 7 = mean, 8 = std dev
-# value_col_soilcon select which carbon accumulation values to use for cultivated soil conservation; 6 = min, 7 = max, 8 = mean, 9 = std dev
-#	ADD_dens			for use with value_col_dens ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
-#	ADD_accum			for use with value_col_accum ==8: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
-# ADD_soilcon   for use with value_col_soilcon ==9: TRUE= add the std dev to the mean; FALSE= subtract the std dev from the mean
-#	NR_Dist			for adjusting the amount of non-regenerating forest after high severity fire (-1 = full regeneration, 120m is the minimum)
-#	WRITE_OUT_FILE	TRUE= write the output file; FALSE= do not write the output file
-# blackC      TRUE = GWP of black C is 900, FALSE = GWP of black C is 1 (default)
-
-# notes:
-# carbon calcs occur in start_year up to end_year-1
-# end_year denotes the final area after the changes in end_year-1
-# density values are the stats of the total pixel population within each land type id
-# accumulation values are stats of literature values
-
-# How to use CALAND for beginners in R:
-# (1) Set working directory to the location of CALAND folder by selecting "Set Working Directory" and "Choose Directory"
-# from the Session menu.
-# Or type setwd("<your_path>/caland/") pn the R command line
-# (2) Load the libraries and all 3 functions (CALC.GWP, GET.NAMES, CALAND) by selecting "Source Document" from the Edit menu
-#	Or type source("CALAND.R") on the R command line
-#	Or by highlighting everything below and selecting clicking "Run," if that button exists
-# (3) In command line, enter CALAND([define arguments here]). At a minimum you will need to define
-# the scen_file (e.g. CALAND(scen_file = "Baseline_frst2Xmort_fire.xls")).
+# Two output files are written to caland/outputs/ (unless a sub-directory is specified differently from the default 
+# `outdir = ""`). There are two outputs files:  
+                                                               
+# (1) Main output .xls file: <scenario_name>_output_<tags>.xls 
+#   - Sign (+/-) of output carbon values: carbon emissions versus land carbon uptake depends on the sign and 
+#     the varibale name:  
+#       - Carbon variables in which a negative value indicates carbon emissions and positive value indicates land 
+#         carbon uptake:
+#         - variable names containing "den": a positive value indicates land carbon uptake.
+#         - variable names containing "Gain_C_stock" but not "Atmos": a positive value indicates land carbon uptake.     	
+#         - all other stock variables except those containing "Loss_C_stock" or "Atmos"  
+#      - Carbon variables in which a positive value indicates carbon emissions and negative value indicates land 
+#         carbon uptake: 
+#         - variable names containing "CumCO2", "CumCH4eq", CumBCeq", "AnnCO2", "AnnCH4eq", AnnBCeq"
+#         - variable names containing "Loss_C_stock"  
+#         - variable names containing "Atmos"
+#   - Precision: to the integer for ha, Mg C, and Mg C/ha  
+#   - Filename description:  "_output_" is appended to the input scenario name, followed by a series of tags 
+#     that denote (i) which type of input value was used (mean, mean+/-sd, min, or max) for carbon density, 
+#     historical carbon fluxes, and the 'soil conservation' soil carbon flux on Cultivated lands; (ii) how black 
+#     carbon was accounted for; and (iii) the level of forest non-regeneration following high-intensity wildfire.  
+#     - Key for <tags> labeling of filename:  
+#       - D = carbon density  
+#       - A = historical carbon accumulation (flux)  
+#       - S = soil carbon accumulation under 'soil conservation' management  
+#       - No variable specified means that the same value type was used for the three variables  
+#       - sd = standard deviation  
+#       - mean, max, min are self explanatory  
+#       - `+` = add (applied to sd only)  
+#       - `-` = subtract (applied to sd only)  
+#       - BC1 = black carbon treated like CO2 
+#       - BC900 = black carbon segregated as a greenhouse gas with a global warming potential of 900  
+#       - NR<number> = non-regeneration threshold distance [m] to edge of a high-severity burn patch, above which 
+#         forest will not regenerate (i.e., converts to shrubland) 
+# (2) Log file output of soil carbon depletion: 
+#     <scenario_name>_output_<tags>_land_cats_depleted_of_soil_c_&_sum_neg_cleared-<sum>.csv  
+#       - Filename description: Same as above plus an aggregate sum of soil carbon depletion across all land categories at 
+#         the end of the filename.
+                                                             
+################################################# Start script ############################################################
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
 options(java.parameters = "-Xmx4g" )
@@ -98,9 +205,7 @@ options(java.parameters = "-Xmx4g" )
    library( i, character.only=T )
 }
 
-#####################################################################################################################
-
-# CALC.GWP (1) finds out whether each table in df.list is CO2, CH4, or BCC 
+# Assign CALC.GWP() (1) finds out whether each table in df.list is CO2, CH4, or BCC 
 # by reading the name of the table (i.e. element name in list)
 # and (2) converts gas columns to GWP accordingly
 
@@ -130,7 +235,7 @@ CALC.GWP <- function(df, gwp_CO2, gwp_CH4, gwp_BC) {
   return(new.df)
 }
 
-# define function GET.NAMES that produces a list of new names that drops the last 'C' in CO2C, CH4C, and BCC 
+# asign function GET.NAMES() that produces a list of new names that drops the last 'C' in CO2C, CH4C, and BCC 
 # and adds 'eq' for CH4 and BC  
 GET.NAMES <- function(df, new.name) {
   name <- names(df)
@@ -143,74 +248,7 @@ GET.NAMES <- function(df, new.name) {
   return(new.name)
 }
 
-# set the default arguments here for debugging purposes
-#scen_file_arg = "Baseline_frst2Xmort_fire.xls"
-#scen_file_arg = "BaseProtect_HighManage_frst2Xmort_fire.xls"
-#scen_file_arg = "BaseProtect_LowManage_frst2Xmort_fire.xls"
-#scen_file_arg = "LowProtect_BaseManage_frst2Xmort_fire.xls"
-#scen_file_arg = "HighProtect_BaseManage_frst2Xmort_fire.xls"
-
-#scen_file_arg = "BAU_EcoFlux_ind.xls"
-#scen_file_arg = "BAU_All_ind.xls"
-#scen_file_arg = "BAU_Fire_ind.xls"
-#scen_file_arg = "BAU_LULCC_ind.xls"
-
-#scen_file_arg = "USFS_thinning_ind.xls"
-#scen_file_arg = "USFS_forest_expansion_ind.xls"
-#scen_file_arg = "USFS_understory_ind.xls"
-#scen_file_arg = "USFS_burn_ind.xls"
-
-#scen_file_arg = "Private_thinning_ind.xls"
-#scen_file_arg = "Private_burn_ind.xls"
-#scen_file_arg = "Private_understory_ind.xls"
-#scen_file_arg = "Private_clearcut_ind.xls"
-#scen_file_arg = "Private_partial_cut_ind.xls"
-#scen_file_arg = "Private_harvest_ind.xls"
-#scen_file_arg = "Private_clear2partial_ind.xls"
-#scen_file_arg = "Private_clear2reserve_ind.xls"
-#scen_file_arg = "Private_partial2reserve_ind.xls"
-#scen_file_arg = "Private_forest_expansion_ind.xls"
-
-#scen_file_arg = "Cultivated_soil_conservation_ind.xls"
-#scen_file_arg = "Grassland_compost_low_ind.xls"
-#scen_file_arg = "Grassland_compost_med_ind.xls"
-
-#scen_file_arg = "Woodland_restoration_ind.xls"
-#scen_file_arg = "Restore_delta_fresh_marsh_ind.xls"
-#scen_file_arg = "Restore_mountain_meadow_ind.xls"
-#scen_file_arg = "Restore_tidal_marsh_ind.xls"
-
-#scen_file_arg = "Urban_forest_expansion_ind.xls"
-#scen_file_arg = "Growth_reduction_ind.xls"
-
-#c_file_arg = "carbon_input_ind.xls"
-#outdir = "aug7_2018_ind_41y"
-
-scen_file_arg = "Historical_v3_frst2Xmort_fire.xls"
-#scen_file_arg = "NWL_BAU_v3_frst2Xmort_fire.xls"
-#scen_file_arg = "NWL_Alt_A_v3_frst2Xmort_fire.xls"
-#c_file_arg = "carbon_input_nwl.xls"
-
-c_file_arg = "carbon_input_nwl.xls"
-indir = ""
-outdir = "aug18_2018_nwl_v3"
-start_year = 2010
-end_year = 2101
-#mean
-value_col_dens = 7
-ADD_dens = TRUE
-#mean
-value_col_accum = 7
-ADD_accum = TRUE
-#mean
-value_col_soilcon = 8
-ADD_soilcon = TRUE
-NR_Dist = 120
-WRITE_OUT_FILE = FALSE
-# set GWP of black C equal to 900 (true) or 1 (false, default)
-blackC = FALSE
-
-
+# assign CALAND()
 
 CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
   cat("Start CALAND at", date(), "\n")
