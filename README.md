@@ -25,7 +25,7 @@ The California Natural Resources Agency
 
 ## Table of Contents  
 * [Overview](#overview)   
-* [Intallation](#installation)
+* [Installation](#installation)
 * [Ancillary Data Not Included with CALAND](#Ancillary-Data-Not-Included-with-CALAND)
 * [Ancillary Data Included with CALAND](#Ancillary-Data-Included-with-CALAND)
 * [Usage](#usage)
