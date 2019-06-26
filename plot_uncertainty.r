@@ -6,82 +6,102 @@
 # Please see license.txt for details
 
 # plot the uncertainty range (low and high emsissions) around average values for chosen variable over time for each scenario 
-# variables are plotted using the .csv outputs from plot_caland.r 
+# variables are plotted using the .csv outputs from `plot_caland()` 
 
-# Inputs - for each group of scenarios (one or two scenario groups can be plotted)
-# Scenarios that are in the same .csv file from plot_caland.r constitute a group
-# (1) Mean output folder from plot_caland: <figdir[1]>/<reg_lab>_<lt_lab>_<own_lab>_<varname>_output.csv 
-# (2) Low output folder from plot_caland: <figdir[2]>/<reg_lab>_<lt_lab>_<own_lab>_<varname>_output.csv 
-# (3) High output folder from plot_caland: <figdir[3]>/<reg_lab>_<lt_lab>_<own_lab>_<varname>_output.csv 
-# These files have matching formats
-# The three input .csv files for mean, low, and high are assumed to be in caland/outputs/mean, caland/outputs/low, 
-# caland/outputs/high, respectively, unless <figdir> is specified differently than the plot_uncertainty.r default: figdir = c("mean","low","high")
-# These figdirs can also be the same for plotting Cultivated soil conservation uncertainty
+############################################# Overview of `plot_uncertainty()`#############################################  
 
-# Outputs
-# Scenarios plotted on same graph
-# (1) <reg_lab>_<lt_lab>_<own_lab>_<varname>_scen_comp_uncert_bands<added_file_tag>.pdf
-# (2) <reg_lab>_<lt_lab>_<own_lab>_<varname>_scen_comp_uncert_bands<added_file_tag>.csv
-# Each scenario plotted individually (scen_labels are assigned based on inputs)
-# (3) <reg_lab>_<lt_lab>_<own_lab>_<scen_labels[s]>_<varname>_scen_comp_uncert_bands<added_file_tag>.pdf
+# The `plot_uncertainty()` function is designed to plot shaded uncertainty bounds around average values for a single 
+# variable over time for each scenario using .csv outputs from `plot_caland()`. This requires having run `CALAND()` and 
+# `plot_caland()` three times each for each desired scenario; once for the mean inputs, and the other two times for lower 
+# uncertainty bounds, and upper uncertainty bounds. For example, using the following combination of inputs to `CALAND()` 
+# will generate minimum and maximum emissions:
+#   Low emissions: low initial carbon density (i.e., mean-SD) and high carbon fluxes (i.e., mean+SD)
+#   High emissions: high initial carbon density (i.e., mean+SD) and low carbon fluxes (i.e., mean-SD)
 
-# Output .pdf and .csv files are written to caland/outputs/<figdir[1]> where figdir[1] is the folder containing the mean plot_caland outputs for the first scenario group
+################################################ Inputs to `plot_uncertainty()`################################################  
 
-# this script includes 2 functions: wrapper and plot_uncertainty
-#	wrapper manipulates text for the plots
-# plot_uncertainty generates the plots 
+# Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Within each .csv file, there can be any number of 
+# scenarios. Each group of scenarios must have a corresponding .csv file for the mean, low, and high emissions. It is possible
+# to plot up to three groupings (a, b, c) with `plot_uncertainty()`. Three scenario groups ammounts to a total of nine .csv 
+# input files to `plot_uncertainty()`; three input .csv files (mean, low, and high emissions) for each group. All .csv files 
+# have matching formats. For a single group ("group a"), they are assumed to be in caland/outputs/mean, caland/outputs/low, 
+# caland/outputs/high, respectively, unless `figdir` is specified differently than the default: 
+#  `figdir = c("mean","low","high")`. 
 
-# plot_uncertainty() takes 16 arguments:
+############################################### Arguments in `plot_uncertainty()`##############################################  
 
-##	start_year  year to start plotting
-##  end_year    year to end plotting
-##  varname		  name of variable to plot (see the outputs from plot_caland)
-                  # this name is between the land type and "_output" in these file names; do not include the surrounding "_" characters
-##	ylabel		  y label for the plot corresponding to the units of your outputs and whether they are changes from baseline (varname ending in "diff") 
-                  # or absolute values. Note that this function does not convert units so the output units of your desired plotting variable must be correctly matched with 
-                  # Here are some exmaples:
-                  # "Change from Baseline (MMT CO2eq)"
-                  # "MMT CO2eq"
-                  # "Change from Baseline (MMT C)"
-                  # "MMT C"
-                  # "Change from Baseline (Mg C/ha)"
-                  # "Mg C/ha"
-                  # "Change from Baseline (Mg C/ac)"
-                  # "Mg C/ac"
-##	file_tag	  tag to add to end of new file names (e.g., to note what time period is plotted); default is "" (nothing added)
-##	data_dir_a	  the path to the directory containing the three folders of plot_caland outputs (mean, low, and high) for scenario group a; do not include the "/" character at 
-                  # the end; default is "./outputs"
-##	figdirs_a     the three folders within data_dir_a containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
-                  # be written to the folder representing the mean; do not include the "/" character at the end
-                  # the csv files are assumed to be in <data_dir_a>/<figdirs_a[f]>, in the appropriate region and land type and ownership directories
-##  scenarios_a   one or more scenario names for group 'a' that are listed in the Scenario column in the csv file containing varname for the mean
-##  scen_labs_a   scenario labels; must have the same number and correspond directly in order with scenarios_a
-##	data_dir_b	  the path to the directory containing the three folders of plot_caland outputs (mean, low, and high) for scenario group b;
-				  # use this if plotting two or three groups
-				  # NA is the default, which means that only one scenario group (group a) is plotted; do not include the "/" character at 
-                  # the end; default is "./outputs"
-##	figdirs_b	  the three folders within data_dir_b containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
-                  # be written to the folder representing the mean; do not include the "/" character at the end
-                  # the csv files are assumed to be in <data_dir_b>/<figdirs_b[f]>, in the appropriate region and land type and ownership directories
-##  scenarios_b   one or more scenario names for group 'b' that are listed in the Scenario column in the csv file containing varname for the mean
-##  scen_labs_b   scenario labels; must have the same number and correspond directly in order with scenarios_b
-##	data_dir_c	  the path to the directory containing the three folders of plot_caland outputs (mean, low, and high) for scenario group c;
-				  # use this only if plotting three groups
-				  # NA is the default, which means that only group a or groups a and b are plotted; do not include the "/" character at 
-                  # the end; default is "./outputs"
-##	figdirs_c	  the three folders within data_dir_c containing the data to plot. These must be assigned in order of mean, low, and high. The figures will
-                  # be written to the folder representing the mean; do not include the "/" character at the end
-                  # the csv files are assumed to be in <data_dir_c>/<figdirs_c[f]>, in the appropriate region and land type and ownership directories
-##  scenarios_c   one or more scenario names for group 'c' that are listed in the Scenario column in the csv file containing varname for the mean
-##  scen_labs_c   scenario labels; must have the same number and correspond directly in order with scenarios_c
-##	reg			    array of region names to plot; default = "All_region", but can be any number of available types:
-                  #	"All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", 
-                  # Note: plotting the ocean region doesn't provide any comparison with land types because only seagrass exists in the ocean
-##	lt			    array of land types to plot;  default = "All_land", but can be any number of available types 
-                  # Note: Seagrass has only a subset of the output files, so if including for All_region make sure that the desired varname is available
-##	own			    array of ownerships to plot;  default = "All_own", but can be any number of available types 
+# 1. `start_year`:  year to start plotting; default is `start_year = 2010`.
+# 2. `end_year`: year to end plotting; default is `end_year = 2051`.  
+# 3. `varname`: name of a single variable to plot (see the .csv output filenames from `plot_caland()`); the variable name is 
+#     between the land type and "_output" in these file names. However, do not include the surrounding "\_" characters.  
+# 4. `ylabel`: label for y-axis corresponding to the units of your selected output variable, and whether they are changes from 
+#     baseline (i.e., `varname` ending in "diff") or absolute values. Note that this function does not convert units so the 
+#     output units of your desired plotting variable must be correctly matched with the .csv file.
+#       - Here are some exmaples:
+#         - `ylabel = "Change from Baseline (MMT CO2eq)"`
+#         - `ylabel = "MMT CO2eq"`
+#         - `ylabel = "Change from Baseline (MMT C)"`
+#         - `ylabel = "MMT C"`
+#         - `ylabel = "Change from Baseline (Mg C/ha)"`
+#         - `ylabel = "Mg C/ha"`
+#         - `ylabel = "Change from Baseline (Mg C/ac)"`
+#         - `ylabel = "Mg C/ac"`
+# 5. `file_tag`: tag to add to end of the new file names created by `plot_uncertainty()` (e.g., to note what time period is 
+#     plotted); default is `file_tag = ""` (nothing added).
+# 6. `data_dir_a`: the path to the directory containing the three folders of `plot_caland()` outputs (mean, low, and high 
+#     emissions) for scenario group a; do not include the "/" character at the end; default is `data_dir_a = "./outputs"`.
+# 7. `figdirs_a`: a vector of three folder names within `data_dir_a` containing the .csv data files to plot. The folder names 
+#     must be assigned in order of mean, low, and high; do not include the "/" character at the end of each folder name. The 
+#     default is `figdirs_a = c("mean", "low", "high")`; thus, the .csv files for the mean and lower and upper uncertainty 
+#     bounds are assumed to be in `data_dir_a`/mean, `data_dir_a`/low, and `data_dir_a`/high, respectively, and in the 
+#     appropriate region, land type, and ownership directories. The figures will be written to the folder representing the 
+#     mean. 
+# 8. `scenarios_a`: a vector of one or more scenario names for group 'a' that are listed in the Scenario column in the 
+#     .csv file containing `varname` for the mean.
+# 9. `scen_labs_a`: a vector of one or more scenario labels; must match the same number of elements in `scenarios_a`, and 
+#     correspond directly to the order of elements in `scenarios_a`.
+# 10. `data_dir_b`: the path to the directory containing the three folders of `plot_caland()` outputs (mean, low, and 
+#     high emissions) for scenario group b; do not include the "/" character at the end; default is `data_dir_b = NA` (i.e., 
+#     no group b), which will plot only scenario group a.
+# 11. `figdirs_b`:  a vector of three folder names within `data_dir_b` containing the .csv data files to plot. The folder 
+#     names must be assigned in order of mean, low, and high; do not include the "/" character at the end of each folder 
+#     name. The default is `figdirs_b = NA` (i.e., no group b). However if you choose to plot a group b, the location of 
+#     the .csv files for the mean and lower and upper uncertainty bounds should follow the same logic as group a. The 
+#     figures will be written to the folder representing the mean. 
+# 12. `scenarios_b`: a vector of one or more scenario names for group 'b' that are listed in the Scenario column in the 
+#     .csv file containing `varname` for the mean.
+# 13. `scen_labs_b`: a vector of one or more scenario labels; must match the same number of elements in `scenarios_b`, 
+#     and correspond directly to the order of elements in `scenarios_b`.
+# 14. `data_dir_c`: the path to the directory containing the three folders of `plot_caland()` outputs (mean, low, and 
+#     high emissions) for scenario group c; do not include the "/" character at the end; default is `data_dir_c = NA` 
+#     (i.e., no group c), which will only plot scenario group a, or group a and b.
+# 15. `figdirs_c`:  a vector of three folder names within `data_dir_c` containing the .csv data files to plot. The 
+#     folder names must be assigned in order of mean, low, and high; do not include the "/" character at the end of each 
+#     folder name. The default is `figdirs_c = NA` (i.e., no group c). However if you choose to plot a group c, the 
+#     location of the .csv files for the mean and lower and upper uncertainty bounds should follow the same logic as 
+#     group a. The figures will be written to the folder representing the mean. 
+# 16. `scenarios_c`: a vector of one or more scenario names for group 'c' that are listed in the Scenario column in the 
+#     .csv file containing `varname` for the mean.
+# 17. `scen_labs_c`: a vector of one or more scenario labels; must match the same number of elements in `scenarios_c`, 
+#     and correspond directly to the order of elements in `scenarios_c`.
+# 18. `reg`: a vector of one or more region names to plot; default is `reg = "All_region"` (i.e., aggregated across all 
+#     regions), but can be any number of available regions: "All_region", "Central_Coast", "Central_Valley", "Delta", 
+#     "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast". 
+# 19. `lt`: a vector of one or more land types to plot; default is `lt = "All_land"` (i.e., aggregated across all land 
+#     types), but can be any number of available land types 
+# 20. `own`: a vector of one or more ownerships to plot; default = "All_own" (i.e., aggregated across all ownerships), 
+#     but can be any number of available ownerships. 
 
-###################################################################################################################################################
+# Notes on `plot_uncertainty()`:
+# plotting the ocean region does not provide any comparison with land types because only seagrass exists in the ocean
+# Seagrass has only a subset of all the .csv files output from `plot_caland()`; thus, if including Seagrass make sure 
+#   that the desired `varname` is available
+
+############################################### Outputs from `plot_uncertainty()` ###############################################
+
+# Output figures (.pdf) and corresponding data (.csv) will be saved to the mean folder for scenario group a.
+
+####################################################### Start script ############################################################
 
 # make sure that the working directory is caland/
 # setwd("<your_path>/caland/")
