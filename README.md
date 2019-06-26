@@ -129,7 +129,7 @@ Get the CALAND files and tools needed to use them by following the instructions 
 3. Unzip the file and and save the raster data folder where you want itto be located.
 
 ## Ancillary Data Included with CALAND
-The CALAND release includes some ancillary data that can be used for visualizing outputs. There are four files included in caland/ancillary/:
+In addition to all of the input data described in each of the sections below, the CALAND release includes some ancillary data that can be used for visualizing outputs. There are four files included in caland/ancillary/:
 * A .csv file containing a table defining the initial 2010 land categories and their areas in square meters
 * A .zip file containing a shapefile of the CALAND ownership boundaries
 * A .zip file containing a shapefile of the CALAND region boundaries
