@@ -13,7 +13,7 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 [Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
 ## Version History
-* CALAND version 3.0.0: 25 June 2019; DOI available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md)
+* CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
 * CALAND version 2.0.0: 23 October 2017; not an official release
 * CALAND version 1.0.0: 25 January 2017; no an official release
 
