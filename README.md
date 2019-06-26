@@ -2,7 +2,7 @@
 ### Version 3
 
 ## Authors
-Alan Di Vittorio
+Alan Di Vittorio  
 Maegen Simmonds  
 Lawrence Berkeley National Laboratory  
 [Copyright (c) 2016-2019](https://github.com/aldivi/caland/blob/master/license.txt)
