@@ -5,134 +5,239 @@
 # This software and its associated input data are licensed under the 3-Clause BSD open source license
 # Please see license.txt for details
 
-# generate the caland input files based on the gis stats and parameters from the literature
-#	make .xls files
+# Generate the `caland()` input files (.xls) based on the gis stats and parameters from the literature
 
-# this script defines function write_caland_inputs() for writing the intput files
-# arguments
-#	scen_tag:			(optional) a scenario file name tag; scen files are already named based on the tables in scenarios_file
-#	c_file:				the carbon density and parameter file created for input to caland (needs to be .xls)
-#	start_year:			this is the initial year of the simulation, one of the area files needs to be for this year
-#	end_year:			this is the final year output from the caland simulation (matches the caland end_year argument)
-#	CLIMATE:				projected climate or BAU climate; "HIST" or "PROJ"; affects wildfire and veg and soil carbon accum values;
-#		the projected scenario is determined by the fire and climate input files; HIST uses RCP85 fire for historical average burn area, and sets all climate scalars to 1
-# 	land_change_method: "Landcover" will use original method of remote sensing landcover change from 2001 to 2010. "Landuse_Avg_Annual" will 
-#    use avg annual area change based on the years in area_gis_files_new, which is from projected land use change of cultivated and developed lands (USGS data). 
+######################################### Overview of `write_caland_inputs()` ##################################################
+# The `write_caland_inputs()` function is defined in the write\_caland\_inputs.r file. Its purpose is to read 
+# the raw data files found in the caland/raw_data directory, and organize them into the detailed input files 
+# needed to run the `CALAND()` model (i.e., one carbon input file (.xls) and an individual scenario input file (.xls) 
+# for each defined scenario). Each of the input files that `write_caland_inputs()` creates are Excel workbooks, which are 
+# comprised of individual worksheets, one for each data table. The raw data files define the management scenarios; 
+# initial 2010 areas and carbon densities; annual area changes; ecosystem carbon fluxes; management parameters; parameters 
+# for land conversion to cultivated or developed lands; wildfire parameters; wildfire areas; mortality fractions; and climate 
+# change scalars. There is a suite of settings (i.e., arguments) with various options that you choose when running  
+# `write_caland_inputs()`, such as climate (historical, RCP 4.5, or RCP 8.5) and whether you are controlling for wildire and 
+# land use land cover change (LULCC) for sensitivity testing of individual practices.
+  
+# The `CALAND()` model operates on 940 land categories, but some of the raw data are not land category-specific. 
+# Thus, one of the main purposes of `write_caland_inputs()` is to disaggregate all non-land-category-specific raw data into 
+# individual land categories, and to save these expanded data tables in the carbon and scenario `CALAND()` input files. On 
+# the other hand, some of the raw data are land category-specific, including the initial 2010 areas and carbon densities, 
+# forest vegetation carbon fluxes, forest management carbon parameters, and some management areas. 
+  
+# CAUTION: Creating new raw data files and using this function to create new input files for  `CALAND()` is a complicated task. 
+# All of the raw data have to be carefully assembled to ensure it is processed as intended. Therefore, creating new input files 
+# is not recommended unless you have a good understanding of the required data and how the model works.
 
-#	parameter_file:		carbon accumulation and transfer parameters for the original 45 land categories and seagrass (xls file)
-#	scenarios_file:		generic scenarios to be expanded to the actual scenario files (xls file with one scenario per table)
-# 	units_scenario: 	specify units for input areas in scenarios_file - must be ac or ha.
-#	inputs_dir:			the directory within "./inputs" to put the generated input files; the default is "" so they go into "./inputs"
-#	climate_c_file:		the climate scalars for vegetation and soil carbon accumulation; future scenario must match the fire input file; needs to be a valid proj file for CLIMATE="HIST"
-#	fire_area_file:		annual burned area by region-ownership; future scenario must match the climate c file; needs to be rcp85 for CLIMATE="HIST"
-#	mortality_file:		mortality rate as annual fraction of above ground biomass; includes values for all woody land types that have c accumulation in vegetation
-#	area_gis_files_orig:		vector of two csv file names of gis stats area by land category (sq m)
-#	area_gis_files_new:		vector of one csv file name of gis stats area by land category (sq m); default is 2010 through 2100, can also use 2010 through 2050
-#	carbon_gis_files:	vector of 13 csv file names of gis stats carbon density by land category (t C per ha)
-#	forest_mort_fact:		the value by which to adjust the forest mortality during the period specified by forest_mort_adj_first/last; default is 2
-#	forest_mort_adj_first:	the first year to adjust forest mortality; default is 2015
-#	forest_mort_adj_last:	the last year to adjust forest mortality; default is 2024
-# 	control_wildfire_lulcc:	if TRUE, read control_wildfire_lulcc_file to shut off wildfire, or lulcc, or both; default is FALSE
-#	control_wildfire_lulcc_file: file with flags for each scenario in scenarios_file to control wildfire and lulcc
+####################################### Raw data input files to `write_caland_inputs()`####################################### 
 
-# NOTE:
-#	The default simulation includes 2X forest mortality from 2015 through 2024 to emulate the recent and ongoing die off due to beetles and drought
-#	Individual practice sims also include this doubled mortality (should check without it to find out how much difference it makes)
+# The inputs to `write_caland_inputs()`are referred to as raw data, as they are generally not region- and ownership-specific 
+# and must be disaggregated to all  the 940 individual land categories simulated by `CALAND()`. The raw data include both .xls 
+# files and .csv files, which are in caland/raw\_data/. The raw data used to generate the CALAND results reported in the 
+# Draft California 2030 Natural and Working Lands Implementation Plan (2019) are in parentheses next to each input file below. 
 
-# parameter_file
-#	8 tables
-#	vegc_uptake, soilc_accum, conversion2ag_urban, forest_manage, dev_manage, grass_manage, ag_manage, wildfire
-#	column headers are on row 12
-#	only non-zero values are included; more land type, ownership, management, or severity rows can be added as appropriate (if the column exists)
-#	this xls file is a subset of the original ca_carbon_input.xlsx file, as a starting point for filling in the new parameter tables
+# Carbon parameter raw data file (e.g., lc_params.xls)
+#   The carbon parameter raw data file is an Excel workbook comprised of 8 individual worksheets with the following names: 
+#     vegc\_uptake, soilc\_accum, conversion2ag\_urban, forest\_manage, dev\_manage, grass\_manage, ag\_manage, and wildfire. 
+#     They represent vegetation carbon fluxes (historic climate); soil carbon fluxes (historic climate); land conversion C 
+#     parameters; management C parameters for forest, developed lands, rangelands, and cultivated lands; and carbon parameters 
+#     for low, med, and high wildfire severity, respectively. 
+#   Column headers are on row 12
+#   Only non-zero values are included (missing values are zero)
+#   More rows can be added that define new management practices as appropriate 
 
-# scenarios_file
-#	one scenario per table; can have many scenarios defined in this file
-#	the table names determine the output scenario file names
-#	defines the scenarios fairly concisely, as given
-#	10 columns each: Region, Land_Type, Ownership, Management, start_year, end_year, start_area, end_area, start_frac, end_frac
-#	either area or frac values are used; the other two columns are NA
-# units can be in ha or ac, which must be scecified by the "units_scenario" argument 
-#	Region and Ownership can be "All" or a specific name
-#	Each record defines management for a specific time period; outside of the defined time periods the management values are zero
+# Scenarios raw data file (e.g., nwl\_scenarios\_v6\_ac.xls)
+#   The scenarios raw data file is an Excel file comprised of at least one scenario of management practices and corresponding 
+#     areas or fractions (one scenario per worksheet). Note the practice determines whether an area or fraction is used; it 
+#     is not arbitrary.
+#   10 columns each: Region, Land_Type, Ownership, Management, start\_year, end\_year, start\_area, end\_area, start\_frac, 
+#     end\_frac.
+#   Either area (start\_area and end\_area) or fractional (start\_frac, end\_frac) values are used depending on the practice; 
+#     the other two columns are NA. If area is required, the units can be in ha or ac, which must be specified by the 
+#     `units_scenario` argument.  
+#   Region and Ownership can be "All" or a specific name
+#   Each record defines management for a specific time period; outside of the defined time periods the management values are 
+#     zero
+#   Each scenario worksheet will result in the creation of a single input scenario file (.xls), which will be comprised of 
+#     additional worksheets of data tables derived from the other raw data files described below.
+#   The worksheet name for each scenario in the scenarios raw data file will determine the scenario input file name that is 
+#     created. 
+#   Notes on restoration practices of the following land types:
+#     Fresh marsh: comes out of only private and state land in the Delta, so make sure that these ownerships are designated. 
+#   Coastal marsh comes out of only private and state land in the coastal regions, so make sure these are available, from 
+#     cultivated
+#   Meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, 
+#     savanna, and woodland
+#   Woodland restoration comes from cultivated and grassland
+#   Afforestation is forest area expansion and comes from shrubland and grassland
+#   Reforestation is forest area expansion that comes from shrubland only to match non-regeneration of forest
 
-# climate_c_file
-#	One file contains both vegetation and soil scalars
-#	Three ID columns: Region, Ownership, Component; all possible Region-Ownership combos are included (81), even if they don't exist
-#	Then one column for each year, starting with 2010
-#	The component is either "Vegetation" or "Soil"
-#	These values directly scale the vegetation and soil c accumulation values in CALAND
-# 	Must be a valid projected climate file, even for CLIMATE=HIST that sets all climate scalars to 1
+# Climate raw data file (e.g., climate\_c\_scalars\_iesm\_rcp85.csv)
+#   The climate raw data file is a .csv file of annual climate scalars (fraction) for vegetation and soil carbon fluxes.
+#   The .csv file consits of four ID columns: Region, Land_Type, Ownership, and Component (Soil or Vegetation); and one 
+#     column for each year, starting in year 2010.
+#   These fractions will directly scale the vegetation and soil C flux values under a historic climate in `CALAND()` 
+#   There must be a valid climate file, even if historic climate is designated `CLIMATE = HIST`, in which case  all 
+#     climate scalars will be changed to 1.
 
-# fire_area_file
-#	Two ID columns: Region, Ownership; all possible Region-Ownership combos are included (81), even if they don't exist
-#	Then one column for each year, starting with 2010
-#	The initial year fire area is an average from 2001-2015
-#	The BAU fire is the initial fire area extrapolated through the sim (same value, no trend)
-#		Are using the RCP85 file for the historical average; it is ~10,000 ha per year less than the RCP45 file average
-#	Fire severity is estimated as fractions of the annual totals, and high sev frac increases at a historical rate
-#	Non-regen area is parameterized as a function of the high severity fraction and a threshold distance from burn edge
-#	Projected climate fire is directly from the area file, and is currently area only, so other aspects are estimated as for BAU fire
+# Wildfire raw data file (e.g., fire\_area\_canESM2\_85\_bau\_2001\_2100.csv)
+#   The wildfire raw data file is a .csv file of annual wildfire areas (units = ha).
+#   The .csv file consists of two ID columns (Region and Ownership), and a fire area column for each year, starting 
+#     in year 2001. All possible Region-Ownership combinations are included (81 total), even if they don't exist.
+#   The wildfire areas from 2001 to 2015 are averaged by `write_caland_inputs()` to compute the initial 2010 wildfire areas 
+#     written to the scenario input file. If historic climate is designated, `CLIMATE = HIST`, the average 2001 to 2015 
+#     burn areas in the RCP 8.5 wildfire raw data are used for initial 2010 burn areas and throughout the entire simulation 
+#     (same value, no trend). 
+#   Wildfire severity fractions of the annual wildfire areas are hard-wired in `write_caland_inputs()`; and are not 
+#     dependent on the selected climate. The high, medium, and low severity fractions are uniform across the State of 
+#     California, starting with high = 0.26, medium = 0.29, and low = 0.45. The high severity fraction increases annually 
+#     at a historical rate (i.e., 0.0027) and the low and medium fractions increase proportionally in order to account for 
+#     the total wildfire area each year.
+#   Non-regeneration areas are parameterized as a function of the high severity fraction and a threshold distance from 
+#     burn edge; however this is handled in [`CALAND()`](#arguments-in-CALAND) with the `NR_Dist` argument.
 
-# mortality_file
-#	Three ID columns: Region, Land_Type, Ownership
-#	One data column: Mortality_frac
-#	this is the annual mortality rate as a fraction of above ground biomass
-#	includes values for all woody land types that have c accumulation in vegetation
-#	all valid land types must be explicitly specified: Shrubland, Savanna, Woodland, Forest, Developed_all
-#	region and/or ownership can be "All"
+# Mortality raw data file (e.g., mortality\_annual\_july\_2018.csv)
+#   The mortality raw data file is a .csv file of mortality fractions (units = fraction), representing the annual 
+#     mortality rate as a fraction of live biomass carbon (above-ground main canopy and roots).
+#   The .csv file consits of three ID columns (Region, Land_Type, and Ownership) and one data column (Mortality_frac).  
+#       Land type must be specific but region and/or ownership can be "All".
+#       Valid land types include any woody land type that have C accumulation in vegetation (i.e., Forest, Shrubland, 
+#         Savanna, Woodland, and Developed). However, if rows do not exist for all valid land types, 
+#         write_caland_inputs() will assign it a default annual mortality fraction of 0.01. 
+#   Unique treatment of Forest mortality: A doubled forest mortality trend is computed by `write_caland_inputs()` 
+#     for 10 years (2015-2024) to emulate the recent and expected forest mortality due to insects and drought. This 
+#     is the default setting, but can be changed in the arguments. 
+#   Unique treatment of Developed mortality: Mortality in Developed lands is processed differently from others in 
+#     `CALAND()` because the urban system is highly managed, and allows for more control of what happens to the dead 
+#     biomass;  the mortality is transferred to the above-ground harvest for dead removal management. 
 
-# area_gis_files (sq m)
-#	7 columns
-#	region code, region name, land type code, land type name, ownership code, ownership name, area
-#	these two csv files contain the text labels and integer codes for Region, Land_type, and Ownership
-#	the Land_cat integer codes will be calculated and then matched with the carbon_gis_files integer codes
-#	the year has to be in the name of the file; currently assumes that the years are 2001 and 2010
+# New area GIS raw data file (e.g., CALAND_Area_Changes_2010_to_2101.csv)
+#   The new area GIS raw data file is a .csv file of annual area changes (sq m) for each land category, starting in 
+#     year 2010.
+#   The .csv file consists of one ID column (Landcat) and one annual area change column for each year.
+#   With the exception of Seagrass, Fresh marsh is the only land type that does not initially exist in this GIS raw 
+#     data files. The Fresh marsh land categories are added by `write_caland_inputs()` with initial areas of 0, 
+#     which only increases by restoration.
 
-# carbon_gis_files (t C per ha)
-#	14 columns
-#	land category code, label (blank), valid cell count, null cell count, min, max, range, mean, mean of absolute values, sdddev, variance, coeff_var, sum, sum_abs
-#	use the min, max, mean, and stddev
-#	these are the density and standard error csv files (13) for the seven carbon pools, with values by land category
-#	above ground, below ground, downed dead, standing dead, litter, understory are from ARB inventory
-#	soil organic c is from gSSURGO, and we assume that any zero values in the original data set are non-valid when calculating the land category averages
-#		there is 12236544 ha (mostly desert) with no data that is converted to zero when the raster is created, and only 17601 ha (mostly rivers) with zeros in the gssurgo data
+# Original area GIS raw data files 
+#   CALAND v1 and v2 used two remote-sensing based area GIS files (i.e., area_lab_sp9_own9_2001lt15_sqm_stats.csv 
+#     and area_lab_sp9_own9_2010lt15_sqm_stats.csv), but these files were not used in the Draft California 2030 
+#     Natural and Working Lands Climate Change Implementation Plan.
+#   The original area GIS files include two .csv files of areas (sq m) for each land category in 2001 and 2010, 
+#     respectively.
+#   The .csv files consist of six ID columns (no headers, but rows 1 through 6 are Region integer code, Region, 
+#     Land_type integer code, Land_type, Ownership integer code, and Ownership, respectively), and one area change 
+#     column.
+#   The land category (Land_cat) integer codes will be calculated and then matched with the integer codes in the 
+#     carbon GIS raw data files. 
+#   The year has to be in the name of the file; currently `write_caland_inputs()` assumes that the years are 2001 and 2010.
 
-# control_wildfire_lulcc_file
-#	flags to dtermine whether wildfire and/or lulcc will happen
-#	three columns, in order: Scenario, Wildfire, LULCC
-#		Scenario: matches the worksheet names in the scenarios_file; these scenario names MUST MATCH between these two files
-#		Wildfire: 1=wildfire; 0=no wildfire
-#		LULCC: 1=lulcc; 0=no lulcc
+# Carbon GIS raw data files (e.g., gss_soc_tpha_sp9_own9_2010lt15_stats.csv, lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv,
+#   lfc_agc_tpha_sp9_own9_2010lt15_stats.csv, lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv, 
+#   lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv, lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv, 
+#   lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv, lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv, 
+#   lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv, lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv, 
+#   lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv, lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv, 
+#   lfc_usc_tpha_sp9_own9_2010lt15_stats.csv)
+#   The carbon GIS raw data files are .csv files (13 total) of univariate statistics of the initial C densities 
+#     (units = Mg C per ha) of the seven carbon pools (i.e., soil, above-ground biomass, below-ground biomass (roots), 
+#     down dead biomass, standing dead biomass, litter biomass, and understory biomass). These files were created by 
+#     processing GIS raster data with a 30 m2 resolution. Thus, the statisitics are based on carbon density data 
+#     associated with 30m2 cells within each 2010 land category boundary.
+#   Each .csv file consists of 14 columns in the following order: zone (i.e., land category code), label (no data), 
+#     valid cell count (i.e., count of non-missing cells), null cell count (count of missing cells), min, max, 
+#     range, mean, mean of absolute values (mean_of_abs), stddev (standard deviation), variance, coefficient of 
+#     variation (coeff_var), sum, absolute sum (sum_abs).
+#   Only the min, max, mean, and standard deviation are used.
+#   Vegetation C densities are from the California Air Resources Board inventory, one value per carbon pool for 
+#     each land category.
+#   Soil organic C densities are from gSSURGO; any zero values in the original data set were assumed not to be 
+#     valid, and were therefore omitted in calculating the land category averages.
+#   In the soil C density raster file (i.e., the file from which the soil C raw data file is summarizing) there were 
+#     17601 ha (mostly rivers) with zeros, and 12236544 ha (mostly desert) with missing data. The missing values 
+#     will be converted to zero by `write_caland_inputs()`. However, all of these zero values are excluded from 
+#     calculating the averages.
 
-# mortality
-# the recent and expected forest mortality due to insects and drought is emulated by a doubled forest mortality rate for 10 years (2015-2024)
-# mortality applies only to woody systems with veg c accumulation
-# these types are: shrubland, savanna, woodland, forest, and developed_all
-# developed_all mortality is processed differently from the others
-#  the morality from the scenario is transferred to the above ground harvest of the dead_removal management
-#  this is because the urban system is highly managed, and allows for more control of what happens to the dead biomass
+############################################ Arguments in `write_caland_inputs()`###############################################
 
-# the only land categories available throughout the sim are those that are included in the input files
+# 1. `c_file`: Assign a name to the carbon input file that `write_caland_inputs()` will create for `CALAND()` (needs to be .xls); 
+#     default is `c_file = "carbon_input_nwl.xls"`.
+# 2. `inputs_dir`: The directory within "./inputs" to put the generated input files; default is `c_file = ""` so they go into 
+#     "./inputs".
+# 3. `parameter_file`: Carbon parameter raw data file (needs to be .xls file); default is `parameter_file = "lc_params.xls"`.
+# 4. `scenarios_file`: Scenarios raw data file with region- and/or ownership-generic management scenarios that will be expanded 
+#     upon in the scenario files created for `CALAND()` (needs to be .xls file with one scenario per worksheet); default is 
+#     `scenarios_file = "nwl_scenarios_v6_ac.xls"`.
+# 5. `units_scenario`: Specify units for input areas in scenarios_file (must be `"ac"` or `"ha"`); default is 
+#     `units_scenario = "ac"`. 
+# 6. `climate_c_file`: Climate raw data file containing either RCP 4.5 or RCP 8.5 climate scalars for vegetation and soil carbon 
+#     fluxes (needs to be .csv); the RCP must match the RCP associated with the wildfire raw data file. If historic climate is 
+#     desired (`CLIMATE = "HIST"`), assign either RCP 4.5 or RCP 8.5 climate raw data file, as there needs to be a valid file from 
+#     which `write_caland_inputs()` can convert all values to 1 (i.e., no future climate effect). Default is `climate_c_file = 
+#     "climate_c_scalars_iesm_rcp85.csv"`.
+# 7. `fire_area_file`: The wildfire raw data file containing annual burned area by region-ownership (needs to be .csv); the RCP 
+#     must match the climate raw data file; needs to be RCP 8.5 for historic climate (`CLIMATE = "HIST"`). Default is 
+#     `fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"`.
+# 8. `mortality_file`: Mortality raw data file containing mortality rates as annual fraction of above-ground biomass; includes 
+#     values for  woody land types that have C accumulation in vegetation; any missing valid land types will be assigned a default 
+#     annual mortality fraction of 0.01. Default is `mortality_file = "mortality_annual_july_2018.csv"`.
+# 9. `area_gis_files_new`: New area GIS raw data file of GIS statistics of annual area change by land category (sq m) (needs to 
+#     be a .csv); default is `area_gis_files_new = "CALAND_Area_Changes_2010_to_2101.csv"`. 
+# 10. `area_gis_files_orig`: Original area GIS raw data files of GIS statistics of areas by land category (sq m) that are compared 
+#     to compute annual area changes (concatenate two .csv file names, one for each year); default is `area_gis_files_orig = 
+#     c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")`.
+# 11. `land_change_method`: Assigning `"Landcover"` will use the original method of remote sensing landcover change from 2001 to 
+#     2010 (i.e., files assigned to `area_gis_files_orig`), or assigning `"Landuse_Avg_Annual"` will use the average LUCAS-modeled 
+#     annual area changes from 2010 to 2050 based on projected change in cultivated and developed areas (i.e., file assigned to 
+#     `area_gis_files_new`); default is `land_change_method = "Landuse_Avg_Annual"`. 
+# 12. `carbon_gis_files`: Carbon GIS raw data files of GIS statistics of carbon density by carbon pool and land category 
+#     (Mg C per ha) (concatentate 13 .csv file names); default is: 
+#     `carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", 
+#     "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", 
+#     "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", 
+#     "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", 
+#     "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
+#     "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", 
+#     "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")`. 
+# 13. `scen_tag`: (optional) A scenario file name tag that will be appended to the scenario names in the worksheets in the scenarios 
+#     raw data file (`scenarios_file`); default is `scen_tag = "default"`.
+# 14. `start_year`: The initial year of the simulation, which must match the year of the carbon GIS raw data files. Additionally, 
+#     the new area file should include this year, and one of the original area GIS files needs to be for this year. Default is 
+#     `start_year = 2010`.  
+# 15. `end_year`: this is the final year output desired from the `CALAND()` simulation (matches the `CALAND()` end_year argument); 
+#     default is `end_year = 2101`.
+# 16. `CLIMATE`: projected climate (RCP 4.5 or RCP 8.5) or historical climate (`"PROJ"` or `"HIST"`, respectively); affects 
+#     wildfire areas and vegetation and soil carbon flux values; the projected climate scenario is determined by the fire and climate 
+#     input files; `"HIST"` uses RCP 8.5 wildfire average areas from 2001 to 2015 for historical average burn area, and sets all 
+#     climate scalars to 1. Deafult is `CLIMATE = "HIST"`.
+# 17. `forest_mort_fact`: Assign a number that will be used to adjust the forest mortality during the period specified by 
+#     `forest_mort_adj_first` and `forest_mort_adj_last`; default is `forest_mort_fact = 2`.
+# 18. `forest_mort_adj_first`: the first year to adjust forest mortality; default is `forest_mort_adj_first = 2015`.
+# 19. `forest_mort_adj_last`: the last year to adjust forest mortality; default is `forest_mort_adj_last = 2024`.
+# 20. `control_wildfire_lulcc_file`: .csv file with flags (1 or 0) for each scenario in `scenarios_file` to control wildfire and 
+#     LULCC. This is for sensitivity testing of individual practices or processes in `CALAND()`. Default is 
+#     `control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv"`. Note this will not be used 
+#     unless `control_wildfire_lulcc = TRUE`.
+# 21. `control_wildfire_lulcc`: if TRUE, read `control_wildfire_lulcc_file` to control wildfire and LULCC; default is 
+#     `control_wildfire_lulcc = FALSE`.
 
-# restoration
-# fresh marsh comes out of only private and state land in the delta, so make sure that these are included (for now, all existing cultivate delta land categories are included as potential fresh marsh)
-#	      so far, this is the only land type for which land categories need to be added (except for seagrass)
-# coastal marsh comes out of only private and state land in the coastal regions, so make sure these are available, from cultivated
-# meadow restoration is only in the sierra cascades, and in private, state, and usfs nonwilderness, from shrub, grass, savanna, and woodland
-# woodland comes from cultivated and grassland
-# afforestation is forest area expansion and comes from shrubland and grassland
-# reforestation is forest area expansion that comes from shrubland only to match non-regeneration of forest
+############################################ Outputs from `write_caland_inputs()`############################################
 
-# output files
-# areas are in ha (scenario files)
-# carbon file:
-#  densities are in Mg C per ha (t C per ha)
-#  factors are fractions
+# Two output files are written to caland/inputs/ (unless a sub-directory is specified differently from the default 
+# `inputs_dir = ""`). There is one carbon output file and one scenario output file for each scenario in the `scenarios_file`:  
 
-# this takes about an hour for 5he 5 original scenarios
+# (1) Carbon .xls file: `c_file` 
+#   Carbon densities are in Mg C per ha (t C per ha)
+#   Factors (or scalars) are fractions
+# (2) Scenario .xls file(s):  <scenario\_name>\_`scen_tag`\_<climate>.xls 
+#   One for each scenario in the `scenarios_file`
+#   <scenario\_name> will be named based on the worksheet names in the `scenarios_file`
+#   <climate> will be named based on the climate associated with the `climate_c_file` unless historical climate is chosen 
+#     (`CLIMATE == "HIST"`), in which case "HIST" will be used.
+#   areas are in ha
 
-#setwd("/Users/adivi/projects/cnra_carbon/caland")
+
+################################################# Start script ############################################################
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
 options(java.parameters = "-Xmx4g" )
@@ -147,43 +252,6 @@ for( i in libs ) {
     }
     library( i, character.only=T )
 }
-
-########### set these here so that I can work without running the function
-scen_tag = "default"
-#scen_tag = "ind"
-c_file = "carbon_input_nwl.xls"
-#c_file = "carbon_input_ind.xls"
-#c_file = "carbon_input.xls"
-start_year = 2010
-end_year = 2101
-#end_year = 2051
-CLIMATE = "HIST"
-#CLIMATE = "PROJ"
-parameter_file = "lc_params.xls"
-#scenarios_file = "orig_scenarios.xls"
-scenarios_file = "nwl_scenarios_v6_ac.xls"
-#scenarios_file = "individual_proposed_sims_aug2018.xls"
-units_scenario <- "ac"
-#units_scenario = "ha"
-inputs_dir = ""
-climate_c_file = "climate_c_scalars_iesm_rcp85.csv"
-fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv"
-mortality_file = "mortality_annual_july_2018.csv"
-area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv"
-land_change_method = "Landuse_Avg_Annual"
-# land_change_method = "Landcover"
-area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv")
-carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", 
-                     "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv")
-forest_mort_fact = 2
-forest_mort_adj_first = 2015
-forest_mort_adj_last = 2024
-control_wildfire_lulcc <- FALSE
-#control_wildfire_lulcc_file = "orig_scenarios_control_no_lulcc.csv"
-control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv"
 
 write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl.xls", start_year = 2010, end_year = 2101, 
                                 CLIMATE = "PROJ", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v6_ac.xls",

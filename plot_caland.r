@@ -5,57 +5,87 @@
 # This software and its associated input data are licensed under the 3-Clause BSD open source license
 # Please see license.txt for details
 
-# make diagnostic plots (.pdf files) and associated text files (.csv files) of two or more CALAND scenario outputs
+# Compute differences between baseline scenario and alternative scenario outputs from CALAND(); make diagnostic plots 
+# (.pdf files) and associated .csv files 
 
-# this script loops over all the regions and land types
-#  the ownerships will be aggregated
-#  note that Seagrass has non-zero values only for all c stock == soil c stock, and cum and ann eco c gain
+# See readme file for details on computer optimizing processing time    
 
-# get only the year columns (not the change column)
+################################################### Overview of `plot_caland()`#################################################
 
-# the model output files for plotting are in caland/<data_dir>/
-# the plots are put into caland/<data_dir>/<figdir>/ within each region, land type, and ownership directory
-#	where <data_dir> and <figdir> are arguments to the function
+# The `plot_caland()` function compares outputs from the `CALAND()` model. It is designed to compare the`CALAND()` output .xls 
+# file for the baseline scenario to any number of alternative scenarios (at least one required), and will output a suite of 
+# individual data tables (.csv files) and corresponding graphics (.pdf files) that summarize various variables at your desired 
+# level of spatial aggregation of region, land type, and ownership combination(s). The aggregation level can be zoomed out to 
+# the entire State of California (summing across all regions, land types, and ownerships) or as granular as a specific region, 
+# land type, and ownership combination (i.e., land category), such as North Coast, Forest on Private lands.
 
-# plot_caland() has 12 arguments:
-#	scen_fnames		array of scenario output file names; assumed to be in data_dir; scen_lnames is automatically determined from this by extracting text before "_output_..."
-#	scen_snames		array of scenario short lables associated with scen_fnames (up to 8 character labels for bar graphs)
-#	data_dir		the path to the directory containing the caland output files; do not include the "/" character at the end; default is "./outputs"
-#	reg				array of regions to plot; can be any number of available regions (all are below as default)
-#	lt				array of land types to plot; can be any number of available types (all are below as default)
-#	own				array of ownerships to plot; can be any number of available types (only "All_own" is the default)
-#	figdir			the directory within data_dir to write the figures; do not include the "/" character at the end
-#	INDIVIDUAL		TRUE = output per area effects of individual practices based on model runs configured for this purpose
-# units_ha         TRUE = output units in "ha", FALSE = "ac". Default is "ac".
-# blackC        TRUE = black GWP equal to 900, FALSE = black GWP equal to 1 (default)
-# blackC_plot   TRUE = plot BC, CO2, and CH4, FALSE = plot only CO2 and CH4 (BC added to CO2 which is only valid if black C is FALSE) (default)
-# last_year			the last year to plot; this should be the final run year + 1 because cumulative and area outputs reflect previous years
-#						e.g., 2050 is the final run year, but everything is defined and output to 2051, so last_year = 2051
+# Sensitivity tests of individual practices:
+  
+# `plot_caland()` has the ability to generate per area outputs for sensitivity tests of individual practices by designating 
+# `INDIVIDUAL = TRUE` in `plot_caland()`. These diagnostics are designed to estimate effects of a practice *in isolation*. 
+# Thus, these outputs are only valid when the following conditions are met:
+#   Comparison of a static run (i.e., baseline with only ecosystem exchange enabled, no lulcc, no management practices, 
+#     no wildfire, except when evaluating effects on fire emissions) with a run with a single practice enabled. One 
+#     exception is for evaluating avoided conversion effects, in which case lulcc has to be on in the baseline so that 
+#     urban growth rate can be reduced in the scenario.  
+#   For any runs with restoration/reforestation/afforestation/lulcc, the land type must be "All_land" in order to capture 
+#     the dynamics of lulcc and wildfire; any other land type will not give valid results
 
-# notes:
-# need at least two scenarios for this to work
-# the first scenario in the array is assumed to be the baseline
-# scen_fnames, scen_lnames, and scen_snames all need to be equal length vectors
-# this takes several hours for 5 scenarios
-# it is faster to run four separate instances at once via the command line (assuming you have at least 4 cores)
-#	this took about 2.5 hours to complete
-#		three instancs each with three of the land regions
-#		one instance with the Ocean and All_region regions
-# When using All_region and All_land, there is only the All_own ownership avaialable in the output files
-#	so it is best to not use these when plotting individual ownerships
-#	otherwise you may get several outputs labelled with different ownerships, but that are identical and are the All_own outputs
+# These individual effects change over time because most practices have effects beyond the year(s) of implementation 
+# (e.g. rangeland compost application, forest harvest, forest fuel reduction practices). One consideration is that 
+# restoration activities have secondary effects on land use/cover change related to forcing conversion of other land 
+# types and the proportion of land types burned by wildfire.
 
-# the indivudual per area outputs are only valid when comparing:
-#	a static run (only ecosystem exchange enabled, no lulcc, no practices, no fire (except when evaluating effects on fire emissions))
-#	with a run with a single practice enabled
+# Example `CALAND()` input scenario files designed for sensitivity testing can be found in /caland/inputs/ind_sims_27aug2018.
 
-#### the output files do not include the carbon transfered into and out of a land category due to lcc
-#### so the component diagnostics include only land-atmosphere c exchange
-#### which means that the carbon going between land categories is not represented in these diagnostics
+################################################### Inputs to `plot_caland()`###################################################
 
-# make sure that the working directory is caland/
-# This R script is in the caland directory, which should be the working directory
-#	Open R by opening this R script, or set the working the directory to caland/
+# The input .xls files for `plot_caland()` are the main .xls output files from `CALAND()`, located in caland/outputs/ 
+# (unless the sub-directory `data_dir` is specified differently from the default of no subdirectory (`data_dir = ""`) 
+# (see Arguments section below). Two or more of these files are required, one of which will serve as the reference baseline 
+# scenario and the other as an alternative scenario that tests the impacts of change(s) to the baseline. Additional alternative 
+# scenarios can be compared to the baseline in a single run as well.
+                                                                                                                     
+################################################## Arguments in `plot_caland()` ################################################
+                                                                                                                     
+# 1. `scen_fnames`  is a vector of scenario output file names written by `CALAND()`.
+#   - The first scenario file in `scen_fnames`  must be the name of the baseline scenario to which the other scenarios will be 
+#     compared.  For example: `scen_fnames = c("Baseline.xls", "A.xls", "B.xls", "C.xls", "D.xls")`.
+#   - The number of scenario files in `scen_fnames` must correspond directly to the labels in `scen_snames` (see argument #2).    
+# 2.  `scen_snames` vector of abbreviated scenario labels which will be printed in the plot legends (8 characters maximum for 
+#     each label)
+# 3.  `data_dir` path to the directory containing the `CALAND()` output files; do not include the "/" character at the end; 
+#     default is `data_dir = "./outputs"`   
+# 4.  `reg`	vector of individual regions to plot, including the entire State of California `All_region`; can be any number 
+#     of available regions. Default is all of them:
+#     reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", 
+#     "Sierra_Cascades", "South_Coast", "Ocean")
+# 5. `lt` vector of land types to plot; can be any number of available types. Default is all of them:
+#     lt = c("All_land", "Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", 
+#     "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass")
+# 6. `own` array of ownerships to plot; can be any number of available types. Default is the aggregation of all ownerships 
+#     (All_own): own = "All_own"`
+#     However any number of them can be specified:
+#     own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
+# 7. `figdir`	folder within data_dir to save the graphs (.pdf) and corresponding data tables (.csv); do not include the "/" 
+#     character at the end. Default is: `figdir = "figures"`
+# 8. `INDIVIDUAL` Indicates whether a sensitivity test is being performed on scenarios that isolate the effects of 
+#     individual practices. This test is only valid if the scenarios were configured for this purpose. The default is not to 
+#     compute these outputs: `INDIVIDUAL = FALSE`. 
+# 9. `units_ha`  TRUE = units of `plot_caland()` outputs will be in "ha" (same as `CALAND()` outputs), FALSE = units of 
+#     `plot_caland()` outputs will be converted to "ac". Default is `units_ha = "ac"`.
+# 10. `blackC`  TRUE = black GWP equal to 900, FALSE = black GWP equal to 1. Default is `blackC = FALSE`. Note: this need 
+#     to match the `CALAND()` `blackC` argument that was used.
+# 11. `blackC_plot`  TRUE = plot BC, CO2, and CH4, FALSE = plot only CO2 and CH4 (BC added to CO2 which is only valid if 
+#     black C is FALSE). Default is `blackC_plot = FALSE`.  Note: this need to match the `CALAND()` `blackC` argument that 
+#     was used.
+# 12. `last_year`	the last year to plot; this should be the final run year + 1 because cumulative and area outputs reflect 
+#     previous years e.g., 2050 is the final run year, but everything is defined and output to 2051, so last_year = 2051. 
+#     Default is `last_year = 2051`
+
+                                                                                                                                                                                                                                
+###################################################### start script #################################################################
+
 # setwd("<your_path>/caland/")
 setwd("./")
 
@@ -73,45 +103,8 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
-# set these here so the function does not have to be used
-data_dir = "./outputs/sep11_2018_nwl_v4"
-# scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","Woodland_restoration_frst2Xmort_fire_output_mean.xls") 
-scen_fnames = c("BAU_EcoFlux_frst2Xmort_fire_output_mean_BC1_new_outputs.xls","BAU_All_frst2Xmort_fire_output_mean_BC1_new_outputs.xls")
-scen_snames = c("BAUEco","BAUall")
-#scen_snames = c("BAUEco","WoodRest")
-scen_fnames = c("BAU_Fire_frst2Xmort_fire_output_mean_BC1.xls","USFS_partial_cut_frst2Xmort_fire_output_mean_BC1.xls") 
-scen_snames = c("BAUFire","USFSPC")
-lt=c("All_land")
-own=c("All_own")
-units_ha = FALSE
-reg=c("All_region")
 
-reg="All_region"
-lt="All_land"
-own = "All_own"
-
-figdir = "figures"
-INDIVIDUAL = TRUE
-blackC = FALSE
-blackC_plot = FALSE
-
-last_year = 2051
-
-#reg = c("All_region", "Central_Coast", "Central_Valley", "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean")
-#lt = c("All_land", "Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass")
-#own = c("All_own", "BLM", "DoD", "Easement", "Local_gov", "NPS", "Other_fed", "Private", "State_gov", "USFS_nonwild")
-
-
-
-scen_fnames = c("Baseline_frst2Xmort_fire_output_mean.xls", "LowProtect_BaseManage_frst2Xmort_fire_output_mean.xls",
-                "HighProtect_BaseManage_frst2Xmort_fire_output_mean.xls", "BaseProtect_LowManage_frst2Xmort_fire_output_mean.xls",
-                "BaseProtect_HighManage_frst2Xmort_fire_output_mean.xls")
-scen_snames = c("BASE", "LPBM", "HPBM", "BPLM", "BPHM")
-
-scen_fnames = c("Historical_frst2Xmort_fire_output_mean_BC1.xls", "BAU_NWL_frst2Xmort_fire_output_mean_BC1.xls", "Ambitious_frst2Xmort_fire_output_mean_BC1.xls")
-scen_snames = c("HIST", "BAU", "AMB")
-
-############# main function
+### Assign plot_caland()
 
 plot_caland <- function(scen_fnames, scen_snames, data_dir = "./outputs", reg = c("All_region", "Central_Coast", "Central_Valley",
 "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean"),
