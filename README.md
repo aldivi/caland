@@ -98,16 +98,16 @@ Get the CALAND files and tools needed to use them by following the instructions 
 #### (1) Downloading CALAND releases from the Zenodo digital archive
 1. Go to [Zenodo.org](https://zenodo.org/).
 2. Search for CALAND.
-3. Find the CAlifornia natural and working LANDs carbon and greenhouse gas model (CALAND) in the search results and click on it.
-2. Download the .zip file for the desired version of CALAND. Now CALAND is on your local computer.
-3. Unzip the file and and save the caland/ folder where you want the directory to be located.
+3. Find the CAlifornia natural and working LANDs carbon and greenhouse gas model (CALAND) in the search results and click on it (e.g., selecting CALAND v3.0.0 should direct to http://zenodo.org/record/3256727).
+2. Download the .zip file for the desired version of CALAND (e.g., caland-v3.0.0.zip). Now CALAND is on your local computer.
+3. Unzip the file and and save the resulting CALAND folder where you want it to be located.
 
 #### (2) Downloading CALAND releases from California Natural Resources Agency (CNRA) Open Data Portal  
 1. Go to the [CNRA Natural and Working Lands Open Data Portal](https://data.cnra.ca.gov).
 2. Search for CALAND.
 3. Find the desired CALAND version in the search results and click on it. For example, CALAND version 3 should go to https://data.cnra.ca.gov/dataset/caland-version-3.
-2. Download the .zip file for the desired version of CALAND (e.g., CALAND_v3.0.0.zip). Now CALAND is on your local computer.
-3. Unzip the file and and save the caland/ folder where you want it to be located.
+2. Download the .zip file for the desired version of CALAND (e.g., caland-v3.0.0.zip). Now CALAND is on your local computer.
+3. Unzip the file and and save the resulting CALAND folder where you want it to be located.
 
 #### (3) Downloading the full CALAND repository from github  
 1. Sign up for a free [github account](https://github.com).  
