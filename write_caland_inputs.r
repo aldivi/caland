@@ -237,7 +237,7 @@
 #   areas are in ha
 
 
-################################################# Start script #######################################################
+################################################# Start script ############################################################
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
 options(java.parameters = "-Xmx4g" )
