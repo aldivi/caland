@@ -558,12 +558,13 @@ Low emissions: low initial carbon density (i.e., mean-SD) and high carbon fluxes
 High emissions: high initial carbon density (i.e., mean+SD) and low carbon fluxes (i.e., mean-SD)
 
 #### Input files to `plot_uncertainty()`
-The three input .csv files for mean, low, and high emissions have matching formats. They are assumed to be in caland/outputs/mean, caland/outputs/low, caland/outputs/high, respectively, unless `figdir` is specified differently than the default (i.e., `figdir = c("mean","low","high")`). Scenarios that are in the same .csv file from `plot_caland()` constitute a group; one or two scenario groups can be plotted.
-
-Location of a set of three .csv input files:
-1. If the mean output folder from `plot_caland()` is in `figdir[1]`, the path to the desired file is: figdir[1]/`reg_lab`\_`lt_lab`\_`own_lab`\_`varname`\_output.csv.
-2. If the low output folder from `plot_caland()` is in `figdir[2]`, the path to the desired file is: figdir[2]/`reg_lab`\_`lt_lab`\_`own_lab`\_`varname`\_output.csv.
-3. If the high output folder from `plot_caland()` is in `figdir[3]`, the path to the desired file is: figdir[3]/`reg_lab`\_`lt_lab`\_`own_lab`\_`varname`\_output.csv.
+Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Within each .csv file, there can be any number of 
+scenarios. Each group of scenarios must have a corresponding .csv file for the mean, low, and high emissions. It is possible
+to plot up to three groupings (a, b, c) with `plot_uncertainty()`. Three scenario groups ammounts to a total of nine .csv 
+input files to `plot_uncertainty()`; three input .csv files (mean, low, and high emissions) for each group. All .csv files 
+have matching formats. For a single group ("group a"), they are assumed to be in caland/outputs/mean, caland/outputs/low, 
+caland/outputs/high, respectively, unless `figdir` is specified differently than the default: 
+`figdir = c("mean","low","high")`.
 
 #### Arguments in `plot_uncertainty()`  
 1. `start_year`:  year to start plotting; default is `start_year = 2010`.
@@ -571,14 +572,14 @@ Location of a set of three .csv input files:
 3. `varname`: name of a single variable to plot (see the .csv output filenames from `plot_caland()`); the variable name is between the land type and "\_output" in these file names. However, do not include the surrounding "\_" characters.  
 4. `ylabel`: label for y-axis corresponding to the units of your selected output variable, and whether they are changes from baseline (i.e., `varname` ending in "diff") or absolute values. Note that this function does not convert units so the output units of your desired plotting variable must be correctly matched with the .csv file.
 	- Here are some exmaples:
-		- "Change from Baseline (MMT CO2eq)"
-                - "MMT CO2eq"
-                - "Change from Baseline (MMT C)"
-                - "MMT C"
-                - "Change from Baseline (Mg C/ha)"
-                - "Mg C/ha"
-                - "Change from Baseline (Mg C/ac)"
-                - "Mg C/ac"
+		- `ylabel = "Change from Baseline (MMT CO2eq)"`
+                - `ylabel = "MMT CO2eq"`
+                - `ylabel = "Change from Baseline (MMT C)"`
+                - `ylabel = "MMT C"`
+                - `ylabel = "Change from Baseline (Mg C/ha)"`
+                - `ylabel = "Mg C/ha"`
+                - `ylabel = "Change from Baseline (Mg C/ac)"`
+                - `ylabel = "Mg C/ac"`
 5. `file_tag`: tag to add to end of the new file names created by `plot_uncertainty()` (e.g., to note what time period is plotted); default is `file_tag = ""` (nothing added).
 6. `data_dir_a`: the path to the directory containing the three folders of `plot_caland()` outputs (mean, low, and high emissions) for scenario group a; do not include the "/" character at the end; default is `data_dir_a = "./outputs"`.
 7. `figdirs_a`: a vector of three folder names within `data_dir_a` containing the .csv data files to plot. The folder names must be assigned in order of mean, low, and high; do not include the "/" character at the end of each folder name. The default is `figdirs_a = c("mean", "low", "high")`; thus, the .csv files for the mean and lower and upper uncertainty bounds are assumed to be in `data_dir_a`/mean, `data_dir_a`/low, and `data_dir_a`/high, respectively, and in the appropriate region, land type, and ownership directories. The figures will be written to the folder representing the mean.
@@ -614,7 +615,8 @@ Once you have completed [installing R or R and RStudio, and downloading CALAND](
 ```
 > setwd("<your_path>/caland/")
 ```
-3. Load the functions in each file by clicking anywhere in your script window, and then choose Edit→Run all (in R), or click the Source button in the top-right corner of the editor window (in RStudio). Alternatively, you can highlight the entire code, and then press Ctrl+R (in R) or Ctrl+Enter (in RStudio).
+3. Load the functions in each file by clicking anywhere in your script window, and then choose Edit→Run all (in R), or click the Source button in the top-right corner of the editor window (in RStudio). Alternatively, you can highlight the entire code, and then press Ctrl+R (in R) or Ctrl+Enter (in RStudio).  
+  
 ##### Run the functions in R
 4. Read the [`CALAND.r` section](#2-calandr).
 5. Run `CALAND()` twice using two example sets of arguments:   
