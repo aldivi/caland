@@ -23,6 +23,7 @@
 # caland/`data_dir`/`figdir`/`reg`/`own`, which should be the same as used in `plot_caland()`.
 
 ########################################### Arguments in `plot_scen_types()`############################################# 
+
 # 1. `varname`: name of variable to plot. See the outputs from `plot_caland()`; the name is between the land type and 
 #     "_output" in these file names; do not include the surrounding "_" characters.
 # 2. `ylabel`: Label for the y-axis; it should indicate the units and whether it is a difference from baseline.
