@@ -560,8 +560,8 @@ High emissions: high initial carbon density (i.e., mean+SD) and low carbon fluxe
 #### Input files to `plot_uncertainty()`
 Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Within each .csv file, there can be any number of 
 scenarios. Each group of scenarios must have a corresponding .csv file for the mean, low, and high emissions. It is possible
-to plot up to three groupings (a, b, c) with `plot_uncertainty()`. Three scenario groups ammounts to a total of nine .csv 
-input files to `plot_uncertainty()`; three input .csv files (mean, low, and high emissions) for each group. All .csv files 
+to plot up to three groupings (a, b, c) with `plot_uncertainty()`. Three scenario groups amounts to a total of nine .csv 
+input files to `plot_uncertainty()`: three input .csv files (mean, low, and high emissions) for each group. All .csv files 
 have matching formats. For a single group ("group a"), they are assumed to be in caland/outputs/mean, caland/outputs/low, 
 caland/outputs/high, respectively, unless `figdir` is specified differently than the default: 
 `figdir = c("mean","low","high")`.
@@ -571,7 +571,7 @@ caland/outputs/high, respectively, unless `figdir` is specified differently than
 2. `end_year`: year to end plotting; default is `end_year = 2051`.  
 3. `varname`: name of a single variable to plot (see the .csv output filenames from `plot_caland()`); the variable name is between the land type and "\_output" in these file names. However, do not include the surrounding "\_" characters.  
 4. `ylabel`: label for y-axis corresponding to the units of your selected output variable, and whether they are changes from baseline (i.e., `varname` ending in "diff") or absolute values. Note that this function does not convert units so the output units of your desired plotting variable must be correctly matched with the .csv file.
-	- Here are some exmaples:
+	- Here are some examples:
 		- `ylabel = "Change from Baseline (MMT CO2eq)"`
                 - `ylabel = "MMT CO2eq"`
                 - `ylabel = "Change from Baseline (MMT C)"`
