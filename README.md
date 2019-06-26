@@ -548,7 +548,7 @@ lt = c(Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "S
 
 #### Outputs from `plot_scen_types()`
 
-Output files consist of a suite of graphs (.pdf) and corresponding data tables (.csv), which are written to caland/`data_dir`/`figdir`/ within each region and ownership combination directory, where `data_dir` and `figdir` are arguments to `plot_scen_types()`. Naming of the .pdf and .csv filenames is automatic and determined from the varname argument, the scenarios present in the source data files, and an optional file_tag argument.
+Output files consist of a suite of graphs (.pdf) and corresponding data tables (.csv), which are written to caland/`data_dir`/`figdir`/ within each region directory, where `data_dir` and `figdir` are arguments to `plot_scen_types()`. Naming of the .pdf and .csv filenames is automatic and determined from the varname argument, the scenarios present in the source data files, and an optional file_tag argument.
 
 #### (5) plot\_uncertainty.r
 
