@@ -15,7 +15,7 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 ## Version History
 * CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
 * CALAND version 2.0.0: 23 October 2017; not an official release
-* CALAND version 1.0.0: 25 January 2017; no an official release
+* CALAND version 1.0.0: 25 January 2017; not an official release
 
 ## License
 CALAND is licensed as open source software under the [BSD 3 Clause License](https://github.com/aldivi/caland/blob/master/license.txt).
