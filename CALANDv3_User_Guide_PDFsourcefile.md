@@ -20,42 +20,46 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 ## License
 CALAND is licensed as open source software under the [BSD 3 Clause License](https://github.com/aldivi/caland/blob/master/license.txt).
 
+&nbsp;
+
 ## Funding
 The California Natural Resources Agency
 
 ## Table of Contents  
-* [Overview](#overview)   
-* [Installation](#installation)
-* [Ancillary Data not Included with CALAND](#ancillary-data-not-included-with-caland)
-* [Ancillary Data Included with CALAND](#ancillary-data-included-with-caland)
-* [Usage](#usage)
-  - [R files and their functions](#r-files-and-their-functions)
-     - [write_caland_inputs.r](#1-write_caland_inputsr)
-       - [Overview of `write_caland_inputs()`](#overview-of-write_caland_inputs)
-       - [Raw data input files to `write_caland_inputs()`](#raw-data-input-files-to-write_caland_inputs)
-       - [Arguments in `write_caland_inputs()`](#arguments-in-write_caland_inputs)
-       - [Outputs from `write_caland_inputs()`](#outputs-from-write_caland_inputs)
-     - [CALAND.r](#2-calandr)  
-       - [Overview of `CALAND()`](#overview-of-caland)  
-       - [Input files to `CALAND()`](#input-files-to-caland)
-       - [Arguments in `CALAND()`](#arguments-in-caland)
-       - [Outputs from `CALAND()`](#outputs-from-caland)  
-     - [plot_caland.r](#3-plot_calandr)
-       - [Overview of `plot_caland()`](#overview-of-plot_caland)  
-       - [Input files to `plot_caland()`](#input-files-to-plot_caland)
-       - [Arguments in `plot_caland()`](#arguments-in-plot_caland)
-       - [Outputs from `plot_caland()`](#outputs-from-plot_caland)
-     - [plot_scen_types.r](#4-plot_scen_typesr)  
-       - [Overview of `plot_scen_types()`](#overview-of-plot_scen_types)
-       - [Input files to `plot_scen_types()`](#input-files-to-plot_scen_types)
-       - [Arguments in `plot_scen_types()`](#arguments-in-plot_scen_types)
-       - [Outputs from `plot_scen_types()`](#outputs-from-plot_scen_types)
-     - [plot_uncertainty.r](#5-plot_uncertaintyr)
-       - [Overview of `plot_uncertainty()`](#overview-of-plot_uncertainty)
-       - [Input files to `plot_uncertainty()`](#input-files-to-plot_uncertainty)
-       - [Arguments in `plot_uncertainty()`](#arguments-in-plot_uncertainty)
-       - [Outputs from `plot_uncertainty()`](#outputs-from-plot_uncertainty)
-* [Instructions for your first test runs with CALAND](#instructions-for-your-first-test-runs-with-caland)  
+* <span style="color:blue">Overview</span>   
+* <span style="color:blue">Installation</span>
+* <span style="color:blue">Ancillary Data Not Included with CALAND</span>
+* <span style="color:blue">Ancillary Data Included with CALAND</span>
+* <span style="color:blue">Usage</span>
+  - <span style="color:blue">R files and their functions</span>
+     - <span style="color:blue">write_caland_inputs.r</span>
+          - <span style="color:blue">Overview of `write_caland_inputs()`</span>
+          - <span style="color:blue">Raw data input files to `write_caland_inputs()`</span>
+          - <span style="color:blue">Arguments in `write_caland_inputs()`</span>
+          - <span style="color:blue">Outputs from `write_caland_inputs()`</span>
+     - <span style="color:blue">CALAND.r</span>  
+          - <span style="color:blue">Overview of `CALAND()`</span>  
+          - <span style="color:blue">Input files to `CALAND()`</span>
+          - <span style="color:blue">Arguments in `CALAND()`</span>
+          - <span style="color:blue">Outputs from `CALAND()`</span>  
+     - <span style="color:blue">plot_caland.r</span>
+          - <span style="color:blue">Overview of `plot_caland()`</span>  
+          - <span style="color:blue">Input files to `plot_caland()`</span>
+          - <span style="color:blue">Arguments in `plot_caland()`</span>
+          - <span style="color:blue">Outputs from `plot_caland()`</span>
+     - <span style="color:blue">plot_scen_types.r</span>  
+          - <span style="color:blue">Overview of `plot_scen_types()`</span>
+          - <span style="color:blue">Input files to `plot_scen_types()`</span>
+          - <span style="color:blue">Arguments in `plot_scen_types()`</span>
+          - <span style="color:blue">Outputs from `plot_scen_types()`</span>
+     - <span style="color:blue">plot_uncertainty.r</span>
+          - <span style="color:blue">Overview of `plot_uncertainty()`</span>
+          - <span style="color:blue">Input files to `plot_uncertainty()`</span>
+          - <span style="color:blue">Arguments in `plot_uncertainty()`</span>
+          - <span style="color:blue">Outputs from `plot_uncertainty()`</span>
+* <span style="color:blue">Instructions for your first test runs with CALAND</span>  
+
+&nbsp;
 
 ## Overview
 CALAND is a system of algorithms (.r files) and data developed to quantify the impacts of various suites of California State-supported land use and land management strategies on landscape carbon and greenhouse gas emissions (CO<sub>2</sub>, CH<sub>4</sub>, and optional black carbon) relative to a baseline scenario for the [Draft California 2030 Natural and Working Lands Climate Change Implementation Plan (2019)](https://www.arb.ca.gov/cc/natandworkinglands/draft-nwl-ip-040419.pdf). CALAND consists of the model itself (CALAND.r), a data pre-processing algorithm (write_caland_inputs.r) for generating model input files, and three post-processing algorithms (plot_caland.r, plot_scen_types.r, plot_uncertainty.r) for diagnosing, visualizing, and summarizing model ouputs.
@@ -98,14 +102,14 @@ Get the CALAND files and tools needed to use them by following the instructions 
 1. Go to [Zenodo.org](https://zenodo.org/).
 2. Search for CALAND.
 3. Find the CAlifornia natural and working LANDs carbon and greenhouse gas model (CALAND) in the search results and click on it (e.g., selecting CALAND v3.0.0 should direct to http://zenodo.org/record/3256727).
-2. Download the .zip file for the desired version of CALAND (e.g., caland-v3.0.0.zip) by clicking on the 'Download' button. Now CALAND is on your local computer. The 'GitHub' button will take you to the CALAND GitHub repository (see below).
+2. Download the .zip file for the desired version of CALAND (e.g., caland-v3.0.0.zip). Now CALAND is on your local computer.
 3. Unzip the file and and save the resulting caland folder where you want the directory to be located.
 
 #### (2) Downloading CALAND releases from California Natural Resources Agency (CNRA) Open Data Portal  
 1. Go to the [CNRA Natural and Working Lands Open Data Portal](https://data.cnra.ca.gov).
 2. Search for CALAND.
 3. Find the desired CALAND version in the search results and click on it. For example, CALAND version 3 should go to https://data.cnra.ca.gov/dataset/caland-version-3.
-2. You can click on the 'Download' button next to the desired version to go to the Zenodo download page or see more info via the 'More Info' button or by clicking on the name of the desired version (e.g., CALAND V.3.0.0). The 'More Info' page also includes a 'Download' button and a link to the Zenodo download page. Once at the download page click on the 'Download' button to get the .zip file for the desired version of CALAND (e.g., caland-v3.0.0.zip). Now CALAND is on your local computer.
+2. Download the .zip file for the desired version of CALAND (e.g., CALAND_v3.0.0.zip). Now CALAND is on your local computer.
 3. Unzip the file and and save the resulting caland folder where you want it to be located.
 
 #### (3) Downloading the full CALAND repository from github  
@@ -136,7 +140,7 @@ The CALAND release includes some ancillary data that can be used for visualizing
 
 ## Usage
 
-The five R files (.r) located in the caland-3.0.0/ directory include (1) write\_caland\_inputs.r, (2) CALAND.r, (3) plot\_caland.r, (4) plot\_scen\_types.r, and (5) plot\_uncertainty.r, the first three of which are designed to be run in sequential order. However, for your [first test runs](#instructions-for-your-first-test-runs-with-caland) you can skip write\_caland\_inputs.r, as there are example input files in caland-3.0.0/inputs directory that were created for the Draft California 2030 Natural and Working Lands Climate Change Implementation Plan. Each scenario that you want to model must be run individually using the functions in CALAND.r before proceeding to using plot_caland.r to compare individual scenarios and compute *changes* in carbon dynamics (increase or decrease) due to the effects of one scenario compared to another. Using plot_caland.r is essential for obtaining valid results; the outputs from CALAND.r are carbon emissions for individual scenarios, which are not reliable estimates of the carbon budget due to high uncertainty in the input data. Thus, CALAND is not intended to provide insight into whether the landscape is a net source or sink of carbon under a given scenario, but it is intended to quantify the change in carbon dynamics of a given scenario compared to a reference baseline scenario. The plot_caland.r file will produce graphics (.pdf) and data tables (.csv) for both individual scenario values and differences between scenarios. The individual scenario outputs are for diagnosing issues and understanding the model; while the differences between scenarios are the valid model results and the main purpose of CALAND. After using plot_caland.r, you can proceed to creating more detailed graphs using plot\_scen\_types.r or plot\_uncertainty.r.
+The five R files (.r) located in the caland-3.0.0/ directory include (1) write\_caland\_inputs.r, (2) CALAND.r, (3) plot\_caland.r, (4) plot\_scen\_types.r, and (5) plot\_uncertainty.r, the first three of which are designed to be run in sequential order. However, for your <span style="color:blue">first test runs</span> you can skip write\_caland\_inputs.r, as there are example input files in caland-3.0.0/inputs directory that were created for the Draft California 2030 Natural and Working Lands Climate Change Implementation Plan. Each scenario that you want to model must be run individually using the functions in CALAND.r before proceeding to using plot_caland.r to compare individual scenarios and compute *changes* in carbon dynamics (increase or decrease) due to the effects of one scenario compared to another. Using plot_caland.r is essential for obtaining valid results; the outputs from CALAND.r are carbon emissions for individual scenarios, which are not reliable estimates of the carbon budget due to high uncertainty in the input data. Thus, CALAND is not intended to provide insight into whether the landscape is a net source or sink of carbon under a given scenario, but it is intended to quantify the change in carbon dynamics of a given scenario compared to a reference baseline scenario. The plot_caland.r file will produce graphics (.pdf) and data tables (.csv) for both individual scenario values and differences between scenarios. The individual scenario outputs are for diagnosing issues and understanding the model; while the differences between scenarios are the valid model results and the main purpose of CALAND. After using plot_caland.r, you can proceed to creating more detailed graphs using plot\_scen\_types.r or plot\_uncertainty.r.
 
 Each R file contains scripts (commands) that comprise the essential functions of CALAND. To run any of them you must make sure that the working directory is caland-3.0.0/ by typing the following:
 
@@ -147,12 +151,13 @@ Here you will learn about the main functions in each of the R files and the sett
 
 `lt = c("Coastal_marsh", "Fresh_marsh", "Cultivated")`
 
+
 ### R files and their functions
 
 #### **(1) write\_caland\_inputs.r**  
 
 #### Overview of `write_caland_inputs()`
-The `write_caland_inputs()` function is defined in the write\_caland\_inputs.r file. Its purpose is to read the raw data files found in the caland-3.0.0/raw_data directory, and organize them into the detailed input files needed to run the `CALAND()` model (i.e., one carbon input file (.xls) and an individual scenario input file (.xls) for each defined scenario). Each of the input files that `write_caland_inputs()` creates are Excel workbooks, which are comprised of individual worksheets, one for each data table. The raw data files define the management scenarios; initial 2010 areas and carbon densities; annual area changes; ecosystem carbon fluxes; management parameters; parameters for land conversion to cultivated or developed lands; wildfire parameters; wildfire areas; mortality fractions; and climate change scalars. There is a suite of settings ([arguments](#arguments-in-caland)) with various options that you choose when running  `write_caland_inputs()`, such as climate (historical, RCP 4.5, or RCP 8.5) and whether you are controlling for wildire and land use land cover change (LULCC) for [sensitivity testing of individual practices](#sensitivity-tests-of-individual-practices).
+The `write_caland_inputs()` function is defined in the write\_caland\_inputs.r file. Its purpose is to read the raw data files found in the caland-3.0.0/raw_data directory, and organize them into the detailed input files needed to run the `CALAND()` model (i.e., one carbon input file (.xls) and an individual scenario input file (.xls) for each defined scenario). Each of the input files that `write_caland_inputs()` creates are Excel workbooks, which are comprised of individual worksheets, one for each data table. The raw data files define the management scenarios; initial 2010 areas and carbon densities; annual area changes; ecosystem carbon fluxes; management parameters; parameters for land conversion to cultivated or developed lands; wildfire parameters; wildfire areas; mortality fractions; and climate change scalars. There is a suite of settings (<span style="color:blue">arguments</span>) with various options that you choose when running  `write_caland_inputs()`, such as climate (historical, RCP 4.5, or RCP 8.5) and whether you are controlling for wildire and land use land cover change (LULCC) for <span style="color:blue">sensitivity testing of individual practices</span>.
 
 The `CALAND()` model operates on 940 land categories, but some of the raw data are not land category-specific. Thus, one of the main purposes of `write_caland_inputs()` is to disaggregate all non-land-category-specific raw data into individual land categories, and to save these expanded data tables in the carbon and scenario `CALAND()` input files. On the other hand, some of the raw data are land category-specific, including the initial 2010 areas and carbon densities, forest vegetation carbon fluxes, forest management carbon parameters, and some management areas.
 
@@ -188,14 +193,14 @@ The inputs to  `write_caland_inputs()`are referred to as raw data, as they are g
 	- The climate raw data file is a .csv file of annual climate scalars (fraction) for vegetation and soil carbon fluxes.
 	- The .csv file consits of four ID columns: Region, Land_Type, Ownership, and Component (Soil or Vegetation); and one column for each year, starting in year 2010.
 	- These fractions will directly scale the vegetation and soil C flux values under a historic climate in `CALAND()`
-	- There must be a valid climate file, even if historic climate is designated ([`CLIMATE = HIST`](#arguments-in-write_caland_inputs)), in which case  all climate scalars will be changed to 1.
+	- There must be a valid climate file, even if historic climate is designated (<span style="color:blue">`CLIMATE = HIST`</span>), in which case  all climate scalars will be changed to 1.
 
 - Wildfire raw data file (e.g., fire\_area\_canESM2\_85\_bau\_2001\_2100.csv)
 	- The wildfire raw data file is a .csv file of annual wildfire areas (units = ha).
 	- The .csv file consists of two ID columns (Region and Ownership), and a fire area column for each year, starting in year 2001. All possible Region-Ownership combinations are included (81 total), even if they don't exist.
-	- The wildfire areas from 2001 to 2015 are averaged by `write_caland_inputs()` to compute the initial 2010 wildfire areas written to the scenario input file. If historic climate is designated, ([`CLIMATE = HIST`](#arguments-in-write_caland_inputs)), the average 2001 to 2015 burn areas in the RCP 8.5 wildfire raw data are used for initial 2010 burn areas and throughout the entire simulation (same value, no trend).
+	- The wildfire areas from 2001 to 2015 are averaged by `write_caland_inputs()` to compute the initial 2010 wildfire areas written to the scenario input file. If historic climate is designated, (<span style="color:blue">`CLIMATE = HIST`</span>), the average 2001 to 2015 burn areas in the RCP 8.5 wildfire raw data are used for initial 2010 burn areas and throughout the entire simulation (same value, no trend).
 	- Wildfire severity fractions of the annual wildfire areas are hard-wired in `write_caland_inputs()`; and are not dependent on the selected climate. The high, medium, and low severity fractions are uniform across the State of California, starting with high = 0.26, medium = 0.29, and low = 0.45. The high severity fraction increases annually at a historical rate (i.e., 0.0027) and the low and medium fractions increase proportionally in order to account for the total wildfire area each year.
-	- Non-regeneration areas are parameterized as a function of the high severity fraction and a threshold distance from burn edge; however this is handled in [`CALAND()`](#arguments-in-caland) with the `NR_Dist` argument.
+	- Non-regeneration areas are parameterized as a function of the high severity fraction and a threshold distance from burn edge; however this is handled in <span style="color:blue">`CALAND()`</span> with the `NR_Dist` argument.
 
 - Mortality raw data file (e.g., mortality\_annual\_july\_2018.csv)
 	- The mortality raw data file is a .csv file of mortality fractions (units = fraction), representing the annual mortality rate as a fraction of live biomass carbon (above-ground main canopy and roots).
@@ -275,6 +280,7 @@ Output files are written to caland-3.0.0/inputs/ (unless a sub-directory is spec
 	- areas are in ha
 
 ##### Example of `write_caland_inputs()` arguments used to generate the `CALAND()` input files for the Draft California 2030 Natural and Working Lands Climate Change Implementation Plan:
+
 `write_caland_inputs(c_file = "carbon_input_nwl.xls", inputs_dir = "", parameter_file = "lc_params.xls", scenarios_file = "nwl_scenarios_v6_ac.xls", units_scenario = "ac", climate_c_file = "climate_c_scalars_iesm_rcp85.csv", fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv", mortality_file = "mortality_annual_july_2018.csv", area_gis_files_new = "CALAND_Area_Changes_2010_to_2051.csv", area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"), land_change_method = "Landuse_Avg_Annual", carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv", "lfc_usc_tpha_sp9_own9_2010lt15_stats.csv"), scen_tag = "default", start_year = 2010, end_year = 2101, CLIMATE = "PROJ", forest_mort_fact = 2, forest_mort_adj_first = 2015, forest_mort_adj_last = 2024, control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv", control_wildfire_lulcc = FALSE)`
 
 
@@ -282,7 +288,7 @@ Output files are written to caland-3.0.0/inputs/ (unless a sub-directory is spec
 
 #### Overview of `CALAND()`  
 
-The `CALAND()` function is the carbon and greenhouse gas accounting model, which is defined in the CALAND.r file. It uses the input files generated by `write_caland_inputs()`. A single scenario file is simulated each time  `CALAND()` is run, producing a single main output .xls file that summarizes outputs for 214 variables including annual and cumulative metrics, each in an individual worksheet.  There is a suite of settings ([arguments](#arguments-in-caland)) with various options that you choose when running  `CALAND()`, such as which carbon values to use from the carbon inputs file (i.e., mean, mean+sd, mean-sd, min, or max) and which level of forest non-regeneration to assume following high severity wildfire.
+The `CALAND()` function is the carbon and greenhouse gas accounting model, which is defined in the CALAND.r file. It uses the input files generated by `write_caland_inputs()`. A single scenario file is simulated each time  `CALAND()` is run, producing a single main output .xls file that summarizes outputs for 214 variables including annual and cumulative metrics, each in an individual worksheet.  There is a suite of settings (<span style="color:blue">arguments</span>) with various options that you choose when running  `CALAND()`, such as which carbon values to use from the carbon inputs file (i.e., mean, mean+sd, mean-sd, min, or max) and which level of forest non-regeneration to assume following high severity wildfire.
 
 Model structure & order of operations:
 
@@ -377,7 +383,7 @@ Output files are written to caland-3.0.0/outputs/ (unless a sub-directory is spe
 
 The `plot_caland()` function, defined in the plot_caland.r file, compares outputs from the `CALAND()` model. It is designed to compare the  `CALAND()` output .xls file for the baseline scenario to any number of alternative scenarios (at least one required), and will output a suite of individual data tables (.csv files) and corresponding graphics (.pdf files) that summarize various variables at your desired level of spatial aggregation of region, land type, and ownership combination(s). The aggregation level can be zoomed out to the entire State of California (summing across all regions, land types, and ownerships) or as granular as a specific region, land type, and ownership combination (i.e., land category), such as North Coast, Forest on Private lands.
 
-##### Sensitivity tests of individual practices
+*Sensitivity tests of individual practices*
 
 `plot_caland()` has the ability to generate per area outputs for sensitivity tests of individual practices by designating `INDIVIDUAL = TRUE` in `plot_caland()`. These diagnostics are designed to estimate effects of a practice *in isolation*. Thus, these outputs are only valid when the following conditions are met:
 
@@ -551,9 +557,10 @@ Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Withi
 #### Outputs from `plot_uncertainty()`
 Output plots (.pdf) and corresponding data (.csv) will be saved to the mean folder for scenario group a.
 
+
 ### Instructions for your first test runs with CALAND
 
-Once you have completed [installing R or R and RStudio, and downloading CALAND](#instructions-for-your-first-test-runs-with-caland), you will have a local copy of all the R scripts, four example input scenario files, a carbon input file,  all the raw files for creating new input files on your local computer, and the tools to use them. Now you can use the carbon and scenario input files that were already created with `write_caland_inputs()` to do a test run with  `CALAND()` and two of the plotting functions: `plot_caland()` and `plot_scen_types()`.
+Once you have completed <span style="color:blue">installing R or R and RStudio, and downloading CALAND</span>, you will have a local copy of all the R scripts, four example input scenario files, a carbon input file,  all the raw files for creating new input files on your local computer, and the tools to use them. Now you can use the carbon and scenario input files that were already created with `write_caland_inputs()` to do a test run with  `CALAND()` and two of the plotting functions: `plot_caland()` and `plot_scen_types()`.
 
 ##### Load the `CALAND()`, `plot_caland()`, and `plot_scen_types()` functions in R
 1. Open the following R files containing the functions (located in your caland-3.0.0/ directory): CALAND.r, plot\_caland.r, and plot\_scen\_types.r.
@@ -566,13 +573,13 @@ Once you have completed [installing R or R and RStudio, and downloading CALAND](
 3. Load the functions in each file by clicking anywhere in your script window, and then choose Edit→Run all (in R), or click the Source button in the top-right corner of the editor window (in RStudio). Alternatively, you can highlight the entire code, and then press Ctrl+R (in R) or Ctrl+Enter (in RStudio).
 
 ##### Run the functions in R
-4. Read the [`CALAND.r` section](#2-calandr).
+4. Read the <span style="color:blue">`CALAND.r` section</span>.
 5. Run `CALAND()` twice using two example sets of arguments:   
   - Run the historical baseline scenario using RCP8.5 climate change effects on wildfire and ecosystem carbon fluxes, mean initial carbon density, mean carbon accumulation inputs, maximum non-regeneration, and with black carbon counted as CO<sub>2</sub>. Type (or copy and paste) the following into the R console: `CALAND(scen_file="NWL_Historical_v6_default_RCP85.xls", c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE)`
 
   - Next, run the Alternative A scenario using the same arguments except for the scenario filename  `scen_file`. Type (or copy and paste) the following into the R console: `CALAND(scen_file="NWL_Alt_A_v6_default_RCP85.xls", c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE)`
 
-6. Read the [`plot_caland()`](#3-plot_calandr) and [`plot_scen_types()`](#2-plot_scen_typesr) sections above and make some plots by running the following examples in order. Note that `CALAND()` must be finished running before starting `plot_caland()`, and `plot_caland()` must be finished running before starting `plot_scen_types()`, as each function uses output files from the previous function as input files to the next function.
+6. Read the <span style="color:blue">`plot_caland()`</span> and <span style="color:blue">`plot_scen_types()`</span> sections above and make some plots by running the following examples in order. Note that `CALAND()` must be finished running before starting `plot_caland()`, and `plot_caland()` must be finished running before starting `plot_scen_types()`, as each function uses output files from the previous function as input files to the next function.
 
 - `plot_caland()` example. The following will compare `CALAND()` outputs for Alternative Scenario A to the Baseline Scenario at the Statewide level (`All_region`, `All_land`, and `All_own`), as well as each land type aggregated across all regions (`All_region`) and all ownerships (`All_own`):
 `plot_caland(scen_fnames = c("NWL_Historical_v6_default_RCP85_output_mean_BC1_NR120.xls", "NWL_Alt_A_v6_default_RCP85_output_mean_BC1.xls"), scen_snames = c("Baseline","A"), reg = c("All_region"), lt = c("All_land", "Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest", "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated", "Developed_all", "Seagrass"), own=c("All_own"))`
