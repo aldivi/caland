@@ -354,7 +354,7 @@ Output files are written to caland-3.0.0/outputs/ (unless a sub-directory is spe
  	- Precision: to the integer for ha, Mg C, and Mg C/ha  
 	- Filename description:  "\_output_" is appended to the input scenario name, followed by a series of tags that denote (i) which type of input value was used (mean, mean+/-sd, min, or max) for carbon density, historical carbon fluxes, and the 'soil conservation' soil carbon flux on Cultivated lands; (ii) how black carbon was accounted for; and (iii) the level of forest non-regeneration following high-intensity wildfire.  
 
-	 - Key for "<tags>" labeling of filename:  
+	 - Key for "tags" labeling of filename:  
 		- D = carbon density  
 		- A = historical carbon accumulation (flux)  
 		- S = soil carbon accumulation under 'soil conservation' management  
