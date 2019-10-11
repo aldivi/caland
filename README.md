@@ -12,6 +12,19 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 
 [Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation.](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
+## Repository updates
+* October 2019:
+  * Added two new function files to estimate county-level management effects:
+    * write_scaled_raw_scenarios.r: scales county-level raw scenarios to the region level for input to write_caland_inputs()
+    * write_scaled_outputs.r: scales the CALAND outputs back to the county level
+  * These functions are used together to effectively apply CALAND at the county level in place of the region levels, so that county-level effects of county-level management can be estimated
+  * Caveats of county-level scaling
+    * Increase in estimation uncertainty that is difficult to quantify
+    * Restoration sources are determined at the region level during simulation, which means that county-level source conversion may not follow the expected proportional decreases in source areas
+    * Land categories with zero county area cannot be restored at the county-levels
+    * Very high county restoration targets may not be possible to limitations in scaled source area
+
+
 ## Version History
 * CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
 * CALAND version 2.0.0: 23 October 2017; not an official release
@@ -55,6 +68,17 @@ The California Natural Resources Agency
        - [Input files to `plot_uncertainty()`](#input-files-to-plot_uncertainty)
        - [Arguments in `plot_uncertainty()`](#arguments-in-plot_uncertainty)
        - [Outputs from `plot_uncertainty()`](#outputs-from-plot_uncertainty)
+     - [write_scaled_raw_scenarios.r](#6-write_scaled_raw_scenariosr)
+       - [Overview of `write_scaled_raw_scenariosr()`](#overview-of-write_scaled_raw_scenariosr)
+       - [Input files to `write_scaled_raw_scenariosr()`](#input-files-to-write_scaled_raw_scenariosr)
+       - [Arguments in `write_scaled_raw_scenariosr()`](#arguments-in-write_scaled_raw_scenariosr)
+       - [Outputs from `write_scaled_raw_scenariosr()`](#outputs-from-write_scaled_raw_scenariosr)
+     - [write_scaled_outputs.r](#7-write_scaled_outputs)
+       - [Overview of `write_scaled_outputs()`](#overview-of-write_scaled_outputs)
+       - [Input files to `write_scaled_outputs()`](#input-files-to-write_scaled_outputs)
+       - [Arguments in `write_scaled_outputs()`](#arguments-in-write_scaled_outputs)
+       - [Outputs from `write_scaled_outputs()`](#outputs-from-write_scaled_outputs)
+* [Caveats of county-level scaling](#Caveats-of-county-level-scaling)
 * [Instructions for your first test runs with CALAND](#instructions-for-your-first-test-runs-with-caland)  
 
 ## Overview
@@ -343,7 +367,7 @@ Output files are written to caland-3.0.0/outputs/ (unless a sub-directory is spe
 - Main output .xls file: `<scenario_name>_output_<tags>.xls`
 	- Sign (+/-) of output carbon values: carbon emissions versus land carbon uptake depends on the sign and the varibale name:  
  		- Carbon variables in which a negative value indicates carbon emissions and positive value indicates land carbon uptake:
-   			- variable names containing "den": a positive value indicates land carbon uptake.
+   		 - variable names containing "den": a positive value indicates land carbon uptake.
 			- variable names containing "Gain_C_stock" but not "Atmos": a positive value indicates land carbon uptake.     	
 			- all other stock variables except those containing "Loss_C_stock" or "Atmos"  
  		- Carbon variables in which a positive value indicates carbon emissions and negative value indicates land carbon uptake:
@@ -551,6 +575,54 @@ Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Withi
 #### Outputs from `plot_uncertainty()`
 Output plots (.pdf) and corresponding data (.csv) will be saved to the mean folder for scenario group a.
 
+
+#### (6) write\_scaled\_raw\_scenarios.r
+
+#### Overview of `write_scaled_scenarios()`
+The `write_scaled_raw_scenarios()` function, defined in the write\_scaled\_raw\_scenarios.r file, is designed to scale a raw county-level scenario to the region level for input to `write_caland_inputs()`. This function is used in conjunction with `write_scaled_outputs()` to estimate county-level effects of county-level management. See below for caveats of this scaling.
+
+#### Input files to `write_scaled_raw_scenarios()`
+There is one main scenario input file to `write_scaled_raw_scenarios()` and one supporting area input file. The scenario input file (`scen_file`) follows the same format as the input file to `write_caland_inputs()`, and it should contain county-specific values and all of the relevant scenarios for comparison (i.e., baseline and all alternatives). View the county area files (area_lab_sp9_own9_2010lt15_cnty_ac.csv for acres and area_lab_sp9_own9_2010lt15_cnty_ha.csv for hectares) in `caland/ancillary` to see the available land category area within the specified county. Designations of "All" region or ownership for non-urban land types are expanded to only those regions or ownerships present in the specified county. `write_scaled_raw_scenarios()` includes some checks on area availability, but it does not include area limitations due to land use and land cover change that may arise during simulation. Note that the three urban area (Developed_all) practices (Dead_removal, Urban_forest, Growth) must be completely defined in space and time. Also note that Dead_removal should always be defines as 1 unless you want to reduce the area of urban forest that experiences mortality. All  relevant years across scenarios must be defined in each scenario. The relevant years are start_year, end_year, start_year - 1 (except for the first year specified), and end_year + 1 (except for the last year specified). The supporting area input file provides the land category areas within each county, and is different than the ancillary files listed above.
+
+#### Arguments in `write_scaled_raw_scenarios()`
+Only the first three of the six arguments to `write_scaled_raw_scenarios()` should be specified by the user.
+1. `scen_file`: The name of the raw scenarios file for a specific county. This file is an Excel file must be in `<your_caland_folder>/raw_data`. If you want this file and the output files to be in a folder within `raw_data`, prefix this file name with the existing folder. The default is "amador_example.xls".
+2. `county`: The name of the county. This must match the county name in the county area file. The default is "Amador".
+3. `units`: The area units for the raw input scenario file. This can be "ac", or "ha". The default is "ac".
+4. `ISCOUNTY`: This should always be "TRUE", which is the default. It is a flag to denote whether this scenario is for a county (TRUE), or for a specified area (FALSE). This function has not been tested or validated for ISCOUNTY = FALSE, so this option is disabled and should not be used.
+5. `avail_area`: This should always be "NA", which is the default. It is the total available specified area within a single land category for use when ISCOUNTY = FALSE, which is disabled.
+6. `county_category_areas_file`: The name of the file containing the breakdown of county areas for the land categories. The default is area_lab_sp9_own9_2010lt15_cnty_sqm_stats.csv and this should not be changed.
+
+#### Outputs from `write_scaled_raw_scenarios()`
+There are two output files created by `write_scaled_raw_scenarios()`, and they both will go into the same `raw_data` folder as `scen_file`.
+1. The scaled raw scenario file is an Excel file and will be named by appending the county name and the units to `scen_file`.
+2. The scalar file contains the values to scale the CALAND outputs down to the county level. It is a comma separated value file and will be named by appending the county name and the units and "scalars" to `scen_file`.
+
+
+#### (7) write\_scaled\_outputs.r
+
+#### Overview of `write_scaled_outputs()`
+The `write_scaled_outputs()` function, defined in the write\_scaled\_outputs.r file, is designed to scale CALAND outputs to the county level for comparison and diagnoses via `plot_caland()`. This function is used in conjunction with `write_scaled_raw_scenarios()` to estimate county-level effects of county-level management. See below for caveats of this scaling.
+
+#### Input files to `write_scaled_outputs()`
+There should be two or more `CALAND()` output files and an output scaling file that are input to this function. The `CALAND()` output files need to correspond with the scenarios scaled by `write_scaled_raw_scenarios()`, as does the scaling file that is generated by `write_scaled_raw_scenarios()`.
+
+#### Arguments in `write_scaled_outputs()`
+1. scen_fnames: A vector of `CALAND()` output file names. These need to correspond with the scenarios scaled by `write_scaled_raw_scenarios()`.
+2. data_dir: The path and directory containing the files listed in `scen_fnames` (do not include the final "/"). The scaled output files will be written to this directory. The default is "./outputs/amador".
+3. scalar_file: The name of the output scalar file generated by `write_scaled_raw_scenarios()`. This file must be in `<your_caland_folder>/raw_data`. If this file is in a folder within `raw_data`, prefix this file name with the existing folder (for related details see the description above for the `scen_file` argument to `write_scaled_raw_scenarios()`).
+
+#### Outputs from `write_scaled_outputs()`
+Scaled, county-level output files corresponding to `scen_fnames` will be generated and named by appending the county name and "scaled" to the unscaled file names. Non-county land categories will have values equal to zero. These scaled output files are in the exact same format as regular `CALAND()` output files and can be used directly by `plot_caland()`.
+
+### Caveats of county-level scaling
+
+* Increase in estimation uncertainty that is difficult to quantify
+* Restoration sources are determined at the region level during simulation, which means that county-level source conversion may not follow the expected proportional decreases in source areas
+* Land categories with zero county area cannot be restored at the county-levels
+* Very high county restoration targets may not be possible to limitations in scaled source area
+
+
 ### Instructions for your first test runs with CALAND
 
 Once you have completed [installing R or R and RStudio, and downloading CALAND](#instructions-for-your-first-test-runs-with-caland), you will have a local copy of all the R scripts, four example input scenario files, a carbon input file,  all the raw files for creating new input files on your local computer, and the tools to use them. Now you can use the carbon and scenario input files that were already created with `write_caland_inputs()` to do a test run with  `CALAND()` and two of the plotting functions: `plot_caland()` and `plot_scen_types()`.
@@ -570,7 +642,7 @@ Once you have completed [installing R or R and RStudio, and downloading CALAND](
 5. Run `CALAND()` twice using two example sets of arguments:   
   - Run the historical baseline scenario using RCP8.5 climate change effects on wildfire and ecosystem carbon fluxes, mean initial carbon density, mean carbon accumulation inputs, maximum non-regeneration, and with black carbon counted as CO<sub>2</sub>. Type (or copy and paste) the following into the R console: `CALAND(scen_file="NWL_Historical_v6_default_RCP85.xls", c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE)`
 
-  - Next, run the Alternative A scenario using the same arguments except for the scenario filename  `scen_file`. Type (or copy and paste) the following into the R console: `CALAND(scen_file="NWL_Alt_A_v6_default_RCP85.xls", c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE)`
+  - Next, run the Alternative A scenario using the same arguments except for the scenario filename  `scen_file` and the non-regeneration distance `NR_Dist`. Here, non-regeneration is eliminated to emulate 100% reforestation of non-regenerating Forest patches. Type (or copy and paste) the following into the R console: `CALAND(scen_file="NWL_Alt_A_v6_default_RCP85.xls", c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = -1, WRITE_OUT_FILE = TRUE, blackC = FALSE)`
 
 6. Read the [`plot_caland()`](#3-plot_calandr) and [`plot_scen_types()`](#2-plot_scen_typesr) sections above and make some plots by running the following examples in order. Note that `CALAND()` must be finished running before starting `plot_caland()`, and `plot_caland()` must be finished running before starting `plot_scen_types()`, as each function uses output files from the previous function as input files to the next function.
 
