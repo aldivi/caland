@@ -30,6 +30,7 @@
 # New output files scaled to the county level
 # the county name and "scaled" will be appended to the original output file name
 # Non-county values will be zero in this file
+# This assumes that only Reforestation is prescribed for forest area expansion
 
 ############ Notes ##############
 
@@ -51,12 +52,16 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
-write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", scalar_file = "amador_example_ac_Amador_ac_scalars.csv") {
+write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", scalar_file = "amador_example_ac_Amador_ac_scalars.xls") {
 	
 	cat("Start write_scaled_outputs at", date(), "\n")
 
 	scalar_dir = "./raw_data/"
 	xltag = ".xls"
+	
+	exp_reg_lc_tag = "exp_reg_lc_area_"
+	exp_cnty_lc_tag = "exp_cnty_lc_area_"
+	exp_scalar_tag = "exp_output_scalar_"
 	
 	num_scen_files = length(scen_fnames)
 	
@@ -76,11 +81,30 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
 	# carbon density outputs that do not get scaled
 	density_vars = c("All_orgC_den", "All_biomass_C_den", "Above_main_C_den", "Below_main_C_den", "Understory_C_den", "StandDead_C_den", "DownDead_C_den", "Litter_C_den", "Soil_orgC_den")
 	
+	# restoration land types
+	# the first forest type is for afforestation
+	# the second forest land type is for reforestation
+	restoration_lt = c("Meadow", "Fresh_marsh", "Coastal_marsh", "Woodland", "Forest", "Forest")
+	num_restoration_lt = length(restoration_lt)
 	
-	# the scalar file is just a table of relevant land cats with scalars and a couple of area values
-	# area values are not used
-	scalars = read.csv(paste0(scalar_dir, scalar_file), stringsAsFactors=FALSE)
-	ctag = scalars$County[1]
+	# restoration sources
+	restoration_sources = array(dim=c(num_restoration_lt, num_lt))
+	restoration_sources[1,] = c("Shrubland", "Grassland", "Savanna", "Woodland")
+	restoration_sources[2,] = c("Cultivated")
+	restoration_sources[3,] = c("Cultivated")
+	restoration_sources[4,] = c("Grassland", "Cultivated")
+	restoration_sources[5,] = c("Shrubland", "Grassland")
+	restoration_sources[6,] = c("Shrubland")
+	meadow_rest_index = 1
+	afforest_rest_index = 5
+	
+	num_restoration_sources = c(4, 1, 1, 2, 2, 1)
+
+	source_totals_names = c("Shrubland", "Grassland", "Savanna", "Woodland", "Cultivated")
+	woodland_st_index = 4
+	num_sources = length(source_totals_names)
+	st_sum = array(dim=num_sources)
+	st_sum_scaled = array(dim=num_sources)
 	
 	# output tables
 	# these are necessary for recalculating the aggregated records
@@ -119,56 +143,31 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
                       "LCC_Wood_AnnLoss_C_stock")
   	num_out_wood_sheets = length(out_wood_sheets)
 	
-	# no way to control for this now
+	# Load the scalar file
+    scalar_wrkbk = loadWorkbook(paste0(scalar_dir, scalar_file))
+    scalar_sheets = getSheets(scalar_wrkbk)
+    num_scalar_sheets = length(scalar_sheets)
+    
+	
 	# determine whether the number of output files matches the number of scenarios
-	#if (num_scen_files != num_scenin_sheets) {
-	#	cat("The number of output files does not match the number of scaled scenarios\n")
-	#	stop("Please make sure that the output file scenarios are the same ones as are in the raw scaled input file\n")
-	#}
-	
-	# determine whether this is a county-level or project-level set of scenarios	
-	#reg_def = which(reg_names == scenin_df_list[[1]]$County[1])
-	#if (length(reg_def) == 0) {
-	#	ISCOUNTY = TRUE
-	#} else {
-	#	ISCOUNTY = FALSE
-	#}
-	
-	#########
-	# read in the area file (square meters)
-	# do not need the area values here
-	#areas = read.csv(paste0(in_dir, county_category_areas_file), header=FALSE, stringsAsFactors=FALSE)
-	#colnames(areas) <- c("reg_code", "Region", "lt_code", "Land_Type", "own_code", "Ownership", "cnty_code", "County", "area_sqm")
-	# drop the code columns
-	#areas$reg_code = NULL
-	#areas$lt_code = NULL
-	#areas$own_code = NULL
-	#areas$cnty_code = NULL
-	# filter out 'no data' rows
-	#areas = areas[areas$Region != "no data" & areas$Land_Type != "no data" & areas$Ownership != "no data" & areas$County != "no data",]
-	
-	# get the land cats to scale for this county
-	# need to combine non-Developed_all records from all three scenarios to know which land cats to scale
-	#land_cats_df = NULL
-	#for (i in 1:num_scenin_sheets) {
-	#	temp = unique(scenin_df_list[[i]][scenin_df_list[[i]]$Land_Type != "Developed_all", c(1:3)])
-	#	if(nrow(temp) > 0) { land_cats_df = rbind(land_cats_df, temp)}
-	#	temp = unique(scenin_df_list[[i]][scenin_df_list[[i]]$Land_Type == "Developed_all" & scenin_df_list[[i]]$out_scalar < 1, c(1:3)])
-	#	if(nrow(temp) > 0) { land_cats_df = rbind(land_cats_df, temp)}
-	#}
-	#land_cats_df = unique(land_cats_df)
+	if (num_scen_files != num_scalar_sheets) {
+		cat("The number of output files does not match the number of scaled scenarios\n")
+		stop("Please make sure that the output file scenarios are the same ones as are in the raw scaled input file\n")
+	}
 
 	# loop over the data files as scenarios
 	for (s in 1:num_scen_files) {
 		
 		# determine and put the scaled scenario in an accessible table
-		#for (n in 1:num_scenin_sheets){
-		#	if (regexpr(scenin_sheets[n], scen_fnames[s]) != -1) {
-		#		scenin = scenin_df_list[[n]]
-		#		scenin_ind = n
-		#		break;
-		#	}
-		#}
+		for (n in 1:num_scalar_sheets){
+			if (regexpr(scalar_sheets[n], scen_fnames[s]) != -1) {
+				scalar_df = readWorksheet(scalar_wrkbk, n, startRow = 1)
+				break;
+			}
+		}
+		
+		# get the county name
+		ctag = scalar_df$County[1]
 		
 		# Load the output file
         data_file = paste0(data_dir, "/", scen_fnames[s])
@@ -188,45 +187,155 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
         	
         	# remove the Xs added to the front of the year columns, and get the years as numbers only
             yinds = which(substr(names(data_df_list[[d]]),1,1) == "X")
-            names(data_df_list[[d]])[yinds] = substr(names(data_df_list[[d]]),2,5)[yinds]
+            names(data_df_list[[d]])[yinds] = substr(names(data_df_list[[d]]),2,5)[yinds] 
             
 			var_df = data_df_list[[d]]
 			# get the column headers in order because the merge moves the land cat id after the three 'by' columns
 			# can reorder this at the end to drop the extra columns at the same time
 			col_order = colnames(var_df)
 			change_col = ncol(var_df)
-			var_df = merge(var_df, scalars, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+			var_df = merge(var_df, scalar_df, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
 			# set the non-scaled values to zero, even for density
+			# this also sets the summed records to zero
 			# managed and wildfire area have an extra id column
 			if ( data_sheets[d] == "Managed_area" | data_sheets[d] == "Wildfire_area" ) {
-				var_df[is.na(var_df$output_scalar), c(6:change_col)] = 0
+				first_scalar_col = paste0(exp_scalar_tag, names(var_df)[6])
+				var_df[is.na(var_df[,first_scalar_col]), c(6:change_col)] = 0
 			} else {
-				var_df[is.na(var_df$output_scalar), c(5:change_col)] = 0
+				first_scalar_col = paste0(exp_scalar_tag, names(var_df)[5])
+				var_df[is.na(var_df[,first_scalar_col]), c(5:change_col)] = 0
 			}
-				
+
+			##### should not need this adjustment any more
+			# need to calculate an additional annual scalar and apply it also
+			
+			#### no more?#####
+			# the Area block below is used to check the scalars against the actual area, then adjust scalars if necessary before applying them
+			#  it is the first sheet, so for the rest the scalars should be correct
+			
 			# only scale the non-density variables
 			# but the aggregated density rows need to be updated!
-			# need to calculate an additional annual scalar and apply it also
+			
+			# apply the scalars by extracting matrices and multiplying
+			# check that the years line up?
+				
 				
 				# managed and wildfire area have an extra id column
 				if ( data_sheets[d] == "Managed_area" | data_sheets[d] == "Wildfire_area" ) {
-					var_df[!is.na(var_df$output_scalar), c(6:change_col)] =
-						var_df[!is.na(var_df$output_scalar), c(6:change_col)] * var_df$output_scalar[!is.na(var_df$output_scalar)]
+					first_scalar_col = paste0(exp_scalar_tag, names(var_df)[6])
+					# extract just the land cat Area values - assume the years match with the scalar years
+  					reg_act = var_df[!is.na(var_df[,first_scalar_col]), 6:(change_col-1)]
+  					# extract just the scalars
+  					scalar_matches = regexpr(exp_scalar_tag, names(var_df))
+  					scalar_cols = which(scalar_matches != -1)
+  					scalars = var_df[!is.na(var_df[,first_scalar_col]), scalar_cols]
+  					# these are annual values so there is not the extra year at the end and the very last scalar is not used
+  					scalars = scalars[,1:(ncol(scalars) - 1)]
+  					
+  					# check that the years match
+  					if (ncol(reg_act) != ncol(scalars)) {
+  						stop("Number of scalar years does not match number of output years for scenario ", scalar_sheets[n])
+  					} else {
+  						for (y in 1:ncol(reg_act)){
+							if (regexpr(names(reg_act)[y], names(scalars)[y]) == -1) {
+								stop("Output year ",  names(reg_act)[y], " does not match scalar year ", names(scalars)[y],
+										" for scenario ", scalar_sheets[n])
+							}
+						}
+					}
+  					# apply the scalars
+  					var_df[!is.na(var_df[,first_scalar_col]), 6:(change_col-1)] = reg_act * scalars
 				} else if ( !(data_sheets[d] %in% density_vars) ) {
-					var_df[!is.na(var_df$output_scalar), c(5:change_col)] =
-						var_df[!is.na(var_df$output_scalar), c(5:change_col)] * var_df$output_scalar[!is.na(var_df$output_scalar)]
-				}
+					first_scalar_col = paste0(exp_scalar_tag, names(var_df)[5])
+					# extract just the land cat Area values - assume the years match with the scalar years
+  					reg_act = var_df[!is.na(var_df[,first_scalar_col]), 5:(change_col-1)]
+  					# extract just the scalars
+  					scalar_matches = regexpr(exp_scalar_tag, names(var_df))
+  					scalar_cols = which(scalar_matches != -1)
+  					scalars = var_df[!is.na(var_df[,first_scalar_col]), scalar_cols]
+  					
+  					# the annual values do not have the extra year at the end and so the very last scalar is not used
+  					if (regexpr("Ann", data_sheets[d]) != -1) {
+  						scalars = scalars[,1:(ncol(scalars) - 1)]
+  					}
+  					
+  					# check that the years match
+  					if (ncol(reg_act) != ncol(scalars)) {
+  						stop("Number of scalar years does not match number of output years for scenario ", scalar_sheets[n])
+  					} else {
+  						for (y in 1:ncol(reg_act)){
+							if (regexpr(names(reg_act)[y], names(scalars)[y]) == -1) {
+								stop("Output year ",  names(reg_act)[y], " does not match scalar year ", names(scalars)[y],
+										" for scenario ", scalar_sheets[n])
+							}
+						}
+					}
+  					# apply the scalars
+  					var_df[!is.na(var_df[,first_scalar_col]), 5:(change_col-1)] = reg_act * scalars					
+				} # end if managed or wildfire else non-density to apply scalars
+	
 				
+			
 				####### deal with aggregated records ######
-				####### also apply the annual scaling value that is calculated from the first Area table
 				# change column will be recalculated after variable update
 				# recall that these will represent only the county area
 				
 				#### total area
-				# need to generate additional scalar to make county area constant
-				# this is because the county does not include all land cats in the region
-				#  so the initial scalar ratio of county to region area changes over time
 				if (data_sheets[d] == "Area") {
+  
+  
+  ### scratch this for now. too complicated and it could take a while to create a case to test it.
+  ### and even longer to debug it so that it doesn't break the regular cases
+  if(FALSE){
+  					# compare Area values with expected regional area values
+  					
+  					# extract just the land cat Area values - assume the years match with the scalar years
+  					reg_act = var_df[!(var_df$Ownership == "All_own" | var_df$Region == "Ocean"), 5:(change_col-1)]
+  					# extract just the expected region areas
+  					reg_exp_matches = regexpr(exp_reg_lc_tag, names(var_df))
+  					reg_exp_cols = which(reg_exp_matches != -1)
+  					reg_exp = var_df[!(var_df$Ownership == "All_own" | var_df$Region == "Ocean"), reg_exp_cols]
+  					act_to_exp = reg_act / reg_exp
+  					reg_diff_inds = which(act_to_exp != 1 & !is.na(act_to_exp) & !is.nan(act_to_exp) & act_to_exp != Inf, arr.ind=TRUE)
+  					# extract the df row land cat ids that are different to determine which source land cats to alter
+  					# luckily the df rows start at 1 for records
+  					diff_lcs = var_df[unique(reg_diff_inds[,1]),]
+  					
+					# get source rows for each restoration type with diffs
+					for (rt in 1:num_restoration_lt) {
+						# only reforestation is allowed by the scenario scaling function
+						if (rt != afforest_rest_index) {
+							diff_rt = diff_lcs[diff_lcs$Land_Type == restoration_lt[rt],]
+							if (nrow(diff_rt) > 0) {
+								for (y in names(var_df)[5]:names(var_df)[change_col-1]) {
+									# have to loop over the rows somehow
+									
+									# get the new county restoration areas once based on expected scalars
+									# this is to maintain the correct proportions of new area to initial area for density values
+									if (src == 1) {
+										diff_rt[,paste0(exp_cnty_lc_tag, y)] = diff_rt[,y] * diff_rt[,paste0(exp_scalar_tag, y)]
+									}
+								
+								# loop over the sources for this rt
+								for (src in 1:num_restoration_sources[rt]) {
+									# don't adjust woodland because it is also a restoration type and so it maintains its scalar
+									if ( !(rt == 1 & src == woodland_st_index) ) {										
+											
+											
+											
+										
+										
+									} # end if not woodland
+								} # end src loop over sources
+								
+								} # end for y loop over years for calculating new county source areas and scalars
+								
+							} # end if this restoration type has diffs
+						} # end if not afforest restoration type	
+					} # end for rt over restoration types
+					
+} # end FALSE to delete
+  					
   
   					# (1a) Do each landtype in county
   					# get names of landtypes
@@ -286,11 +395,11 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
   					
   					# store and apply the annual scalar adjustment
   					# don't need to redo the aggregation because they are just sums, so the adjustment is sufficient for all
-  					annual_scalar = var_df[row_ind, 5] / var_df[row_ind, 5:(change_col-1)]
-  					num_area_years = length(annual_scalar)
-  					for (r in 1:nrow(var_df)) {
-  						var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar
-  					}
+  					#annual_scalar = var_df[row_ind, 5] / var_df[row_ind, 5:(change_col-1)]
+  					#num_area_years = length(annual_scalar)
+  					#for (r in 1:nrow(var_df)) {
+  					#	var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar
+  					#}
   					
 					# calculate the change column
 					var_df[,change_col] <- var_df[, change_col - 1] - var_df[, 5]
@@ -301,9 +410,9 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
 					
 					# apply the annual scalar adjustment first
 					# these two tables have one less year than Area
-  					for (r in 1:nrow(var_df)) {
-  						var_df[r, c(6:(change_col-1))] = var_df[r, c(6:(change_col-1))] * annual_scalar[1:(num_area_years-1)]
-  					}
+  					#for (r in 1:nrow(var_df)) {
+  					#	var_df[r, c(6:(change_col-1))] = var_df[r, c(6:(change_col-1))] * annual_scalar[1:(num_area_years-1)]
+  					#}
 					
     				# (2a) do each landtype within county
     				landtype_names <- unique(var_df$Land_Type)
@@ -385,9 +494,9 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
         		if (data_sheets[d] %in% out_density_sheets) {
         			
         			# apply the annual scalar adjustment first
-  					for (r in 1:nrow(var_df)) {
-  						var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar
-  					}
+  					#for (r in 1:nrow(var_df)) {
+  					#	var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar
+  					#}
         			
         			# order var_df
         			var_df = var_df[order(var_df$Land_Cat_ID),]
@@ -500,14 +609,14 @@ write_scaled_outputs <- function(scen_fnames, data_dir = "./outputs/amador", sca
             	if (!(data_sheets[d] %in% out_area_sheets) & !(data_sheets[d] %in% out_density_sheets)) {
             		
             		# apply the annual scalar adjustment first
-  					for (r in 1:nrow(var_df)) {
-  						# need to check number of years in each table; some have one less year than the area (e.g. annual variables)
-  						if (num_area_years == change_col - 5) {
-  							var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar
-  						} else {
-  							var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar[1:(num_area_years-1)]
-  						}
-  					}
+  					#for (r in 1:nrow(var_df)) {
+  					#	# need to check number of years in each table; some have one less year than the area (e.g. annual variables)
+  					#	if (num_area_years == change_col - 5) {
+  					#		var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar
+  					#	} else {
+  					#		var_df[r, c(5:(change_col-1))] = var_df[r, c(5:(change_col-1))] * annual_scalar[1:(num_area_years-1)]
+  					#	}
+  					#}
             		
     				# (4a) do each landtype within county
     				landtype_names <- unique(var_df$Land_Type)

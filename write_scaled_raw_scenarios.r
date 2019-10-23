@@ -11,9 +11,6 @@
 # This is designed to generate files for estimating county level effects of management
 #   So only the management areas and the county name are needed
 
-# Alternatively, the estimates for a 'project' in a single, specific land category can be estimated by providing more information:
-#   total available area and the region
-
 # The input units will be preserved in the scaled output
 # This is not needed for Seagrass as it resides in the ocean
 
@@ -28,25 +25,10 @@
 #    OR the entries can have "All" for the Region - in this case the approprieate regions will be determined
 
 # 2. 'county': name of the county; default is Amador; this must match the county name in the county area file
-#	 For project level, enter the name of the region instead
 
 # 3. 'units': the area units for the input scenario file; default is 'ac'; could also be 'ha'
 
-# 4. 'ISCOUNTY': flag to denote whether this scenario is for a county (TRUE), or for a specified area (FALSE)
-#    Counties are directly supported for checking areas and scaling automatically
-#    Other specified areas (ISCOUNTY=FALSE) require additional information about total available area for the project,
-#     and are restricted to a single specific land category, e.g. Klamath Private Forest
-#     this is for exploratory research only and has not been tested or validated
-#      there may be some inconsistencies between project and region for restoration source areas in this mode
-#    default is TRUE, and any other value will return an error
-
-# 5. 'avail_area': the total available area of the project within a single land category; default is NA
-#    this applies only to project-level, non-county simulations
-#    for an annual area practice, this is the total area of the available project area within a land category
-#    for a restoration practice, this is the initial area of the restored land type within the available project area
-#    this must be > 0
-
-# 6. 'county_category_areas_file': the file containing the breakdown of county areas for the land categories;
+# 4. 'county_category_areas_file': the file containing the breakdown of county areas for the land categories;
 #    default is area_lab_sp9_own9_2010lt15_cnty_sqm_stats.csv and this should not be changed
 
 
@@ -55,18 +37,46 @@
 # Scaled raw scenario file for input to write_caland_inputs()
 #   The county name and the units will be appended to the input file name
 
-# A scaled raw scenario file that also includes columns for the county, county area, land cat area, and the scalar for the caland outputs
+# A file containing expected CALAND output scalars
+#  this is an excel file with one sheet for each input scenario sheet
+#  these sheets will be matched to the output files for scaling
+#  each sheet contains scalars only for the county land categories
+#  there is a scalar, an expected county area, and an expected region area for each year for each land cat
+#  "_scalars" will be appended to the name of the scaled scenario file name to create this file name
+
+################# Limitations ###################
+
+# No baseline LULCC can be happening - need to set this using write_caland_inputs()
+#	this is because the land category distributions are different between region and county,
+#		which means that the land changes cannot be scaled properly
+#	the scaling must be able to estimate the changes in area, otherwise the densities will not be valid
+
+# No wildfire can be happening if restoration is happening - need to set this using write_caland_inputs()
+#	this is because it changes the carbon densities based on the regional fire area distribution, which cannot be mapped to the county
+
+# annual activities and restoration activities cannot be prescribed in the same scenario; they must be in separate scenarios
+#	this is because carbon densities cannot be changing independently of area changes
+
+# Land protection cannot be estimated because no baseline LULCC can be used
+
+# No non-regeneration because this causes LULCC that cannot be mapped to the county
+#	this is set when CALAND is run
+
+# If interactions between restoration practices cause the prescriptions to not be met, the carbon densities may be off
+#   This just throws a warnin if this may be the case, but lets it run
+#   This is because I can't guarantee that the estimated areas here are exactly the same as in CALAND (even though they should be)
 
 ###################### Notes ######################
 
 # Each scenario must at least have the three urban management practices defined in order to run, with all regions and ownerships defined (can use "All"):
 #   Developed_all Dead_removal: must be defined as 1
+#	Developed_all Growth: must be defined as 1
 #	Developed_all Urban_forest: baseline is defined as the statewide value of 0.15, but there are also reigonal values
-#	Developed_all Growth: baseline is defined as 1
 
 # The working directory needs to be the main CALAND folder where this file resides
 
-# The output file name will be the same as the intput file name but with '_scaled_' and the units ('ac' or 'ha') appended to it
+# The output scenarios file name will be the same as the intput file name but with county name and the units ('ac' or 'ha') appended to it
+# The output scalars file name will additionally have "scalars" appended to it
 
 ####################### Start script #####################
 
@@ -84,10 +94,28 @@ for( i in libs ) {
     library( i, character.only=T )
 }
 
-write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", county = "Amador", units = "ac", ISCOUNTY = TRUE, avail_area = NA,
+write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", county = "Amador", units = "ac",
 										county_category_areas_file = "area_lab_sp9_own9_2010lt15_cnty_sqm_stats.csv") {
 	
-	cat("Start write_scaled_raw_scenario at", date(), "\n")
+### these have been pulled from the arguments because the writing of output scalars is incorrect and has not been fixed for non-county applications
+ISCOUNTY = TRUE
+avail_area = NA
+
+# 4. 'ISCOUNTY': flag to denote whether this scenario is for a county (TRUE), or for a specified area (FALSE)
+#    Counties are directly supported for checking areas and scaling automatically
+#    Other specified areas (ISCOUNTY=FALSE) require additional information about total available area for the project,
+#     and are restricted to a single specific land category, e.g. Klamath Private Forest
+#     this is for exploratory research only and has not been tested or validated
+#      there may be some inconsistencies between project and region for restoration source areas in this mode
+#    default is TRUE, and any other value will return an error
+
+# 5. 'avail_area': the total available area of the project within a single land category; default is NA
+#    this applies only to project-level, non-county simulations
+#    for an annual area practice, this is the total area of the available project area within a land category
+#    for a restoration practice, this is the initial area of the restored land type within the available project area
+#    this must be > 0
+	
+	cat("Start write_scaled_raw_scenarios at", date(), "\n")
 
 	in_dir = "./raw_data/"
 	out_dir = in_dir
@@ -98,7 +126,7 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 	# this works on a vector as well
 	ctag = gsub("//s", "", county)
 	out_file = paste0(out_dir, substr(scen_file, 1, regexpr(".xls", scen_file)-1), "_", ctag, "_", units, xltag)
-	out_scalar_file = paste0(out_dir, substr(scen_file, 1, regexpr(".xls", scen_file)-1), "_", ctag, "_", units, "_scalars", csvtag)
+	out_scalar_file = paste0(out_dir, substr(scen_file, 1, regexpr(".xls", scen_file)-1), "_", ctag, "_", units, "_scalars", xltag)
 
 	# the column headers are on line 12, for both input and output files
 	start_row = 12
@@ -150,17 +178,19 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 	num_restoration_lt = length(restoration_lt)
 	
 	# restoration sources
-	restoration_sources = array(dim=c(num_restoration_lt, num_lt))
-	restoration_sources[1,] = c("Shrubland", "Grassland", "Savanna", "Woodland")
-	restoration_sources[2,] = c("Cultivated")
-	restoration_sources[3,] = c("Cultivated")
-	restoration_sources[4,] = c("Grassland", "Cultivated")
-	restoration_sources[5,] = c("Shrubland", "Grassland")
-	restoration_sources[6,] = c("Shrubland")
-	
+	restoration_sources = array(dim=c(num_restoration_lt, num_restoration_lt))
 	num_restoration_sources = c(4, 1, 1, 2, 2, 1)
+	restoration_sources[,] = NA
+	restoration_sources[1,1:num_restoration_sources[1]] = c("Shrubland", "Grassland", "Savanna", "Woodland")
+	restoration_sources[2,1:num_restoration_sources[2]] = c("Cultivated")
+	restoration_sources[3,1:num_restoration_sources[3]] = c("Cultivated")
+	restoration_sources[4,1:num_restoration_sources[4]] = c("Grassland", "Cultivated")
+	restoration_sources[5,1:num_restoration_sources[5]] = c("Shrubland", "Grassland")
+	restoration_sources[6,1:num_restoration_sources[6]] = c("Shrubland")
+	meadow_rest_index = 1
 
 	source_totals_names = c("Shrubland", "Grassland", "Savanna", "Woodland", "Cultivated")
+	woodland_st_index = 4
 	num_sources = length(source_totals_names)
 	st_sum = array(dim=num_sources)
 	st_sum_scaled = array(dim=num_sources)
@@ -210,13 +240,15 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 	# get the column headers in order
 	col_order = colnames(scenin_df_list[[1]])
 	# get the column headers in order for the scalar output
-	col_order_scalar = c(col_order, "County", "cnty_lc_area", "lc_area", "out_scalar")
+	col_order_scalar = c(col_order, "County", "cnty_lc_area", "lc_area", "man_scalar")
 
 	# first copy the input worksheets to the outputs to set up the lists
 	out_scen_df_list = scenin_df_list
 	out_scen_sheets = scenin_sheets
 	# this one is for the table with the scalar values
 	out_man_df_list = scenin_df_list
+	# this is the output scalar file
+	out_scalar_df_list = scenin_df_list
 
 	# get the total land category areas
 	# there are no NA values
@@ -262,35 +294,17 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 	}
 	num_county_regions = length(county_regions)
 
-	# the scalar values for the output files are needed for all land cats in the county
-	# for project-level only the affected land cats are scaled and used - subset and adjust this at the end as necessary
-	output_scalars = merge(cnty_lc_areas, lc_areas, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
-	output_scalars$output_scalar = output_scalars$cnty_lc_area / output_scalars$lc_area
-
-### may not need the next two or the merge
-	# determine total region areas
-	#reg_areas = aggregate(area ~ Region, areas, FUN = sum)
-	#names(reg_areas)[ncol(reg_areas)] <- "reg_area"
-	#reg_areas$state_area = sum(reg_areas$reg_area)
-			
-	# determine total ownership areas by region
-	#reg_own_areas = aggregate(area ~ Region + Ownership, areas, FUN = sum)
-	#names(reg_own_areas)[ncol(reg_own_areas)] <- "reg_own_area"
-	#num_reg_own = array(dim = num_reg)
-	#for (r in 1: num_reg) {
-	#	num_reg_own[r] = nrow(reg_own_areas[reg_own_areas$Region == reg_areas$Region[r]])
-	#}
-	
-	# merge these into a single data frame
-	#tot_areas = merge(lc_areas, reg_own_areas, by = c("Region", "Ownership"), all.x = TRUE)
-	#tot_areas = merge(tot_areas, areas, by = c("Region"), all.x = TRUE)
-###
-
 	# store the project-level land cats here
 	project_lcs = NULL
 
 	# loop over the scenario sheets
 	for (s in 1: num_scenin_sheets) {
+
+		# need to start with a fresh output scalar df for each scenario
+		# the scalar values for the output files are needed for all land cats in the county
+		# for project-level only the affected land cats are scaled and used - subset and adjust this at the end as necessary
+		output_scalars = merge(cnty_lc_areas, lc_areas, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+		output_scalars$initial_scalar = output_scalars$cnty_lc_area / output_scalars$lc_area
 
 		# Split annual, restoration, and urban records here to check that project-level operates on only annual or restoration
 		#  not sure how to check for urban-only for project-level
@@ -302,6 +316,11 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 			out_scen_df_list[[s]]$Management=="Reforestation",]
 		
 		urban = out_scen_df_list[[s]][out_scen_df_list[[s]]$Land_Type == "Developed_all",]
+
+		# first check to make sure that annual and restoration are not happening at the same time
+		if (nrow(annual) > 0 & nrow(cumulative) > 0) {
+			stop("Specify only annual practices or only restoration practices in a single scenario\n")
+		}
 
 		if (!ISCOUNTY) {
 			if (nrow(annual) > 0 & nrow(cumulative) > 0) {
@@ -472,10 +491,18 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 				# now all records should be fully expanded to land category
 				# add the county and county lc area cols
 				annual_reg_own = merge(annual_reg_own, cnty_lc_areas, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+				# need to make sure that all management land cats are in the county
+				bad_inds = which(is.na(annual_reg_own$County))
+				if (length(bad_inds) > 0) {
+					for (b in 1:length(bad_inds)) {
+						cat("County land category does not exist for management: ", annual_reg_own$Region[bad_inds[b]], ",", annual_reg_own$Land_Type[bad_inds[b]], ",", annual_reg_own$Ownership[bad_inds[b]], "\n")
+						stop()
+					}
+				}
 				
 			} # end else county
 		
-			# now check to make sure that managed areas do not exceed initial available areas
+			# now check to make sure that max annual managed areas do not exceed initial available areas
 			# just check the max managed area over time against the initial available area
 			# this won't capture limitations due to LULCC
 			# need to sum simultaneous practices within each land category
@@ -501,13 +528,13 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 			} # end for lc loop to check managed areas within available area
 			
 			# now scale the management areas to representative regional areas
-			# calculate the output scaling ratio and use it here so that it is easily written for later use
+			# calculate the management scaling ratio region:county for upscaling
 			# first get the region level land cat area
 			annual_reg_own = merge(annual_reg_own, lc_areas, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
-			annual_reg_own$out_scalar = annual_reg_own$cnty_lc_area / annual_reg_own$lc_area
+			annual_reg_own$man_scalar = annual_reg_own$lc_area / annual_reg_own$cnty_lc_area
 			# scale the values
-			annual_reg_own$start_area = annual_reg_own$start_area / annual_reg_own$out_scalar
-			annual_reg_own$end_area = annual_reg_own$end_area / annual_reg_own$out_scalar
+			annual_reg_own$start_area = annual_reg_own$start_area * annual_reg_own$man_scalar
+			annual_reg_own$end_area = annual_reg_own$end_area * annual_reg_own$man_scalar
 			
 			if (!ISCOUNTY) {
 				# save the info for this scenario so that scalars can be subset and adjusted
@@ -523,32 +550,62 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 	
 		###### restoration practices
 		# these are entered as cumulative totals by the end of the target end year, so start_area should always be zero
-		# these require area scaling based on the restored land type to ensure proper carbon density calculations:
-		#  new cum area =  orig cum area * initial area of restored land category / initial area of restored land category in county(or avail-project)
-		#  the restored area constitutes a carbon density change, but the converted area maintains its carbon density  
-		# need to save the inverse of these ratios in a table by land category
-		# orig cum area is checked against available source area and an error is thrown if not enough available area
+		# these require area scaling based on the expected net restored land type area to ensure proper carbon density calculations:
+		#  base scaling factor = expected area of land category in region / expected area of land category in county
+		#  the restored area constitutes a carbon density change, but the converted area maintains its carbon density
+		#    (because there are not other drivers of density change based on the stated limitations)
+		#  this expected area is used because the source distributions are different between county and region
+		#  the inverse of this base scaling factor should be sufficient for output scaling, but is needed for each year
+		#  this base scaling factor needs to be adjusted for management area scaling to make sure that:
+		#	the ratio of region change:total is the same as the ratio of county change:total
+		#		it is important to get this right for both restoration types and sources as it determines the density values
+		# 		  main challenge is to figure out the woodland and meadow scaling because woodland is a source of meadow
+		# caounty target cum area is checked against available county source area and an error is thrown if not enough available area
+		#  this is based on the county land cat distribution
 		# also, the scaled source area needs to be checked to ensure scalability; an error is thrown if there is not enough
+		#  this is based on the region land cat distribution
 		#  this means that in some cases the target restored area for the county may not be able to be simulated
 		#  this can occur if a considerable proprtion of the source area is in the county compared to the region as a whole
 		# counties are distributed proportionally among relevant regions if 'All' is entered in Region column
 		# for projects, the sources are for only a single, specific land catergory (Region, own, land type), and the avail area is checked and adjusted
 		
-		# Both Reforestation and Afforestion cannot be done at the same time
-		#  technically, this is just within a particular land category, but throw error regardless of this
-		#  this isn't caught in write_caland_inputs(), but it can crash CALAND
-		aff_df = cumulative[cumulative$Management == "Afforestation",]
-		ref_df = cumulative[cumulative$Management == "Reforestation",]
-		if (nrow(aff_df) > 0 & nrow(ref_df) > 0) {
-			cat("Afforestation and Reforestation cannot be prescribed at the same time\n")
-			stop("It is recommended to use Reforestation for all forest area expansion activities, unless you are sure that you want to convert some Grassland to Forest\n")
-		}
-		
 		if(nrow(cumulative) > 0) {
+		
+			# Both Reforestation and Afforestion cannot be done at the same time
+			#  technically, this is just within a particular land category, but throw error regardless of this
+			#  this isn't caught in write_caland_inputs(), but it can crash CALAND
+			aff_df = cumulative[cumulative$Management == "Afforestation",]
+			ref_df = cumulative[cumulative$Management == "Reforestation",]
+			if (nrow(aff_df) > 0 & nrow(ref_df) > 0) {
+				cat("Afforestation and Reforestation cannot be prescribed in the same scenario!\n")
+				stop("It is recommended to use Reforestation for all forest area expansion activities (which converts Shrubland), unless you are sure you want to afforest Grassland and Shrubland.\n")
+			}
 		
 			# make sure start area is zero
 			if (sum(cumulative$start_area) > 0) {
 				stop("Start area for all restoration practices must be zero because this is a cumulative definition\n")
+			}
+		
+			# make sure that any delta fresh marsh records are fully specified
+			# and add them to output_scalars if so
+			fm_df = unique(cumulative[cumulative$Land_Type == "Fresh_marsh", c("Region", "Land_Type", "Ownership")])
+			if ( nrow(fm_df) > 0 ) {
+				for (r in 1:nrow(fm_df)) {
+					if ( !(fm_df$Region[r] != "All" & fm_df$Ownership[r] != "All") ) {
+						stop("Delta fresh marsh restoration must be fully specified by region and ownership\n")
+					} else {
+						# if delta fresh marsh is included it needs to be added to output_scalars
+						new_row = output_scalars[1,]
+						new_row$Region = fm_df$Region[r]
+						new_row$Land_Type = "Fresh_marsh"
+						new_row$Ownership = fm_df$Ownership[r]
+						new_row$County = county
+						new_row$cnty_lc_area = 0
+						new_row$lc_area = 0
+						new_row$initial_scalar = 1
+						output_scalars = rbind(output_scalars, new_row)
+					}
+				}
 			}
 		
 			if (!ISCOUNTY) {
@@ -566,6 +623,19 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 				# make sure that the input region matches the record region
 				if (cumulative$Region[1] != county) {
 					stop("The management record region must match the county input argument\n")
+				}
+
+				# check that this land cat exists
+				# if delta fresh marsh it is ok if associated cultivated exists
+				cum_lc_area = lc_areas$lc_area[lc_areas$Region == cumulative$Region[1] & lc_areas$Ownership == cumulative$Ownership[1] & lc_areas$Land_Type == cumulative$Land_Type[1]]
+				cult_lc_area = lc_areas$lc_area[lc_areas$Region == "Delta" & lc_areas$Ownership == cumulative$Ownership[1] & lc_areas$Land_Type == "Cultivated"]
+				if (  !(length(cum_lc_area) > 0) ) {
+					if ( !(cumulative$Region[1] == "Delta" & cumulative$Land_Type[1] == "Fresh _marsh" & length(cult_lc_area) > 0) ) {
+						cat("Restoration type does not exist, so it cannot be restored:\n")
+						cat("\t", cumulative$Region[1], ", ", cumulative$Ownership[1], ", ", cumulative$Land_Type[1], ",",
+							cumulative$Management[1], "\n")
+						stop("\tCannot estimate this land category restoration\n")
+					}
 				}
 
 				# put available project area here in the same column name as for counties below
@@ -688,9 +758,11 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 				# bind the newly expanded records with any fully specified records (reg-own case)
 				if (nrow(cum_reg_own_orig) > 0) {
 					# first make sure that the record regions match the county
-					cr_ind = which(county_regions == cum_reg_own_orig$Region[r])
-					if (length(cr_ind) == 0) {
-						stop("Record region ", cum_reg_own_orig$Region[r], " is not in county ", county, " region list: ", county_regions, "\n")
+					for (r in 1:nrow(cum_reg_own_orig)) {
+						cr_ind = which(county_regions == cum_reg_own_orig$Region[r])
+						if (length(cr_ind) == 0) {
+							stop("Record region ", cum_reg_own_orig$Region[r], " is not in county ", county, " region list: ", county_regions, "\n")
+						}
 					}
 					cum_reg_own = rbind(cum_reg_own, cum_reg_own_orig)
 				}
@@ -698,198 +770,171 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 				# now all records should be fully expanded to land category
 				# add the county and county lc area cols
 				cum_reg_own = merge(cum_reg_own, cnty_lc_areas, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
+				# need to make sure that all management land cats are in the county
+				# except for delta fresh marsh is ok here; source availability is checked below
+				bad_inds = which(is.na(cum_reg_own$County))
+				if (length(bad_inds) > 0) {
+					for (b in 1:length(bad_inds)) {
+						if ( cum_reg_own$Region[bad_inds[b]] == "Delta" & cum_reg_own$Land_Type[bad_inds[b]] == "Fresh_marsh" ) {
+							cum_reg_own$County[bad_inds[b]] = county
+							cum_reg_own$cnty_lc_area[bad_inds[b]] = 0
+						} else {
+							cat("County land category does not exist for management: ", cum_reg_own$Region[bad_inds[b]], ",", cum_reg_own$Land_Type[bad_inds[b]], ",", cum_reg_own$Ownership[bad_inds[b]], "\n")
+							stop()
+						}
+					}
+				}
 
 			} # end else county
 		
 			# first get the region level land cat area
 			cum_reg_own = merge(cum_reg_own, lc_areas, by = c("Region", "Land_Type", "Ownership"), all.x = TRUE)
-			# calculate the output scaling ratio and use it here so that it is easily written for later use
-			cum_reg_own$out_scalar = cum_reg_own$cnty_lc_area / cum_reg_own$lc_area
+			
+			# this is the managment scalar for upscaling region:county
+			# calculate the management scaling ratio
+			# if restoration type is delta fresh marsh need to set the lc area to zero and the management scalar to 1
+			cum_reg_own$man_scalar = cum_reg_own$lc_area / cum_reg_own$cnty_lc_area
+			cum_reg_own$lc_area[cum_reg_own$Region == "Delta" & cum_reg_own$Land_Type == "Fresh_marsh"] = 0
+			cum_reg_own$man_scalar[cum_reg_own$Region == "Delta" & cum_reg_own$Land_Type == "Fresh_marsh"] = 1
 			
 			# add the source cnty_lc_area and lc_area cols as NA because they will be filled below with total source area
+			# the county level source area is based on county land cat distribution
+			# the region level source area is based on region land cat distribution
 			cum_reg_own$src_cnty_lc_area = NA
 			cum_reg_own$src_lc_area = NA
 		
-			# now check to make sure that managed areas do not exceed initial available areas
+			# now check to make sure that total prescribed managed areas do not exceed initial available areas
 			# just check the end managed area against the initial available area of the source categories
-			# this won't capture limitations due to LULCC
+			#  this won't capture limitations due to LULCC - there shouldn't be baseline LULCC!!!!
+			#  but multiple restoration activities may compete for source area
 			# need to sum like source category needs first, by region-ownership, using the county distributions
 			# sum the scaled like source category needs, using the regional distributions
 			# also reset the src_cnty_lc_area to the resepctive source area totals
-			# also sum up the region-level land cat source areas for comparison
+			# also sum up the region-level land cat source areas to check for availability
 
 			unique_lc = unique(cum_reg_own[,c(1:3)])
+			num_lc = nrow(unique_lc)
 			unique_ro = unique(unique_lc[,c(1,3)])
 			num_ro = nrow(unique_ro)
 			source_totals = array(dim=c(num_ro, num_sources))
-			source_totals[,] = 0
 			scaled_source_totals = array(dim=c(num_ro, num_sources))
+			# store the total source areas needed for restoration, by reg-own and source land type, for county and scaled
+			# the county areas are base on the county distribution
+			# the scaled areas are based on the reg-own distribution
+			source_totals[,] = 0
 			scaled_source_totals[,] = 0
+			# store the total prescribed restoration area for each restoration land cat
+			rest_totals = array(dim=num_lc)
+			rest_totals[] = 0
+			# store the reg-own land category areas of sources by restoration land cat
+			reg_own_source_lc_areas = array(dim=num_lc)
+			reg_own_source_lc_areas[] = 0
 			
-			for (lc in 1:nrow(unique_lc)) {
+			
+			for (lc in 1:num_lc) {
 				# extract the records for this land cat
 				check_df = cum_reg_own[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
 											cum_reg_own$Land_Type == unique_lc$Land_Type[lc],]
-				# determine restoration type index
-				# Forest has two types of restoration, so sum them separately
-				rt_ind = which(restoration_lt == unique_lc$Land_Type[lc])
-				# determine the region-ownerhsip index for source totals
+				
+				# determine the region-ownership index for source totals
 				ro_reg_ind = which(unique_ro$Region == unique_lc$Region[lc])
 				ro_own_ind = which(unique_ro$Ownership == unique_lc$Ownership[lc])
 				ro_ind = intersect(ro_reg_ind, ro_own_ind)
-				if (length(rt_ind) == 1) {
-					# non-forest restoration
-					# sum the source areas
-					st_den = 0
-					st_sum[] = 0
-					# sum the scaled source areas
-					st_den2 = 0
-					st_sum_scaled[] = 0
-					sc_tot = 0 # this is to store the region-level total source area for comparison below
-					for (src in 1:num_restoration_sources[rt_ind]) {
-						st_ind = which(source_totals_names == restoration_sources[rt_ind,src])
-						st_num = cnty_lc_areas$cnty_lc_area[cnty_lc_areas$Region == unique_lc$Region[lc] & cnty_lc_areas$Ownership == unique_lc$Ownership[lc] &
-															cnty_lc_areas$Land_Type == source_totals_names[st_ind]]
-						if(length(st_num) == 0) { st_num = 0 }
-						st_den = st_den + st_num
-						st_sum[st_ind] = st_sum[st_ind] + sum(check_df$end_area) * st_num
-						# sum up the region-level total source area
-						temp = lc_areas$lc_area[lc_areas$Region == unique_lc$Region[lc] & lc_areas$Ownership == unique_lc$Ownership[lc] &
-															lc_areas$Land_Type == source_totals_names[st_ind]]
-						if(length(temp) == 0) { temp = 0 }
-						sc_tot = sc_tot + temp
-						# calculate the scaled source needs
-						st_den2 = st_den2 + temp
-						st_sum_scaled[st_ind] = st_sum_scaled[st_ind] + sum(check_df$end_area) / check_df$out_scalar[1] * temp
-					} # end for summing up individual sources for non-forest restoration
-					# keep track of sources in this region-ownership
-					source_totals[ro_ind,] = source_totals[ro_ind,] + st_sum / st_den
-					scaled_source_totals[ro_ind,] = scaled_source_totals[ro_ind,] + st_sum_scaled / st_den2
-					# set to zero if no source area
-					source_totals[ro_ind,] <- replace(source_totals[ro_ind,], is.nan(source_totals[ro_ind,]), 0.0)
-					scaled_source_totals[ro_ind,] <- replace(scaled_source_totals[ro_ind,], is.nan(scaled_source_totals[ro_ind,]), 0.0)
-					cum_reg_own$src_cnty_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
-											cum_reg_own$Land_Type == unique_lc$Land_Type[lc]] = st_den
-					cum_reg_own$src_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
-											cum_reg_own$Land_Type == unique_lc$Land_Type[lc]] = sc_tot
-				} else if (length(rt_ind) == 2) {
-					#forest restoration
-					# split into appropriate table and do the same thing as above
-					# afforestation
-					aff_df = check_df[check_df$Management == "Afforestation",]
-					if(nrow(aff_df) > 0) {
+				# determine restoration type index and the management type
+				# Forest has two types of restoration, so two rt_ind values will be returned
+				#  parse this and deal with the different practice types
+				#  afforestation and reforestation are not allowed in the same scenario - this is checked above
+				rt_ind = which(restoration_lt == unique_lc$Land_Type[lc])
+				if (length(rt_ind) == 2) {
+					if (check_df$Management[1] == "Afforestation") {
 						rt_ind = 5
-						# sum the source areas
-						st_num = 0
-						st_den = 0
-						st_sum[] = 0
-						# sum the scaled source areas
-						st_den2 = 0
-						st_sum_scaled[] = 0
-						sc_tot = 0 # this is to store the region-level total source area for comparison below
-						for (src in 1:num_restoration_sources[rt_ind]) {
-							st_ind = which(source_totals_names == restoration_sources[rt_ind,src])
-							st_num = cnty_lc_areas$cnty_lc_area[cnty_lc_areas$Region == unique_lc$Region[lc] &
-															cnty_lc_areas$Ownership == unique_lc$Ownership[lc] &
-															cnty_lc_areas$Land_Type == source_totals_names[st_ind]]
-							if(length(st_num) == 0) { st_num = 0 }
-							st_den = st_den + st_num
-							st_sum[st_ind] = st_sum[st_ind] + sum(aff_df$end_area) * st_num
-							# sum up the region-level total source area
-							temp = lc_areas$lc_area[lc_areas$Region == unique_lc$Region[lc] & lc_areas$Ownership == unique_lc$Ownership[lc] &
-															lc_areas$Land_Type == source_totals_names[st_ind]]
-							if(length(temp) == 0) { temp = 0 } 
-							sc_tot = sc_tot + temp
-							# calculate the scaled source needs
-							st_den2 = st_den2 + temp
-							st_sum_scaled[st_ind] = st_sum_scaled[st_ind] + sum(check_df$end_area) / check_df$out_scalar[1] * temp
-						} # end for summing up individual sources for non-forest restoration
-						# keep track of sources in this region-ownership
-						source_totals[ro_ind,] = source_totals[ro_ind,] + st_sum / st_den
-						scaled_source_totals[ro_ind,] = scaled_source_totals[ro_ind,] + st_sum_scaled / st_den2
-						# set to zero if no source area
-						source_totals[ro_ind,] <- replace(source_totals[ro_ind,], is.nan(source_totals[ro_ind,]), 0.0)
-						scaled_source_totals[ro_ind,] <- replace(scaled_source_totals[ro_ind,], is.nan(scaled_source_totals[ro_ind,]), 0.0)
-						cum_reg_own$src_cnty_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
-											cum_reg_own$Land_Type == unique_lc$Land_Type[lc] & cum_reg_own$Management == "Afforestation"] = st_den
-						cum_reg_own$src_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
-											cum_reg_own$Land_Type == unique_lc$Land_Type[lc] & cum_reg_own$Management == "Afforestation"] = sc_tot
-					} # end if afforestation records
-					
-					# reforestation
-					ref_df = check_df[check_df$Management == "Reforestation",]
-					if(nrow(ref_df) > 0) {
+						practice = "Afforestation"
+					} else {
 						rt_ind = 6
-						# sum the source areas
-						st_num = 0
-						st_den = 0
-						st_sum[] = 0
-						# sum the scaled source areas
-						st_den2 = 0
-						st_sum_scaled[] = 0
-						sc_tot = 0 # this is to store the region-level total source area for comparison below
-						for (src in 1:num_restoration_sources[rt_ind]) {
-							st_ind = which(source_totals_names == restoration_sources[rt_ind,src])
-							st_num = cnty_lc_areas$cnty_lc_area[cnty_lc_areas$Region == unique_lc$Region[lc] & 
-															cnty_lc_areas$Ownership == unique_lc$Ownership[lc] &
-															cnty_lc_areas$Land_Type == source_totals_names[st_ind]]
-							if(length(st_num) == 0) { st_num = 0 }
-							st_den = st_den + st_num
-							st_sum[st_ind] = st_sum[st_ind] + sum(ref_df$end_area) * st_num
-							# sum up the region-level total source area
-							temp = lc_areas$lc_area[lc_areas$Region == unique_lc$Region[lc] & lc_areas$Ownership == unique_lc$Ownership[lc] &
-															lc_areas$Land_Type == source_totals_names[st_ind]]
-							if(length(temp) == 0) { temp = 0 }
-							sc_tot = sc_tot + temp
-							# calculate the scaled source needs
-							st_den2 = st_den2 + temp
-							st_sum_scaled[st_ind] = st_sum_scaled[st_ind] + sum(check_df$end_area) / check_df$out_scalar[1] * temp
-						} # end for summing up individual sources for non-forest restoration
-						# keep track of sources in this region-ownership
-						source_totals[ro_ind,] = source_totals[ro_ind,] + st_sum / st_den
-						scaled_source_totals[ro_ind,] = scaled_source_totals[ro_ind,] + st_sum_scaled / st_den2
-						# set to zero if no source area
-						source_totals[ro_ind,] <- replace(source_totals[ro_ind,], is.nan(source_totals[ro_ind,]), 0.0)
-						scaled_source_totals[ro_ind,] <- replace(scaled_source_totals[ro_ind,], is.nan(scaled_source_totals[ro_ind,]), 0.0)
-						cum_reg_own$src_cnty_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
-											cum_reg_own$Land_Type == unique_lc$Land_Type[lc] & cum_reg_own$Management == "Reforestation"] = st_den
-						cum_reg_own$src_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
-											cum_reg_own$Land_Type == unique_lc$Land_Type[lc] & cum_reg_own$Management == "Reforestation"] = sc_tot
-					} # end if reforestation records	
+						practice = "Reforestation"
+					}
+				} else if (length(rt_ind) == 1) {
+					practice = "Restoration"
 				} else if (length(rt_ind) == 0) {
 					stop("Incorrect restoration land type ", unique_lc$Land_Type[lc], "\n")
 				} # end if-else restoration type
+				
+				# sum the restoration area
+				rest_totals[lc] = sum(check_df$end_area)
+				# sum the source areas
+				st_den = 0 # this is to store the county-level total source area for comparison below
+				st_sum[] = 0
+				# sum the scaled source areas
+				st_den2 = 0 # this is to store the region-level total source area for comparison below
+				st_sum_scaled[] = 0
+				for (src in 1:num_restoration_sources[rt_ind]) {
+					st_ind = which(source_totals_names == restoration_sources[rt_ind,src])
+					st_num = cnty_lc_areas$cnty_lc_area[cnty_lc_areas$Region == unique_lc$Region[lc] & cnty_lc_areas$Ownership == unique_lc$Ownership[lc] &
+														cnty_lc_areas$Land_Type == source_totals_names[st_ind]]
+					if(length(st_num) == 0) { st_num = 0 }
+					st_den = st_den + st_num
+					st_sum[st_ind] = st_sum[st_ind] + rest_totals[lc] * st_num
+					# sum up the region-level total source area
+					temp = lc_areas$lc_area[lc_areas$Region == unique_lc$Region[lc] & lc_areas$Ownership == unique_lc$Ownership[lc] &
+														lc_areas$Land_Type == source_totals_names[st_ind]]
+					if(length(temp) == 0) { temp = 0 }
+					# calculate the scaled source needs
+					st_den2 = st_den2 + temp
+					st_sum_scaled[st_ind] = st_sum_scaled[st_ind] + rest_totals[lc] * check_df$man_scalar[1] * temp
+				} # end for summing up individual sources for non-forest restoration
+				# keep track of sources in this region-ownership
+				source_totals[ro_ind,] = source_totals[ro_ind,] + st_sum / st_den
+				scaled_source_totals[ro_ind,] = scaled_source_totals[ro_ind,] + st_sum_scaled / st_den2
+				# store the reg-own land category area of source for this restoration land cat
+				reg_own_source_lc_areas[lc] = st_den2
+				# set to zero if no source area
+				source_totals[ro_ind,] <- replace(source_totals[ro_ind,], is.nan(source_totals[ro_ind,]), 0.0)
+				scaled_source_totals[ro_ind,] <- replace(scaled_source_totals[ro_ind,], is.nan(scaled_source_totals[ro_ind,]), 0.0)
+				cum_reg_own$src_cnty_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
+										cum_reg_own$Land_Type == unique_lc$Land_Type[lc]] = st_den
+				cum_reg_own$src_lc_area[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
+										cum_reg_own$Land_Type == unique_lc$Land_Type[lc]] = st_den2
 
 				# loop over the source types and check against the actual county level source availability
 				# for project-level the check is the total source against the total avail area input
 				if (!ISCOUNTY) { 
-					# check available initial area against physical initial area first
+					# check available initial area against physical initial area
 					if (cum_reg_own$cnty_lc_area[1] > cum_reg_own$lc_area[1]) {
-						cat("Input initial restoration type area ", cum_reg_own$cnty_lc_area[1], " exceeds physical initial restoration type area ", cum_reg_own$lc_area[1], " for restoration type:\n")
+						cat("Input initial restoration type area ", cum_reg_own$cnty_lc_area[1], " exceeds physical regional initial restoration type area ",
+							cum_reg_own$lc_area[1], " for restoration type:\n")
 						cat("\t", cum_reg_own$Region[1], ", ", cum_reg_own$Ownership[1], ", cum_reg_own$lc_area[1] ", cum_reg_own$Land_Type[1], "\n")
 						stop()
 					}
 					# check that there is enough local source area
 					if (sum(source_totals[1,]) > cum_reg_own$src_cnty_lc_area[1]) {
-						cat("Summed restoration source area ", sum(source_totals[1,]), " exceeds initial available source area ", cum_reg_own$src_cnty_lc_area[1], " for restoration type:\n")
+						cat("Summed restoration source area ", sum(source_totals[1,]), " exceeds initial available source area ", cum_reg_own$src_cnty_lc_area[1],
+							" for restoration type:\n")
 						cat("\t", cum_reg_own$Region[1], ", ", cum_reg_own$Ownership[1], ", ", cum_reg_own$Land_Type[1], "\n")
 						stop()
 					}
 					# check that there is enough total source area for scaling
 					if (sum(scaled_source_totals[1,]) > cum_reg_own$src_lc_area[1]) {
-						cat("Summed scaled restoration source area", sum(scaled_source_totals[1,]), " exceeds physical initial source area", cum_reg_own$lc_area[1], " for restoration type:\n")
+						cat("Summed scaled restoration source area", sum(scaled_source_totals[1,]), " exceeds physical regional initial source area",
+							cum_reg_own$lc_area[1], " for restoration type:\n")
 						cat("\t", cum_reg_own$Region[1], ", ", cum_reg_own$Ownership[1], ", cum_reg_own$lc_area[1]", cum_reg_own$Land_Type[1], "\n")
 						stop()
 					}
 				} else {
 					# county level
-					# check that initial area for this land cat restoration type is > 0
+					# check that initial area for any land cat restoration type is > 0
+					# if delta fresh marsh it is ok for it to be zero (as set above), as the scaling is just equal to 1 because it doesn't exist anywhere
 					z_ind = which(cum_reg_own$cnty_lc_area == 0)
-					if ( length(z_ind) > 0) {
-						cat("Initial restoration type county area is zero for land category and management:\n")
-						cat("\t", cum_reg_own$Region[z_ind], ", ", cum_reg_own$Ownership[z_ind], ", ", cum_reg_own$Land_Type[z_ind], ",",
-							cum_reg_own$Management[z_ind], "\n")
-						stop("\tCannot estimate this land category restoration for this county\n")
+					if ( length(z_ind) > 0 ) {
+						for ( z in 1:z_ind) {
+							z_df = cum_reg_own[z_ind[z],]
+							fm_df = z_df[z_df$Region == "Delta" & z_df$Land_Type == "Fresh_marsh",]
+							if ( !(nrow(fm_df) > 0) ) {
+								cat("Initial restoration type county area is zero for land category and management:\n")
+								cat("\t", cum_reg_own$Region[z_ind[z]], ", ", cum_reg_own$Ownership[z_ind[z]], ", ", cum_reg_own$Land_Type[z_ind[z]], ",",
+									cum_reg_own$Management[z_ind[z]], "\n")
+								stop("\tCannot estimate this land category restoration for this county\n")
+							}
+						}
 					}
 					
 					# loop over source types to check for sufficent local source area
@@ -919,11 +964,101 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 
 			} # end for lc loop to check for managed areas within available area
 			
+			# calculate modified management scalars for woodland and meadow restoration if necessary
+			# this happens only if both woodland and meadow restoration exist in the same reg-own
+			# this is to maintain carbon density fidelity between county and region by:
+			#  ensuring that the ratio of scaled restoration area to initial reg-own area is the same as the corresponding county-level ratio
+			wl_inds = which(unique_lc$Land_Type == "Woodland")
+			md_inds = which(unique_lc$Land_Type == "Meadow")
+			if (length(wl_inds) > 0 & length(md_inds) > 0) {
+				# check for matching region
+				reg_matches = intersect(unique_lc$Region[wl_inds], unique_lc$Region[md_inds])
+				if (length(reg_matches) > 0) {
+					# check for matching ownership by region
+					for ( r in 1:length(reg_matches) ) {
+						reg_own_matches = intersect(unique_lc$Ownership[unique_lc[wl_inds, "Region"] == reg_matches[r]],
+													unique_lc$Ownership[unique_lc[md_inds, "Region"] == reg_matches[r]])
+						if (length(reg_own_matches) > 0) {
+							for ( o in 1:length(reg_own_matches) ) {
+								# subset this reg-own for woodland and meadow
+								# there may be multiple rows for each if different time periods are prescribed
+								ro_df = cum_reg_own[cum_reg_own$Region == reg_matches[r] & cum_reg_own$Ownership == reg_own_matches[o] &
+													(cum_reg_own$Land_Type == "Woodland" | cum_reg_own$Land_Type == "Meadow"),]
+								# calculate and a management adjustment scalar and apply it to man_scalar
+								# this is done per region-ownership
+								# this should be true at this point, but check anyway
+								if (nrow(ro_df) > 0) {
+									
+									# determine the region-ownership index for source totals
+									ro_reg_ind = which(unique_ro$Region == reg_matches[r])
+									ro_own_ind = which(unique_ro$Ownership == reg_own_matches[o])
+									ro_ind = intersect(ro_reg_ind, ro_own_ind)
+									# determine the lc indices for restoration totals
+									lc_reg_ind = which(unique_lc$Region == reg_matches[r])
+									lc_own_ind = which(unique_lc$Ownership == reg_own_matches[o])
+									lc_wl_ind = intersect(lc_reg_ind, lc_own_ind)
+									lc_md_ind = lc_wl_ind
+									lc_lt_ind = which(unique_lc$Land_Type == "Woodland")
+									lc_wl_ind = intersect(lc_wl_ind, lc_lt_ind)
+									lc_lt_ind = which(unique_lc$Land_Type == "Meadow")
+									lc_md_ind = intersect(lc_md_ind, lc_lt_ind)
+									
+									# first calculate the net county woodland change in this reg-own: Nc = Cw - Cws,
+									#  where Cw is total prescribed county woodland restoration and Cws is total county woodland source for meadow, in this reg-own
+									Nc = rest_totals[lc_wl_ind] - source_totals[ro_ind, woodland_st_index]
+									
+									# calc desired net region change: Nr = man_scalar * Nc,
+									#  where man scalar is Rwa/Cwa, initial region-own woodland area / initial county woodland area, in this reg-own
+									Nr = ro_df$man_scalar[ro_df$Land_Type == "Woodland"][1] * Nc
+									
+									# calc desired region-own woodland restoration: Wr = Nr + Ws, where Ws is the region-own woodland source for meadow
+									Wr = Nr + scaled_source_totals[ro_ind, woodland_st_index]
+									
+									# if Wr >= 0 proceed in decreasing scaled woodland restoration
+									if ( Wr >= 0) {
+										# calc adjustment to scaled restoration: adj_scalar = Wr / (Cw * man_scalar),
+										#  where the denominator is the original scaled regional prescription
+										adj_scalar = Wr / (rest_totals[lc_wl_ind] * ro_df$man_scalar[ro_df$Land_Type == "Woodland"][1])
+										
+										# then new values for these reg-own woodland rows are just woodland restoration for each row * man_scalar * adj_scalar
+										# so adjust the man_scalar here, as areas are multiplied below
+										cum_reg_own$man_scalar[cum_reg_own$Region == reg_matches[r] & cum_reg_own$Ownership == reg_own_matches[o] &
+																cum_reg_own$Land_Type == "Woodland"] =
+											adj_scalar * cum_reg_own$man_scalar[cum_reg_own$Region == reg_matches[r] & cum_reg_own$Ownership == reg_own_matches[o] &
+																cum_reg_own$Land_Type == "Woodland"]
+									} else {
+										# desired region-own woodland restoration Wr < 0 so:
+										# increase meadow restoration instead and zero out scaled woodland restoration
+										cum_reg_own$man_scalar[cum_reg_own$Region == reg_matches[r] & cum_reg_own$Ownership == reg_own_matches[o] &
+																cum_reg_own$Land_Type == "Woodland"] = 0
+										
+										# calc desired region-own meadow restoration: Mr = abs(Wr) * region-own meadow source lc area / reg-own woodland area
+										Mr = -Wr * reg_own_source_lc_areas[lc_md_ind] / ro_df$lc_area[ro_df$Land_Type == "Woodland"][1]
+										
+										# calc adjustment to scaled restoration: adj_scalar = Mr / (Cm * man_scalar)
+										adj_scalar = Mr / (rest_totals[lc_md_ind] * ro_df$man_scalar[ro_df$Land_Type == "Meadow"][1])
+										
+										# then new values for these reg-own meadow rows are just meadow restoration for each row * man_scalar * adj_scalar
+										# so adjust the man_scalar here, as areas are multiplied below
+										cum_reg_own$man_scalar[cum_reg_own$Region == reg_matches[r] & cum_reg_own$Ownership == reg_own_matches[o] &
+																cum_reg_own$Land_Type == "Meadow"] =
+											adj_scalar * cum_reg_own$man_scalar[cum_reg_own$Region == reg_matches[r] & cum_reg_own$Ownership == reg_own_matches[o] &
+																cum_reg_own$Land_Type == "Meadow"]
+																
+									} # end if decrease woodland restoration else increase meadow restoration
+
+								} # end if calculate adjustment scalars	
+							} # end for o loop over matching regions and ownerships for woodland and meadow
+						} # end if there are matching ownerships within region r for woodland and meadow
+					} # end for r loop over matching regions
+				} # end if there are matching regions for woodland and meadow
+			} # end if there are both woodland and meadow records
+
 			# now scale the management areas to representative regional areas
 			# scale the values
-			cum_reg_own$end_area = cum_reg_own$end_area / cum_reg_own$out_scalar
+			cum_reg_own$end_area = cum_reg_own$end_area * cum_reg_own$man_scalar
 			# this should always be zero
-			cum_reg_own$start_area = cum_reg_own$start_area / cum_reg_own$out_scalar
+			cum_reg_own$start_area = cum_reg_own$start_area * cum_reg_own$man_scalar
 
 			# remove the src area columns for binding with the other records, but save them in another data frame just in case
 			cum_reg_own_src = cum_reg_own
@@ -942,8 +1077,9 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 		# as such, they do not need to be scaled here because they are relative only to the urban area within the desired county(project)
 		# so only need to save the ratio: Developed_all within county(project) / Developed_all within greater Region for output scaling
 		# urban is always considered as All ownership for practicality
-		# Dead_removal and Urban_forest are fractions of Developed_all during the specified year
+		# Dead_removal and Urban_forest are fractions of Developed_all during the specified year, and must always be 1
 		# Urban_forest fractions are based on a desired fraction by the end of a target year
+		#  urban forest fractions can be changed with either of the above because they don't interact with either
 		# Growth is fraction of initial Developed_all annual change during the specified year, based on a desired rate change during a target year
 		# Region has to be all All or each region has to be defined
 		# county and project are processed the same except for the available area because all practices always have to be defined
@@ -955,18 +1091,35 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 			# ownership should all be All
 			# these records will be expanded to regional urban area for All ownership
 			
-			# first make sure that Ownership is All everywhere
+			# first make sure that all three practices are present
+			urb_dr = urban[urban$Management == "Dead_removal",]
+			urb_g = urban[urban$Management == "Growth",]
+			urb_uf = urban[urban$Management == "Urban_forest",]
+			if ( !(nrow(urb_dr) > 0) | !(nrow(urb_g) > 0) | !(nrow(urb_uf) > 0) ) {
+				stop("All three urban practices must be defined for all space and all simulation years\n")
+			}
+			
+			# next make sure that Ownership is All everywhere
 			urb_all_own = urban[urban$Ownership == "All",]
 			urb_own = urban[urban$Ownership != "All",]
 			if (nrow(urb_own) > 0 | nrow(urb_all_own) != nrow(urban)) {
 				stop("Developed_all Ownership must be 'All' for all urban records\n")
 			}
+			
+			# next check to make sure that Dead_removal and Growth are always 1
+			temp_df = urban[urban$Management == "Dead_removal" | urban$Management == "Growth",]
+			non_inds = c(which(temp_df$start_area_frac != 1), which(temp_df$end_area_frac != 1))
+			if ( length(non_inds) > 0 ) {
+				stop("For Developed_all: Dead_removal and Growth must be defined as 1 for all records\n")
+			}
+			
 			# next check that Region is either All or each region is defined
 			urb_all_reg = urban[urban$Region == "All",]
 			urb_reg = urban[urban$Region != "All",]
 			if (nrow(urb_all_reg) > 0 & nrow(urb_reg) > 0) {
 				stop("For Developed_all: Either all records must have 'All' for Region, OR each region needs to be defined for each practice\n")
 			}
+			
 			# check that each region is defined
 			if (nrow(urb_reg) > 0) {
 				for (r in 1:reg_names) {
@@ -1031,8 +1184,8 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 				urb_all_own$cnty_reg_lt_area.y = NULL
 			} # end if project-level or county
 			
-			# now calculate the output scaling ratio - this isn't necessary any more
-			urb_all_own$out_scalar = urb_all_own$cnty_reg_lt_area / urb_all_own$reg_lt_area
+			# now calculate the management scaling ratio region:county for consistency, however it isn't needed here, but mayber later?
+			urb_all_own$man_scalar = urb_all_own$reg_lt_area / urb_all_own$cnty_reg_lt_area
 			# change the names to match the other area columns for binding so that the values are still saved even though they are no lc areas
 			colnames(urb_all_own)[colnames(urb_all_own) == "cnty_reg_lt_area"] = "cnty_lc_area"
 			colnames(urb_all_own)[colnames(urb_all_own) == "reg_lt_area"] = "lc_area"
@@ -1081,7 +1234,7 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 		scen_table_out$County = NULL
 		scen_table_out$cnty_lc_area = NULL
 		scen_table_out$lc_area = NULL
-		scen_table_out$out_scalar = NULL
+		scen_table_out$man_scalar = NULL
 		
 		# put the new scenario raw table into the raw output list
 		out_scen_df_list[[s]] = scen_table_out
@@ -1089,8 +1242,312 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 		# put the manage table with scalars into a new output list
 		out_man_df_list[[s]] = man_table_out
 
+		############# output scalars are scenario-specific!!
+		# but the years should be the same for all scenarios
+		# so write a separate worksheet for each scenario - make sure to be able to match them to the output files using the worksheet names
+		
+		# loop over all simulation years to calculate output scalars
+		# annual and urban scalars do not need to be changed from initial_scalar = county lc area / region lc area because lc areas do not change
+		# restoration scalars need to be calculated based on the expected area of each lc in each year
+		# store the expected areas because write_scaled_outputs may need to update these where restoration causes source limitations
+		#	which means that these expected areas may not be the region-level areas in the simulation
+		
+		# get the simulation years
+		first_year = min(c(scenin_df_list[[s]]$start_year, scenin_df_list[[s]]$end_year))
+		last_year = max(c(scenin_df_list[[s]]$start_year, scenin_df_list[[s]]$end_year))
+		
+		# get all target manage years
+		man_start = sort(unique(scenin_df_list[[s]]$start_year))
+		man_end = sort(unique(scenin_df_list[[s]]$end_year))
+		man_years = c(man_start, man_end)
+		man_years = sort(unique(man_years))
+		num_man_years = length(man_years)
+		
+		# loop over the simulation years
+		for (year in first_year:last_year) {
+    		
+    		# set some management year labaels
+    		ccol = paste0("exp_cnty_lc_area_", year)
+    		pcol = paste0("exp_cnty_lc_area_", year-1)
+    		
+    		# assign the current year labels
+    		cnty_col = paste0("exp_cnty_lc_area_", year)
+    		reg_col = paste0("exp_reg_lc_area_", year)
+    		scalar_col = paste0("exp_output_scalar_", year)
+    		# assign the previous year labels
+    		prev_cnty_col = paste0("exp_cnty_lc_area_", year-1)
+    		prev_reg_col = paste0("exp_reg_lc_area_", year-1)
+    		prev_scalar_col = paste0("exp_output_scalar_", year-1)
+    		# assign the next year labels
+    		next_cnty_col = paste0("exp_cnty_lc_area_", year+1)
+    		next_reg_col = paste0("exp_reg_lc_area_", year+1)
+    		next_scalar_col = paste0("exp_output_scalar_", year+1)
+    		
+    		# add the first year column and set it to the initial values because this is the start of the year
+    		if (year == first_year) {
+    			output_scalars[, cnty_col] = output_scalars$cnty_lc_area
+    			output_scalars[, reg_col] = output_scalars$lc_area
+    			output_scalars[, scalar_col] = output_scalars$initial_scalar
+    		}
+    		
+    		# add next year's column
+    		# this is to store the new area values, which are this year's area + this year's change
+    		# the land cat areas represent the beginning of the year, and changes are applied at the end of the year
+    		output_scalars[, next_cnty_col] = NA
+    		output_scalars[, next_reg_col] = NA
+    		output_scalars[, next_scalar_col] = NA
+
+			# if this is an annual practice scenario or just urban, use the initial values for all land cats
+			if (nrow(cumulative) == 0) {
+				output_scalars[, next_cnty_col] = output_scalars$cnty_lc_area
+				output_scalars[, next_reg_col] = output_scalars$lc_area
+				output_scalars[, next_scalar_col] = output_scalars$initial_scalar
+			} else {
+				# need to associate practices with land cats and calc expected areas, based on previous year's distribution
+				# restoration land cats should have expected scalars equal to the initial scalars
+				# source land cats will have different expected scalars
+				# other (unchanging) land cats will have the initial scalars
+				# if restoration limitations happen, then write_scaled_outputs has to calculate:
+				#	the actual county area for restoration land cats based on the expected scalar
+				#	then actual county areas for the source land cats based on the previous years distribution
+				#	then actual scalars for source land cats based on actual county areas and actual region areas
+				
+				# get indices in output_scalars of rows corresponding to active restored land cats and active source land cats
+				# also get the restoration and source areas - recall that cum_reg_own contains the adjusted scaled areas
+				rest_rows = NULL
+				source_rows = NULL
+				# store the land cat restoration areas for this year
+				rest_totals[] = 0
+				scaled_rest_totals = array(dim=num_lc)
+				scaled_rest_totals[] = 0
+				# store the land cat source areas for this year
+				source_totals[,] = 0
+				scaled_source_totals[,] = 0
+				for( lc in 1:nrow(unique_lc) ) {
+					# restoration land cats
+					rest_rows = c(rest_rows, which(output_scalars$Region == unique_lc$Region[lc] & output_scalars$Ownership == unique_lc$Ownership[lc] &
+									output_scalars$Land_Type == unique_lc$Land_Type[lc]))
+					
+					# get the restoration amounts for this year, which will be applied to this year's area and the result stored in next year's column
+					# calc annual amount for each relevant land cat row, then add them up
+					# the annual amounts are applied during start_year to end_year, such that the target is reached at the end of end_year
+					# 	for each row: (end_area - start_area) / (end_year - start_year + 1)
+					records = cum_reg_own[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
+											cum_reg_own$Land_Type == unique_lc$Land_Type[lc],]
+					for (r in 1:nrow(records)) {
+						if (year >= records$start_year[r] & year <= records$end_year[r]) {
+							scaled_rest_totals[lc] = scaled_rest_totals[lc] + (records$end_area[r] - records$start_area[r]) / (records$end_year[r] - records$start_year[r] + 1)
+						}
+					}
+					rest_totals[lc] = scaled_rest_totals[lc] / cum_reg_own$man_scalar[cum_reg_own$Region == unique_lc$Region[lc] & cum_reg_own$Ownership == unique_lc$Ownership[lc] &
+											cum_reg_own$Land_Type == unique_lc$Land_Type[lc]][1]
+					
+					# get the source amounts for this year, which will be applied to this year's area and the result stored in next year's column
+					# these are based on the expected land cat areas for this year
+					
+					# determine the region-ownership index for source totals
+					ro_reg_ind = which(unique_ro$Region == unique_lc$Region[lc])
+					ro_own_ind = which(unique_ro$Ownership == unique_lc$Ownership[lc])
+					ro_ind = intersect(ro_reg_ind, ro_own_ind)
+					# determine restoration type index and the management type
+					# Forest has two types of restoration, so two rt_ind values will be returned
+					#  parse this and deal with the different practice types
+					#  afforestation and reforestation are not allowed in the same scenario - this is checked above
+					rt_ind = which(restoration_lt == unique_lc$Land_Type[lc])
+					if (length(rt_ind) == 2) {
+						if ("Afforestation" %in% cum_reg_own$management) {
+							rt_ind = 5
+							practice = "Afforestation"
+						} else {
+							rt_ind = 6
+							practice = "Reforestation"
+						}
+					} else if (length(rt_ind) == 1) {
+						practice = "Restoration"
+					} else if (length(rt_ind) == 0) {
+						stop("Incorrect restoration land type ", unique_lc$Land_Type[lc], "\n")
+					} # end if-else restoration type
+				
+					# sum the source areas
+					st_den = 0 # this is to store the county-level total source area for comparison below
+					st_sum[] = 0
+					# sum the scaled source areas
+					st_den2 = 0 # this is to store the region-level total source area for comparison below
+					st_sum_scaled[] = 0
+					for (src in 1:num_restoration_sources[rt_ind]) {
+						st_ind = which(source_totals_names == restoration_sources[rt_ind,src])
+						lc_source_row = which(output_scalars$Region == unique_lc$Region[lc] & output_scalars$Ownership == unique_lc$Ownership[lc] &
+									output_scalars$Land_Type == restoration_sources[rt_ind, src])
+						# this is for subsetting below
+						source_rows = c(source_rows, lc_source_row)
+						# get the expected county and region areas
+						st_num = output_scalars[lc_source_row, cnty_col]
+						temp = output_scalars[lc_source_row, reg_col]
+						# county
+						if(length(st_num) == 0) { st_num = 0 }
+						st_den = st_den + st_num
+						st_sum[st_ind] = st_sum[st_ind] + rest_totals[lc] * st_num
+						# region
+						if(length(temp) == 0) { temp = 0 }
+						st_den2 = st_den2 + temp
+						st_sum_scaled[st_ind] = st_sum_scaled[st_ind] + scaled_rest_totals[lc] * temp
+					} # end for summing up individual sources for non-forest restoration
+					# keep track of sources in this region-ownership
+					source_totals[ro_ind,] = source_totals[ro_ind,] + st_sum / st_den
+					scaled_source_totals[ro_ind,] = scaled_source_totals[ro_ind,] + st_sum_scaled / st_den2
+					
+				} # end for lc loop to get restoration and source rows and areas
+				
+				# set the unchanging values
+				output_scalars[-unique(c(rest_rows, source_rows)), next_cnty_col] = output_scalars$cnty_lc_area[-unique(c(rest_rows, source_rows))]
+				output_scalars[-unique(c(rest_rows, source_rows)), next_reg_col] = output_scalars$lc_area[-unique(c(rest_rows, source_rows))]
+				output_scalars[-unique(c(rest_rows, source_rows)), next_scalar_col] = output_scalars$initial_scalar[-unique(c(rest_rows, source_rows))]
+				
+				# calc some values
+    			if ( year < (min(man_years)) ) {
+    				# if the year is prior to any change then set these values to the initial values
+    				# no change is recorded in the first year of management because areas are for the beginning of the year and change happens at the end of the year
+    				# this includeds the first year of the sim
+    				# the first year of the sim experiences no change because areas are for the beginning of the year and change happens at the end of the year
+    				# so set this to the initial values
+    				output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col] = output_scalars$cnty_lc_area[unique(c(rest_rows, source_rows))]
+					output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] = output_scalars$lc_area[unique(c(rest_rows, source_rows))]
+					output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col] = output_scalars$initial_scalar[unique(c(rest_rows, source_rows))]
+    			} else if ( year > (max(man_years) ) ) {
+    				# if the current year is past the last target year + 1 then use the current year's value because there is no more change
+    				# set the values to the previous values
+    				output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col] = output_scalars[unique(c(rest_rows, source_rows)), cnty_col]
+    				output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] = output_scalars[unique(c(rest_rows, source_rows)), reg_col]
+    				output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col] = output_scalars[unique(c(rest_rows, source_rows)), scalar_col]
+    			} else  {
+					# in the management period
+    				# calculate expected areas for restoration land cats
+    				for( lc in 1:nrow(unique_lc) ) {
+    					# county
+						output_scalars[output_scalars$Region == unique_lc$Region[lc] & output_scalars$Ownership == unique_lc$Ownership[lc] &
+									output_scalars$Land_Type == unique_lc$Land_Type[lc], next_cnty_col] =
+							output_scalars[output_scalars$Region == unique_lc$Region[lc] & output_scalars$Ownership == unique_lc$Ownership[lc] &
+									output_scalars$Land_Type == unique_lc$Land_Type[lc], cnty_col] + rest_totals[lc]
+						# region
+						output_scalars[output_scalars$Region == unique_lc$Region[lc] & output_scalars$Ownership == unique_lc$Ownership[lc] &
+									output_scalars$Land_Type == unique_lc$Land_Type[lc], next_reg_col] =
+							output_scalars[output_scalars$Region == unique_lc$Region[lc] & output_scalars$Ownership == unique_lc$Ownership[lc] &
+									output_scalars$Land_Type == unique_lc$Land_Type[lc], reg_col] + scaled_rest_totals[lc]
+					}
+    				# calculate the expected areas for source land cats, subtract from the next col in case any of these overlapping with restoration
+    				for ( ro in 1:nrow(unique_ro)) {
+    					for ( src in 1:num_sources) {
+    						# this land cat needs to exist to process it
+    						source_lc = output_scalars[output_scalars$Region == unique_ro$Region[ro] &
+    									output_scalars$Ownership == unique_ro$Ownership[ro] & output_scalars$Land_Type == source_totals_names[src],]
+    						if (nrow(source_lc) > 0) {
+    							# if this is a woodland source then check to see if there is restoration in this land cat
+    							#  if so, use next column for current area because restoration has been calculated already
+    							if ( src == woodland_st_index & !is.na(source_lc[1, next_cnty_col]) ) {
+    								# county
+									output_scalars[output_scalars$Region == unique_ro$Region[ro] & output_scalars$Ownership == unique_ro$Ownership[ro] &
+											output_scalars$Land_Type == source_totals_names[src], next_cnty_col] =
+												source_lc[1, next_cnty_col] - source_totals[ro, src]
+									# region
+									output_scalars[output_scalars$Region == unique_ro$Region[ro] & output_scalars$Ownership == unique_ro$Ownership[ro] &
+											output_scalars$Land_Type == source_totals_names[src], next_reg_col] =
+												source_lc[1, next_reg_col] - scaled_source_totals[ro, src]			
+    							} else {
+    								# county
+									output_scalars[output_scalars$Region == unique_ro$Region[ro] & output_scalars$Ownership == unique_ro$Ownership[ro] &
+											output_scalars$Land_Type == source_totals_names[src], next_cnty_col] =
+												source_lc[1, cnty_col] - source_totals[ro, src]
+									# region
+									output_scalars[output_scalars$Region == unique_ro$Region[ro] & output_scalars$Ownership == unique_ro$Ownership[ro] &
+											output_scalars$Land_Type == source_totals_names[src], next_reg_col] =
+												source_lc[1, reg_col] - scaled_source_totals[ro, src]		
+								} # end if woodland restoration land cat else not
+							} # end it this source land cat exists			
+    					} # end for src loop
+    				} # end for ro loop
+    				
+    				### throw errors about source areas going to zero, as this indicates that prescribed restoration may not be met
+    				
+    				# if expected areas go negative set to zero, if region areas are zero set the scaling factor to NA
+    				#   the scalar shouldn't matter if region goes to zero because all values should go to zero, so set this to zero also
+    				
+    				#county
+    				cnty_zero_rows = which(output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col] <= 0)
+    				if (length(cnty_zero_rows) > 0) {
+    					for (rec in 1:length(cnty_zero_rows)) {
+    						cat("Error: County land category ", output_scalars[unique(c(rest_rows, source_rows)), "Region"][cnty_zero_rows[rec]], "-",
+    													output_scalars[unique(c(rest_rows, source_rows)), "Land_Type"][cnty_zero_rows[rec]], "-",
+    													output_scalars[unique(c(rest_rows, source_rows)), "Ownership"][cnty_zero_rows[rec]],
+    													"goes to zero for beginning of year ", year+1, "\n")
+    						cat("This likely results from interactions between multiple restoration activities.\n")
+    						cat("This indicates that the prescribed restoration target(s) for land type(s) drawing from this source may not be met\n")
+    						cat("Which means that other land category estimates may be affected, and the total county area may not be preserved\n")
+    						cat("Please reduce prescribed restoration values to avoid this situation\n")
+    						cat("The restoration types and their sources are:\n")
+    						cat("Restoration type:\tSources\n")
+    						cat("Meadow:\tShrubland, Grassland, Savanna, Woodland\n")
+							cat("Fresh_marsh:\tCultivated\n")
+							cat("Coastal_marsh:\tCultivated\n")
+							cat("Woodland:\tGrassland, Cultivated\n")
+							cat("Forest-Afforestation:\tShrubland, Grassland\n")
+							cat("Forest-Reforestation:\tShrubland\n")
+							stop()
+    					}
+    				}
+    				output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col] <- replace(output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col],
+    						output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col] <= 0, 0.0)
+    				
+    				# region
+    				reg_zero_rows = which(output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] <= 0)
+    				if (length(reg_zero_rows) > 0) {
+    					for (rec in 1:length(reg_zero_rows)) {
+    						cat("Error: Scaled region land category ", output_scalars[unique(c(rest_rows, source_rows)), "Region"][reg_zero_rows[rec]], "-",
+    													output_scalars[unique(c(rest_rows, source_rows)), "Land_Type"][reg_zero_rows[rec]], "-",
+    													output_scalars[unique(c(rest_rows, source_rows)), "Ownership"][reg_zero_rows[rec]],
+    													"goes to zero for beginning of year ", year+1, "\n")
+    						cat("This likely results from interactions between multiple restoration activities.\n")
+    						cat("This indicates that the scaled prescribed restoration target(s) for land type(s) drawing from this source may not be met\n")
+    						cat("Which means that other land category estimates may be affected, and the total county area may not be preserved\n")
+    						cat("Please reduce prescribed restoration values to avoid this situation\n")
+    						cat("The restoration types and their sources are:\n")
+    						cat("Restoration type:\tSources\n")
+    						cat("Meadow:\tShrubland, Grassland, Savanna, Woodland\n")
+							cat("Fresh_marsh:\tCultivated\n")
+							cat("Coastal_marsh:\tCultivated\n")
+							cat("Woodland:\tGrassland, Cultivated\n")
+							cat("Forest-Afforestation:\tShrubland, Grassland\n")
+							cat("Forest-Reforestation:\tShrubland\n")
+							stop()
+    					}
+    				}
+    				output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] <- replace(output_scalars[unique(c(rest_rows, source_rows)), next_reg_col],
+    						output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] <= 0, 0.0)
+    				
+      				# calculate the expected scalars for the above rows
+      				output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col] =
+      					output_scalars[unique(c(rest_rows, source_rows)), next_cnty_col] / output_scalars[unique(c(rest_rows, source_rows)), next_reg_col]
+      				
+      				### these will either be NaN or Inf, if region goes to zero; zero just means that county area goes to zero
+      				output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col] <- replace(output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col],
+    						output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] == Inf, 0.0)
+    				output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col] <- replace(output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col],
+    						output_scalars[unique(c(rest_rows, source_rows)), next_reg_col] == -Inf, 0.0)
+    				output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col] <- replace(output_scalars[unique(c(rest_rows, source_rows)), next_scalar_col],
+    						is.nan(output_scalars[unique(c(rest_rows, source_rows)), next_reg_col]), 0.0)
+      				
+ 				} # end if set values outside restoration period else calculate expected area during restoration period
+				
+			} # end if not restoration else restoration scenario for calculating expected areas and scalars
+			
+			# put this table into the output scalar list
+			out_scalar_df_list[[s]] = output_scalars
+			
+		} # end for year loop over years for output scalars
+
 	} # end s loop over scenario sheets
 
+		
+		############## this (!ISCOUNTY) block is not correct and i haven't fixed it
 		# subset the scalars for project level based on the scenarios
 		# this set of scenarios can operate on only one land category
 		# adjust scalars for source area for restoration
@@ -1164,7 +1621,7 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 			}
 
 			output_scalars$cnty_lc_area = output_scalars$avail_area
-			output_scalars$output_scalar = output_scalars$cnty_lc_area / output_scalars$lc_area
+			output_scalars$initial_scalar = output_scalars$cnty_lc_area / output_scalars$lc_area
 			output_scalars$avail_area = NULL
 
 		} # end if project-level for calculating scalars
@@ -1186,8 +1643,20 @@ write_scaled_raw_scenarios <- function(scen_file = "amador_example_ac.xls", coun
 		saveWorkbook(out_wrkbk)
 		
 		# write the scalar file
-		write.csv(output_scalars, file = out_scalar_file, row.names = FALSE)
+		out_wrkbk =  loadWorkbook(out_scalar_file, create = TRUE)
+		createSheet(out_wrkbk, name = out_scen_sheets)
+		clearSheet(out_wrkbk, sheet = out_scen_sheets)
+		writeWorksheet(out_wrkbk, data = out_scalar_df_list, sheet = out_scen_sheets, startRow = 1, header = TRUE)
+		# shut off wrap text
+		cs <- createCellStyle(out_wrkbk)
+		setWrapText(cs, wrap = FALSE)
+		for (i in 1:length(out_scen_sheets)) {
+			rc = expand.grid(row = 1:(nrow(out_scalar_df_list[[i]])+start_row), col = 1:ncol(out_scalar_df_list[[i]]))
+			setCellStyle(out_wrkbk, sheet = out_scen_sheets[i], row = rc$row, col = rc$col, cellstyle = cs)
+		}
+		# write the workbook
+		saveWorkbook(out_wrkbk)
 
-	cat("Finish write_scaled_raw_scenario at", date(), "\n")	
+	cat("Finish write_scaled_raw_scenarios at", date(), "\n")	
 	
 }
