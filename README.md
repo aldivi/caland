@@ -20,9 +20,16 @@ Please cite the appropriate version using the corresponding Digital Object Ident
   * These functions are used together to effectively apply CALAND at the county level in place of the region levels, so that county-level effects of county-level management can be estimated
   * Caveats of county-level scaling
     * Increase in estimation uncertainty that is difficult to quantify
-    * Restoration sources are determined at the region level during simulation, which means that county-level source conversion may not follow the expected proportional decreases in source areas
-    * Land categories with zero county area cannot be restored at the county-levels
-    * Very high county restoration targets may not be possible to limitations in scaled source area
+    * The scaled outputs approximate what CALAND would return for a single county if the region boundaries were counties instead of the current nine regions
+    * County-level management has limitations compared to regular CALAND operation:
+      * No land use/cover change (except what may be prescribed in a restoration scenario)
+      * No land protection management (because there is no urban growth)
+      * Always full Forest regeneration
+      * Annual practices must be in a separate scenario from restoration practices
+      * No fire with restoration practices (fire can be used with annual practices)
+      * Land categories with zero county area cannot be restored at the county-levels (except for Delta Fresh_marsh)
+      * Some county restoration targets may not be possible to limitations in scaled source area
+  * Alternatively, one could simply simulate county-level targets without scaling and obtain the region-level effects of county-level management
 
 
 ## Version History
@@ -582,21 +589,19 @@ Output plots (.pdf) and corresponding data (.csv) will be saved to the mean fold
 The `write_scaled_raw_scenarios()` function, defined in the write\_scaled\_raw\_scenarios.r file, is designed to scale a raw county-level scenario to the region level for input to `write_caland_inputs()`. This function is used in conjunction with `write_scaled_outputs()` to estimate county-level effects of county-level management. See below for caveats of this scaling.
 
 #### Input files to `write_scaled_raw_scenarios()`
-There is one main scenario input file to `write_scaled_raw_scenarios()` and one supporting area input file. The scenario input file (`scen_file`) follows the same format as the input file to `write_caland_inputs()`, and it should contain county-specific values and all of the relevant scenarios for comparison (i.e., baseline and all alternatives). View the county area files (area_lab_sp9_own9_2010lt15_cnty_ac.csv for acres and area_lab_sp9_own9_2010lt15_cnty_ha.csv for hectares) in `caland/ancillary` to see the available land category area within the specified county. Designations of "All" region or ownership for non-urban land types are expanded to only those regions or ownerships present in the specified county. Ownership must be "All" for Developed_all land type. Only EITHER "Reforestation" OR "Afforestation" can be defined in a scenario. It is recommended to use "Reforestation" for all forest area expansion as its only source is Shrubland. `write_scaled_raw_scenarios()` includes some checks on area availability, but it does not include area limitations due to land use and land cover change that may arise during simulation. Note that the three urban area (Developed_all) practices (Dead_removal, Urban_forest, Growth) must be completely defined in space and time. Also note that Dead_removal should always be defines as 1 unless you want to reduce the area of urban forest that experiences mortality. All  relevant years across scenarios must be defined in each scenario. The relevant years are start_year, end_year, start_year - 1 (except for the first year specified), and end_year + 1 (except for the last year specified). The supporting area input file provides the land category areas within each county, and is different than the ancillary files listed above.
+There is one main scenario input file to `write_scaled_raw_scenarios()` and one supporting area input file. The scenario input file (`scen_file`) follows the same format as the input file to `write_caland_inputs()`, and it should contain county-specific values and all of the relevant scenarios for comparison (i.e., baseline and all alternatives). View the county area files (area_lab_sp9_own9_2010lt15_cnty_ac.csv for acres and area_lab_sp9_own9_2010lt15_cnty_ha.csv for hectares) in `caland/ancillary` to see the available land category area within the specified county. Designations of "All" region or ownership for non-urban land types are expanded to only those regions or ownerships present in the specified county. Ownership must be "All" for Developed_all land type. Only EITHER "Reforestation" OR "Afforestation" can be defined in a scenario. It is recommended to use "Reforestation" for all forest area expansion as its only source is Shrubland. A single county-level scenario can contain only annual practices OR restoration practices, although urban forest expansion may accompany either of these sets of practices. `write_scaled_raw_scenarios()` includes checks on area availability, including the effects of interactions between restoration practices on sources. A county land category cannot be restored if it does not exist or its initial area is zero (except for Delta Fresh_marsh). Note that the three urban area (Developed_all) practices (Dead_removal, Urban_forest, Growth) must be completely defined in space and time. Growth must always be defined as 1 because land use/cover change is not allowed (must use a lulcc/wildfire control file for write_caland_inputs()) in county scaling (except for prescribed restoration). Also note that Dead_removal must always be defined as 1 in order to fully implement mortality in urban forest. All  relevant years across scenarios must be defined in each scenario. The relevant years are start_year, end_year, start_year - 1 (except for the first year specified), and end_year + 1 (except for the last year specified). Furthermore, Forest non-regeneration must be off (NR_Dist =-1 in CALAND() for county scaled scenarios, and wildfire must be off for county scaled restoration scenarios. The supporting area input file provides the land category areas within each county, and is different than the ancillary files listed above.
 
 #### Arguments in `write_scaled_raw_scenarios()`
-Only the first three of the six arguments to `write_scaled_raw_scenarios()` should be specified by the user.
+Only the first three of the four arguments to `write_scaled_raw_scenarios()` should be specified by the user.
 1. `scen_file`: The name of the raw scenarios file for a specific county. This file is an Excel file must be in `<your_caland_folder>/raw_data`. If you want this file and the output files to be in a folder within `raw_data`, prefix this file name with the existing folder. The default is "amador_example.xls".
 2. `county`: The name of the county. This must match the county name in the county area file. The default is "Amador".
 3. `units`: The area units for the raw input scenario file. This can be "ac", or "ha". The default is "ac".
-4. `ISCOUNTY`: This should always be "TRUE", which is the default. It is a flag to denote whether this scenario is for a county (TRUE), or for a specified area (FALSE). This function has not been tested or validated for ISCOUNTY = FALSE, so this option is disabled and should not be used.
-5. `avail_area`: This should always be "NA", which is the default. It is the total available specified area within a single land category for use when ISCOUNTY = FALSE, which is disabled.
-6. `county_category_areas_file`: The name of the file containing the breakdown of county areas for the land categories. The default is area_lab_sp9_own9_2010lt15_cnty_sqm_stats.csv and this should not be changed.
+4. `county_category_areas_file`: The name of the file containing the breakdown of county areas for the land categories. The default is area_lab_sp9_own9_2010lt15_cnty_sqm_stats.csv and this should not be changed.
 
 #### Outputs from `write_scaled_raw_scenarios()`
 There are two output files created by `write_scaled_raw_scenarios()`, and they both will go into the same `raw_data` folder as `scen_file`.
 1. The scaled raw scenario file is an Excel file and will be named by appending the county name and the units to `scen_file`.
-2. The scalar file contains the values to scale the CALAND outputs down to the county level. It is a comma separated value file and will be named by appending the county name and the units and "scalars" to `scen_file`.
+2. The scalar file contains the values to scale the CALAND outputs down to the county level. It is an excel file and will be named by appending the county name and the units and "scalars" to `scen_file`.
 
 
 #### (7) write\_scaled\_outputs.r
@@ -618,9 +623,15 @@ Scaled, county-level output files corresponding to `scen_fnames` will be generat
 ### Caveats of county-level scaling
 
 * Increase in estimation uncertainty that is difficult to quantify
-* Restoration sources are determined at the region level during simulation, which means that county-level source conversion may not follow the expected proportional decreases in source areas
-* Land categories with zero county area cannot be restored at the county-levels
-* Very high county restoration targets may not be possible to limitations in scaled source area
+* The scaled outputs approximate what CALAND would return for a single county if the region boundaries were counties instead of the current nine regions
+* County-level management has limitations compared to regular CALAND operation:
+  * No land use/cover change (except what may be prescribed in a restoration scenario)
+  * No land protection management (because there is no urban growth)
+  * Always full Forest regeneration
+  * Annual practices must be in a separate scenario from restoration practices
+  * No fire with restoration practices (fire can be used with annual practices)
+  * Land categories with zero county area cannot be restored at the county-levels (except for Delta Fresh_marsh)
+  * Some county restoration targets may not be possible to limitations in scaled source area
 
 
 ### Instructions for your first test runs with CALAND
