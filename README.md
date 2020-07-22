@@ -5,23 +5,61 @@
 Alan Di Vittorio
 Maegen Simmonds  
 Lawrence Berkeley National Laboratory  
-[Copyright (c) 2016-2019](https://github.com/aldivi/caland/blob/master/license.txt)
 
 ## Citing CALAND
 Please cite the appropriate version using the corresponding Digital Object Identifier (DOI) and our forthcoming peer-reviewed manuscripts, the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published. If the papers are not yet available at the time you wish to cite CALAND, please use the following citation:
 
 [Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
+## Repository updates
+* July 2020:
+  * Updated Copyright and License. See below for details.
+* October 2019:
+  * Added two new function files to estimate county-level management effects:
+    * write_scaled_raw_scenarios.r: scales county-level raw scenarios to the region level for input to write_caland_inputs()
+    * write_scaled_outputs.r: scales the CALAND outputs back to the county level
+  * These functions are used together to effectively apply CALAND at the county level in place of the region levels, so that county-level effects of county-level management can be estimated
+  * Caveats of county-level scaling
+    * Increase in estimation uncertainty that is difficult to quantify
+    * The scaled outputs approximate what CALAND would return for a single county if the region boundaries were counties instead of the current nine regions
+    * County-level management has limitations compared to regular CALAND operation:
+      * No land use/cover change (except what may be prescribed in a restoration scenario)
+      * No land protection management (because there is no urban growth)
+      * Always full Forest regeneration
+      * Annual practices must be in a separate scenario from restoration practices
+      * No fire with restoration practices (fire can be used with annual practices)
+      * Land categories with zero county area cannot be restored at the county-levels (except for Delta Fresh_marsh)
+      * Some county restoration targets may not be possible to limitations in scaled source area
+  * Alternatively, one could simply simulate county-level targets without scaling and obtain the region-level effects of county-level management
+
 ## Version History
 * CALAND version 3.0.0: 25 June 2019; DOI available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md)
 * CALAND version 2.0.0: 23 October 2017; not an official release
 * CALAND version 1.0.0: 25 January 2017; no an official release
 
-## License
-CALAND is licensed as open source software under the [BSD 3 Clause License](https://github.com/aldivi/caland/blob/master/license.txt).
+## License and Copyright
+
+CALAND is licensed as open source software under a [modified BSD license](https://github.com/aldivi/caland/blob/master/license.txt).
+
+California Natural and Working Lands Carbon and Greenhouse Gas
+Model (CALAND) Copyright (c) 2020, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject to
+receipt of any required approvals from the U.S. Dept. of Energy).  All
+rights reserved.
+
+If you have questions about your rights to use or distribute this software,
+please contact Berkeley Lab's Intellectual Property Office at
+IPO@lbl.gov.
 
 ## Funding
 The California Natural Resources Agency
+
+NOTICE.  This Software was developed under additional funding from the U.S. Department
+of Energy and the U.S. Government consequently retains certain rights.  As
+such, the U.S. Government has been granted for itself and others acting on
+its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+Software to reproduce, distribute copies to the public, prepare derivative
+works, and perform publicly and display publicly, and to permit others to do so.
 
 ## Table of Contents  
 * [Overview](#overview)   
@@ -558,12 +596,12 @@ Low emissions: low initial carbon density (i.e., mean-SD) and high carbon fluxes
 High emissions: high initial carbon density (i.e., mean+SD) and low carbon fluxes (i.e., mean-SD)
 
 #### Input files to `plot_uncertainty()`
-Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Within each .csv file, there can be any number of 
+Inputs to `plot_uncertainty()` are .csv output files from `plot_caland()`. Within each .csv file, there can be any number of
 scenarios. Each group of scenarios must have a corresponding .csv file for the mean, low, and high emissions. It is possible
-to plot up to three groupings (a, b, c) with `plot_uncertainty()`. Three scenario groups amounts to a total of nine .csv 
-input files to `plot_uncertainty()`: three input .csv files (mean, low, and high emissions) for each group. All .csv files 
-have matching formats. For a single group ("group a"), they are assumed to be in caland/outputs/mean, caland/outputs/low, 
-caland/outputs/high, respectively, unless `figdir` is specified differently than the default: 
+to plot up to three groupings (a, b, c) with `plot_uncertainty()`. Three scenario groups amounts to a total of nine .csv
+input files to `plot_uncertainty()`: three input .csv files (mean, low, and high emissions) for each group. All .csv files
+have matching formats. For a single group ("group a"), they are assumed to be in caland/outputs/mean, caland/outputs/low,
+caland/outputs/high, respectively, unless `figdir` is specified differently than the default:
 `figdir = c("mean","low","high")`.
 
 #### Arguments in `plot_uncertainty()`  
@@ -616,7 +654,7 @@ Once you have completed [installing R or R and RStudio, and downloading CALAND](
 > setwd("<your_path>/caland/")
 ```
 3. Load the functions in each file by clicking anywhere in your script window, and then choose Edit→Run all (in R), or click the Source button in the top-right corner of the editor window (in RStudio). Alternatively, you can highlight the entire code, and then press Ctrl+R (in R) or Ctrl+Enter (in RStudio).  
-  
+
 ##### Run the functions in R
 4. Read the [`CALAND.r` section](#2-calandr).
 5. Run `CALAND()` twice using two example sets of arguments:   
