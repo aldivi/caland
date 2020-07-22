@@ -5,7 +5,6 @@
 Alan Di Vittorio  
 Maegen Simmonds  
 Lawrence Berkeley National Laboratory  
-[Copyright (c) 2016-2019](https://github.com/aldivi/caland/blob/master/license.txt)
 
 ## Citing CALAND
 Please cite the appropriate version using the corresponding Digital Object Identifier (DOI) and our forthcoming peer-reviewed manuscripts, the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published. If the papers are not yet available at the time you wish to cite CALAND, please use the following citation:
@@ -13,6 +12,8 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 [Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation.](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
 ## Repository updates
+* July 2020:
+  * Updated Copyright and License. See below for details.
 * October 2019:
   * Added two new function files to estimate county-level management effects:
     * write_scaled_raw_scenarios.r: scales county-level raw scenarios to the region level for input to write_caland_inputs()
@@ -37,11 +38,29 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 * CALAND version 2.0.0: 23 October 2017; not an official release
 * CALAND version 1.0.0: 25 January 2017; not an official release
 
-## License
-CALAND is licensed as open source software under the [BSD 3 Clause License](https://github.com/aldivi/caland/blob/master/license.txt).
+## License and Copyright
+
+CALAND is licensed as open source software under a [modified BSD license](https://github.com/aldivi/caland/blob/master/license.txt).
+
+California Natural and Working Lands Carbon and Greenhouse Gas
+Model (CALAND) Copyright (c) 2020, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject to
+receipt of any required approvals from the U.S. Dept. of Energy).  All
+rights reserved.
+
+If you have questions about your rights to use or distribute this software,
+please contact Berkeley Lab's Intellectual Property Office at
+IPO@lbl.gov.
 
 ## Funding
 The California Natural Resources Agency
+
+NOTICE.  This Software was developed under additional funding from the U.S. Department
+of Energy and the U.S. Government consequently retains certain rights.  As
+such, the U.S. Government has been granted for itself and others acting on
+its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+Software to reproduce, distribute copies to the public, prepare derivative
+works, and perform publicly and display publicly, and to permit others to do so.
 
 ## Table of Contents  
 * [Overview](#overview)   
