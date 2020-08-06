@@ -5,25 +5,63 @@
 Alan Di Vittorio  
 Maegen Simmonds  
 Lawrence Berkeley National Laboratory  
-[Copyright (c) 2016-2019](https://github.com/aldivi/caland/blob/master/license.txt)
 
 ## Citing CALAND
 Please cite the appropriate version using the corresponding Digital Object Identifier (DOI) and our forthcoming peer-reviewed manuscripts, the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published. If the papers are not yet available at the time you wish to cite CALAND, please use the following citation:
 
 [Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation.](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
+## Repository updates
+* July 2020:
+  * Updated Copyright and License. See below for details.
+* October 2019:
+  * Added two new function files to estimate county-level management effects:
+    * write_scaled_raw_scenarios.r: scales county-level raw scenarios to the region level for input to write_caland_inputs()
+    * write_scaled_outputs.r: scales the CALAND outputs back to the county level
+  * These functions are used together to effectively apply CALAND at the county level in place of the region levels, so that county-level effects of county-level management can be estimated
+  * Caveats of county-level scaling
+    * Increase in estimation uncertainty that is difficult to quantify
+    * The scaled outputs approximate what CALAND would return for a single county if the region boundaries were counties instead of the current nine regions
+    * County-level management has limitations compared to regular CALAND operation:
+      * No land use/cover change (except what may be prescribed in a restoration scenario)
+      * No land protection management (because there is no urban growth)
+      * Always full Forest regeneration
+      * Annual practices must be in a separate scenario from restoration practices
+      * No fire with restoration practices (fire can be used with annual practices)
+      * Land categories with zero county area cannot be restored at the county-levels (except for Delta Fresh_marsh)
+      * Some county restoration targets may not be possible to limitations in scaled source area
+  * Alternatively, one could simply simulate county-level targets without scaling and obtain the region-level effects of county-level management
+
 ## Version History
 * CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
 * CALAND version 2.0.0: 23 October 2017; not an official release
 * CALAND version 1.0.0: 25 January 2017; not an official release
 
-## License
-CALAND is licensed as open source software under the [BSD 3 Clause License](https://github.com/aldivi/caland/blob/master/license.txt).
+## License and Copyright
 
-&nbsp;
+CALAND is licensed as open source software under a [modified BSD license](https://github.com/aldivi/caland/blob/master/license.txt).
+
+California Natural and Working Lands Carbon and Greenhouse Gas
+Model (CALAND) Copyright (c) 2020, The Regents of the University of
+California, through Lawrence Berkeley National Laboratory (subject to
+receipt of any required approvals from the U.S. Dept. of Energy).  All
+rights reserved.
+
+If you have questions about your rights to use or distribute this software,
+please contact Berkeley Lab's Intellectual Property Office at
+IPO@lbl.gov.
 
 ## Funding
 The California Natural Resources Agency
+
+NOTICE.  This Software was developed under additional funding from the U.S. Department
+of Energy and the U.S. Government consequently retains certain rights.  As
+such, the U.S. Government has been granted for itself and others acting on
+its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+Software to reproduce, distribute copies to the public, prepare derivative
+works, and perform publicly and display publicly, and to permit others to do so.
+
+&nbsp;
 
 ## Table of Contents  
 * <span style="color:blue">Overview</span>   
