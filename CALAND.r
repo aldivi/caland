@@ -4,18 +4,13 @@
 # California Natural and Working Lands Carbon and Greenhouse Gas
 # Model (CALAND) Copyright (c) 2020, The Regents of the University of 
 # California, through Lawrence Berkeley National Laboratory (subject to 
-# receipt of any required approvals from the U.S. Dept. of Energy).  All 
+# receipt of any required approvals from the U.S. Dept. of Energy). All 
 # rights reserved.
 # If you have questions about your rights to use or distribute this software,
 # please contact Berkeley Lab's Intellectual Property Office at
 # IPO@lbl.gov.
-# 
-# NOTICE.  This Software was developed under funding from the U.S. Department
-# of Energy and the U.S. Government consequently retains certain rights.  As
-# such, the U.S. Government has been granted for itself and others acting on
-# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
-# Software to reproduce, distribute copies to the public, prepare derivative 
-# works, and perform publicly and display publicly, and to permit others to do so.
+####
+
 ####
 
 # This software and its associated input data are licensed under a modified BSD open source license
@@ -73,9 +68,8 @@
 #       `carbon_input_nwl.xls` is default filename, containing the initial carbon densities (mean, min, max, SD) 
 #         in seven carbon pools and the historical soil and vegetation carbon fluxes (mean, min, max, SD) for 
 #         each land category, the carbon adjustment parameters for wildfire, conversion of any land type to 
-#         Cultivated or Developed lands, and Forest, Developed, and Rangeland (Grassland, Savanna, Woodland) 
-#         management, and the soil carbon fluxes (mean, min, max, SD) in Cultivated lands under the 
-#         'soil conservation' practice. 
+#         Cultivated or Developed lands, Forest and Developed management, and managed soil carbon fluxes 
+#         (mean, min, max, SD) in Rangeland (Grassland, Savanna, Woodland) and Cultivated lands. 
                                                              
 #   Scenario input file: The scenario that will be simulated.
 #     `<scenario_name>.xls` contains the initial areas of each land type per region-ownership combination 
@@ -113,7 +107,7 @@
                                                              
 ############################################# Arguments in `CALAND()`################################################
 
-# `CALAND()` has 15 arguments that control which input files and values are used, and how the model will operate for 
+# `CALAND()` has 19 arguments that control which input files and values are used, and how the model will operate for 
 # each run. A single scenario is simulated at a time. At a minimum, you must specify the scenario filename each 
 # time you run `CALAND()` and the other arguments will automatically be assigned default values explained here:
                                                                
@@ -140,25 +134,39 @@
 # 9. `value_col_soilcon`: Integer code identifying which soil carbon flux values to use for the cultivated 
 #     soil conservation practice (i.e., 6 = min, 7 = max, 8 = mean, 9 = std dev). If nothing is specified, 
 #     default is the mean: `value_col_soilcon = 8`. 
-# 10. `ADD_dens`: For use with `value_col_dens = 8`; assign `ADD_dens = TRUE` to add the std dev to the 
+# 10. `value_col_range`: Integer code identifying which soil carbon flux values to use for the rangeland 
+#     (Grassland, Savanna, Woodland) management practices (i.e., 6 = min, 7 = max, 8 = mean, 9 = std dev). 
+#     If nothing is specified, default is the mean: `value_col_range = 8`. double_range = TRUE, , 
+# 11. `ADD_dens`: For use with `value_col_dens = 8`; assign `ADD_dens = TRUE` to add the std dev to the 
 #     mean carbon density values, or assign `ADD_dens = FALSE` to subtract the std dev from the mean carbon 
 #     density values. If nothing is specified, default is addition: `ADD_dens = TRUE`. 
-# 11. `ADD_accum`: For use with `value_col_accum = 8`; assign `ADD_accum = TRUE` to add the std dev to the 
+# 12. `ADD_accum`: For use with `value_col_accum = 8`; assign `ADD_accum = TRUE` to add the std dev to the 
 #     mean carbon flux values, or assign `ADD_accum = FALSE` to subtract the std dev from the mean carbon 
 #     flux values. If nothing is specified, default is addition: `ADD_accum = TRUE`.  
-# 12. `ADD_soilcon`: For use with `value_col_soilcon = 9`; assign `ADD_soilcon = TRUE` to add the std dev 
+# 13. `ADD_soilcon`: For use with `value_col_soilcon = 9`; assign `ADD_soilcon = TRUE` to add the std dev 
 #     to the mean carbon flux value of the cultivated soil conservation practice, or assign 
 #     `ADD_soilcon = FALSE` to subtract the std dev from the mean carbon flux of the cultivated soil 
 #     conservation practice. If nothing is specified, default is addition: `ADD_soilcon = TRUE`.  
-# 13. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
+# 14. `ADD_range`: For use with `value_col_range = 9`; assign `ADD_range = TRUE` to add the std dev 
+#     to the mean carbon flux value of the rangeland practice, or assign `ADD_range = FALSE`
+#      to subtract the std dev from the mean carbon flux of the rangeland practice
+# 15. `double_soilcon`: For use with `value_col_soilcon = 9`; assign `double_soilcon = TRUE` to double the 
+#     std dev to be added or subtracted from the mean soil carbon flux value of the cultivated soil conservation 
+#     practice, or std dev double_soilcon = FALSE to add or subtract 1 std dev to the mean soi lcarbon flux. 
+#     If nothing is specified, default is doubling: `double_soilcon = TRUE`.  
+# 16. `double_range`: For use with `value_col_range = 9`; assign `double_range = TRUE` to double the std dev
+#     to be added or subtracted from the mean soil carbon flux value of the rangeland practice, 
+#     or std dev double_range = FALSE to add or subtract 1 std dev to the mean soil carbon flux. If 
+#     nothing is specified, default is doubling: `double_range = TRUE`.  
+# 17. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
 #     -1 for full regeneration (i.e., no non-rengeration) or 120 for maximum non-regeneration, which is 
 #     the threshold distance (m) to the edge of a burn patch, beyond which the forest will not regenerate 
 #     and will convert to shrubland. The default is maximum non-regeneration: `NR_Dist = 120`. A shorter 
 #     distance increases non-regenerated area, and a longer distance decreases non-regenerated area.
-# 14. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
+# 18. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
 #     file, and `WRITE_OUT_FILE = FALSE` does not save the output file. If nothing is specified, default 
 #     is to save: `WRITE_OUT_FILE = TRUE`. 
-# 15. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
+# 19. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
 #     assigns a GWP of 900, and `blackC = FALSE` assigns a GWP of 1 (equivalent to CO2). If 
 #     nothing is specified, default is to treat black C the same as CO2: `blackC = FALSE`, which is 
 #     recommended as our current understanding is that black C does not behave like the main greenhouse 
@@ -271,9 +279,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd")
-  # for soil cons flux values
+  # for cultivated soil cons flux values
   ftag_soilcon = c("", "", "", "", "", "min", "max", "mean", "sd")
-  # for soil cons flux values
+  # for rangeland flux values
   ftag_range = c("", "", "", "", "", "min", "max", "mean", "sd")
   
   inputdir = paste0("inputs/", indir)
@@ -438,27 +446,79 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   } # end else dens and accum have different stat
   
   # paste extended name to output file to indicate which statistic is used for soil conservation flux
-  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean") {
+  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean" &
+      ftag_soilcon[value_col_range] == "mean") {
     # do nothing, filename stays the same: outputs/[scen_name]_output_mean.xls
   } else {
-    # otherwise subtract ".xls" and replace with [mean, add, or sub]_soilcon.xls
+    # otherwise subtract ".xls" and replace with [mean, add, or sub]_cult.xls
     delete.xls <- ".xls"
     if (value_col_soilcon == 8) {
       # mean soil conservation
-      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=mean.xls")
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C=mean.xls")
     } else if(value_col_soilcon == 6) {
     	# min soil conservation
-      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=min.xls")
+      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C=min.xls")
     } else if(value_col_soilcon == 7) {
     	# max soil conservation
-      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=max.xls")
+      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C=max.xls")
 	} else {
       if (ADD_soilcon) {
         # plus sd soil conservation
-        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S+sd.xls")
+        if (double_soilcon) {
+          # mean + 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C+2sd.xls")
+        } else {
+          # mean + sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C+sd.xls")
+        }
       } else {
         # sub sd soil conservation
-        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S-sd.xls")
+        if (double_soilcon) {
+          # mean - 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C-2sd.xls")
+        } else {
+          # mean - sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C-sd.xls")
+        }
+      }
+    }
+  }
+  
+  # paste extended name to output file to indicate which statistic is used for rangeland flux
+  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean" &
+      ftag_soilcon[value_col_range] == "mean") {
+    # do nothing, filename stays the same: outputs/[scen_name]_output_mean.xls
+  } else {
+    # otherwise subtract ".xls" and replace with [mean, add, or sub]_range.xls
+    delete.xls <- ".xls"
+    if (value_col_range == 8) {
+      # mean rangeland management
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R=mean.xls")
+    } else if(value_col_range == 6) {
+      # min rangeland management
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R=min.xls")
+    } else if(value_col_range == 7) {
+      # max rangeland management
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R=max.xls")
+    } else {
+      if (ADD_range) {
+        # plus sd rangeland management
+        if (double_range) {
+          # mean + 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R+2sd.xls")
+        } else {
+          # mean + sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R+sd.xls")
+        }
+      } else {
+        # sub sd soil rangeland management
+        if (double_range) {
+          # mean - 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R-2sd.xls")
+        } else {
+          # mean - sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R-sd.xls")
+        }
       }
     }
   }
