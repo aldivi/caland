@@ -1832,11 +1832,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	if (year == 2010) {
 	  climate_soil_save <- climate_soil_df
 	} else {
-	  if (year != (end_year-1)) {
+	  # annual loop runs 2010 to (end_year-1)
+	  if (year != (end_year-1)) { 
 	    # only save the individual landcats (omit extra rows)
 	    climate_soil_df = unique(climate_soil_df)
 	    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
 	  } else {
+	    climate_soil_df = unique(climate_soil_df)
+	    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
 	    out_file_csv <- substr(out_file,1,nchar(out_file)-4)
 	    write.csv(climate_soil_save, paste0(out_file_csv,"climate_scalars_adjusted.csv"))
 	  }
