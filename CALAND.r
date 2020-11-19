@@ -1751,18 +1751,19 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	if (nrow(man_adjust_df_check_cult) !=0) {
 	  # rename last column for the adjusted soil climate scalar "[year]_adjusted_cult"
 	  names(man_adjust_df_check_cult)[length(man_adjust_df_check_cult)] <- paste0(as.character(year),"_adjusted_cult")
-	  # isolate adjusted_scalar and land_cat_id columns to merge with climate_soil_df
+	  # isolate adjusted_scalar and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
 	  man_adjust_df_check_cult <- man_adjust_df_check_cult[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
-	                                                          paste0(as.character(year),"_adjusted_cult"))]
+	                                                          paste0(as.character(year),"_adjusted_cult"), "check_hist", "check_man")]
 	  climate_soil_df <- merge(climate_soil_df, man_adjust_df_check_cult, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
 	}
+	
 	    ##### repeat for rangeland 
 	    
 	    if (nrow(man_adjust_df_check_range) != 0) {
 	      
 	      # compare sign of historic c accum value soilc_accum_df$soilc_accum_val with current year managed fluxes: 
 	      # (man_ag_df$soilc_accum_val_soilcon or man_adjust_df$SoilCaccum_frac * soilc_accum_df$soilc_accum_val) 
-	      # add column of historic c accum value to man_adjust_df_check_cult by land category
+	      # add column of historic c accum value to man_adjust_df_check_range by land category
 	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, soilc_accum_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
 	                                                                                      "soilc_accum_val")], by="Land_Cat_ID")
 	      # add column of managed c accum value to man_adjust_df by land category
@@ -1822,9 +1823,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	if (nrow(man_adjust_df_check_range) !=0) {
 	  # rename last column for the adjusted soil climate scalar "[year]_adjusted_range"
 	  names(man_adjust_df_check_range)[length(man_adjust_df_check_range)] <- paste0(as.character(year),"_adjusted_range")
-	  # isolate adjusted_scalar_range and land_cat_id columns to merge with climate_soil_df
+	  # isolate adjusted_scalar_range and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
 	  man_adjust_df_check_range <- man_adjust_df_check_range[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
-	                                                            paste0(as.character(year),"_adjusted_range"))]
+	                                                            paste0(as.character(year),"_adjusted_range"), "check_hist", "check_man")]
 	  climate_soil_df <- merge(climate_soil_df, man_adjust_df_check_range, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
 	    }
 	
@@ -1876,7 +1877,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
                             man_soil_df$Land_Type != "Savanna" & man_soil_df$Land_Type != "Woodland", as.character(year)] # unadjusted climate scalar
       
       # calc total managed soil c flux for cultivated lands: 
-        # soilcfluxXarea = current year managed area * modified-SoilCaccum_frac * appropriate climate scalar
+        # soilcfluxXarea = current year managed area * SoilCaccum_frac * soilc_accum_val * appropriate climate scalar
       if (paste0(as.character(year),"_adjusted_cult") %in% colnames(man_soil_df)) { 
         # if there's a column for adjusted cultivated soil climate scalars (there was at least one cult landcat with managed area). Note this column
          # also includes unadjusted cultivated soil climate scalars for landcats with no sign flip from baseline to managed flux
@@ -1893,7 +1894,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       }
       
       # calc total managed soil c flux for rangelands: 
-        # soilcfluxXarea = current year cumulative managed area * modified-SoilCaccum_frac * appropriate climate scalar
+        # soilcfluxXarea = current year cumulative managed area * SoilCaccum_frac * soilc_accum_val * appropriate climate scalar
       if (paste0(as.character(year),"_adjusted_range") %in% colnames(man_soil_df)) {
         # if there's a column for adjusted rangeland soil climate scalars (there was at least one range landcat with managed area). Note this column
         # should also include unadjusted rangeland soil climate scalars for landcats with no sign flip from baseline to managed flux
@@ -1971,6 +1972,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # and assign the baseline soil c flux value to the the final soil c flux value (this should be 0)
     man_soilflux_agg$fin_soilc_accum[nan_inds] = man_soilflux_agg[nan_inds, "soilc_accum_val"]
     man_soilflux_agg$man_change_soilc_accum = man_soilflux_agg$fin_soilc_accum - man_soilflux_agg$soilc_accum_val
+    
+    out_file_csv <- substr(out_file,1,nchar(out_file)-4)
+    write.csv(man_adjust_df_check_cult, paste0(out_file_csv, "man_adjust_df_check_cult_", year, ".csv"))
+    write.csv(man_adjust_df_check_range, paste0(out_file_csv, "man_adjust_df_check_range_", year, ".csv"))
+    write.csv(man_soilflux_agg, paste0(out_file_csv, "man_soilflux_agg_", year, ".csv"))
     
     ############################################################################################################
     #########################################  All land types ##################################################
