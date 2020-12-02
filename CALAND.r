@@ -1691,11 +1691,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	    # compare sign of historic c accum value soilc_accum_df$soilc_accum_val with current year managed fluxes: 
 	      # (man_ag_df$soilc_accum_val_soilcon or man_adjust_df$SoilCaccum_frac * soilc_accum_df$soilc_accum_val) 
 	    # add column of historic c accum value to man_adjust_df_check_cult by land category
-	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, soilc_accum_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
-	                                                                                  "soilc_accum_val")], by="Land_Cat_ID")
-	    # add column of managed c accum value to man_adjust_df by land category
-	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, man_ag_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
-	                                                                             "soilc_accum_val_soilcon")], by="Land_Cat_ID")
+	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, soilc_accum_df[,c("Land_Cat_ID","soilc_accum_val")], by="Land_Cat_ID")
+	    # add column of managed c accum value to man_adjust_df by land category & management 
+	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, man_ag_df[,c("Land_Cat_ID","soilc_accum_val_soilcon","Management")], 
+	                                      by=c("Land_Cat_ID","Management"))
 	    
 	    # create new column for labeling the historic flux
 	    man_adjust_df_check_cult$check_hist <- NULL
@@ -1764,11 +1763,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	      # compare sign of historic c accum value soilc_accum_df$soilc_accum_val with current year managed fluxes: 
 	      # (man_ag_df$soilc_accum_val_soilcon or man_adjust_df$SoilCaccum_frac * soilc_accum_df$soilc_accum_val) 
 	      # add column of historic c accum value to man_adjust_df_check_range by land category
-	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, soilc_accum_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
-	                                                                                      "soilc_accum_val")], by="Land_Cat_ID")
+	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, soilc_accum_df[,c("Land_Cat_ID", "soilc_accum_val")], by="Land_Cat_ID")
 	      # add column of managed c accum value to man_adjust_df by land category
-	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, man_grass_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership"
-	                                                                                    ,"soilc_accum_val_range")], by="Land_Cat_ID")
+	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, man_grass_df[,c("Land_Cat_ID", "Management","soilc_accum_val_range")], 
+	                                         by=c("Land_Cat_ID","Management"))
 	      # create new column for labeling the historic flux
 	      man_adjust_df_check_range$check_hist <- NULL
 	      # label the historic flux neg, zero, or pos
