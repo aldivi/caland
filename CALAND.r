@@ -864,9 +864,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       }
     } else {
       if (double_soilcon) { # double SD
-      man_ag_df$soilc_accum_val_soilcon = 2 * man_ag_df$soilc_accum_val_soilcon - man_ag_df$Mean_Mg_ha_yr
+      man_ag_df$soilc_accum_val_soilcon = man_ag_df$Mean_Mg_ha_yr - 2 * man_ag_df$soilc_accum_val_soilcon 
     } else {
-      man_ag_df$soilc_accum_val_soilcon = man_ag_df$soilc_accum_val_soilcon - man_ag_df$Mean_Mg_ha_yr
+      man_ag_df$soilc_accum_val_soilcon = man_ag_df$Mean_Mg_ha_yr - man_ag_df$soilc_accum_val_soilcon 
     }
     }
   }
@@ -874,16 +874,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   # get the correct values for the rangeland management soil c accum if value is std dev
   if(value_col_range == 9) { # std dev as value
     if(ADD_range) {
-      if (double_range) { # double SD
+      if (double_range) { # mean + 2SD
         man_grass_df$soilc_accum_val_range = 2 * man_grass_df$soilc_accum_val_range + man_grass_df$Mean_Mg_ha_yr
-      } else {
+      } else { # mean + SD 
         man_grass_df$soilc_accum_val_range = man_grass_df$soilc_accum_val_range + man_grass_df$Mean_Mg_ha_yr
       }
     } else {
-      if (double_range) { # double SD
-        man_grass_df$soilc_accum_val_range = 2 * man_grass_df$soilc_accum_val_range - man_grass_df$Mean_Mg_ha_yr
-      } else {
-        man_grass_df$soilc_accum_val_range = man_grass_df$soilc_accum_val_range - man_grass_df$Mean_Mg_ha_yr
+      if (double_range) { # mean - 2SD
+        man_grass_df$soilc_accum_val_range = man_grass_df$Mean_Mg_ha_yr - 2 * man_grass_df$soilc_accum_val_range  
+      } else { # mean - SD
+        man_grass_df$soilc_accum_val_range = man_grass_df$Mean_Mg_ha_yr - man_grass_df$soilc_accum_val_range 
       }
     }
   }
@@ -1695,59 +1695,21 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	    # add column of managed c accum value to man_adjust_df by land category & management 
 	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, man_ag_df[,c("Land_Cat_ID","soilc_accum_val_soilcon","Management")], 
 	                                      by=c("Land_Cat_ID","Management"))
+
+	    # create a new column and label the historic flux neg, zero, or pos
+	    man_adjust_df_check_cult$check_hist <- ifelse(man_adjust_df_check_cult$soilc_accum_val >= 0, "Positive number", "Negative number")
+	    # create a new column and label the historic flux neg, zero, or pos
+	    man_adjust_df_check_cult$check_man <- ifelse(man_adjust_df_check_cult$soilc_accum_val_soilcon >= 0, "Positive number", "Negative number")
 	    
-	    # create new column for labeling the historic flux
-	    man_adjust_df_check_cult$check_hist <- NULL
-	    # label the historic flux neg, zero, or pos
-	    for (i in 1:nrow(man_adjust_df_check_cult))  {
-	      num <- man_adjust_df_check_cult$soilc_accum_val[i]
-	      # input a number check if the number is positive (or zero) or negative or zero 
-	      if(num >= 0) {
-	        check <- "Positive number"
-	      } else {
-	        check <- "Negative number"
-	      }
-	      man_adjust_df_check_cult$check_hist[i] <- check
-	    }
-	    
-	    # create new column for labeling the cultivated managed flux
-	    man_adjust_df_check_cult$check_man <- NULL
-	    # label the managed flux neg, zero, or pos
-	    for (i in 1:nrow(man_adjust_df_check_cult))  {
-	      num <- man_adjust_df_check_cult$soilc_accum_val_soilcon[i]
-	      # input a number check if the number is positive (or zero) or negative or zero 
-	      if(num >= 0) {
-	        check <- "Positive number"
-	      } else {
-	        check <- "Negative number"
-	      }
-	      man_adjust_df_check_cult$check_man[i] <- check
-	    }  
-	 
 	    #  add soil climate scalar _for current year_ to man_adjust_df_check_cult for determining how to adjust it
 	    # subset soil climate scalars and landcat ID's to be merged into man_adjust_df_check_cult
 	    df <- climate_soil_df[,c("Land_Cat_ID",as.character(year))]
 	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, df, by="Land_Cat_ID")
 	    
-	    # compare the columns and make adjustments as indicated
-	    for (i in 1:nrow(man_adjust_df_check_cult)) {
-	      if (man_adjust_df_check_cult$check_hist[i] == man_adjust_df_check_cult$check_man[i]) {
-	        # if signs of the hist and new managed flux are the same, do nothing
-	      } else { # signs of fluxes flipped (or changed from 0 to pos/neg or vice versa, in which case scalar is irrelvant)
-	        if (man_adjust_df_check_cult[i,as.character(year)] != 0)  { # scalar is not 0
-	          # make the adjustment for all cases of flipped sign
-	          man_adjust_df_check_cult[i,as.character(year)] <- 2 - man_adjust_df_check_cult[i,as.character(year)]
-	        } else { # scalar is 0
-	          # scalar is 0, which decreased pos historic flux 100%, so increase the neg managed flux 100%
-	          # or scalar is 0, which increased neg historic flux 100%, so increase the pos managed flux 100%
-	          man_adjust_df_check_cult[i,as.character(year)] <- 2
-	          # do nothing if scalar is 1 (no climate effect)
-	        } # end scalar is 0
-	      } # end signs of fluxes flipped or changed from 0 to pos/neg or vice versa, in which case scalar is irrelvant
-	    } # end checking each row for difference in signs of hist and managed fluxes
-	} # end check for whether there are any managed cultivated areas this year to check for climate scalar adjustments
+	    # compare the signs of hist and managed fluxes and make adjustments to scalar if they differ (adjusted scalar = 2-scalar) 
+	    man_adjust_df_check_cult[,as.character(year)]<- ifelse(man_adjust_df_check_cult$check_hist != man_adjust_df_check_cult$check_man, 
+	                                                           2 - man_adjust_df_check_cult[,as.character(year)], man_adjust_df_check_cult[,as.character(year)])
 	    
-	if (nrow(man_adjust_df_check_cult) !=0) {
 	  # rename last column for the adjusted soil climate scalar "[year]_adjusted_cult"
 	  names(man_adjust_df_check_cult)[length(man_adjust_df_check_cult)] <- paste0(as.character(year),"_adjusted_cult")
 	  # isolate adjusted_scalar and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
@@ -1767,82 +1729,45 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	      # add column of managed c accum value to man_adjust_df by land category
 	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, man_grass_df[,c("Land_Cat_ID", "Management","soilc_accum_val_range")], 
 	                                         by=c("Land_Cat_ID","Management"))
-	      # create new column for labeling the historic flux
-	      man_adjust_df_check_range$check_hist <- NULL
-	      # label the historic flux neg, zero, or pos
-	      for (i in 1:nrow(man_adjust_df_check_range))  {
-	        num <- man_adjust_df_check_range$soilc_accum_val[i]
-	        # input a number check if the number is positive (or zero) or negative or zero 
-	        if(num >= 0) {
-	          check <- "Positive number"
-	        } else {
-	          check <- "Negative number"
-	        }
-	        man_adjust_df_check_range$check_hist[i] <- check
-	      }
 	      
-	      # create new column for labeling the rangeland managed flux
-	      man_adjust_df_check_range$check_man <- NULL
-	      # label the managed flux neg, zero, or pos
-	      for (i in 1:nrow(man_adjust_df_check_range))  {
-	        num <- man_adjust_df_check_range$soilc_accum_val_range[i]
-	        # input a number check if the number is positive (or zero) or negative or zero 
-	        if(num >= 0) {
-	          check <- "Positive number"
-	        } else {
-	          check <- "Negative number"
-	        }
-	        man_adjust_df_check_range$check_man[i] <- check
-	      }  
+	      # create a new column and label the historic flux neg, zero, or pos
+	      man_adjust_df_check_range$check_hist <- ifelse(man_adjust_df_check_range$soilc_accum_val >= 0, "Positive number", "Negative number")
+	      # create a new column and label the historic flux neg, zero, or pos
+	      man_adjust_df_check_range$check_man <- ifelse(man_adjust_df_check_range$soilc_accum_val_range >= 0, "Positive number", "Negative number")
 	      
 	      #  add soil climate scalar _for current year_ to man_adjust_df_check_range for determining how to adjust it
 	      # subset soil climate scalars and landcat ID's to be merged into man_adjust_df_check_range
 	      df <- climate_soil_df[,c("Land_Cat_ID",as.character(year))]
 	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, df, by="Land_Cat_ID")
-	   
-	      # compare the columns and make adjustments as indicated
-	      for (i in 1:nrow(man_adjust_df_check_range)) {
-	        if (man_adjust_df_check_range$check_hist[i] == man_adjust_df_check_range$check_man[i]) {
-	          # if signs of the hist and new managed flux are the same, do nothing
-	        } else { # signs of fluxes flipped (or changed from 0 to pos/neg or vice versa, in which case scalar is irrelvant)
-	          if (man_adjust_df_check_range[i,as.character(year)] != 0)  { # scalar is not 0
-	            # make the adjustment for all cases of flipped sign
-	            man_adjust_df_check_range[i,as.character(year)] <- 2 - man_adjust_df_check_range[i,as.character(year)]
-	          } else { # scalar is 0
-	            # scalar is 0, which decreased pos historic flux 100%, so increase the neg managed flux 100%
-	            # or scalar is 0, which increased neg historic flux 100%, so increase the pos managed flux 100%
-	            man_adjust_df_check_range[i,as.character(year)] <- 2
-	            # do nothing if scalar is 1 (no climate effect)
-	          } # end scalar is 0
-	        } # end signs of fluxes flipped or changed from 0 to pos/neg or vice versa, in which case scalar is irrelvant
-	      } # end checking each row for difference in signs of hist and managed fluxes
-	    } # end check for whether there are any managed rangeland areas this year to check for climate scalar adjustments
-	    
-	if (nrow(man_adjust_df_check_range) !=0) {
-	  # rename last column for the adjusted soil climate scalar "[year]_adjusted_range"
-	  names(man_adjust_df_check_range)[length(man_adjust_df_check_range)] <- paste0(as.character(year),"_adjusted_range")
-	  # isolate adjusted_scalar_range and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
-	  man_adjust_df_check_range <- man_adjust_df_check_range[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
-	                                                            paste0(as.character(year),"_adjusted_range"), "check_hist", "check_man")]
-	  climate_soil_df <- merge(climate_soil_df, man_adjust_df_check_range, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
+	      
+	      # compare the signs of hist and managed fluxes and make adjustments to scalar if they differ (adjusted scalar = 2-scalar) 
+	      man_adjust_df_check_range[,as.character(year)]<- ifelse(man_adjust_df_check_range$check_hist != man_adjust_df_check_range$check_man, 
+	                                                             2 - man_adjust_df_check_range[,as.character(year)], man_adjust_df_check_range[,as.character(year)])
+	      
+	      # rename last column for the adjusted soil climate scalar "[year]_adjusted_range"
+	      names(man_adjust_df_check_range)[length(man_adjust_df_check_range)] <- paste0(as.character(year),"_adjusted_range")
+	      # isolate adjusted_scalar and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
+	      man_adjust_df_check_range <- man_adjust_df_check_range[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
+	                                                              paste0(as.character(year),"_adjusted_range"), "check_hist", "check_man")]
+	      climate_soil_df <- merge(climate_soil_df, man_adjust_df_check_range, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
 	    }
 	
-	# save climate_soil_df to verify adjustments are working correctly
-	if (year == 2010) {
-	  climate_soil_save <- climate_soil_df
-	} else {
+	# save climate_soil_df to verify adjustments are working correctly (TESTED - WORKS CORRECTLY)
+	#if (year == 2010) {
+	#  climate_soil_save <- climate_soil_df
+	#} else {
 	  # annual loop runs 2010 to (end_year-1)
-	  if (year != (end_year-1)) { 
+	#  if (year != (end_year-1)) { 
 	    # only save the individual landcats (omit extra rows)
-	    climate_soil_df = unique(climate_soil_df)
-	    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
-	  } else {
-	    climate_soil_df = unique(climate_soil_df)
-	    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
-	    out_file_csv <- substr(out_file,1,nchar(out_file)-4)
-	    write.csv(climate_soil_save, paste0(out_file_csv,"climate_scalars_adjusted.csv"))
-	  }
-	}
+	#    climate_soil_df = unique(climate_soil_df)
+	#    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
+	#  } else {
+	#    climate_soil_df = unique(climate_soil_df)
+	#    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
+	#    out_file_csv <- substr(out_file,1,nchar(out_file)-4)
+	#    write.csv(climate_soil_save, paste0(out_file_csv,"climate_scalars_adjusted.csv"))
+	 # }
+	#}
 	        ################### end climate scalar adjustments ###################
 	      
 	 # apply climate effect (with applicable adjustments) to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
@@ -1971,10 +1896,11 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_soilflux_agg$fin_soilc_accum[nan_inds] = man_soilflux_agg[nan_inds, "soilc_accum_val"]
     man_soilflux_agg$man_change_soilc_accum = man_soilflux_agg$fin_soilc_accum - man_soilflux_agg$soilc_accum_val
     
-    out_file_csv <- substr(out_file,1,nchar(out_file)-4)
-    write.csv(man_adjust_df_check_cult, paste0(out_file_csv, "man_adjust_df_check_cult_", year, ".csv"))
-    write.csv(man_adjust_df_check_range, paste0(out_file_csv, "man_adjust_df_check_range_", year, ".csv"))
-    write.csv(man_soilflux_agg, paste0(out_file_csv, "man_soilflux_agg_", year, ".csv"))
+   # (TESTED - WORKS CORRECTLY)
+   # out_file_csv <- substr(out_file,1,nchar(out_file)-4)
+   # write.csv(man_adjust_df_check_cult, paste0(out_file_csv, "man_adjust_df_check_cult_", year, ".csv"))
+   # write.csv(man_adjust_df_check_range, paste0(out_file_csv, "man_adjust_df_check_range_", year, ".csv"))
+   # write.csv(man_soilflux_agg, paste0(out_file_csv, "man_soilflux_agg_", year, ".csv"))
     
     ############################################################################################################
     #########################################  All land types ##################################################
