@@ -4,9 +4,18 @@
 # California Natural and Working Lands Carbon and Greenhouse Gas
 # Model (CALAND) Copyright (c) 2020, The Regents of the University of 
 # California, through Lawrence Berkeley National Laboratory (subject to 
-# receipt of any required approvals from the U.S. Dept. of Energy).  All 
+# receipt of any required approvals from the U.S. Dept. of Energy). All 
 # rights reserved.
-# If you have questions about your rights to use or distribute this software, # please contact Berkeley Lab's Intellectual Property Office at # IPO@lbl.gov. #  # NOTICE.  This Software was developed under funding from the U.S. Department # of Energy and the U.S. Government consequently retains certain rights.  As # such, the U.S. Government has been granted for itself and others acting on # its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the # Software to reproduce, distribute copies to the public, prepare derivative  # works, and perform publicly and display publicly, and to permit others to do so.
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+# 
+# NOTICE: This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights. As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative
+# works, and perform publicly and display publicly, and to permit others to do so.
 ####
 
 # This software and its associated input data are licensed under a modified BSD open source license
@@ -3056,7 +3065,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diff_output.csv")
                             write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
-                        
+                         
                         		# plot the per area effects on carbon pools of individual practices
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
@@ -3068,9 +3077,10 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 	# different management practices require different areas
                                 	
                                 	if (lt_lab == "Cultivated" & length(nrow(man_df)) > 0) {
-                                		# cultivated soil conservation uses annual area because effects occur in current year only
+                                		# cultivated soil conservation and any other new practice uses annual area because effects occur in current year only
                                 		# for cultivated, divide diff by annual managed area
-                                        plot_df = merge(plot_df, man_df[man_df$Management == "Soil_conservation",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                       # plot_df = merge(plot_df, man_df[man_df$Management == "Soil_conservation",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                	      plot_df = merge(plot_df, man_df[man_df$Land_Type == "Cultivated",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                         plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] =
                                         plot_df$Value.x[plot_df$Land_Type == "Cultivated"] /
                                         plot_df$Value.y[plot_df$Land_Type == "Cultivated"] / Mg2MMT
@@ -3091,7 +3101,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 			}
                                 		}
                                 		
-                                		# biomass practices: need cumulative area
+                                		# forest biomass practices: need cumulative area
                                 		# only one type of land and management should be present
                                 		if (num_prac[1] == 1) {
                                 			plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
@@ -3282,14 +3292,23 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         	plot_df$DiffArea[plot_df$Land_Type == "All_land"] / Mg2MMT
                                 	} else if ((lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") & length(nrow(man_df)) > 0) {
                                 		# rangeland compost management: need cumulative area
+                                	  # other types of rangeland management: need annual area
                                 		# only one type of land and management should be present
                                 		plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                     	for (s in 2:num_scen_names) {
                                     		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]])
                                     	}
+                                		
+                                		  if (any(plot_df$Management %in% c("Low_frequency","Med_frequency"))) { 
+                                		    # it is a compost practice so divide by cumulative area
                                         plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
                                         	plot_df$Value.x[plot_df$Land_Type == lt_lab] /
                                         	plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                		  } else { # not a compost practice so divide by annual area
+                                		    plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                		      plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                		      plot_df$Value.y[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                		  }
                                 	} # end if-else land types
                                 	
                                 	# make sure that DiffPerArea exists
