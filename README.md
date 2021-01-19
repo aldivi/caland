@@ -13,8 +13,7 @@ Please cite our peer-reviewed manuscripts and the appropriate version of CALAND 
 
 Latest CALAND version citation:
 
-[Di Vittorio, A., and M. Simmonds (2019) CALAND, Version 3.0.0, DOI: 10.5281/zenodo.3256727]
-(https://doi.org/10.5281/zenodo.3256727)
+[Di Vittorio, A., and M. Simmonds (2019) CALAND, Version 3.0.0, DOI: 10.5281/zenodo.3256727](https://doi.org/10.5281/zenodo.3256727)
 
 ## Repository updates
 * July 2020:
