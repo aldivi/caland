@@ -7,11 +7,32 @@ Maegen Simmonds
 Lawrence Berkeley National Laboratory  
 
 ## Citing CALAND
-Please cite the appropriate version using the corresponding Digital Object Identifier (DOI) and our forthcoming peer-reviewed manuscripts, the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published. If the papers are not yet available at the time you wish to cite CALAND, please use the following citation:
+Please cite the appropriate version using the corresponding Digital Object Identifier (DOI) and our peer-reviewed manuscripts, the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published.
+
+Manuscripts:
+
+Di Vittorio, A.V., M.B. Simmonds, P. Nico. In review. Quantifying the effects of multiple land management practices, land cover change, and wildfire on the California landscape carbon budget with an empirical model. PLOS ONE.
+
+Simmonds, M., A.V. Di Vittorio, C. Jahns, E. Johnston, A. Jones, and P.S. Nico. 2021. Impacts of California's climate-relevant land use policy scenarios on terrestrial carbon emissions (CO<sub>2</sub> and CH<sub>4</sub>) and wildfire risk. Environ. Res. Lett. 16(2021) 014044. [https://doi.org/10.1088/1748-9326/abcc8d.](https://doi.org/10.1088/1748-9326/abcc8d)
+
+The citation for the technical documentation is:
 
 [Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation.](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
+
+
+
 ## Repository updates
+* February 2021:
+  * Version 3.0.1 includes a minor CALAND bug fix, updated raw climate scalar files, the county scaling functions (as added in Oct 2019), and tutorial materials
+  * Bug fix:
+    * In the case where Cultivated soil conservation flipped the sign of the baseline flux (in the Delta with the +SD mangement benefit), the climate scalar was not adjusted appropriately.
+    * This has been corrected, and this case did not arise in the NWL study or in the two initial manuscripts.
+  * Updated raw climate scalar files for RCP4.5 and RCP8.5:
+    * The raw climate scalar files had incorrect values for the Delta Cultivated land. These have been updated by accounting for the negative baseline carbon accumulation in this land category.
+    * This affects only 5% of the statewide cultivated land, and 0.5% of the total land in the state, and thus has a negligible effect on the results of the NWL study and the corresponding paper.
+    * This has no affect on the multiple practice study as climate change effects were not applied.
+  * The tutorial materials from October 2019 have been added to the repository in the ancillary folder. These materials have been separated into five zip files.
 * July 2020:
   * Updated Copyright and License. See below for details.
 * October 2019:
@@ -34,7 +55,9 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 
 
 ## Version History
+* CALAND version 3.0.1: February 2021; DOI: forthcoming
 * CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
+* CALND concept DOI for all versions, 25 June 2019: 10.5281/zenodo.3256726
 * CALAND version 2.0.0: 23 October 2017; not an official release
 * CALAND version 1.0.0: 25 January 2017; not an official release
 

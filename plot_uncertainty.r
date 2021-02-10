@@ -250,7 +250,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
 				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
 				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep("S-", snames, value = TRUE)
+				    		snames = grep("S-", snames, value = TRUE, fixed = TRUE)
 				    		snames = unique(snames)
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop over desired scenarios
@@ -266,7 +266,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		if(regexpr("_S", scenarios[n]) < 0) {soil = "_S=mean"}
 				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
 				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep(soil, snames, value = TRUE)
+				    		snames = grep(soil, snames, value = TRUE, fixed = TRUE)
 				    		snames = unique(snames)
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop over desired scenarios
@@ -288,7 +288,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
 				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
 				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep("S+", snames, value = TRUE)
+				    		snames = grep("S+", snames, value = TRUE, fixed = TRUE)
 				    		snames = unique(snames)
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop ove desired scenarios
@@ -304,7 +304,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    		if(regexpr("_S", scenarios[n]) < 0) {soil = "_S=mean"}
 				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
 				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep(soil, snames, value = TRUE)
+				    		snames = grep(soil, snames, value = TRUE, fixed = TRUE)
 				    		snames = unique(snames)
 				    		snames_all = c(snames_all, snames)
 				    	} # end n loop over desired scenarios
