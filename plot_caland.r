@@ -126,7 +126,7 @@ plot_caland <- function(scen_fnames, scen_snames, data_dir = "./outputs", reg = 
 "Delta", "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast", "Ocean"),
 lt = c("All_land", "Water", "Ice", "Barren", "Sparse", "Desert", "Shrubland", "Grassland", "Savanna", "Woodland", "Forest",
 "Meadow", "Coastal_marsh", "Fresh_marsh", "Cultivated",  "Developed_all", "Seagrass"),
-own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blackC = FALSE, blackC_plot = FALSE, last_year = 2051) {
+own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, range_cum = TRUE, units_ha=FALSE, blackC = FALSE, blackC_plot = FALSE, last_year = 2051) {
     
     cat("Start plot_caland() at", date(), "\n")
     
@@ -3051,7 +3051,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 diff_df = temp_df[temp_df$Scenario == scen_lnames[s],]
                                 diff_df$Value = temp_df$Value[temp_df$Scenario == scen_lnames[s]] - temp_df$Value[temp_df$Scenario == scen_lnames[1]]
                                 plot_df = rbind(plot_df, diff_df)
-                            }
+                            } 
+                            
                             p <- ( ggplot(plot_df, aes(Year, Value, color=Scenario))
                             + scale_shape_manual(values=1:nlevels(plot_df$Scenario))
                             + geom_line(size = 0.3)
@@ -3065,26 +3066,57 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", ann_ghg_sheets[i], "_diff_output.csv")
                             write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
-                         
+                      
+                            #################### annual GHG line plots for individual practices ###############################
                         		# plot the per area effects on carbon pools of individual practices
                             # if quantifying the per area effecs of a single practice simulation
-                                # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
-                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                                # these diffs are scenario minus baseline emissions, so negative values are a benefit
+                            # note that All_land must be a lt_lab for calculation of restoration per acre benefits
+                            
                                 if (INDIVIDUAL) {
-                                	
                                 	# man_df is managed area with scenario, region, land type, ownership, management, year, units, and value in ha or ac
                                 	# different management practices require different areas
                                 	
                                 	if (lt_lab == "Cultivated" & length(nrow(man_df)) > 0) {
                                 		# cultivated soil conservation and any other new practice uses annual area because effects occur in current year only
                                 		# for cultivated, divide diff by annual managed area
-                                       # plot_df = merge(plot_df, man_df[man_df$Management == "Soil_conservation",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                	      plot_df = merge(plot_df, man_df[man_df$Land_Type == "Cultivated",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                        plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] =
-                                        plot_df$Value.x[plot_df$Land_Type == "Cultivated"] /
-                                        plot_df$Value.y[plot_df$Land_Type == "Cultivated"] / Mg2MMT
-                                	} else if (lt_lab == "Forest" & length(nrow(man_df)) > 0) {
+                                	      plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                        plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                        plot_df$Value.y[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                        } # end cultivated
+                                  else if (range_cum == FALSE & (lt_lab == "Woodland" | lt_lab == "Woodland" | lt_lab == "Grassland") & length(nrow(man_df)) > 0) { 
+                                	  # rangeland annualized management practices use annual areas 
+                                    # first check to make sure compost management isn't prescribed which should use cumulative area
+                                    compost_only_ID <- c("Low_frequency","Med_frequency")
+                                    if (any(compost_only_ID %in% man_df$Management)) {
+                                      stop("Error: range_cum must equal TRUE if low_frequency or med_frequency rangeland compost is prescribed")
+                                    }
+                                     plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                	  plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                	    plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                	    plot_df$Value.y[plot_df$Land_Type == lt_lab] / Mg2MMT 
+                                        } # end annual rangelands
+                                  else if (range_cum == TRUE & (lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") & length(nrow(man_df)) > 0) {
+                                	    # rangeland compost management: need cumulative area
+                                	    # other types of rangeland management: need annual area
+                                	    # only one type of land and management should be present
+                                    # first check to make sure that a non-compost management isn't prescribed which should use annual area
+                                    compost_only_ID <- c("Low_frequency","Med_frequency")
+                                    if (all(!(compost_only_ID %in% man_df$Management))) {
+                                      stop("Error: range_cum must equal FALSE for rangeland practices with benefits in current year only (this means any rangeland practices that are 
+                                           not low_frequency or med_frequency must have range_cum = FALSE)")
+                                    }
+                                	    plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                	    for (s in 2:num_scen_names) {
+                                	      plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]])
+                                	      }
+                                	      # it is a compost practice so divide by cumulative area
+                                	      plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                	        plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                	        plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                	      } # end cumulative rangelands
+                                  else if (lt_lab == "Forest" & length(nrow(man_df)) > 0) {
                                 		# don't do afforestation here because it needs lt_lab == All_land
                                 		# first count how many practices there are
                                 		# man_df has already been pared down to current reg, lt, own, but with multiple scenarios
@@ -3167,12 +3199,12 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         # for developed dead removal divide diff by annual dead removal area (this does not have a long-term effect on growth rates)
                                         # urban forest will always have non-zero area because it is a fraction of developed area
                                         # assume that the sum of annual growth over the period or scenarios doesn't cancel itself out
-										
-										dev_man_data_sub_df = man_df[man_df$Management == "Urban_forest",]
-										if (length(nrow(dev_man_data_sub_df)) > 0) {
-												# need to check on a scenario basis
-												plot_uf_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-												plot_dr_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                	  
+                                	  dev_man_data_sub_df = man_df[man_df$Management == "Urban_forest",]
+                                	  if (length(nrow(dev_man_data_sub_df)) > 0) {
+                                	    # need to check on a scenario basis
+                                	    plot_uf_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)	
+                                	    plot_dr_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                             	for (s in 2:num_scen_names) {
                                             		dev_man_data_sub_df$DiffArea[dev_man_data_sub_df$Scenario == scen_lnames[s]] =
                                             			dev_man_data_sub_df$Value[dev_man_data_sub_df$Scenario == scen_lnames[s]] -
@@ -3193,19 +3225,17 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                             			plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all" & plot_df$Scenario == scen_lnames[s]] =
                                             				plot_df$Value.x[plot_df$Land_Type == "Developed_all" & plot_df$Scenario == scen_lnames[s]] /
                                             				plot_df$Value.y[plot_df$Land_Type == "Developed_all" & plot_df$Scenario == scen_lnames[s]] / Mg2MMT
-                                            		}
-                                            			
-                                            			
+                                            		}	
                                             	} # end for loop over scenarios
-                                       	} else { # end if there is urban forest
+                                	    } else { # end if there is urban forest
                                        		# Dead_removal practice
                                     		plot_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                             plot_df$DiffPerArea[plot_df$Land_Type == "Developed_all"] =
                                             		plot_df$Value.x[plot_df$Land_Type == "Developed_all"] /
                                             plot_df$Value.y[plot_df$Land_Type == "Developed_all"] / Mg2MMT
                                        	} # end else just do dead removal cuz no urban forest
-										  
-                                	} else if (lt_lab == "All_land" & length(nrow(al_area_df)) > 0) {
+                                	  } #  end if Developed_all
+                                  else if (lt_lab == "All_land" & length(nrow(al_area_df)) > 0) {
                                 		# restoration and afforestation and growth
                                 		
                                 		# need to associate the desired land type difference with the total benefit
@@ -3290,26 +3320,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         plot_df$DiffPerArea[plot_df$Land_Type == "All_land"] =
                                         	plot_df$Value.x[plot_df$Land_Type == "All_land"] /
                                         	plot_df$DiffArea[plot_df$Land_Type == "All_land"] / Mg2MMT
-                                	} else if ((lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") & length(nrow(man_df)) > 0) {
-                                		# rangeland compost management: need cumulative area
-                                	  # other types of rangeland management: need annual area
-                                		# only one type of land and management should be present
-                                		plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                    	for (s in 2:num_scen_names) {
-                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]])
-                                    	}
-                                		
-                                		  if (any(plot_df$Management %in% c("Low_frequency","Med_frequency"))) { 
-                                		    # it is a compost practice so divide by cumulative area
-                                        plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
-                                        	plot_df$Value.x[plot_df$Land_Type == lt_lab] /
-                                        	plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
-                                		  } else { # not a compost practice so divide by annual area
-                                		    plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
-                                		      plot_df$Value.x[plot_df$Land_Type == lt_lab] /
-                                		      plot_df$Value.y[plot_df$Land_Type == lt_lab] / Mg2MMT
-                                		  }
-                                	} # end if-else land types
+                                	
+                                        } # end if All_land 
                                 	
                                 	# make sure that DiffPerArea exists
                                 	if (length(which(names(plot_df) == "DiffPerArea")) > 0) {
@@ -3400,8 +3412,9 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                             do.call( ggsave, c(list(filename=out_file, plot=p), p$save_args ) )
                             out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", cum_ghg_sheets[i], "_diff_output.csv")
                             write.csv(plot_df, out_file, quote=FALSE, row.names=FALSE)
-                        
-                        # plot the per area effects on carbon pools of individual practices
+                            
+                            #################### cumulative GHG line plots for individual practices ###############################
+                            # plot the per area effects on carbon pools of individual practices
                             # use cumulative managed area
                             		# the cumulative values are at the beginning of the labelled year
                             		# the total areas are at the beginning of the lablelled year
@@ -3413,16 +3426,16 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                             		# this is the per area per year benefit for the period of CumYears (the years prior to the output labelled year)
                             # if quantifying the per area effecs of a single practice simulation
                                 # these diffs are scenario minus baseline emissions,so negative values are a benefit
-                            # only apply to individual land types ==> actually we need All_land for restoration per acre benefits
-                            #if (INDIVIDUAL & lt_lab != "All_land") {
+                            # Note that All_land is needed for restoration per acre benefits
+                         
                                 if (INDIVIDUAL) {
                                 	# man_df is managed area with scenario, region, land type, ownership, management, year, units, and value in ha or ac
                                 	# different management practices require different areas
                                 	
                                 	if (lt_lab == "Cultivated" & length(nrow(man_df)) > 0) {
-                                		# cultivated soil conservation uses annual area because effects occur in current year only
+                                		# cultivated management uses annual area because effects occur in current year only
                                 		# for cultivated, divide diff by cumulative managed area
-                                        plot_df = merge(plot_df, man_df[man_df$Management == "Soil_conservation",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                         for (s in 2:num_scen_names) {
                                         	cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
                                         	cumyears = cumsum(cumyears)
@@ -3438,7 +3451,31 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         plot_df$DiffPerAreaPerYr[plot_df$Land_Type == "Cultivated"] =
                                         	plot_df$DiffPerArea[plot_df$Land_Type == "Cultivated"] /
                                         	plot_df$CumYears[plot_df$Land_Type == "Cultivated"]
-                                	} else if (lt_lab == "Forest" & length(nrow(man_df)) > 0) {
+                                	} # end cultivated cumulative benefits/cumulative area/years 
+                                  
+                                  else if ((lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") & length(nrow(man_df)) > 0) {
+                                    # rangeland management
+                                    # only one type of land and management should be present
+                                    plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                    for (s in 2:num_scen_names) {
+                                      cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
+                                      cumyears = cumsum(cumyears)
+                                      plot_df$CumYears[plot_df$Scenario == scen_lnames[s]] = cumyears
+                                      plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = 0
+                                      cumarea = c(0,cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]]))
+                                      plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
+                                    }
+                                    plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
+                                      plot_df$Value.x[plot_df$Land_Type == lt_lab] /
+                                      plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
+                                    # now add diff per area per year
+                                    plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
+                                      plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
+                                      plot_df$CumYears[plot_df$Land_Type == lt_lab]
+                                  } # end if rangeland management
+                                  
+                                  ### indivudal FOREST 
+                                  else if (lt_lab == "Forest" & length(nrow(man_df)) > 0) {
                                 		# don't do afforestation here because it needs lt_lab == All_land
                                 		# first count how many practices there are
                                 		# man_df has already been pared down to current reg, lt, own, but with multiple scenarios
@@ -3535,21 +3572,23 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         		plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
                                         		plot_df$CumYears[plot_df$Land_Type == lt_lab]
                                         } # end else less intensive management
-                                		
-                                	} else if (lt_lab == "Developed_all" & length(nrow(man_df)) > 0) {
+                                		} # end else forest
+                                  
+                                   #### individual Developed_all 
+                                   else if (lt_lab == "Developed_all" & length(nrow(man_df)) > 0) {
                                 		# do developed growth below with land cover change
                                 		# for now check whether urban forest fraction is changing over time to determine practice
                                 			# because if the urban forest fraction is changing then do it even if land use change is happening
                                        	# for developed urban forest divide diff by difference in urban forest area between the scenario #2 and the baseline #1
                                         # for developed dead removal divide diff by cumulative dead removal area (this does not have a long-term effect on growth rates)
                                         # urban forest will always have non-zero area because it is a fraction of developed area
-                                        # assume that the sum of annual growth over the period or scenarios doesn't cancel itself out
-										
-										dev_man_data_sub_df = man_df[man_df$Management == "Urban_forest",]
-										if (length(nrow(dev_man_data_sub_df)) > 0) {
-												# need to check on a scenario basis
-												plot_uf_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-												plot_dr_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                        # assume that the sum of annual growth over the period or scenarios doesn't cancel itself out	
+                                		  
+                                		  dev_man_data_sub_df = man_df[man_df$Management == "Urban_forest",]
+                                		  if (length(nrow(dev_man_data_sub_df)) > 0) {	
+                                		    # need to check on a scenario basis
+                                		    plot_uf_df = merge(plot_df, dev_man_data_sub_df, by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
+                                		    plot_dr_df = merge(plot_df, man_df[man_df$Management == "Dead_removal",], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
                                             	for (s in 2:num_scen_names) {
                                             		cumyears = c(0, 0, rep(1,(length(dev_man_data_sub_df$Year[dev_man_data_sub_df$Scenario == scen_lnames[s]])-2)))
                                         			cumyears = cumsum(cumyears)
@@ -3615,7 +3654,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         		plot_df$CumYears[plot_df$Land_Type == lt_lab]
                                        	} # end else just do dead removal cuz no urban forest
                                         
-                                	} else if (lt_lab == "All_land" & length(nrow(al_area_df)) > 0) {
+                                	} # end if Developed_all
+                                  else if (lt_lab == "All_land" & length(nrow(al_area_df)) > 0) {
                                 		# restoration and afforestation and growth
                                 		
                                 		# need to associate the desired land type difference with the total benefit
@@ -3717,26 +3757,8 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                         plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
                                         	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
                                         	plot_df$CumYears[plot_df$Land_Type == lt_lab]
-                                	} else if ((lt_lab == "Grassland" | lt_lab == "Savanna" | lt_lab == "Woodland") & length(nrow(man_df)) > 0) {
-                                		# rangeland compost management: need cumulative area
-                                		# only one type of land and management should be present
-                                		plot_df = merge(plot_df, man_df[man_df$Land_Type == lt_lab,], by = c("Scenario", "Region", "Land_Type", "Ownership", "Year"), all.x = TRUE)
-                                    	for (s in 2:num_scen_names) {
-                                    		cumyears = c(0,rep(1,(length(plot_df$Year[plot_df$Scenario == scen_lnames[s]])-1)))
-                                        	cumyears = cumsum(cumyears)
-                                        	plot_df$CumYears[plot_df$Scenario == scen_lnames[s]] = cumyears
-                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = 0
-                                        	cumarea = c(0,cumsum(plot_df$Value.y[plot_df$Scenario == scen_lnames[s]]))
-                                    		plot_df$CumArea[plot_df$Scenario == scen_lnames[s]] = cumarea[-length(cumarea)]
-                                    	}
-                                        plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] =
-                                        	plot_df$Value.x[plot_df$Land_Type == lt_lab] /
-                                        	plot_df$CumArea[plot_df$Land_Type == lt_lab] / Mg2MMT
-                                        # now add diff per area per year
-                                        plot_df$DiffPerAreaPerYr[plot_df$Land_Type == lt_lab] =
-                                        	plot_df$DiffPerArea[plot_df$Land_Type == lt_lab] /
-                                        	plot_df$CumYears[plot_df$Land_Type == lt_lab]
-                                	} # end if-else land types
+                                	} # end if All_land (restoration)
+                           #       } # end if-else land types
                                 	
                                 	# if DiffPerArea exists so does DiffPerAreaPerYr
                                 	if (length(which(names(plot_df) == "DiffPerArea")) > 0) {
@@ -3819,7 +3841,7 @@ own = c("All_own"), figdir = "figures", INDIVIDUAL = FALSE, units_ha=FALSE, blac
                                 } # end if per area effect of individual practice
                           } # end if plotting BC or plotting another GHG species
                         } # end plot cumulative ghg line plot comparisons
-                        
+
                         # plot the annual ghg species bar graphs
                         
                         out_file = paste0(out_dir, reg_lab, "_", lt_lab, "_", own_lab, "_", "ann_ghg_species_output.pdf")

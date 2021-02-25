@@ -158,15 +158,20 @@
 #     to be added or subtracted from the mean soil carbon flux value of the rangeland practice, 
 #     or std dev double_range = FALSE to add or subtract 1 std dev to the mean soil carbon flux. If 
 #     nothing is specified, default is doubling: `double_range = TRUE`.  
-# 17. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
+# 17. `range_cum`: TRUE signals that any prescibed rangeland management practices are intended to have longterm
+#      benefits corresponding to a single application of compost at a repeat frequency of 10- or 30 years 
+#      (i.e. Med_frequency, Low_frequency, respectively), whereas FALSE signals that the benefits of a prescibed 
+#      rangeland management practice only accrue during the year of prescribed management (similar to Cultivated 
+#      soil_conservation).
+# 18. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
 #     -1 for full regeneration (i.e., no non-rengeration) or 120 for maximum non-regeneration, which is 
 #     the threshold distance (m) to the edge of a burn patch, beyond which the forest will not regenerate 
 #     and will convert to shrubland. The default is maximum non-regeneration: `NR_Dist = 120`. A shorter 
 #     distance increases non-regenerated area, and a longer distance decreases non-regenerated area.
-# 18. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
+# 19. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
 #     file, and `WRITE_OUT_FILE = FALSE` does not save the output file. If nothing is specified, default 
 #     is to save: `WRITE_OUT_FILE = TRUE`. 
-# 19. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
+# 20. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
 #     assigns a GWP of 900, and `blackC = FALSE` assigns a GWP of 1 (equivalent to CO2). If 
 #     nothing is specified, default is to treat black C the same as CO2: `blackC = FALSE`, which is 
 #     recommended as our current understanding is that black C does not behave like the main greenhouse 
@@ -746,7 +751,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   man_ID <- scen_df_list[[3]][,5]
   compost_only_ID <- c("Low_frequency","Med_frequency")
   if (all(any((compost_only_ID %in% man_ID))) & range_cum!= TRUE) {
-    stop("Error: cum_range must equal TRUE if low_frequency or med_frequency rangeland compost is prescribed")
+    stop("Error: range_cum must equal TRUE if low_frequency or med_frequency rangeland compost is prescribed")
   }
   
   # Check that all slash2..._frac add to 1
@@ -1807,7 +1812,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	        ################### end climate scalar adjustments ###################
 	      
 	 # apply climate effect (with applicable adjustments) to baseline soil c flux & managed flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
-      # first apply the scalar to the managed flux: man_soilc_flux = (man_soilc_flux/historic_soilc_flux) * (historic_soilc_flux) * soil climate scalar
+      
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
@@ -1817,6 +1822,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     # merge with soil climate scalars
     man_soil_df = merge(man_soil_df, climate_soil_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     
+    # apply the unadjusted scalars to non-agriculural managed flux: man_soilc_flux * cumulative managed area = 
+                                                                             # man_area_sum * (man_soilc_flux/historic_soilc_flux) * (historic_soilc_flux) * unadjusted soil climate scalar
     # if there are prescribed management practice(s),
     if (nrow(man_soil_df)>0) { # this is always TRUE
       # soil C flux * area = cumulative managed area * soil C mgmt frac * historic soil c flux * appropriate climate scalar
@@ -1911,7 +1918,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     
     ######## Calculate the area-weighted soil C flux value 
       # adjusted soil climate scalars were already applied to managed soil c fluxes as needed
-      # apply soil climate scalars to baseline flux here
+      # apply soil climate scalars to unmanaged historic flux here
     
     # If Low_freq or Med_freq were prescribed, all non-cultivated lands use cumulative area in calculations of area-weighted carbon flux:
     # final area-weighted non-cultivated soil c flux = 
