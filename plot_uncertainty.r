@@ -4,9 +4,18 @@
 # California Natural and Working Lands Carbon and Greenhouse Gas
 # Model (CALAND) Copyright (c) 2020, The Regents of the University of 
 # California, through Lawrence Berkeley National Laboratory (subject to 
-# receipt of any required approvals from the U.S. Dept. of Energy).  All 
+# receipt of any required approvals from the U.S. Dept. of Energy). All 
 # rights reserved.
-# If you have questions about your rights to use or distribute this software, # please contact Berkeley Lab's Intellectual Property Office at # IPO@lbl.gov. #  # NOTICE.  This Software was developed under funding from the U.S. Department # of Energy and the U.S. Government consequently retains certain rights.  As # such, the U.S. Government has been granted for itself and others acting on # its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the # Software to reproduce, distribute copies to the public, prepare derivative  # works, and perform publicly and display publicly, and to permit others to do so.
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+# 
+# NOTICE. This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights. As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative
+# works, and perform publicly and display publicly, and to permit others to do so.
 ####
 
 # This software and its associated input data are licensed under a modified BSD open source license
@@ -64,7 +73,7 @@
 #     appropriate region, land type, and ownership directories. The figures will be written to the folder representing the 
 #     mean. 
 # 8. `scenarios_a`: a vector of one or more scenario names for group 'a' that are listed in the Scenario column in the 
-#     .csv file containing `varname` for the mean.
+#     .csv file containing `varname` for the mean (i.e., the file in the 'mean' folder: figdirs_a[1]) .
 # 9. `scen_labs_a`: a vector of one or more scenario labels; must match the same number of elements in `scenarios_a`, and 
 #     correspond directly to the order of elements in `scenarios_a`.
 # 10. `data_dir_b`: the path to the directory containing the three folders of `plot_caland()` outputs (mean, low, and 
@@ -76,7 +85,7 @@
 #     the .csv files for the mean and lower and upper uncertainty bounds should follow the same logic as group a. The 
 #     figures will be written to the folder representing the mean. 
 # 12. `scenarios_b`: a vector of one or more scenario names for group 'b' that are listed in the Scenario column in the 
-#     .csv file containing `varname` for the mean.
+#     .csv file containing `varname` for the mean (i.e., the file in the 'mean' folder: figdirs_b[1]) .
 # 13. `scen_labs_b`: a vector of one or more scenario labels; must match the same number of elements in `scenarios_b`, 
 #     and correspond directly to the order of elements in `scenarios_b`.
 # 14. `data_dir_c`: the path to the directory containing the three folders of `plot_caland()` outputs (mean, low, and 
@@ -88,15 +97,21 @@
 #     location of the .csv files for the mean and lower and upper uncertainty bounds should follow the same logic as 
 #     group a. The figures will be written to the folder representing the mean. 
 # 16. `scenarios_c`: a vector of one or more scenario names for group 'c' that are listed in the Scenario column in the 
-#     .csv file containing `varname` for the mean.
+#     .csv file containing `varname` for the mean (i.e., the file in the 'mean' folder: figdirs_c[1]) .
 # 17. `scen_labs_c`: a vector of one or more scenario labels; must match the same number of elements in `scenarios_c`, 
 #     and correspond directly to the order of elements in `scenarios_c`.
-# 18. `reg`: a vector of one or more region names to plot; default is `reg = "All_region"` (i.e., aggregated across all 
+# 18. `scen_file_labels`: a vector of file tags corresponding to all of the scenarios listed in scen_labs_a, scen_labs_b  
+#      and scen_labs_c. This option allows users to use any type of character in scen_labs, including those that cannot
+#      be used in a filename (e.g., '%'). The scen_file_labels must be assigned the same number of elements and in the 
+#      same order as scen_labs_a, scen_labs_b and scen_labs_c, combined.
+# 19. `cultivated`: if TRUE indicates that your inputs include uncertainty in cultivated managed fluxes. Default is FALSE. 
+# 20. `rangelands`: if TRUE indicates that your inputs include uncertainty in rangeland managed fluxes. Default is FALSE. 
+# 21. `reg`: a vector of one or more region names to plot; default is `reg = "All_region"` (i.e., aggregated across all 
 #     regions), but can be any number of available regions: "All_region", "Central_Coast", "Central_Valley", "Delta", 
 #     "Deserts", "Eastside", "Klamath", "North_Coast", "Sierra_Cascades", "South_Coast". 
-# 19. `lt`: a vector of one or more land types to plot; default is `lt = "All_land"` (i.e., aggregated across all land 
+# 22. `lt`: a vector of one or more land types to plot; default is `lt = "All_land"` (i.e., aggregated across all land 
 #     types), but can be any number of available land types 
-# 20. `own`: a vector of one or more ownerships to plot; default = "All_own" (i.e., aggregated across all ownerships), 
+# 23. `own`: a vector of one or more ownerships to plot; default = "All_own" (i.e., aggregated across all ownerships), 
 #     but can be any number of available ownerships. 
 
 # Notes on `plot_uncertainty()`:
@@ -144,6 +159,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 							data_dir_a = "./outputs", figdirs_a=c("mean","low","high"), scenarios_a, scen_labs_a,
 							data_dir_b = NA, figdirs_b = NA, scenarios_b = NA, scen_labs_b = NA,
 							data_dir_c = NA, figdirs_c = NA, scenarios_c = NA, scen_labs_c = NA,
+							scen_file_labels, cultivated = FALSE, rangelands = FALSE, 
                           	reg = "All_region", lt = "All_land", own="All_own") {
   
   outputdir_a = paste0(data_dir_a, "/")
@@ -222,13 +238,13 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 
 			  # read in the 3 files for scenario group a (mean, lo, hi) and select scenarios and rows in start:end_year
 			  for (f in 1:3) {
-			      fig_lab <- figdirs[f]
+			    fig_lab <- figdirs[f]
 				  fname = paste0(outputdir, fig_lab, "/", reg_lab, "/", lt_lab, "/", own_lab, "/", reg_lab, "_", lt_lab, "_", own_lab, "_", varname, "_output.csv")
 				  in_df_pre = read.csv(fname)
 				  
 				  # the mean scenario name is input, so need to find the low and high scenario names
 				  # for carbon input uncertainty the different levels will be in different figdirs, so these are the basis for which is which
-				  # for cultivated soil conservation uncertainty, the different levels can be in the same file, so need to account for this
+				  # for cultivated and rangeland managed flux uncertainty, the different levels can be in the same file, so need to account for this
 				  # save each (mean, lo, hi) as their own column
 				  
 				  if (f==1) {
@@ -242,34 +258,55 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    colnames(group_df)[ncol(group_df)] <- "Mean"
 				  } else if (f==2) {
 				    # low
-				    if(figdirs[2] == figdirs[1]) { # soil conservation uncertainty
-				    	# need to get the low soil conservation cases
+				    if(figdirs[2] == figdirs[1]) { # cultivated and/or rangeland managed flux uncertainty
+				    	# need to get the low cultivated and/or rangeland managed flux cases
 				    	snames_all = NULL
 				    	for (n in 1:num_scen) {
 				    		pre <- substr(scenarios[n], 1, regexpr("_output", scenarios[n])-1)
 				    		post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
 				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
 				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep("S-", snames, value = TRUE)
-				    		snames = unique(snames)
-				    		snames_all = c(snames_all, snames)
+				    		if (cultivated==TRUE & rangelands==TRUE){ # get both low cultivated & low rangeland managed fluxes
+				    		  snames = grep("C-", snames, value = TRUE)
+				    		  snames = unique(snames)
+				    		  snames_all = c(snames_all, snames)
+				    		} else {
+				    		  if (cultivated==TRUE & rangelands==FALSE) {  # get low cultivated managed fluxes
+				    		    snames = grep("C-", snames, value = TRUE)
+				    		    snames = unique(snames)
+				    		    snames_all = c(snames_all, snames)
+				    		  } else {  # get low rangeland managed fluxes
+				    		    snames = grep("R-", snames, value = TRUE)
+				    		    snames = unique(snames)
+				    		    snames_all = c(snames_all, snames)
+				    		  }
+				    		}
 				    	} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
           		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]		    	
-				    } else { # carbon input uncertainty
+				    } else { # carbon input uncertainty or cultivated and/or rangeland managed fluxes
 				    	# just match the scenario name, the soil tag, the BC tag, and the NR tag
 				    	snames_all = NULL
 				    	for (n in 1:num_scen) {
 				    		pre <- substr(scenarios[n], 1, regexpr("_output", scenarios[n])-1)
 				    		post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
-				    		soil <- substr(scenarios[n], regexpr("_S", scenarios[n]), regexpr("_BC", scenarios[n])-1)
-				    		if(regexpr("_S", scenarios[n]) < 0) {soil = "_S=mean"}
-				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
-				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep(soil, snames, value = TRUE)
-				    		snames = unique(snames)
-				    		snames_all = c(snames_all, snames)
-				    	} # end n loop over desired scenarios
+				    		if (cultivated!=TRUE & rangelands!=TRUE){ # only low carbon input uncertainty
+				    		  soil <- substr(scenarios[n], regexpr("_C", scenarios[n]), regexpr("_BC", scenarios[n])-1) # get the C dens & C accum section 
+				    		  if(regexpr("_C", scenarios[n]) < 0) {soil = "_C=mean_R=mean"}
+				    		  snames = grep(pre, in_df_pre$Scenario, value = TRUE)
+				    		  snames = grep(post, snames, value = TRUE)
+				    		  snames = grep(soil, snames, value = TRUE)
+				    		  snames = unique(snames)
+				    		  snames_all = c(snames_all, snames)	
+				    		} else { # only ag uncertainty
+				    		  soil <- substr(scenarios[n], regexpr("_C", scenarios[n]), regexpr("_BC", scenarios[n])-1) # get the ag uncertainty section 
+				    		  snames = grep(pre, in_df_pre$Scenario, value = TRUE)
+				    		  snames = grep(post, snames, value = TRUE)
+				    		  snames = grep(soil, snames, value = TRUE)
+				    		  snames = unique(snames)
+				    		  snames_all = c(snames_all, snames)	
+				    		  } 
+				    		} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
           		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]				  		
 				    } # end if-else soil cons vs carbon uncertainty
@@ -280,33 +317,54 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 				    colnames(group_df)[ncol(group_df)] <- "Min"
 				  } else {
 				  	# high
-				  	if(figdirs[3] == figdirs[1]) { # soil conservation uncertainty
-				    	# need to get the high soil conservation cases
+				  	if(figdirs[3] == figdirs[1]) { # carbon input uncertainty or cultivated and/or rangeland managed fluxes (in same figdirs)
+				  	  # need to get the high cultivated and/or rangeland managed flux cases
 				    	snames_all = NULL
 				    	for (n in 1:num_scen) {
 				    		pre <- substr(scenarios[n], 1, regexpr("_output", scenarios[n])-1)
 				    		post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
 				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
 				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep("S+", snames, value = TRUE)
+				    		if (cultivated==TRUE & rangelands==TRUE){ # get both low cultivated & low rangeland managed fluxes
+				    		snames = grep("C+", snames, value = TRUE)
 				    		snames = unique(snames)
 				    		snames_all = c(snames_all, snames)
-				    	} # end n loop ove desired scenarios
+				    		} else {
+				    		  if (cultivated==TRUE & rangelands==FALSE) {  # get high cultivated managed fluxes
+				    		    snames = grep("C+", snames, value = TRUE)
+				    		    snames = unique(snames)
+				    		    snames_all = c(snames_all, snames)
+				    		  } else {  # get low rangeland managed fluxes
+				    		    snames = grep("R+", snames, value = TRUE)
+				    		    snames = unique(snames)
+				    		    snames_all = c(snames_all, snames)
+				    		  }
+				    		}
+				    	} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
           		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]		    	
-				    } else { # carbon input uncertainty
+				    } else { # carbon input uncertainty or cultivated and/or rangeland managed fluxes (in different figdirs)
 				    	# just match the scenario name, the soil tag, the BC tag, and the NR tag
 				    	snames_all = NULL
 				    	for (n in 1:num_scen) {
-				    		pre <- substr(scenarios[n], 1, regexpr("_output", scenarios[n])-1)
-				    		post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
-				    		soil <- substr(scenarios[n], regexpr("_S", scenarios[n]), regexpr("_BC", scenarios[n])-1)
-				    		if(regexpr("_S", scenarios[n]) < 0) {soil = "_S=mean"}
-				    		snames = grep(pre, in_df_pre$Scenario, value = TRUE)
-				    		snames = grep(post, snames, value = TRUE)
-				    		snames = grep(soil, snames, value = TRUE)
-				    		snames = unique(snames)
-				    		snames_all = c(snames_all, snames)
+				    	  pre <- substr(scenarios[n], 1, regexpr("_output", scenarios[n])-1)
+				    	  post <- substr(scenarios[n], regexpr("_BC", scenarios[n]), nchar(scenarios[n]))
+				    	  if (cultivated!=TRUE & rangelands!=TRUE){ # only low carbon input uncertainty
+				    	    soil <- substr(scenarios[n], regexpr("_C", scenarios[n]), regexpr("_BC", scenarios[n])-1) # get the C dens & C accum section 
+				    	    if(regexpr("_C", scenarios[n]) < 0) {soil = "_C=mean_R=mean"}
+				    	    snames = grep(pre, in_df_pre$Scenario, value = TRUE)
+				    	    snames = grep(post, snames, value = TRUE)
+				    	    snames = grep(soil, snames, value = TRUE)
+				    	    snames = unique(snames)
+				    	    snames_all = c(snames_all, snames)	
+				    	  } else { # only ag uncertainty
+				    	    soil <- substr(scenarios[n], regexpr("_C", scenarios[n]), regexpr("_BC", scenarios[n])-1) # get the ag uncertainty section 
+				    	    snames = grep(pre, in_df_pre$Scenario, value = TRUE)
+				    	    snames = grep(post, snames, value = TRUE)
+				    	    snames = grep(soil, snames, value = TRUE)
+				    	    snames = unique(snames)
+				    	    snames_all = c(snames_all, snames)	
+				    	  } 
 				    	} # end n loop over desired scenarios
 				    	# extract the years specified between start_year and end_year for each desired scenario
           		  		in_df <- in_df_pre[in_df_pre$Scenario %in% snames_all & in_df_pre$Year %in% start_year:end_year,]				  		
@@ -361,7 +419,7 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			                                                              legend.title=element_text(size=12))
 
 			  # save plot as pdf
-			  out_file <- paste0(outputdir_a, figdirs_a[1], "/", reg_lab, "/", lt_lab , "/", own_lab, "/", reg_lab, "_", lt_lab, "_", own_lab, "_", varname, "_scen_comp_uncert_bands", added_file_tag, ".pdf")
+			  out_file <- paste0(outputdir_a, figdirs_a[1], "/", reg_lab, "/", lt_lab , "/", own_lab, "/", reg_lab, "_", lt_lab, "_", own_lab, "_", varname, "_uncert_bands", added_file_tag, ".pdf")
 			  ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
 		    # save df as csv
 			  out_csv <- gsub(".pdf", ".csv", out_file) 
@@ -382,8 +440,8 @@ plot_uncertainty <- function(start_year=2010, end_year=2051, varname, ylabel, fi
 			                                                              axis.title.y=element_text(size=12),
 			                                                              axis.title.x=element_text(size=12),
 			                                                              legend.title=element_text(size=12))
-			    
-			     out_file = paste0(outputdir_a, figdirs_a[1], "/", reg_lab, "/", lt_lab , "/", own_lab, "/", reg_lab, "_", lt_lab, "_", own_lab, "_", varname,  "_scen_comp_uncert_bands", added_file_tag, "_", scen_labels[s], ".pdf")
+			     
+			     out_file = paste0(outputdir_a, figdirs_a[1], "/", reg_lab, "/", lt_lab , "/", own_lab, "/", reg_lab, "_", lt_lab, "_", own_lab, "_", varname,  "_uncert_bands", added_file_tag, "_", scen_file_labels[s], ".pdf")
 			     ggsave(out_file,dpi=300, width=2560/300, height=1540/300)
 			     
 			     } # end s loop plot individual scenarios

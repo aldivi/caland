@@ -6,7 +6,16 @@
 # California, through Lawrence Berkeley National Laboratory (subject to 
 # receipt of any required approvals from the U.S. Dept. of Energy).  All 
 # rights reserved.
-# If you have questions about your rights to use or distribute this software, # please contact Berkeley Lab's Intellectual Property Office at # IPO@lbl.gov. #  # NOTICE.  This Software was developed under funding from the U.S. Department # of Energy and the U.S. Government consequently retains certain rights.  As # such, the U.S. Government has been granted for itself and others acting on # its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the # Software to reproduce, distribute copies to the public, prepare derivative  # works, and perform publicly and display publicly, and to permit others to do so.
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+# 
+# NOTICE.  This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights.  As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative 
+# works, and perform publicly and display publicly, and to permit others to do so.
 ####
 
 # This software and its associated input data are licensed under a modified BSD open source license
@@ -384,11 +393,12 @@ vegcuptake_ind = 10
 soilcaccum_ind = 11
 conversion_ind = 12
 forest_man_ind = 13
+grass_manage_ind = 15
 ag_manage_ind = 16
 wildfire_ind = 17
 
 # useful indices of the input parameter files
-param_start_col = c(4, 4, 2, 5, 3, 3, 4, 2)
+param_start_col = c(4, 4, 2, 5, 3, 4, 4, 2)
 
 # some default parameters
 
@@ -969,12 +979,17 @@ i = 4
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types4, forceConversion = TRUE)
 
-for (i in 5:6) { # dev_manage to grass_manage 
+# dev_manage 
+i = 5
 	param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 	param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types2, forceConversion = TRUE)
-}
 
-# ag_manage
+# rangeland_manage
+i = 6
+param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
+param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
+
+# cultivated_manage
 i = 7
 param_head_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = 1, endRow = last_head_row, header=FALSE)
 param_df_list[[i]] <- readWorksheet(param_wrkbk, i, startRow = start_row, colTypes = c_col_types3, forceConversion = TRUE)
@@ -1960,6 +1975,7 @@ out_c_map_df_list[[biomassc_ind]]$Mean_SE_Mg_ha = sqrt(out_c_map_df_list[[biomas
 #soilcaccum_ind = 11
 #conversion_ind = 12
 #forest_man_ind = 13
+#grass_manage_ind = 15
 #ag_manage_ind = 16
 #wildfire_ind = 17
 
@@ -1975,8 +1991,8 @@ for (m in params_start:params_end) {
 		# if forest_man merging will be done by landtype and ownership 
 	} else if (m == forest_man_ind) {
 		mergeby = c("Land_Type", "Ownership")
-	# if conversion, dev_manage, grass_manage, or wildfire merge by landtype
-	} else if (m == ag_manage_ind) {
+	# if conversion, dev_manage, or wildfire merge by landtype
+	} else if (m == ag_manage_ind | m == grass_manage_ind) {
 		mergeby = c("Region", "Land_Type")
 	} else {
 		mergeby = c("Land_Type")
@@ -2199,7 +2215,7 @@ for (m in params_start:params_end) {
 			# order the columns
 			out_table_landcat = out_table_landcat[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
 			                         # column headers from current param table
-			                         # param_start_col = c(4, 4, 2, 5, 3, 3, 4, 2)
+			                         # param_start_col = c(4, 4, 2, 5, 3, 4, 4, 2)
 			                         # m = 10 to 17
 			                         # in_index = 1 to 8
 			                         # in_index = m - params_start + 1

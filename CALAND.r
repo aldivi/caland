@@ -4,9 +4,13 @@
 # California Natural and Working Lands Carbon and Greenhouse Gas
 # Model (CALAND) Copyright (c) 2020, The Regents of the University of 
 # California, through Lawrence Berkeley National Laboratory (subject to 
-# receipt of any required approvals from the U.S. Dept. of Energy).  All 
+# receipt of any required approvals from the U.S. Dept. of Energy). All 
 # rights reserved.
-# If you have questions about your rights to use or distribute this software, # please contact Berkeley Lab's Intellectual Property Office at # IPO@lbl.gov. #  # NOTICE.  This Software was developed under funding from the U.S. Department # of Energy and the U.S. Government consequently retains certain rights.  As # such, the U.S. Government has been granted for itself and others acting on # its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the # Software to reproduce, distribute copies to the public, prepare derivative  # works, and perform publicly and display publicly, and to permit others to do so.
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+####
+
 ####
 
 # This software and its associated input data are licensed under a modified BSD open source license
@@ -64,9 +68,8 @@
 #       `carbon_input_nwl.xls` is default filename, containing the initial carbon densities (mean, min, max, SD) 
 #         in seven carbon pools and the historical soil and vegetation carbon fluxes (mean, min, max, SD) for 
 #         each land category, the carbon adjustment parameters for wildfire, conversion of any land type to 
-#         Cultivated or Developed lands, and Forest, Developed, and Rangeland (Grassland, Savanna, Woodland) 
-#         management, and the soil carbon fluxes (mean, min, max, SD) in Cultivated lands under the 
-#         'soil conservation' practice. 
+#         Cultivated or Developed lands, Forest and Developed management, and managed soil carbon fluxes 
+#         (mean, min, max, SD) in Rangeland (Grassland, Savanna, Woodland) and Cultivated lands. 
                                                              
 #   Scenario input file: The scenario that will be simulated.
 #     `<scenario_name>.xls` contains the initial areas of each land type per region-ownership combination 
@@ -104,7 +107,7 @@
                                                              
 ############################################# Arguments in `CALAND()`################################################
 
-# `CALAND()` has 15 arguments that control which input files and values are used, and how the model will operate for 
+# `CALAND()` has 19 arguments that control which input files and values are used, and how the model will operate for 
 # each run. A single scenario is simulated at a time. At a minimum, you must specify the scenario filename each 
 # time you run `CALAND()` and the other arguments will automatically be assigned default values explained here:
                                                                
@@ -131,25 +134,39 @@
 # 9. `value_col_soilcon`: Integer code identifying which soil carbon flux values to use for the cultivated 
 #     soil conservation practice (i.e., 6 = min, 7 = max, 8 = mean, 9 = std dev). If nothing is specified, 
 #     default is the mean: `value_col_soilcon = 8`. 
-# 10. `ADD_dens`: For use with `value_col_dens = 8`; assign `ADD_dens = TRUE` to add the std dev to the 
+# 10. `value_col_range`: Integer code identifying which soil carbon flux values to use for the rangeland 
+#     (Grassland, Savanna, Woodland) management practices (i.e., 6 = min, 7 = max, 8 = mean, 9 = std dev). 
+#     If nothing is specified, default is the mean: `value_col_range = 8`. double_range = TRUE, , 
+# 11. `ADD_dens`: For use with `value_col_dens = 8`; assign `ADD_dens = TRUE` to add the std dev to the 
 #     mean carbon density values, or assign `ADD_dens = FALSE` to subtract the std dev from the mean carbon 
 #     density values. If nothing is specified, default is addition: `ADD_dens = TRUE`. 
-# 11. `ADD_accum`: For use with `value_col_accum = 8`; assign `ADD_accum = TRUE` to add the std dev to the 
+# 12. `ADD_accum`: For use with `value_col_accum = 8`; assign `ADD_accum = TRUE` to add the std dev to the 
 #     mean carbon flux values, or assign `ADD_accum = FALSE` to subtract the std dev from the mean carbon 
 #     flux values. If nothing is specified, default is addition: `ADD_accum = TRUE`.  
-# 12. `ADD_soilcon`: For use with `value_col_soilcon = 9`; assign `ADD_soilcon = TRUE` to add the std dev 
+# 13. `ADD_soilcon`: For use with `value_col_soilcon = 9`; assign `ADD_soilcon = TRUE` to add the std dev 
 #     to the mean carbon flux value of the cultivated soil conservation practice, or assign 
 #     `ADD_soilcon = FALSE` to subtract the std dev from the mean carbon flux of the cultivated soil 
 #     conservation practice. If nothing is specified, default is addition: `ADD_soilcon = TRUE`.  
-# 13. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
+# 14. `ADD_range`: For use with `value_col_range = 9`; assign `ADD_range = TRUE` to add the std dev 
+#     to the mean carbon flux value of the rangeland practice, or assign `ADD_range = FALSE`
+#      to subtract the std dev from the mean carbon flux of the rangeland practice
+# 15. `double_soilcon`: For use with `value_col_soilcon = 9`; assign `double_soilcon = TRUE` to double the 
+#     std dev to be added or subtracted from the mean soil carbon flux value of the cultivated soil conservation 
+#     practice, or std dev double_soilcon = FALSE to add or subtract 1 std dev to the mean soi lcarbon flux. 
+#     If nothing is specified, default is doubling: `double_soilcon = TRUE`.  
+# 16. `double_range`: For use with `value_col_range = 9`; assign `double_range = TRUE` to double the std dev
+#     to be added or subtracted from the mean soil carbon flux value of the rangeland practice, 
+#     or std dev double_range = FALSE to add or subtract 1 std dev to the mean soil carbon flux. If 
+#     nothing is specified, default is doubling: `double_range = TRUE`.  
+# 17. `NR_Dist`: For adjusting the amount of non-regenerating forest after high severity wildfire, use 
 #     -1 for full regeneration (i.e., no non-rengeration) or 120 for maximum non-regeneration, which is 
 #     the threshold distance (m) to the edge of a burn patch, beyond which the forest will not regenerate 
 #     and will convert to shrubland. The default is maximum non-regeneration: `NR_Dist = 120`. A shorter 
 #     distance increases non-regenerated area, and a longer distance decreases non-regenerated area.
-# 14. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
+# 18. `WRITE_OUT_FILE`: Chooses whether to save the output file; `WRITE_OUT_FILE = TRUE` saves the output 
 #     file, and `WRITE_OUT_FILE = FALSE` does not save the output file. If nothing is specified, default 
 #     is to save: `WRITE_OUT_FILE = TRUE`. 
-# 15. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
+# 19. `blackC`: Chooses how the global warming potential (GWP) of black carbon is computed; `blackC = TRUE` 
 #     assigns a GWP of 900, and `blackC = FALSE` assigns a GWP of 1 (equivalent to CO2). If 
 #     nothing is specified, default is to treat black C the same as CO2: `blackC = FALSE`, which is 
 #     recommended as our current understanding is that black C does not behave like the main greenhouse 
@@ -257,13 +274,15 @@ GET.NAMES <- function(df, new.name) {
 
 # assign CALAND()
 
-CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
+CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "", outdir = "", start_year = 2010, end_year = 2101, value_col_dens = 7, ADD_dens = TRUE, value_col_accum = 7, ADD_accum = TRUE, value_col_soilcon=8, ADD_soilcon = TRUE, double_soilcon = TRUE, value_col_range=8,  ADD_range = TRUE, double_range = TRUE, range_cum = TRUE, NR_Dist = 120, WRITE_OUT_FILE = TRUE, blackC = FALSE) {
   cat("Start CALAND at", date(), "\n")
   
   # output label for: value_col and ADD select which carbon density and accumulation values to use; see notes above
   ftag = c("", "", "", "", "min", "max", "mean", "sd")
-  # for soil cons flux values
+  # for cultivated soil cons flux values
   ftag_soilcon = c("", "", "", "", "", "min", "max", "mean", "sd")
+  # for rangeland flux values
+  ftag_range = c("", "", "", "", "", "min", "max", "mean", "sd")
   
   inputdir = paste0("inputs/", indir)
   if(substr(inputdir,nchar(inputdir), nchar(inputdir)) != "/") { inputdir = paste0(inputdir, "/") }
@@ -357,13 +376,14 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   downdead_decay_frac = c(1,exp(-fire_branch_decay_rate * fire_decay_years)[fire_decay_years[-length(fire_decay_years)]]) - exp(-fire_branch_decay_rate * fire_decay_years)
   
   ######### Determine output file names based on arguments in CALAND() that specify which input statistics are used for c density ######### 
-  ############################ and c accumulation (baseline and cultivated soil conservation) ############################################
+  ############################ and c accumulation (baseline, cultivated and rangeland practices) ############################################
   
   # first check to make sure that the val cols are valid (min, max, mean, std dev)
-  #		so the numbers have to be 5 - 8 for dens or 6 - 9 for soil conservation
-  if ( value_col_dens < 5 | value_col_dens > 8 | value_col_accum < 5 | value_col_accum > 8 | value_col_soilcon < 6 | value_col_soilcon > 9) {
-  	cat( "Invalid value column for value_col_dens, value_col_accum, or value_col_soilcon\n" )
-    stop( "Please make sure that all of these arguemnts are one of the following:\nmin (5), max (6), mean (7), std_dev (8)\n" )
+  #		so the numbers have to be 5 - 8 for dens, 6 - 9 for cultivated practices, 8 -9 for rangeland practices (update late if min and max are added to rangeland inputs)
+  if ( value_col_dens < 5 | value_col_dens > 8 | value_col_accum < 5 | value_col_accum > 8 | value_col_soilcon < 6 | value_col_soilcon > 9 | value_col_range < 8 | value_col_range > 9) {
+  	cat( "Invalid value column for value_col_dens, value_col_accum, value_col_soilcon, or value_col_range\n" )
+    stop( "Please make sure that all of these arguemnts are one of the following:\value_col_dens: min (5), max (6), mean (7), std_dev (8);
+          value_col_soilcon: min (6), max (7), mean (8), std_dev (9); value_col_range: min (6), max (7), mean (8), std_dev (9)\n" )
   }
   
   # if c density and c accumulation use _same_ input statisitic: they're both either min (5), max (6), mean (7), std_dev (8)
@@ -426,27 +446,79 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   } # end else dens and accum have different stat
   
   # paste extended name to output file to indicate which statistic is used for soil conservation flux
-  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean") {
+  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean" &
+      ftag_soilcon[value_col_range] == "mean") {
     # do nothing, filename stays the same: outputs/[scen_name]_output_mean.xls
   } else {
-    # otherwise subtract ".xls" and replace with [mean, add, or sub]_soilcon.xls
+    # otherwise subtract ".xls" and replace with [mean, add, or sub]_cult.xls
     delete.xls <- ".xls"
     if (value_col_soilcon == 8) {
       # mean soil conservation
-      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=mean.xls")
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C=mean.xls")
     } else if(value_col_soilcon == 6) {
     	# min soil conservation
-      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=min.xls")
+      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C=min.xls")
     } else if(value_col_soilcon == 7) {
     	# max soil conservation
-      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S=max.xls")
+      	out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C=max.xls")
 	} else {
       if (ADD_soilcon) {
         # plus sd soil conservation
-        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S+sd.xls")
+        if (double_soilcon) {
+          # mean + 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C+2sd.xls")
+        } else {
+          # mean + sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C+sd.xls")
+        }
       } else {
         # sub sd soil conservation
-        out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_S-sd.xls")
+        if (double_soilcon) {
+          # mean - 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C-2sd.xls")
+        } else {
+          # mean - sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_C-sd.xls")
+        }
+      }
+    }
+  }
+  
+  # paste extended name to output file to indicate which statistic is used for rangeland flux
+  if (ftag[value_col_dens] == "mean" & ftag[value_col_accum] == "mean" & ftag_soilcon[value_col_soilcon] == "mean" &
+      ftag_soilcon[value_col_range] == "mean") {
+    # do nothing, filename stays the same: outputs/[scen_name]_output_mean.xls
+  } else {
+    # otherwise subtract ".xls" and replace with [mean, add, or sub]_range.xls
+    delete.xls <- ".xls"
+    if (value_col_range == 8) {
+      # mean rangeland management
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R=mean.xls")
+    } else if(value_col_range == 6) {
+      # min rangeland management
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R=min.xls")
+    } else if(value_col_range == 7) {
+      # max rangeland management
+      out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R=max.xls")
+    } else {
+      if (ADD_range) {
+        # plus sd rangeland management
+        if (double_range) {
+          # mean + 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R+2sd.xls")
+        } else {
+          # mean + sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R+sd.xls")
+        }
+      } else {
+        # sub sd soil rangeland management
+        if (double_range) {
+          # mean - 2sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R-2sd.xls")
+        } else {
+          # mean - sd
+          out_file = paste0(substr(out_file,1,nchar(out_file)-4), "_R-sd.xls")
+        }
       }
     }
   }
@@ -667,6 +739,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     stop("Error: each land category in the management area table must exist in the initial area table")
   }
   
+  # Check that the range_cum argument is TRUE if low_freq or med_freq are prescribed in the management areas in scen_df_list[[3]]
+  # if neither are prescibed, but another non-restoration management is prescribed, it is up to the user whether to set range_cum
+  # TRUE or FALSE. FALSE will apply annual benefits only during the year of management, whereas TRUE will default to the same
+  # calculations as for Low_frequency, basing the benefits on cumulative area for 30 years.
+  man_ID <- scen_df_list[[3]][,5]
+  compost_only_ID <- c("Low_frequency","Med_frequency")
+  if (all(any((compost_only_ID %in% man_ID))) & range_cum!= TRUE) {
+    stop("Error: cum_range must equal TRUE if low_frequency or med_frequency rangeland compost is prescribed")
+  }
+  
   # Check that all slash2..._frac add to 1
   columns_1_check <- c_df_list[[12]][,c("Slash2Energy_conv_frac", "Slash2Burn_conv_frac", "Slash2Wood_conv_frac", "Slash2Decay_conv_frac")]
   sums <- rowSums(columns_1_check)
@@ -740,8 +822,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   climate_veg_target_df <- scen_df_list[[6]]
   climate_soil_target_df <- scen_df_list[[7]]
   
+  
   # these are useful
-  # assign the conversion area sheet from sceario file to conv_area_df
+  # assign the conversion area sheet from scenario file to conv_area_df
   conv_area_df = scen_df_list[[2]]
   names(conv_area_df)[ncol(conv_area_df)] = "base_area_change"
   vegc_uptake_df = c_df_list[[10]]
@@ -755,8 +838,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
   man_dev_df = c_df_list[[14]]
   dev_soilcaccumfrac_colind = which(names(man_dev_df) == "SoilCaccum_frac")
   man_grass_df = c_df_list[[15]]
+  # assign the correct rangeland management flux column (mean=8, SD=9) to man_grass_df$soilc_accum_val_range 
+  man_grass_df$soilc_accum_val_range = man_grass_df[,value_col_range] 
   man_ag_df = c_df_list[[16]]
-  # assign the correct soil conservation column (mean=8, SD=9) to man_ag_df$soilc_accum_val_soilcon 
+  # assign the correct cultivated management flux column (mean=8, SD=9) to man_ag_df$soilc_accum_val_soilcon 
   man_ag_df$soilc_accum_val_soilcon = man_ag_df[,value_col_soilcon]
   fire_df = c_df_list[[17]]
   
@@ -779,25 +864,56 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     }
   }
   
-  # get the correct values for the cutivated soil conservation soil c accum if value is std dev
+  # get the correct values for the cutivated management soil c accum if value is std dev
   if(value_col_soilcon == 9) { # std dev as value
     if(ADD_soilcon) {
-      man_ag_df$soilc_accum_val_soilcon = man_ag_df$soilc_accum_val_soilcon + man_ag_df$Mean_Mg_ha_yr
+      if (double_soilcon) { # double SD
+        man_ag_df$soilc_accum_val_soilcon = 2 * man_ag_df$soilc_accum_val_soilcon + man_ag_df$Mean_Mg_ha_yr
+      } else {
+        man_ag_df$soilc_accum_val_soilcon = man_ag_df$soilc_accum_val_soilcon + man_ag_df$Mean_Mg_ha_yr
+      }
     } else {
-      man_ag_df$soilc_accum_val_soilcon = man_ag_df$Mean_Mg_ha_yr - man_ag_df$soilc_accum_val_soilcon
+      if (double_soilcon) { # double SD
+      man_ag_df$soilc_accum_val_soilcon = man_ag_df$Mean_Mg_ha_yr - 2 * man_ag_df$soilc_accum_val_soilcon 
+    } else {
+      man_ag_df$soilc_accum_val_soilcon = man_ag_df$Mean_Mg_ha_yr - man_ag_df$soilc_accum_val_soilcon 
+    }
     }
   }
   
-  ### Create a dummy variable for the soil_c_flux_frac for cultivated lands so that:
+  # get the correct values for the rangeland management soil c accum if value is std dev
+  if(value_col_range == 9) { # std dev as value
+    if(ADD_range) {
+      if (double_range) { # mean + 2SD
+        man_grass_df$soilc_accum_val_range = 2 * man_grass_df$soilc_accum_val_range + man_grass_df$Mean_Mg_ha_yr
+      } else { # mean + SD 
+        man_grass_df$soilc_accum_val_range = man_grass_df$soilc_accum_val_range + man_grass_df$Mean_Mg_ha_yr
+      }
+    } else {
+      if (double_range) { # mean - 2SD
+        man_grass_df$soilc_accum_val_range = man_grass_df$Mean_Mg_ha_yr - 2 * man_grass_df$soilc_accum_val_range  
+      } else { # mean - SD
+        man_grass_df$soilc_accum_val_range = man_grass_df$Mean_Mg_ha_yr - man_grass_df$soilc_accum_val_range 
+      }
+    }
+  }
+  
+  
+  ### Create a dummy variable for the soil_c_flux_frac for cultivated and rangelands because absolute managed flux is the input:
   ### man_soilc_flux = man_frac * baseline_soilc_flux
   ### man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * baseline_soilc_flux
   ### Thus, for cultivated lands, man_frac = man_soilc_flux/baseline_soilc_flux
   
-  # subset baseline c accum values and landcat ID's to be merged into man_ag_df
+  # subset baseline c accum values and landcat ID's to be merged into man_ag_df and man_grass_df
   df <- soilc_accum_df[,c("Land_Cat_ID","init_soilc_accum_val")]
   man_ag_df <- merge(man_ag_df, df, by="Land_Cat_ID")
-  # calc the dummy cultivated soil c flux frac
+  man_grass_df <- merge(man_grass_df, df, by="Land_Cat_ID")
+  
+  # calc the dummy managed soil c flux fracs
+    # cultivated
   man_ag_df$SoilCaccum_frac <- man_ag_df$soilc_accum_val_soilcon/man_ag_df$init_soilc_accum_val
+    # rangeland
+  man_grass_df$SoilCaccum_frac <- man_grass_df$soilc_accum_val_range/man_grass_df$init_soilc_accum_val
   
   # create lists of the output tables
   # change the NA value to zero for calculations
@@ -1026,7 +1142,6 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         (next_targetyear - prev_targetyear)
     }
     climate_soil_df[which(is.na(climate_soil_df))] = 0.0
-    
     
     ##### check if there any prescibed management practices #####
     if (nrow(man_area_sum)>0) {
@@ -1264,7 +1379,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     
     # the developed practices are independent of each other and so calc cum sum independently, even though they are not currently used
     #  dead_removal values are assigned to the "aggregate" dev_all values for man_area and man_area_sum; these are not used either
-    # current ag management does not use sum area because they are annual practices to maintain the benefits
+    # current cultivated management does not use sum area because they are annual practices to maintain the benefits
     # prescribed burn is not included in man_area sum for long-term benefits
     #	it is assumed that prescribed burn occurs on land that has been managed during the prior benefit period
     # Afforestation and reforestation and restoration are not dependent on existing area and are not included in aggregate managed area
@@ -1287,20 +1402,35 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     
 	temp_df = out_area_df_list[[2]]
 	temp_df$sum = 0
+	
+	# assign the prior year's management area column index to sum_end_col
 	sum_end_col = which(names(temp_df) == paste0(year-1, "_ha"))
 	
 	# the first year will not have previous year values, so the value will be the first year value as calculated above
 	if(length(sum_end_col) > 0) {
 		
- 		# rangeland low frequency compost
+ 		### rangeland low frequency compost
+	  
+	  # assign the year (current year)-29 years to sum_start
 		sum_start = year - range_lowfreq_period + 1
+		
+		# reassign 2010 (start_year of simulation) to sum_start unless 29 years have passed. This essentially keeps sum_start = 2010 until 2039 (the benefit period if compost applied in 2010)
+		# in year 2040, sum_start = 2011, and increases by 1 each subsequent year 
 		if (sum_start < start_year) { sum_start = start_year }
+		
+		# assign the _index_ of the management area column for the sum_start year to sum_start_col
 		sum_start_col = which(names(temp_df) == paste0(sum_start, "_ha"))
-		if (sum_start_col == sum_end_col) {
-			# only one year in sum, so rowSums() won't work
+		
+		# if the prior year's management _column_ is the same as sum_start (i.e. current year is 2011)
+		if (sum_start_col == sum_end_col) {  
+		  # assign the prior year's management area column (i.e., 2010_ha) for Low_frequency to the 'sum' column
+			  # only one year in sum, so rowSums() won't work
 			temp_df$sum[temp_df$Management == "Low_frequency"] = temp_df[temp_df$Management == "Low_frequency",sum_start_col]
+			# after 2011, assign the row sum of low_freq managemnt areas from 2010 to previous year to the 'sum' column
+			# after 2038, the start and end year to sum is 2010 to 2039, and this 30 year period shifts by one year for each additional loop (e.g., 2011 to 2040)
 		} else { temp_df$sum[temp_df$Management == "Low_frequency"] = rowSums(temp_df[temp_df$Management == "Low_frequency", c(sum_start_col:sum_end_col)]) }
-    	# rangeland med frequency compost
+    	
+		## rangeland med frequency compost
 		sum_start = year - range_medfreq_period + 1
 		if (sum_start < start_year) { sum_start = start_year }
 		sum_start_col = which(names(temp_df) == paste0(sum_start, "_ha"))
@@ -1344,6 +1474,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 		# update man_area_sum by adding the previous years sum and the current year man area - but only for the appropriate practices
     	man_area_sum = merge(man_area_sum, temp_df[,c(1:5,ncol(temp_df))], by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management"), all.x = TRUE)
     	man_area_sum = man_area_sum[order(man_area_sum$Land_Cat_ID, man_area_sum$Management),]
+    	# for rangeland compost, forest management except rx burn types, afforestation and reforestation, and Dev_all Dead_removal, assign previous year's 'sum' + current year man_area to 'man_area_sum'. 
     	man_area_sum$man_area_sum[man_area_sum$Management == "Low_frequency" | man_area_sum$Management == "Med_frequency" | 
     			(man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & 
     			man_area_sum$Management != "Prescribed_burn" & man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util") | 
@@ -1356,6 +1487,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     			(man_area_sum$Land_Type == "Forest" & man_area_sum$Management != "Afforestation" & man_area_sum$Management != "Reforestation" & 
     			man_area_sum$Management != "Prescribed_burn" & man_area_sum$Management != "Prescribed_burn_med_slash_util" & man_area_sum$Management != "Prescribed_burn_hi_slash_util") | 
     			(man_area_sum$Land_Type == "Developed_all" & man_area_sum$Management == "Dead_removal")]
+    	# clear sum column
     	man_area_sum$sum = NULL
 	} #end if second year or more
 	
@@ -1498,8 +1630,9 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     }
     
     # merge rangeland management (soil) effect and cultivated land df's. Then merge with developed and forest management 
-      # assign the common column names between man_grass_df and man_ag_df to common_cols since man_ag_df has extra columns now
-    common_cols <- intersect(colnames(man_ag_df), colnames(man_grass_df))
+      # select only these column names (excludes the min, max, mean, std columns)
+    common_cols <- c("Land_Cat_ID", "Region", "Land_Type", "Ownership", 
+                     "Management", "SoilCaccum_frac")
       # rbind the commmon columns into man_adjust_df
     man_adjust_df = rbind(subset(man_grass_df, select = common_cols),subset(man_ag_df, select = common_cols))
     man_adjust_df = rbind(man_adjust_df, man_forest_df[,c(1:5,forest_soilcaccumfrac_colind)])
@@ -1560,35 +1693,203 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 	vegc_uptake_df$current_urban_forest_fraction = NULL
 	soilc_accum_df$start_urban_forest_fraction = NULL
 	soilc_accum_df$current_urban_forest_fraction = NULL
-    
+  
     # soil
-    # apply climate effect to baseline soil c flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
-      # note that the soil conservation flux will be modified too: man_soilc_flux = (man_soilc_flux/baseline_soilc_flux) * (baseline_soilc_flux * soil climate scalar)
-    soilc_accum_df$soilc_accum_val <- soilc_accum_df$soilc_accum_val * climate_soil_df[,as.character(year)]
+	
+	  # before applying the climate effect to to baseline soil c flux, check to see if ajustments are needed for managed cultivated land and rangeland (excluding restoration)
+	  # adjust soil climate scalars as necessary (climate_soil_target_df) for agrigulral lands to accomodate management practices that flip the sign of the baseline flux
+	  # change sign if the sign of the mean historic c flux is flipped (neg to pos, or pos to neg) by any of the following because the scalars were derived
+  	# in part based on the sign of the historic c flux
+	
+	# get rows in man_adjust_df for Cultivated, Grassland, Woodland, or Savanna (that are not Restoration) to see if there is any managed area
+	man_adjust_df_check <- man_adjust_df[man_adjust_df$Management != "Restoration",]
+	
+	# subset cultivated type because need to subset rows that have management area >0 for current year
+	man_adjust_df_check_cult <- man_adjust_df_check[man_adjust_df_check$Land_Type == "Cultivated",]
+	man_adjust_df_check_cult <- man_adjust_df_check_cult[man_adjust_df_check_cult$man_area != 0,]
+	
+	# subset rangeland type because need to subset rows that have management area (or benefiting area for compost, i.e., man_area_sum) >0 for current year
+	man_adjust_df_check_range <-man_adjust_df_check[man_adjust_df_check$Land_Type == "Grassland" | man_adjust_df_check$Land_Type == "Savanna" | 
+	                                                  man_adjust_df_check$Land_Type == "Woodland",]
+	
+	# first select for the low- and med- frequency management with man_area_sum >0
+	man_adjust_df_check_range_low <- man_adjust_df_check_range[man_adjust_df_check_range$man_area_sum != 0 & man_adjust_df_check_range$Management == "Low_frequency",]
+	man_adjust_df_check_range_med <- man_adjust_df_check_range[man_adjust_df_check_range$man_area_sum != 0 & man_adjust_df_check_range$Management == "Med_frequency",]
+	# second select for non- compost practices with man_area >0
+	man_adjust_df_check_range_other <- man_adjust_df_check_range[man_adjust_df_check_range$Management != "Med_frequency" & man_adjust_df_check_range$Management != "Low_frequency", ]
+	man_adjust_df_check_range_other <- man_adjust_df_check_range_other[man_adjust_df_check_range_other$man_area != 0,]
+	
+	# row bind the three df's
+	man_adjust_df_check_range <- rbind(man_adjust_df_check_range_low, man_adjust_df_check_range_med, man_adjust_df_check_range_other)
+	
+	if (nrow(man_adjust_df_check_cult) != 0) {
+	    
+	    # compare sign of historic c accum value soilc_accum_df$soilc_accum_val with current year managed fluxes: 
+	      # (man_ag_df$soilc_accum_val_soilcon or man_adjust_df$SoilCaccum_frac * soilc_accum_df$soilc_accum_val) 
+	    # add column of historic c accum value to man_adjust_df_check_cult by land category
+	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, soilc_accum_df[,c("Land_Cat_ID","soilc_accum_val")], by="Land_Cat_ID")
+	    # add column of managed c accum value to man_adjust_df by land category & management 
+	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, man_ag_df[,c("Land_Cat_ID","soilc_accum_val_soilcon","Management")], 
+	                                      by=c("Land_Cat_ID","Management"))
+
+	    # create a new column and label the historic flux neg, zero, or pos
+	    man_adjust_df_check_cult$check_hist <- ifelse(man_adjust_df_check_cult$soilc_accum_val >= 0, "Positive number", "Negative number")
+	    # create a new column and label the historic flux neg, zero, or pos
+	    man_adjust_df_check_cult$check_man <- ifelse(man_adjust_df_check_cult$soilc_accum_val_soilcon >= 0, "Positive number", "Negative number")
+	    
+	    #  add soil climate scalar _for current year_ to man_adjust_df_check_cult for determining how to adjust it
+	    # subset soil climate scalars and landcat ID's to be merged into man_adjust_df_check_cult
+	    df <- climate_soil_df[,c("Land_Cat_ID",as.character(year))]
+	    man_adjust_df_check_cult <- merge(man_adjust_df_check_cult, df, by="Land_Cat_ID")
+	    
+	    # compare the signs of hist and managed fluxes and make adjustments to scalar if they differ (adjusted scalar = 2-scalar) 
+	    man_adjust_df_check_cult[,as.character(year)]<- ifelse(man_adjust_df_check_cult$check_hist != man_adjust_df_check_cult$check_man, 
+	                                                           2 - man_adjust_df_check_cult[,as.character(year)], man_adjust_df_check_cult[,as.character(year)])
+	    
+	  # rename last column for the adjusted soil climate scalar "[year]_adjusted_cult"
+	  names(man_adjust_df_check_cult)[length(man_adjust_df_check_cult)] <- paste0(as.character(year),"_adjusted_cult")
+	  # isolate adjusted_scalar and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
+	  man_adjust_df_check_cult <- man_adjust_df_check_cult[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
+	                                                          paste0(as.character(year),"_adjusted_cult"), "check_hist", "check_man")]
+	  climate_soil_df <- merge(climate_soil_df, man_adjust_df_check_cult, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
+	}
+	
+	    ##### repeat for rangeland 
+	    
+	    if (nrow(man_adjust_df_check_range) != 0) {
+	      
+	      # compare sign of historic c accum value soilc_accum_df$soilc_accum_val with current year managed fluxes: 
+	      # (man_ag_df$soilc_accum_val_soilcon or man_adjust_df$SoilCaccum_frac * soilc_accum_df$soilc_accum_val) 
+	      # add column of historic c accum value to man_adjust_df_check_range by land category
+	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, soilc_accum_df[,c("Land_Cat_ID", "soilc_accum_val")], by="Land_Cat_ID")
+	      # add column of managed c accum value to man_adjust_df by land category
+	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, man_grass_df[,c("Land_Cat_ID", "Management","soilc_accum_val_range")], 
+	                                         by=c("Land_Cat_ID","Management"))
+	      
+	      # create a new column and label the historic flux neg, zero, or pos
+	      man_adjust_df_check_range$check_hist <- ifelse(man_adjust_df_check_range$soilc_accum_val >= 0, "Positive number", "Negative number")
+	      # create a new column and label the historic flux neg, zero, or pos
+	      man_adjust_df_check_range$check_man <- ifelse(man_adjust_df_check_range$soilc_accum_val_range >= 0, "Positive number", "Negative number")
+	      
+	      #  add soil climate scalar _for current year_ to man_adjust_df_check_range for determining how to adjust it
+	      # subset soil climate scalars and landcat ID's to be merged into man_adjust_df_check_range
+	      df <- climate_soil_df[,c("Land_Cat_ID",as.character(year))]
+	      man_adjust_df_check_range <- merge(man_adjust_df_check_range, df, by="Land_Cat_ID")
+	      
+	      # compare the signs of hist and managed fluxes and make adjustments to scalar if they differ (adjusted scalar = 2-scalar) 
+	      man_adjust_df_check_range[,as.character(year)]<- ifelse(man_adjust_df_check_range$check_hist != man_adjust_df_check_range$check_man, 
+	                                                             2 - man_adjust_df_check_range[,as.character(year)], man_adjust_df_check_range[,as.character(year)])
+	      
+	      # rename last column for the adjusted soil climate scalar "[year]_adjusted_range"
+	      names(man_adjust_df_check_range)[length(man_adjust_df_check_range)] <- paste0(as.character(year),"_adjusted_range")
+	      # isolate adjusted_scalar and land_cat_id columns to merge with climate_soil_df (keep check_hist and check_man for testing update)
+	      man_adjust_df_check_range <- man_adjust_df_check_range[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership",
+	                                                              paste0(as.character(year),"_adjusted_range"), "check_hist", "check_man")]
+	      climate_soil_df <- merge(climate_soil_df, man_adjust_df_check_range, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
+	    }
+	
+	# save climate_soil_df to verify adjustments are working correctly (TESTED - WORKS CORRECTLY)
+	#if (year == 2010) {
+	#  climate_soil_save <- climate_soil_df
+	#} else {
+	  # annual loop runs 2010 to (end_year-1)
+	#  if (year != (end_year-1)) { 
+	    # only save the individual landcats (omit extra rows)
+	#    climate_soil_df = unique(climate_soil_df)
+	#    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
+	#  } else {
+	#    climate_soil_df = unique(climate_soil_df)
+	#    climate_soil_save <- cbind(climate_soil_save, climate_soil_df[,(5:length(climate_soil_df)), drop=FALSE])
+	#    out_file_csv <- substr(out_file,1,nchar(out_file)-4)
+	#    write.csv(climate_soil_save, paste0(out_file_csv,"climate_scalars_adjusted.csv"))
+	 # }
+	#}
+	        ################### end climate scalar adjustments ###################
+	      
+	 # apply climate effect (with applicable adjustments) to baseline soil c flux & managed flux. use current year loop to determine which column to use in climate_soil_df (first clim factor col ind is 5)
+      # first apply the scalar to the managed flux: man_soilc_flux = (man_soilc_flux/historic_soilc_flux) * (historic_soilc_flux) * soil climate scalar
     # Cultivated uses the current year managed area
     man_soil_df = merge(man_adjust_df, soilc_accum_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
     man_soil_df = man_soil_df[order(man_soil_df$Land_Cat_ID, man_soil_df$Management),]
     # omit growth and urban forest because only dead removal determines managed area
-    man_soil_df = man_soil_df[(man_soil_df $Management != "Urban_forest" & man_soil_df$Management != "Growth") | is.na(man_soil_df$Management),]
-    # if there are  prescribed management practice(s),
-    if (nrow(man_soil_df)>0) {
-      # soil C flux * area = cumulative managed area * soil C mgmt frac * baseline soil c flux
+    man_soil_df = man_soil_df[(man_soil_df$Management != "Urban_forest" & man_soil_df$Management != "Growth") | is.na(man_soil_df$Management),]
+ 
+    # merge with soil climate scalars
+    man_soil_df = merge(man_soil_df, climate_soil_df, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
+    
+    # if there are prescribed management practice(s),
+    if (nrow(man_soil_df)>0) { # this is always TRUE
+      # soil C flux * area = cumulative managed area * soil C mgmt frac * historic soil c flux * appropriate climate scalar
       # for rows with NA management or NA soilc_accum_val, this equals NA
-      man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Cultivated"] = man_soil_df$man_area_sum[man_soil_df$Land_Type != "Cultivated"] * 
-      	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Cultivated"] * 
-      	man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Cultivated"]
-      # for cultivated lands: soilcfluxXarea = current year managed area * modified-SoilCaccum_frac * climate-affected baseline soil C flux
+      
+      # for non-ag lands use non-adjusted soil climate scalar for current year
+      man_soil_df$soilcfluxXarea[man_soil_df$Land_Type != "Cultivated" & man_soil_df$Land_Type != "Grassland" & 
+                                 man_soil_df$Land_Type != "Savanna" & man_soil_df$Land_Type != "Woodland"] = 
+        man_soil_df$man_area_sum[man_soil_df$Land_Type != "Cultivated" & man_soil_df$Land_Type != "Grassland" & 
+                                   man_soil_df$Land_Type != "Savanna" & man_soil_df$Land_Type != "Woodland"] * 
+      	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type != "Cultivated" & man_soil_df$Land_Type != "Grassland" & 
+      	                              man_soil_df$Land_Type != "Savanna" & man_soil_df$Land_Type != "Woodland"] * 
+      	man_soil_df$soilc_accum_val[man_soil_df$Land_Type != "Cultivated" & man_soil_df$Land_Type != "Grassland" & 
+      	                              man_soil_df$Land_Type != "Savanna" & man_soil_df$Land_Type != "Woodland"] *
+        man_soil_df[man_soil_df$Land_Type != "Cultivated" & man_soil_df$Land_Type != "Grassland" & 
+                            man_soil_df$Land_Type != "Savanna" & man_soil_df$Land_Type != "Woodland", as.character(year)] # unadjusted climate scalar
+      
+      #### For agricultural land calculations below, currently only one management practice is valid per land category because the historic flux (soilc_accum_val) 
+        ##### would otherwise be double-counted when the land categories are sum aggregated. For now, continue calculating the combined management practices externally 
+
+      # calc total managed soil c flux for cultivated lands: 
+        # soilcfluxXarea = current year managed area * SoilCaccum_frac * soilc_accum_val * appropriate climate scalar
+      if (paste0(as.character(year),"_adjusted_cult") %in% colnames(man_soil_df)) { 
+        # if there's a column for adjusted cultivated soil climate scalars (there was at least one cult landcat with managed area). Note this column
+         # also includes unadjusted cultivated soil climate scalars for landcats with no sign flip from baseline to managed flux
       man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Cultivated"] = man_soil_df$man_area[man_soil_df$Land_Type == "Cultivated"] * 
-      	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Cultivated"] * 
-      	man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"]
-      # this needs to be zero for afforestation and reforestation and restoration and prescribed burn because these areas are not included in actual managed area for flux adjustment
+      	man_soil_df$SoilCaccum_frac[man_soil_df$Land_Type == "Cultivated"] * man_soil_df$soilc_accum_val[man_soil_df$Land_Type == "Cultivated"] * 
+        man_soil_df[man_soil_df$Land_Type == "Cultivated", paste0(as.character(year),"_adjusted_cult")] # adjusted and/or unadjusted soil climate scalar
+      # any cultivated rows without managed areas equal NA which will flip to 0 later
+      } else {
+        # no managed cultivated lands: set the managed soil flux to 0
+        man_soil_df$soilcfluxXarea[man_soil_df$Land_Type == "Cultivated"] <- 0.00 
+      } # end calculate the soilcfluxXarea for Cultivated
+      
+      # calc total managed soil c flux for rangelands: 
+      if (paste0(as.character(year),"_adjusted_range") %in% colnames(man_soil_df)) {
+        
+        # if there's a column for adjusted rangeland soil climate scalars (there was at least one range landcat with managed area). Note this column
+        # should also include unadjusted rangeland soil climate scalars for landcats with no sign flip from baseline to managed flux
+        
+        #### rangeland compost management - cumulative area ####
+        # if range_cum is TRUE, either low_frequency or med_freq management rows exist so use man_area_sum
+        # soilcfluxXarea = current year cumulative managed area * SoilCaccum_frac * soilc_accum_val * appropriate climate scalar
+        if(range_cum == TRUE){  
+          man_soil_df$soilcfluxXarea[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] = 
+            man_soil_df$man_area_sum[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] * 
+            man_soil_df$SoilCaccum_frac[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] * 
+            man_soil_df$soilc_accum_val[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] * 
+            man_soil_df[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland"), 
+                        paste0(as.character(year),"_adjusted_range")]
+        } else { # there are other practices which use annual areas
+          man_soil_df$soilcfluxXarea[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] = 
+            man_soil_df$man_area[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] * 
+            man_soil_df$SoilCaccum_frac[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] * 
+            man_soil_df$soilc_accum_val[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] * 
+            man_soil_df[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland"), 
+                        paste0(as.character(year),"_adjusted_range")] # adjusted and/or unadjusted soil climate scalar
+        } # end calculate the soilcfluxXarea for rangeland
+      
+      } else {
+        # no managed rangeland lands: set the managed soil flux to 0
+        man_soil_df$soilcfluxXarea[(man_soil_df$Land_Type == "Grassland" | man_soil_df$Land_Type == "Savanna" | man_soil_df$Land_Type == "Woodland")] <- 0.00 
+      }  # end calc total managed soil c flux for rangelands:
+      
+      # total managed soil c flux needs to be zero for afforestation and reforestation and restoration and prescribed burn because these areas are not included 
+        # in actual managed area for flux adjustment
       # 	the man_area_sum values for afforestation and reforestation and restoration are used later for protection area, so they can't be zeroed out above
       man_soil_df$soilcfluxXarea[man_soil_df$Management == "Afforestation" | man_soil_df$Management == "Reforestation" | man_soil_df$Management == "Restoration" | 
       	man_soil_df$Management == "Prescribed_burn" | man_soil_df$Management == "Prescribed_burn_med_slash_util" | man_soil_df$Management == "Prescribed_burn_hi_slash_util"] = 0.00
     } else {
         # if there are no prescribed management practices assign 0 to "soil C flux * managed area"
         man_soil_df$soilcfluxXarea <- 0.00  
-    }
+    } # end check that there are any management areas
     
     # replace all NA soilcfluxXarea values with 0, otherwise they will not aggregate properly below
     na_inds <- which(is.na(man_soil_df$soilcfluxXarea))
@@ -1598,8 +1899,8 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     man_soilflux_agg = aggregate(soilcfluxXarea ~ Land_Cat_ID + Region + Land_Type + Ownership, man_soil_df, FUN=sum)
     # merge aggregated soil flux df with all_c_flux, which has man_area_agg, unman_area, man_area_sum_agg & unman_area_sum
     man_soilflux_agg = merge(all_c_flux, man_soilflux_agg, by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all = TRUE)
-    # merge the soilc_accum_val from man_soil_df with man_soilflux_agg
-    man_soilflux_agg = merge(man_soilflux_agg, man_soil_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "soilc_accum_val")], 
+    # merge the soilc_accum_val from man_soil_df with man_soilflux_agg, including the unadjusted soil climate scalar for modifying the baseline flux below
+    man_soilflux_agg = merge(man_soilflux_agg, man_soil_df[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "soilc_accum_val", as.character(year))], 
                              by = c("Land_Cat_ID", "Region", "Land_Type", "Ownership"), all.x=TRUE)
     man_soilflux_agg = man_soilflux_agg[order(man_soilflux_agg$Land_Cat_ID),]
     # only save the individual landcats (omit extra rows)
@@ -1608,23 +1909,70 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
     na_inds = which(is.na(man_soilflux_agg$soilc_accum_val))
     man_soilflux_agg[na_inds, "soilc_accum_val"] = 0.00
     
-    # Calculate the area-weighted soil C flux value 
-    # final non-cultivated soil c flux = [(managed soil c flux * cumulative mgmt area) + (baseline soil c flux * cumulative unmanaged area)]/ total area 
-       # if no mgmt, unman_area_sum==tot_area, and fin_soilc_accum = baseline soil C flux
+    ######## Calculate the area-weighted soil C flux value 
+      # adjusted soil climate scalars were already applied to managed soil c fluxes as needed
+      # apply soil climate scalars to baseline flux here
+    
+    # If Low_freq or Med_freq were prescribed, all non-cultivated lands use cumulative area in calculations of area-weighted carbon flux:
+    # final area-weighted non-cultivated soil c flux = 
+      # [(managed soil c flux * cumulative mgmt area * appropriate climate scalar) + (baseline soil c flux * cumulative unmanaged area * climate scalar)]/ total area 
+     # if no mgmt, unman_area_sum==tot_area, and fin_soilc_accum = baseline soil C flux * climate_scalar
+    if (range_cum == TRUE) { 
     man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Cultivated"] = 
-      (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type != "Cultivated"] + 
+      (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type != "Cultivated"] +  # includes soil climate effect (adjusted as needed)
          man_soilflux_agg$unman_area_sum[man_soilflux_agg$Land_Type != "Cultivated"] * 
-         man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type != "Cultivated"]) / 
+         man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type != "Cultivated"] *
+         man_soilflux_agg[man_soilflux_agg$Land_Type != "Cultivated", as.character(year)]) /  # unadjusted soil climate effect
       tot_area_df$tot_area[tot_area_df$Land_Type != "Cultivated"]
-    # final cultivated soil c flux = [(managed soil c flux * annual mgmt area) + (baseline soil c flux * annual unmanaged area)]/ total area 
+    } else { 
+      # annual rangeland management practices implemented so exclude rangeland here too
+      man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type != "Cultivated" & man_soilflux_agg$Land_Type != "Grassland" &
+                                         man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland"] = 
+        (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type != "Cultivated" & man_soilflux_agg$Land_Type != "Grassland" &
+                                           man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland"] +  # includes soil climate effect (adjusted as needed)
+           man_soilflux_agg$unman_area_sum[man_soilflux_agg$Land_Type != "Cultivated" & man_soilflux_agg$Land_Type != "Grassland" &
+                                             man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland"] * 
+           man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type != "Cultivated" & man_soilflux_agg$Land_Type != "Grassland" &
+                                              man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland"] *
+           man_soilflux_agg[man_soilflux_agg$Land_Type != "Cultivated" & man_soilflux_agg$Land_Type != "Grassland" &
+                              man_soilflux_agg$Land_Type != "Savanna" & man_soilflux_agg$Land_Type != "Woodland", as.character(year)]) /  # unadjusted soil climate effect
+        tot_area_df$tot_area[tot_area_df$Land_Type != "Cultivated" & tot_area_df$Land_Type != "Grassland" & 
+                               tot_area_df$Land_Type != "Savanna" & tot_area_df$Land_Type != "Woodland"]
+      
+      # and calculate rangeland with annual area
+      man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Grassland" | man_soilflux_agg$Land_Type == "Savanna" | 
+                                         man_soilflux_agg$Land_Type == "Woodland"] = 
+        (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type == "Grassland" | man_soilflux_agg$Land_Type == "Savanna" | 
+                                           man_soilflux_agg$Land_Type == "Woodland"] + # includes soil climate effect (adjusted as needed)
+           man_soilflux_agg$unman_area[man_soilflux_agg$Land_Type == "Grassland" | man_soilflux_agg$Land_Type == "Savanna" | 
+                                         man_soilflux_agg$Land_Type == "Woodland"] * 
+           man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type == "Grassland" | man_soilflux_agg$Land_Type == "Savanna" | 
+                                              man_soilflux_agg$Land_Type == "Woodland"] *
+           man_soilflux_agg[man_soilflux_agg$Land_Type == "Grassland" | man_soilflux_agg$Land_Type == "Savanna" | 
+                              man_soilflux_agg$Land_Type == "Woodland", as.character(year)]) / # unadjusted soil climate effect
+        tot_area_df$tot_area[tot_area_df$Land_Type == "Grassland" | tot_area_df$Land_Type == "Savanna" | tot_area_df$Land_Type == "Woodland"]
+    } # end calculations for non-cultivated and non-rangelands, and rangelands
+    
+    # final area-weighted cultivated soil c flux = 
+      # [(managed soil c flux * annual mgmt area * appropriate climate scalar) + (baseline soil c flux * annual unmanaged area * climate scalar)]/ total area 
     man_soilflux_agg$fin_soilc_accum[man_soilflux_agg$Land_Type == "Cultivated"] = 
-      (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type == "Cultivated"] + 
+      (man_soilflux_agg$soilcfluxXarea[man_soilflux_agg$Land_Type == "Cultivated"] + # includes soil climate effect (adjusted as needed)
          man_soilflux_agg$unman_area[man_soilflux_agg$Land_Type == "Cultivated"] * 
-         man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type == "Cultivated"]) / 
+         man_soilflux_agg$soilc_accum_val[man_soilflux_agg$Land_Type == "Cultivated"] *
+         man_soilflux_agg[man_soilflux_agg$Land_Type == "Cultivated", as.character(year)]) / # unadjusted soil climate effect
       tot_area_df$tot_area[tot_area_df$Land_Type == "Cultivated"]
+    
+    # get rows that have NA, Inf, or -Inf for the final soil C flux value
     nan_inds = which(is.nan(man_soilflux_agg$fin_soilc_accum) | man_soilflux_agg$fin_soilc_accum == Inf | man_soilflux_agg$fin_soilc_accum == -Inf)
+    # and assign the baseline soil c flux value to the the final soil c flux value (this should be 0)
     man_soilflux_agg$fin_soilc_accum[nan_inds] = man_soilflux_agg[nan_inds, "soilc_accum_val"]
     man_soilflux_agg$man_change_soilc_accum = man_soilflux_agg$fin_soilc_accum - man_soilflux_agg$soilc_accum_val
+    
+   # (TESTED - WORKS CORRECTLY)
+   # out_file_csv <- substr(out_file,1,nchar(out_file)-4)
+   # write.csv(man_adjust_df_check_cult, paste0(out_file_csv, "man_adjust_df_check_cult_", year, ".csv"))
+   # write.csv(man_adjust_df_check_range, paste0(out_file_csv, "man_adjust_df_check_range_", year, ".csv"))
+   # write.csv(man_soilflux_agg, paste0(out_file_csv, "man_soilflux_agg_", year, ".csv"))
     
     ############################################################################################################
     #########################################  All land types ##################################################
