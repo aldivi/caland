@@ -7,9 +7,13 @@ Maegen Simmonds
 Lawrence Berkeley National Laboratory  
 
 ## Citing CALAND
-Please cite the appropriate version using the corresponding Digital Object Identifier (DOI) and our forthcoming peer-reviewed manuscripts, the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published. If the papers are not yet available at the time you wish to cite CALAND, please use the following citation:
+Please cite our peer-reviewed manuscripts and the appropriate version of CALAND using the corresponding Digital Object Identifier (DOI), the citations for which will be made available in the [most current readme file](https://github.com/aldivi/caland/blob/master/README.md) on CALAND's Github repository as they are published. 
 
-[Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation.](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
+[Simmonds, M. B., A. V. Di Vittorio, C. Jahns, E. Johnston, A. Jones, P. Nico (2021) Impacts of California's climate-relevant land use policy scenarios on terresrial carbon emissions (CO2 and CH4) and wildfire risk. Environmental Research Letters. 16 014044](https://doi.org/10.1088/1748-9326/abcc8d)
+
+Latest CALAND version citation:
+
+[Di Vittorio, A., and M. Simmonds (2019) CALAND, Version 3.0.0, DOI: 10.5281/zenodo.3256727](https://doi.org/10.5281/zenodo.3256727)
 
 ## Repository updates
 * July 2020:
