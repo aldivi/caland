@@ -13,12 +13,16 @@ Manuscripts:
 
 Di Vittorio, A.V., M.B. Simmonds, P. Nico. In review. Quantifying the effects of multiple land management practices, land cover change, and wildfire on the California landscape carbon budget with an empirical model. PLOS ONE.
 
-Simmonds, M., A.V. Di Vittorio, C. Jahns, E. Johnston, A. Jones, and P.S. Nico. 2021. Impacts of California's climate-relevant land use policy scenarios on terrestrial carbon emissions (CO<sub>2</sub> and CH<sub>4</sub>) and wildfire risk. Environ. Res. Lett. 16(2021) 014044. [https://doi.org/10.1088/1748-9326/abcc8d.](https://doi.org/10.1088/1748-9326/abcc8d)
+Simmonds, M.B., A.V. Di Vittorio, C. Jahns, E. Johnston, A. Jones, and P.S. Nico. 2021. Impacts of California's climate-relevant land use policy scenarios on terrestrial carbon emissions (CO<sub>2</sub> and CH<sub>4</sub>) and wildfire risk. Environ. Res. Lett. 16 014044 [DOI: 10.1088/1748-9326/abcc8d](https://doi.org/10.1088/1748-9326/abcc8d)
 
-The citation for the technical documentation is:
 
-[Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation.](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
+The citation for CALAND v3.0.0 technical documentation is:
 
+Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3, Technical Documentation. [DOI: 10.5281/zenodo.3256727](https://doi.org/10.5281/zenodo.3256727)
+
+The citation for CALAND v3.0.0 code is:
+
+Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Carbon and Greenhouse Gas Model (CALAND), Version 3. [DOI: 10.5281/zenodo.3256727](https://github.com/aldivi/caland/blob/master/CALAND_Technical_Documentation_V3_June2019.pdf)
 
 
 
