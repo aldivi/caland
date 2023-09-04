@@ -11,7 +11,7 @@ Please cite the appropriate version using the corresponding Digital Object Ident
 
 Manuscripts:
 
-Di Vittorio, A.V., M.B. Simmonds, P. Nico. In review. Quantifying the effects of multiple land management practices, land cover change, and wildfire on the California landscape carbon budget with an empirical model. PLOS ONE.
+Di Vittorio, A.V., M.B. Simmonds, P. Nico. 2021. Quantifying the effects of multiple land management practices, land cover change, and wildfire on the California landscape carbon budget with an empirical model. PLOS ONE 16(5):e0251346. [DOI: 10.1371/journal.pone.0251346].
 
 Simmonds, M.B., A.V. Di Vittorio, C. Jahns, E. Johnston, A. Jones, and P.S. Nico. 2021. Impacts of California's climate-relevant land use policy scenarios on terrestrial carbon emissions (CO<sub>2</sub> and CH<sub>4</sub>) and wildfire risk. Environ. Res. Lett. 16 014044 [DOI: 10.1088/1748-9326/abcc8d](https://doi.org/10.1088/1748-9326/abcc8d)
 
