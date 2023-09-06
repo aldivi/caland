@@ -61,7 +61,7 @@ Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Car
 
 
 ## Version History
-* CALAND version 3.0.1: April 2021 completion, September 2023 release; DOI: 10.5281/zenodo.3256727
+* CALAND version 3.0.1: April 2021 completion, September 2023 release; DOI: 10.5281/zenodo.8317419
 * CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
 * CALND concept DOI for all versions, 25 June 2019: 10.5281/zenodo.3256726
 * CALAND version 2.0.0: 23 October 2017; not an official release
