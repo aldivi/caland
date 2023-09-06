@@ -27,6 +27,8 @@ Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Car
 
 
 ## Repository updates
+* September 2023:
+  * Actual release of v3.0.1 with DOI update
 * February 2021:
   * Version 3.0.1 includes a minor CALAND bug fix, updated raw climate scalar files, the county scaling functions (as added in Oct 2019), and tutorial materials
   * Bug fix:
@@ -59,7 +61,7 @@ Di Vittorio, A., and M. Simmonds (2019) California Natural and Working Lands Car
 
 
 ## Version History
-* CALAND version 3.0.1: February 2021; DOI: forthcoming
+* CALAND version 3.0.1: April 2021 completion, September 2023 release; DOI: 10.5281/zenodo.3256727
 * CALAND version 3.0.0: 25 June 2019; DOI: 10.5281/zenodo.3256727
 * CALND concept DOI for all versions, 25 June 2019: 10.5281/zenodo.3256726
 * CALAND version 2.0.0: 23 October 2017; not an official release
